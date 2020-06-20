@@ -15,6 +15,7 @@ const (
 	FATAL                // Fatal: multiple process(request) fails because of this.
 )
 
+// Inner log interface.
 type _log interface {
 	Level() Level
 	Time() time.Time

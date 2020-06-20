@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/leoleoasd/eduoj/backend/base"
+	"github.com/leoleoasd/EduOJBackend/base"
 )
 
 func main() {

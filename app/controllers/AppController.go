@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leoleoasd/eduoj/backend/base"
+	"github.com/leoleoasd/EduOJBackend/base"
 	"net/http"
 )
 

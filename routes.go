@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/leoleoasd/eduoj/backend/app/controllers"
-	"github.com/leoleoasd/eduoj/backend/base"
+	"github.com/leoleoasd/EduOJBackend/app/controllers"
+	"github.com/leoleoasd/EduOJBackend/base"
 )
 
 func init() {
