@@ -6,6 +6,6 @@ import (
 )
 
 func init() {
-	base.E.GET("/", controllers.Root)
+	base.E.GET("/", controllers.Recv)
 	// TODO: routes.
 }
