@@ -11,3 +11,5 @@ var redisClient *redis.Client
 func Redis() *redis.Client {
 	return redisClient
 }
+
+// Postgresql Client
