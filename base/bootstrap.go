@@ -12,4 +12,7 @@ func init() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
+	// e.g. Connect to postgresql server
+	// Read configuration file
+	// Parse command line arguments.
 }

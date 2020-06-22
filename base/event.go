@@ -7,6 +7,7 @@ import (
 
 var listeners = map[string][]interface{}{}
 
+// RegisterListener
 func RegisterListener(eventName string, listener interface{}) {
 	listenerValue := reflect.ValueOf(listener)
 	if listenerValue.Kind() != reflect.Func {
@@ -15,7 +16,7 @@ func RegisterListener(eventName string, listener interface{}) {
 	listeners[eventName] = append(listeners[eventName], listener)
 }
 
-func FireEvent(hookName string, args ...interface{}) (result [][]interface{}, err error) {
+func FireEvent(eventName string, args ...interface{}) (result [][]interface{}, err error) {
 	defer func() {
 		if p := recover(); p != nil {
 			result = nil
@@ -27,10 +28,10 @@ func FireEvent(hookName string, args ...interface{}) (result [][]interface{}, er
 	for i, arg := range args {
 		argsValue[i] = reflect.ValueOf(arg)
 	}
-	result = make([][]interface{}, len(listeners[hookName]))
-	for i, hook := range listeners[hookName] {
-		hookFunc := reflect.ValueOf(hook)
-		rst := hookFunc.Call(argsValue)
+	result = make([][]interface{}, len(listeners[eventName]))
+	for i, listener := range listeners[eventName] {
+		listenerFunc := reflect.ValueOf(listener)
+		rst := listenerFunc.Call(argsValue)
 		result[i] = make([]interface{}, len(rst))
 		for j, v := range rst {
 			result[i][j] = v.Interface()
