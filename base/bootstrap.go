@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func init(){
+func init() {
 	E = echo.New()
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",

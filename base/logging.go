@@ -25,24 +25,19 @@ type _log interface {
 
 // Log
 type Log struct {
-	Level `json:"level"`
-	Time time.Time `json:"time"`
-	Text string `json:"text"`
-	Function string `json:"function"`
+	Level    `json:"level"`
+	Time     time.Time `json:"time"`
+	Text     string    `json:"text"`
+	Function string    `json:"function"`
 }
 
 // Logger should only be used in this package.
-// Other packages should use hooks to receive logs.
+// Other packages should use listeners to receive logs.
 type _logger interface {
-
 }
 
-
-
-
-
 func (l Level) String() string {
-	switch l{
+	switch l {
 	case DEBUG:
 		return "DEBUG"
 	case INFO:
@@ -51,7 +46,7 @@ func (l Level) String() string {
 		return "WARNING"
 	case ERROR:
 		return "ERROR"
-	default :
+	default:
 		return "FATAL"
 	}
 }
