@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"time"
@@ -35,17 +36,11 @@ func TestEvent(t *testing.T) {
 			if err != nil {
 				t.Error("Errors when calling hook: ", err)
 			}
-			if len(result) != 1 {
-				t.Error("Wrong result length!", result)
-			}
+			assert.Equal(t, len(result), 1, "Result length should be 1.")
 			for i, v := range result[0] {
 				vv := reflect.ValueOf(v)
-				if vv.Type() != reflect.TypeOf(test.Results[i]) {
-					t.Error("Wrong result type!", vv.Type().Name(), reflect.TypeOf(test.Results[i]).Name())
-				}
-				if v != test.Results[i] {
-					t.Error("Wrong result value!", v, test.Results[i])
-				}
+				assert.Equal(t, vv.Type(), reflect.TypeOf(test.Results[i]), "Type of result should be same.")
+				assert.Equal(t, v, test.Results[i], "Value of result should be same.")
 			}
 		})
 	}
