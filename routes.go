@@ -10,6 +10,5 @@ func init() {
 
 	base.E.GET("/admin", controllers.Recv)
 
-
 	// TODO: routes.
 }

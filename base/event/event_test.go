@@ -1,4 +1,4 @@
-package base
+package event
 
 import (
 	"fmt"
@@ -14,17 +14,17 @@ func cleanup() {
 func TestEvent(t *testing.T) {
 	defer cleanup()
 
-	tests := []struct{
+	tests := []struct {
 		Listener interface{}
-		Args []interface{}
-		Results []interface{}
+		Args     []interface{}
+		Results  []interface{}
 	}{
 		{
 			Listener: func(a int, b string, c time.Time) (int, string, time.Time) {
 				return a, b, c
 			},
-			Args: append(make([]interface{}, 0), 1,"123", time.Date(2001,2,3,4,5,6,7, time.UTC)),
-			Results: append(make([]interface{}, 0), 1,"123", time.Date(2001,2,3,4,5,6,7, time.UTC)),
+			Args:    append(make([]interface{}, 0), 1, "123", time.Date(2001, 2, 3, 4, 5, 6, 7, time.UTC)),
+			Results: append(make([]interface{}, 0), 1, "123", time.Date(2001, 2, 3, 4, 5, 6, 7, time.UTC)),
 		},
 	}
 	for i, test := range tests {
