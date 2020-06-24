@@ -15,11 +15,11 @@ type _logger interface {
 	Warning(items ...interface{})
 	Error(items ...interface{})
 	Fatal(items ...interface{})
-	DebugF(format string, items ...interface{})
-	InfoF(format string, items ...interface{})
-	WarningF(format string, items ...interface{})
-	ErrorF(format string, items ...interface{})
-	FatalF(format string, items ...interface{})
+	Debugf(format string, items ...interface{})
+	Infof(format string, items ...interface{})
+	Warningf(format string, items ...interface{})
+	Errorf(format string, items ...interface{})
+	Fatalf(format string, items ...interface{})
 }
 
 type logger struct {
@@ -47,7 +47,7 @@ func (l *logger) removeWriter(t reflect.Type) {
 func (l *logger) logWithLevelString(level Level, text string) {
 	// Get caller
 	var caller string
-	pc, _, line, ok := runtime.Caller(2)
+	pc, _, line, ok := runtime.Caller(3)
 	if ok {
 		f := runtime.FuncForPC(pc)
 		caller = fmt.Sprint(f.Name(), ":", line)
@@ -93,22 +93,22 @@ func (l *logger) Fatal(items ...interface{}) {
 	l.logWithLevel(FATAL, items...)
 }
 
-func (l *logger) DebugF(format string, items ...interface{}) {
+func (l *logger) Debugf(format string, items ...interface{}) {
 	l.logWithLevelF(DEBUG, format, items...)
 }
 
-func (l *logger) InfoF(format string, items ...interface{}) {
+func (l *logger) Infof(format string, items ...interface{}) {
 	l.logWithLevelF(INFO, format, items...)
 }
 
-func (l *logger) WarningF(format string, items ...interface{}) {
+func (l *logger) Warningf(format string, items ...interface{}) {
 	l.logWithLevelF(WARNING, format, items...)
 }
 
-func (l *logger) ErrorF(format string, items ...interface{}) {
+func (l *logger) Errorf(format string, items ...interface{}) {
 	l.logWithLevelF(ERROR, format, items...)
 }
 
-func (l *logger) FatalF(format string, items ...interface{}) {
+func (l *logger) Fatalf(format string, items ...interface{}) {
 	l.logWithLevelF(FATAL, format, items...)
 }

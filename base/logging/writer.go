@@ -24,18 +24,23 @@ func (w *consoleWriter) log(l Log) {
 	// TODO
 }
 
-func (w *consoleWriter) init() {}
+func (w *consoleWriter) init() (err error) {
+	return
+}
 
 func (w *databaseWriter) log(l Log) {
 	// TODO
 }
 
-func (w *databaseWriter) init() {
+func (w *databaseWriter) init() (err error) {
 	// TODO
+	return
 }
 
 func (w *eventWriter) log(l Log) {
 	_, _ = event.FireEvent("on_log", l)
 }
 
-func (w *eventWriter) init() {}
+func (w *eventWriter) init() (err error) {
+	return
+}

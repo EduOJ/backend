@@ -7,7 +7,8 @@ import (
 
 var listeners = map[string][]interface{}{}
 
-// RegisterListener
+// RegisterListener registers a listener with a event name.
+// The listener should be a function.
 func RegisterListener(eventName string, listener interface{}) {
 	listenerValue := reflect.ValueOf(listener)
 	if listenerValue.Kind() != reflect.Func {
@@ -16,6 +17,10 @@ func RegisterListener(eventName string, listener interface{}) {
 	listeners[eventName] = append(listeners[eventName], listener)
 }
 
+// FireEvent Fires a given event name with args.
+// Args will be passed to all registered listeners.
+// Returns a slice of results, each result is a slice of interface {},
+// representing the return value of each call.
 func FireEvent(eventName string, args ...interface{}) (result [][]interface{}, err error) {
 	defer func() {
 		if p := recover(); p != nil {

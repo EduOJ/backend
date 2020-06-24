@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Log levels.
+// Level for logs.
 type Level int
 
 func (l Level) String() string {
@@ -25,15 +25,22 @@ func (l Level) String() string {
 	}
 }
 
+/*
+Debug:   debug information.
+Info:    Running information.
+Warning: notable, but the process wont fail because of this.
+Error:   a process (request) fails because of this.
+Fatal:   multiple process(request) fails because of this.
+*/
 const (
-	DEBUG   Level = iota // Debug information.
-	INFO                 // Running information.
-	WARNING              // Warnings: notable, but the process wont fail because of this.
-	ERROR                // Errors: a process (request) fails because of this.
-	FATAL                // Fatal: multiple process(request) fails because of this.
+	DEBUG Level = iota
+	INFO
+	WARNING
+	ERROR
+	FATAL
 )
 
-// The log struct
+// Log struct contains essential information of a log.
 type Log struct {
 	Level  Level     `json:"level"`  // The level of this log.
 	Time   time.Time `json:"time"`   // The time of this log.
