@@ -8,13 +8,10 @@ import (
 	"time"
 )
 
-func cleanup() {
-	listeners = make(map[string][]interface{})
-}
-
 func TestEvent(t *testing.T) {
-	defer cleanup()
-
+	t.Cleanup(func() {
+		listeners = make(map[string][]interface{})
+	})
 	tests := []struct {
 		Listener interface{}
 		Args     []interface{}
@@ -30,7 +27,9 @@ func TestEvent(t *testing.T) {
 	}
 	for i, test := range tests {
 		t.Run(fmt.Sprint("event_test_", i), func(t *testing.T) {
-			defer cleanup()
+			t.Cleanup(func() {
+				listeners = make(map[string][]interface{})
+			})
 			RegisterListener("event_test", test.Listener)
 			result, err := FireEvent("event_test", test.Args...)
 			if err != nil {
@@ -46,8 +45,10 @@ func TestEvent(t *testing.T) {
 	}
 }
 
-func TestFireEvent (t *testing.T) {
-	defer cleanup()
+func TestFireEvent(t *testing.T) {
+	t.Cleanup(func() {
+		listeners = make(map[string][]interface{})
+	})
 	RegisterListener("test_fire_event", func() int {
 		return 123
 	})
@@ -61,9 +62,9 @@ func TestFireEvent (t *testing.T) {
 	result, err = FireEvent("test_fire_event_1")
 	assert.NotEqual(t, err, nil, "Should have error.")
 	assert.Equal(t, err.Error(), "reflect: Call with too few input arguments", "Error should be too few arguments.")
-	assert.Equal(t, result, [][]interface {}(nil), "Should not have result on error.")
+	assert.Equal(t, result, [][]interface{}(nil), "Should not have result on error.")
 
-	assert.PanicsWithValue(t,"Trying to register a non-func listener!", func() {
+	assert.PanicsWithValue(t, "Trying to register a non-func listener!", func() {
 		RegisterListener("test_fire_event_2", 123)
 	}, "Should panic on non-function listeners.")
 }
