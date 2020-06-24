@@ -56,7 +56,7 @@ func TestLogger(t *testing.T) {
 	for _, level := range levels {
 		level.logFunction(123, "321")
 		assert.Equal(t, w.lastLog.Level, level.l, "Level should be same.")
-		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), time.Millisecond.Nanoseconds(), "Time difference should be less than 1 ms.")
+		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), 5 * time.Millisecond.Nanoseconds(), "Time difference should be less than 5 ms.")
 		_, _, line, _ := runtime.Caller(0)
 		assert.Equal(t, w.lastLog.Caller, fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogger:", line-3), "Caller should be this function.")
 		assert.Equal(t, w.lastLog.Text, fmt.Sprint(123, "321"))

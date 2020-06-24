@@ -45,3 +45,25 @@ func TestEvent(t *testing.T) {
 		})
 	}
 }
+
+func TestFireEvent (t *testing.T) {
+	defer cleanup()
+	RegisterListener("test_fire_event", func() int {
+		return 123
+	})
+	result, err := FireEvent("test_fire_event")
+	assert.Equal(t, err, nil, "Should not have error.")
+	assert.Equal(t, result[0][0], 123, "Should be the same.")
+
+	RegisterListener("test_fire_event_1", func(int) int {
+		return 123
+	})
+	result, err = FireEvent("test_fire_event_1")
+	assert.NotEqual(t, err, nil, "Should have error.")
+	assert.Equal(t, err.Error(), "reflect: Call with too few input arguments", "Error should be too few arguments.")
+	assert.Equal(t, result, [][]interface {}(nil), "Should not have result on error.")
+
+	assert.PanicsWithValue(t,"Trying to register a non-func listener!", func() {
+		RegisterListener("test_fire_event_2", 123)
+	}, "Should panic on non-function listeners.")
+}
