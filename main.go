@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	base.E.Logger.Fatal(base.E.Start(":1323"))
+	base.Echo().Logger.Fatal(base.Echo().Start(":1323"))
 }
