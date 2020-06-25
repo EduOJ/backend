@@ -1,17 +1,18 @@
 package logging
 
-import "github.com/leoleoasd/EduOJBackend/base/event"
+import (
+	"fmt"
+	"github.com/leoleoasd/EduOJBackend/base/event"
+)
 
 // Writers should only be used in this package.
 // Other packages should use listeners to receive logs.
 type _writer interface {
 	log(log Log)
-	init() error
 }
 
 // Writes to the console.
 type consoleWriter struct {
-	Format string // The format of logger.
 }
 
 // Writes to the database for reading from web.
@@ -20,12 +21,39 @@ type databaseWriter struct{}
 // Calling log listeners.
 type eventWriter struct{}
 
-func (w *consoleWriter) log(l Log) {
-	// TODO
+const (
+	colorBlack = iota + 30
+	colorRed
+	colorGreen
+	colorYellow
+	colorBlue
+	colorMagenta
+	colorCyan
+	colorWhite
+)
+
+var (
+	colors = []string{
+		FATAL:   colorSeq(colorMagenta),
+		ERROR:   colorSeq(colorRed),
+		WARNING: colorSeq(colorYellow),
+		INFO:    colorSeq(colorGreen),
+		DEBUG:   colorSeq(colorCyan),
+	}
+)
+
+func colorSeq(color int) string {
+	return fmt.Sprintf("\033[%dm", color)
 }
 
-func (w *consoleWriter) init() (err error) {
-	return
+func (w *consoleWriter) log(l Log) {
+	fmt.Printf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
+		colors[l.Level],
+		l.Time.Format("15:04:05"),
+		l.Caller,
+		l.Level.String(),
+		l.Message,
+	)
 }
 
 func (w *databaseWriter) log(l Log) {
@@ -38,9 +66,5 @@ func (w *databaseWriter) init() (err error) {
 }
 
 func (w *eventWriter) log(l Log) {
-	_, _ = event.FireEvent("on_log", l)
-}
-
-func (w *eventWriter) init() (err error) {
-	return
+	event.FireEvent("log", l)
 }

@@ -44,7 +44,7 @@ func (l *logger) removeWriter(t reflect.Type) {
 	}
 }
 
-func (l *logger) logWithLevelString(level Level, text string) {
+func (l *logger) logWithLevelString(level Level, message string) {
 	// Get caller
 	var caller string
 	pc, _, line, _ := runtime.Caller(3)
@@ -52,10 +52,10 @@ func (l *logger) logWithLevelString(level Level, text string) {
 	caller = fmt.Sprint(f.Name(), ":", line)
 
 	log := Log{
-		Level:  level,
-		Time:   time.Now(),
-		Text:   text,
-		Caller: caller,
+		Level:   level,
+		Time:    time.Now(),
+		Message: message,
+		Caller:  caller,
 	}
 	for _, w := range l.writers {
 		w.log(log)

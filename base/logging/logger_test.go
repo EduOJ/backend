@@ -60,14 +60,14 @@ func TestLogger(t *testing.T) {
 		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), 5*time.Millisecond.Nanoseconds(), "Time difference should be less than 5 ms.")
 		_, _, line, _ := runtime.Caller(0)
 		assert.Equal(t, w.lastLog.Caller, fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogger:", line-3), "Caller should be this function.")
-		assert.Equal(t, w.lastLog.Text, fmt.Sprint(123, "321"))
+		assert.Equal(t, w.lastLog.Message, fmt.Sprint(123, "321"))
 
 		level.logFFunction("%d 123 %s", 123, "321")
 		assert.Equal(t, w.lastLog.Level, level.l, "Level should be same.")
 		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), time.Millisecond.Nanoseconds(), "Time difference should be less than 1 ms.")
 		_, _, line, _ = runtime.Caller(0)
 		assert.Equal(t, w.lastLog.Caller, fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogger:", line-3), "Caller should be this function.")
-		assert.Equal(t, w.lastLog.Text, fmt.Sprintf("%d 123 %s", 123, "321"))
+		assert.Equal(t, w.lastLog.Message, fmt.Sprintf("%d 123 %s", 123, "321"))
 	}
 }
 
@@ -101,7 +101,7 @@ func TestLogWithLevelString(t *testing.T) {
 	for _, level := range levels {
 		l.logWithLevelString(level, "test")
 		assert.Equal(t, w.lastLog.Level, level, "Level should be same as test case.")
-		assert.Equal(t, w.lastLog.Text, "test", "Level should be same as test case.")
+		assert.Equal(t, w.lastLog.Message, "test", "Level should be same as test case.")
 		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), time.Millisecond.Nanoseconds(), "Time difference should be less than 1 ms.")
 		assert.Regexp(t, "^runtime\\.goexit:[0-9]+$", w.lastLog.Caller, "Level should be same as test case.")
 	}

@@ -6,9 +6,9 @@ import (
 )
 
 func init() {
-	base.E.GET("/login", controllers.Recv)
+	base.Echo().GET("/login", controllers.Recv)
 
-	base.E.GET("/admin", controllers.Recv)
+	base.Echo().GET("/admin", controllers.Recv)
 
 	// TODO: routes.
 }

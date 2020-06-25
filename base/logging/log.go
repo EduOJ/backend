@@ -42,8 +42,8 @@ const (
 
 // Log struct contains essential information of a log.
 type Log struct {
-	Level  Level     `json:"level"`  // The level of this log.
-	Time   time.Time `json:"time"`   // The time of this log.
-	Text   string    `json:"text"`   // The text of this log.
-	Caller string    `json:"caller"` // The function produces this log.
+	Level   Level     `json:"level"`   // The level of this log.
+	Time    time.Time `json:"time"`    // The time of this log.
+	Message string    `json:"message"` // The message of this log.
+	Caller  string    `json:"caller"`  // The function produces this log.
 }

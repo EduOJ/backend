@@ -5,9 +5,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// E : The echo object.
-var E *echo.Echo
+var echoObject *echo.Echo
 var redisClient *redis.Client
+
+func Echo() *echo.Echo {
+	return echoObject
+}
 
 // Redis returns the Redis object.
 func Redis() *redis.Client {

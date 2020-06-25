@@ -6,7 +6,7 @@ import (
 )
 
 func TestLevel_String(t *testing.T) {
-	levels := []struct{
+	levels := []struct {
 		Level
 		string
 	}{
