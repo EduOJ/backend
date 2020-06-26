@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestLogEvent(t *testing.T){
+func TestLogEvent(t *testing.T) {
 	lastLog := logging.Log{}
 	event.RegisterListener("test_log_event", func(arg EventArgs) {
 		lastLog = arg
