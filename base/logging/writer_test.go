@@ -50,7 +50,7 @@ func TestConsoleWriter(t *testing.T) {
 	}
 }
 
-func TestEventWriter(t *testing.T){
+func TestEventWriter(t *testing.T) {
 	lastLog := Log{}
 	event.RegisterListener("log", func(arg Log) {
 		lastLog = arg

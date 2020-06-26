@@ -7,7 +7,7 @@ import (
 
 type Log struct {
 	gorm.Model
-	Level  logging.Level
-	Message   string
-	Caller string
+	Level   logging.Level
+	Message string
+	Caller  string
 }
