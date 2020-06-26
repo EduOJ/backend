@@ -8,6 +8,6 @@ import (
 type Log struct {
 	gorm.Model
 	Level  logging.Level
-	Text   string
+	Message   string
 	Caller string
 }
