@@ -3,11 +3,12 @@ package config
 import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+	"io"
 	"io/ioutil"
 )
 
-func ReadConfig(filename string) (Node, error) {
-	bytes, err := ioutil.ReadFile(filename)
+func ReadConfig(file io.Reader) (Node, error) {
+	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,6 @@ import (
 
 type Node interface {
 	String() string
-	Build(interface{}) error
 	Get(index string) (Node, error)
 	MustGet(index string, def interface{}) Node
 }
@@ -51,8 +50,8 @@ func (m *MapNode) MarshalJSON() (data []byte, err error) {
 		data, _ := json.Marshal(k)
 		buf.Write(data)
 		buf.WriteString(`:`)
-		data, _ = json.Marshal(m.M[k])
-		buf.Write(data)
+		datas := m.M[k].String()
+		buf.WriteString(datas)
 		buf.WriteString(",")
 	}
 	buf.Bytes()[len(buf.Bytes())-1] = '}'
@@ -116,11 +115,8 @@ func (s *SliceNode) MarshalJSON() (data []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteString("[")
 	for _, v := range s.S {
-		data, err = json.Marshal(v)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not marshal map value")
-		}
-		buf.Write(data)
+		data := v.String()
+		buf.WriteString(data)
 		buf.WriteString(",")
 	}
 	buf.Bytes()[len(buf.Bytes())-1] = ']'
@@ -177,7 +173,8 @@ func (s *SliceNode) MustGet(index string, def interface{}) Node {
 }
 
 func (s StringNode) String() string {
-	return string(s)
+	data, _ := json.Marshal(s)
+	return string(data)
 }
 
 func (s StringNode) Get(index string) (Node, error) {
@@ -185,14 +182,6 @@ func (s StringNode) Get(index string) (Node, error) {
 		return nil, ErrNodeNotIndexable
 	}
 	return s, nil
-}
-
-func (s StringNode) Build(data interface{}) error {
-	if stringData, ok := data.(string); ok {
-		s = StringNode(stringData)
-		return nil
-	}
-	return ErrTypeDontMatchError
 }
 
 func (s StringNode) MustGet(index_ string, def interface{}) Node {
@@ -207,7 +196,7 @@ func (s StringNode) MustGet(index_ string, def interface{}) Node {
 }
 
 func (s IntNode) String() string {
-	return string(s)
+	return strconv.Itoa(int(s))
 }
 
 func (s IntNode) Get(index string) (Node, error) {
@@ -215,14 +204,6 @@ func (s IntNode) Get(index string) (Node, error) {
 		return nil, ErrNodeNotIndexable
 	}
 	return s, nil
-}
-
-func (s IntNode) Build(data interface{}) error {
-	if intData, ok := data.(int); ok {
-		s = IntNode(intData)
-		return nil
-	}
-	return ErrTypeDontMatchError
 }
 
 func (s IntNode) MustGet(index_ string, def interface{}) Node {
@@ -248,14 +229,6 @@ func (s BoolNode) Get(index string) (Node, error) {
 		return nil, ErrNodeNotIndexable
 	}
 	return s, nil
-}
-
-func (s BoolNode) Build(data interface{}) error {
-	if boolData, ok := data.(bool); ok {
-		s = BoolNode(boolData)
-		return nil
-	}
-	return ErrTypeDontMatchError
 }
 
 func (s BoolNode) MustGet(index_ string, def interface{}) Node {
@@ -297,5 +270,4 @@ func buildOne(data interface{}) (Node, error) {
 	default:
 		return nil, ErrIllegalTypeError
 	}
-
 }
