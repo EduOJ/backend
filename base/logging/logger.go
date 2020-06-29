@@ -10,6 +10,8 @@ import (
 type _logger interface {
 	addWriter(writer _writer)
 	removeWriter(t reflect.Type)
+	isReady() bool
+	setReady()
 	Debug(items ...interface{})
 	Info(items ...interface{})
 	Warning(items ...interface{})
@@ -24,6 +26,7 @@ type _logger interface {
 
 type logger struct {
 	writers []_writer //Writers.
+	ready bool
 }
 
 // Add a writer to the logger.
@@ -44,6 +47,14 @@ func (l *logger) removeWriter(t reflect.Type) {
 	}
 }
 
+func (l *logger) isReady() bool {
+	return l.ready
+}
+
+func (l *logger) setReady(){
+	l.ready = true
+}
+
 func (l *logger) logWithLevelString(level Level, message string) {
 	// Get caller
 	var caller string
@@ -56,6 +67,12 @@ func (l *logger) logWithLevelString(level Level, message string) {
 		Time:    time.Now(),
 		Message: message,
 		Caller:  caller,
+	}
+	if l.ready == false {
+		// Logger don't been initialized yet.
+		// So we should just output to stdout.
+		(&consoleWriter{}).log(log)
+		return
 	}
 	for _, w := range l.writers {
 		w.log(log)

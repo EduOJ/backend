@@ -1,9 +1,18 @@
 package main
 
 import (
-	"github.com/leoleoasd/EduOJBackend/base"
+	"flag"
+	"github.com/leoleoasd/EduOJBackend/base/config"
+	"os"
 )
 
 func main() {
-	base.Echo().Logger.Fatal(base.Echo().Start(":1323"))
+	flag.Parse()
+	file, err := os.Open(configFileFlag)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	config.ReadConfig(file)
+
 }

@@ -1,7 +1,7 @@
 package event
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 	"reflect"
 )
 
