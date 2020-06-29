@@ -11,6 +11,8 @@ func TestMapNode_String(t *testing.T) {
 		M: map[string]Node{
 			"intNode":    IntNode(123),
 			"stringNode": StringNode("123\"\""),
+			"boolNode":   BoolNode(false),
+			"boolNode2":  BoolNode(true),
 			"mapNode": &MapNode{
 				M: map[string]Node{
 					"intNode": IntNode(123),
@@ -28,7 +30,7 @@ func TestMapNode_String(t *testing.T) {
 		},
 	}
 	str := m.String()
-	assert.Equal(t, `{"intNode":123,"mapNode":{"intNode":123},"sliceNode":[123,"123\"\"",{"intNode":123}],"stringNode":"123\"\""}`, str)
+	assert.Equal(t, `{"boolNode":false,"boolNode2":true,"intNode":123,"mapNode":{"intNode":123},"sliceNode":[123,"123\"\"",{"intNode":123}],"stringNode":"123\"\""}`, str)
 }
 
 func TestMapNode_Child(t *testing.T) {

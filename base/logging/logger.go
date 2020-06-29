@@ -26,7 +26,7 @@ type _logger interface {
 
 type logger struct {
 	writers []_writer //Writers.
-	ready bool
+	ready   bool
 }
 
 // Add a writer to the logger.
@@ -51,7 +51,7 @@ func (l *logger) isReady() bool {
 	return l.ready
 }
 
-func (l *logger) setReady(){
+func (l *logger) setReady() {
 	l.ready = true
 }
 

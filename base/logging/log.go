@@ -40,13 +40,14 @@ func (l Level) String() string {
 	}
 }
 
-var stringToLevel=map[string]Level{
-	"debug": DEBUG,
-	"info": INFO,
+var stringToLevel = map[string]Level{
+	"debug":   DEBUG,
+	"info":    INFO,
 	"warning": WARNING,
-	"error": ERROR,
-	"fatal": FATAL,
+	"error":   ERROR,
+	"fatal":   FATAL,
 }
+
 // Log struct contains essential information of a log.
 type Log struct {
 	Level   Level     `json:"level"`   // The level of this log.

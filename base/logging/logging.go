@@ -26,9 +26,8 @@ func InitFromConfig(logConf config.Node) (err error) {
 				switch name {
 				case "console":
 					logger0.addWriter(&consoleWriter{
-						Level:
-							stringToLevel[strings.ToUpper(
-								string(writerConf.MustGet("level", "DEBUG").(config.StringNode)))],
+						Level: stringToLevel[strings.ToUpper(
+							string(writerConf.MustGet("level", "DEBUG").(config.StringNode)))],
 					})
 				case "database":
 					// TODO

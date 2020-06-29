@@ -10,7 +10,7 @@ import (
 )
 
 type fakeLogger struct {
-	ready bool
+	ready              bool
 	lastFunctionCalled string
 }
 
@@ -73,9 +73,9 @@ func TestLogFunctions(t *testing.T) {
 	})
 	f := &fakeLogger{}
 	logger0 = f
-		tests := []struct{
+	tests := []struct {
 		function interface{}
-		name string
+		name     string
 	}{
 		{
 			Debug,
@@ -135,7 +135,7 @@ func TestInitFromConfigFail(t *testing.T) {
 	t.Cleanup(func() {
 		logger0 = oldLogger
 	})
-	tests := []struct{
+	tests := []struct {
 		config.Node
 		error
 	}{
@@ -143,7 +143,7 @@ func TestInitFromConfigFail(t *testing.T) {
 			&config.MapNode{}, errors.New("log configuration should be an array"),
 		},
 		{
-				nil, errors.New("log configuration should be an array"),
+			nil, errors.New("log configuration should be an array"),
 		},
 		{
 			&config.SliceNode{S: []config.Node{
@@ -161,8 +161,7 @@ func TestInitFromConfigFail(t *testing.T) {
 		},
 		{
 			&config.SliceNode{S: []config.Node{
-				&config.MapNode{M: map[string]config.Node{
-				}},
+				&config.MapNode{M: map[string]config.Node{}},
 			}}, errors.New("writer configuration should contain name"),
 		},
 		{
@@ -172,7 +171,7 @@ func TestInitFromConfigFail(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		t.Run(fmt.Sprint("testInit_",i), func(t *testing.T) {
+		t.Run(fmt.Sprint("testInit_", i), func(t *testing.T) {
 			l := &logger{}
 			logger0 = l
 			err := InitFromConfig(test.Node)
@@ -196,15 +195,15 @@ func TestInitFromConfigSuccess(t *testing.T) {
 	err := InitFromConfig(
 		&config.SliceNode{S: []config.Node{
 			&config.MapNode{M: map[string]config.Node{
-				"name": config.StringNode("console"),
+				"name":  config.StringNode("console"),
 				"level": config.StringNode("InFO"),
 			}},
 			&config.MapNode{M: map[string]config.Node{
-				"name": config.StringNode("database"),
+				"name":  config.StringNode("database"),
 				"level": config.StringNode("InFO"),
 			}},
 			&config.MapNode{M: map[string]config.Node{
-				"name": config.StringNode("event"),
+				"name":  config.StringNode("event"),
 				"level": config.StringNode("InFO"),
 			}},
 		}})
