@@ -54,7 +54,7 @@ func (w *consoleWriter) log(l Log) {
 			l.Time.Format("15:04:05"),
 			l.Caller,
 			l.Level.String(),
-			l.Message,)
+			l.Message)
 	}
 }
 
