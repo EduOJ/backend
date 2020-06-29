@@ -7,6 +7,21 @@ import (
 // Level for logs.
 type Level int
 
+/*
+Debug:   debug information.
+Info:    Running information.
+Warning: notable, but the process wont fail because of this.
+Error:   a process (request) fails because of this.
+Fatal:   multiple process(request) fails because of this.
+*/
+const (
+	DEBUG Level = iota
+	INFO
+	WARNING
+	ERROR
+	FATAL
+)
+
 func (l Level) String() string {
 	switch l {
 	case DEBUG:
@@ -25,21 +40,13 @@ func (l Level) String() string {
 	}
 }
 
-/*
-Debug:   debug information.
-Info:    Running information.
-Warning: notable, but the process wont fail because of this.
-Error:   a process (request) fails because of this.
-Fatal:   multiple process(request) fails because of this.
-*/
-const (
-	DEBUG Level = iota
-	INFO
-	WARNING
-	ERROR
-	FATAL
-)
-
+var stringToLevel=map[string]Level{
+	"debug": DEBUG,
+	"info": INFO,
+	"warning": WARNING,
+	"error": ERROR,
+	"fatal": FATAL,
+}
 // Log struct contains essential information of a log.
 type Log struct {
 	Level   Level     `json:"level"`   // The level of this log.

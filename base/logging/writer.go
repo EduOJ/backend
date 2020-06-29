@@ -13,6 +13,7 @@ type _writer interface {
 
 // Writes to the console.
 type consoleWriter struct {
+	Level
 }
 
 // Writes to the database for reading from web.
@@ -47,13 +48,14 @@ func colorSeq(color int) string {
 }
 
 func (w *consoleWriter) log(l Log) {
-	fmt.Printf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
-		colors[l.Level],
-		l.Time.Format("15:04:05"),
-		l.Caller,
-		l.Level.String(),
-		l.Message,
-	)
+	if l.Level >= w.Level {
+		fmt.Printf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
+			colors[l.Level],
+			l.Time.Format("15:04:05"),
+			l.Caller,
+			l.Level.String(),
+			l.Message,)
+	}
 }
 
 func (w *databaseWriter) log(l Log) {

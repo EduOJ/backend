@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"github.com/kami-zh/go-capturer"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"runtime"
@@ -23,6 +24,7 @@ func (f *fakeWriter) log(l Log) {
 func TestLogger(t *testing.T) {
 	var l _logger
 	l = &logger{}
+	l.setReady()
 	w := &fakeWriter{}
 	l.addWriter(w)
 	assert.Equal(t, w, l.(*logger).writers[0], "Writer should be fake writer.")
@@ -74,6 +76,7 @@ func TestLogger(t *testing.T) {
 func TestRemoveLogger(t *testing.T) {
 	var l _logger
 	l = &logger{}
+	l.setReady()
 	w1 := &fakeWriter{}
 	w2 := &fakeWriter{}
 	w3 := &consoleWriter{}
@@ -91,6 +94,7 @@ func TestLogWithLevelString(t *testing.T) {
 	var l logger
 	w := &fakeWriter{}
 	l.addWriter(w)
+	l.setReady()
 	levels := []Level{
 		DEBUG,
 		INFO,
@@ -105,5 +109,69 @@ func TestLogWithLevelString(t *testing.T) {
 		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), time.Millisecond.Nanoseconds(), "Time difference should be less than 1 ms.")
 		assert.Regexp(t, "^runtime\\.goexit:[0-9]+$", w.lastLog.Caller, "Level should be same as test case.")
 	}
+}
 
+func TestLogNotReady(t *testing.T) {
+	var l _logger
+	l = &logger{}
+
+	levels := []struct {
+		Level
+		logFunction  func(items ...interface{})
+		logFFunction func(format string, items ...interface{})
+	}{
+		{
+			DEBUG,
+			l.Debug,
+			l.Debugf,
+		}, {
+			INFO,
+			l.Info,
+			l.Infof,
+		}, {
+			WARNING,
+			l.Warning,
+			l.Warningf,
+		}, {
+			ERROR,
+			l.Error,
+			l.Errorf,
+		}, {
+			FATAL,
+			l.Fatal,
+			l.Fatalf,
+		},
+	}
+	for _, level := range levels {
+		_, _, line, _ := runtime.Caller(0)
+		output := capturer.CaptureOutput(func() {
+			level.logFunction("sample log output")
+		})
+		txt := fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
+			colors[level.Level],
+			time.Now().Format("15:04:05"),
+			fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogNotReady.func1:", line+2),
+			level.Level.String(),
+			"sample log output")
+		assert.Equal(t, txt, output)
+		_, _, line, _ = runtime.Caller(0)
+		output = capturer.CaptureOutput(func() {
+			level.logFFunction("sample log output")
+		})
+		txt = fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
+			colors[level.Level],
+			time.Now().Format("15:04:05"),
+			fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogNotReady.func2:", line+2),
+			level.Level.String(),
+			"sample log output")
+		assert.Equal(t, txt, output)
+	}
+}
+
+func TestIsReady(t *testing.T) {
+	var l _logger
+	l = &logger{}
+	assert.Equal(t, false, l.isReady())
+	l.setReady()
+	assert.Equal(t, true, l.isReady())
 }
