@@ -5,10 +5,10 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 )
 
-func init() {
-	base.Echo().GET("/login", controllers.Recv)
+func registerRoutes() {
+	base.Echo.GET("/login", controllers.Recv)
 
-	base.Echo().GET("/admin", controllers.Recv)
+	base.Echo.GET("/admin", controllers.Recv)
 
 	// TODO: routes.
 }

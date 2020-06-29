@@ -7,13 +7,13 @@ import (
 )
 
 func Recv(c echo.Context) error {
-	base.Redis().Set(c.Request().Context(), "123", 123, 0)
-	v := base.Redis().Get(c.Request().Context(), "123")
+	base.Redis.Set(c.Request().Context(), "123", 123, 0)
+	v := base.Redis.Get(c.Request().Context(), "123")
 	return c.String(http.StatusOK, v.Val())
 }
 
 func Send(c echo.Context) error {
-	base.Redis().Set(c.Request().Context(), "123", 123, 0)
-	v := base.Redis().Get(c.Request().Context(), "123")
+	base.Redis.Set(c.Request().Context(), "123", 123, 0)
+	v := base.Redis.Get(c.Request().Context(), "123")
 	return c.String(http.StatusOK, v.Val())
 }
