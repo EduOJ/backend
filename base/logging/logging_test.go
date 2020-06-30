@@ -70,9 +70,29 @@ func TestLogFunctions(t *testing.T) {
 	oldLogger := logger0
 	t.Cleanup(func() {
 		logger0 = oldLogger
+		Debug = logger0.Debug
+		Info = logger0.Info
+		Warning = logger0.Warning
+		Error = logger0.Error
+		Fatal = logger0.Fatal
+		Debugf = logger0.Debugf
+		Infof = logger0.Infof
+		Warningf = logger0.Warningf
+		Errorf = logger0.Errorf
+		Fatalf = logger0.Fatalf
 	})
 	f := &fakeLogger{}
 	logger0 = f
+	Debug = logger0.Debug
+	Info = logger0.Info
+	Warning = logger0.Warning
+	Error = logger0.Error
+	Fatal = logger0.Fatal
+	Debugf = logger0.Debugf
+	Infof = logger0.Infof
+	Warningf = logger0.Warningf
+	Errorf = logger0.Errorf
+	Fatalf = logger0.Fatalf
 	tests := []struct {
 		function interface{}
 		name     string
@@ -134,6 +154,16 @@ func TestInitFromConfigFail(t *testing.T) {
 	oldLogger := logger0
 	t.Cleanup(func() {
 		logger0 = oldLogger
+		Debug = logger0.Debug
+		Info = logger0.Info
+		Warning = logger0.Warning
+		Error = logger0.Error
+		Fatal = logger0.Fatal
+		Debugf = logger0.Debugf
+		Infof = logger0.Infof
+		Warningf = logger0.Warningf
+		Errorf = logger0.Errorf
+		Fatalf = logger0.Fatalf
 	})
 	tests := []struct {
 		config.Node
@@ -174,6 +204,16 @@ func TestInitFromConfigFail(t *testing.T) {
 		t.Run(fmt.Sprint("testInit_", i), func(t *testing.T) {
 			l := &logger{}
 			logger0 = l
+			Debug = logger0.Debug
+			Info = logger0.Info
+			Warning = logger0.Warning
+			Error = logger0.Error
+			Fatal = logger0.Fatal
+			Debugf = logger0.Debugf
+			Infof = logger0.Infof
+			Warningf = logger0.Warningf
+			Errorf = logger0.Errorf
+			Fatalf = logger0.Fatalf
 			err := InitFromConfig(test.Node)
 			if test.error != nil && err != nil {
 				assert.Equal(t, test.error.Error(), err.Error())
@@ -188,9 +228,29 @@ func TestInitFromConfigSuccess(t *testing.T) {
 	oldLogger := logger0
 	t.Cleanup(func() {
 		logger0 = oldLogger
+		Debug = logger0.Debug
+		Info = logger0.Info
+		Warning = logger0.Warning
+		Error = logger0.Error
+		Fatal = logger0.Fatal
+		Debugf = logger0.Debugf
+		Infof = logger0.Infof
+		Warningf = logger0.Warningf
+		Errorf = logger0.Errorf
+		Fatalf = logger0.Fatalf
 	})
 	l := &logger{}
 	logger0 = l
+	Debug = logger0.Debug
+	Info = logger0.Info
+	Warning = logger0.Warning
+	Error = logger0.Error
+	Fatal = logger0.Fatal
+	Debugf = logger0.Debugf
+	Infof = logger0.Infof
+	Warningf = logger0.Warningf
+	Errorf = logger0.Errorf
+	Fatalf = logger0.Fatalf
 	assert.Equal(t, false, l.ready)
 	err := InitFromConfig(
 		&config.SliceNode{S: []config.Node{

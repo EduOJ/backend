@@ -1,11 +1,17 @@
 package main
 
-import "flag"
+import (
+	"github.com/jessevdk/go-flags"
+)
 
-var configFileFlag string
+type _opt struct {
+	Config string `short:"c" long:"verbose" description:"Config file name" default:"config.yml"`
+}
+
+var parser *flags.Parser
+var opt _opt
 
 func init() {
-	flag.StringVar(&configFileFlag, "c", "config.yml", "Config file name")
-	flag.StringVar(&configFileFlag, "config", "config.yml", "Config file name")
-
+	parser = flags.NewNamedParser("eduOJ server", flags.HelpFlag | flags.PassDoubleDash)
+	parser.AddGroup("Application", "Application Options", &opt)
 }

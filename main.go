@@ -1,18 +1,13 @@
 package main
 
 import (
-	"flag"
-	"github.com/leoleoasd/EduOJBackend/base/config"
-	"os"
+	"github.com/leoleoasd/EduOJBackend/base/logging"
 )
 
 func main() {
-	flag.Parse()
-	file, err := os.Open(configFileFlag)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	config.ReadConfig(file)
+
+	args, err := parser.Parse()
+	logging.Debug(args, err)
+	logging.Debug(opt)
 
 }
