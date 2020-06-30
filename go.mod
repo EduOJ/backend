@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/go-redis/redis/v8 v8.0.0-beta.5
+	github.com/jessevdk/go-flags v1.4.0
 	github.com/jinzhu/gorm v1.9.14
 	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
 	github.com/labstack/echo/v4 v4.1.16

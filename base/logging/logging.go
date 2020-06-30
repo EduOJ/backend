@@ -46,42 +46,13 @@ func InitFromConfig(logConf config.Node) (err error) {
 	return errors.New("log configuration should be an array")
 }
 
-func Debug(args ...interface{}) {
-	logger0.Debug(args...)
-}
-
-func Info(args ...interface{}) {
-	logger0.Info(args...)
-}
-
-func Warning(args ...interface{}) {
-	logger0.Warning(args...)
-}
-
-func Error(args ...interface{}) {
-	logger0.Error(args...)
-}
-
-func Fatal(args ...interface{}) {
-	logger0.Fatal(args...)
-}
-
-func Debugf(format string, args ...interface{}) {
-	logger0.Debugf(format, args...)
-}
-
-func Infof(format string, args ...interface{}) {
-	logger0.Infof(format, args...)
-}
-
-func Warningf(format string, args ...interface{}) {
-	logger0.Warningf(format, args...)
-}
-
-func Errorf(format string, args ...interface{}) {
-	logger0.Errorf(format, args...)
-}
-
-func Fatalf(format string, args ...interface{}) {
-	logger0.Fatalf(format, args...)
-}
+var Debug = logger0.Debug
+var Info = logger0.Info
+var Warning = logger0.Warning
+var Error = logger0.Error
+var Fatal = logger0.Fatal
+var Debugf = logger0.Debugf
+var Infof = logger0.Infof
+var Warningf = logger0.Warningf
+var Errorf = logger0.Errorf
+var Fatalf = logger0.Fatalf
