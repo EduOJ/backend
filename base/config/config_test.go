@@ -8,6 +8,12 @@ import (
 	"testing"
 )
 
+type errReader int
+
+func (errReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("test read error")
+}
+
 func TestReadConfig(t *testing.T) {
 	tests := []struct {
 		string
@@ -50,14 +56,35 @@ sliceNode:
 	}
 	for id, test := range tests {
 		t.Run(fmt.Sprint("testReadConfig", id), func(t *testing.T) {
+			t.Cleanup(func() {
+				conf = nil
+			})
 			assert.NotPanics(t, func() {
 				buf := bytes.NewBufferString(test.string)
-				node, err := ReadConfig(buf)
-				assert.Equal(t, test.Node, node)
+				err := ReadConfig(buf)
+				assert.Equal(t, test.Node, conf)
 				assert.Equal(t, nil, err)
 			})
 		})
 	}
+	t.Run("testReadConfigTwice", func(t *testing.T) {
+		t.Cleanup(func() {
+			conf = nil
+		})
+		assert.NotPanics(t, func() {
+			buf := bytes.NewBufferString(tests[0].string)
+			err := ReadConfig(buf)
+			assert.Equal(t, tests[0].Node, conf)
+			assert.Equal(t, nil, err)
+		})
+		assert.NotPanics(t, func() {
+			buf := bytes.NewBufferString(tests[0].string)
+			err := ReadConfig(buf)
+			assert.Equal(t, tests[0].Node, conf)
+			assert.NotEqual(t, nil, err)
+			assert.Equal(t, "could not read config: already read!", err.Error())
+		})
+	})
 }
 
 func TestReadConfigFail(t *testing.T) {
@@ -75,13 +102,23 @@ false: 233`, errors.Wrap(ErrTypeDontMatchError, "could not build map node"),
 	}
 	for id, test := range tests {
 		t.Run(fmt.Sprint("testReadConfigFail", id), func(t *testing.T) {
+			t.Cleanup(func() {
+				conf = nil
+			})
 			assert.NotPanics(t, func() {
 				buf := bytes.NewBufferString(test.string)
-				node, err := ReadConfig(buf)
-				assert.Equal(t, nil, node)
+				err := ReadConfig(buf)
+				assert.Equal(t, nil, conf)
 				assert.NotEqual(t, nil, err)
 				assert.Equal(t, test.error.Error(), err.Error())
 			})
 		})
 	}
+	t.Run("testReadError", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			err := ReadConfig(errReader(0))
+			assert.Error(t, err)
+			assert.Equal(t, "test read error", err.Error())
+		})
+	})
 }
