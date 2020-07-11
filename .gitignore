@@ -91,3 +91,4 @@ fabric.properties
 
 /coverage*
 test.*
+config.yml

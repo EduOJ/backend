@@ -1,0 +1,8 @@
+database:
+  type: postgresql
+  uri: ...
+log:
+  - name: console
+    level: debug
+  - name: database
+    level: error
