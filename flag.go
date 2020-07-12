@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/jessevdk/go-flags"
-	"github.com/leoleoasd/EduOJBackend/base/logging"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/pkg/errors"
 	"os"
 )
@@ -24,12 +24,12 @@ func init() {
 func parse() {
 	var err error
 	// TODO: remove useless logs for parser debugging.
-	logging.Debug("Parsing command-line arguments.")
+	log.Debug("Parsing command-line arguments.")
 	args, err = parser.Parse()
 	if err != nil {
-		logging.Fatal(errors.Wrap(err, "could not parse argument "))
+		log.Fatal(errors.Wrap(err, "could not parse argument "))
 		os.Exit(-1)
 	}
-	logging.Debug(args, err)
-	logging.Debug(opt)
+	log.Debug(args, err)
+	log.Debug(opt)
 }

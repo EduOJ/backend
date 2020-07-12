@@ -2,12 +2,12 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/leoleoasd/EduOJBackend/base/logging"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 )
 
 type Log struct {
 	gorm.Model
-	Level   logging.Level
+	Level   log.Level
 	Message string
 	Caller  string
 }

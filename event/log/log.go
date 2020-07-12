@@ -1,10 +1,10 @@
 package log
 
-import "github.com/leoleoasd/EduOJBackend/base/logging"
+import "github.com/leoleoasd/EduOJBackend/base/log"
 
 // EventArgs is the arguments of "log" event.
 // Only contains the log itself.
-type EventArgs = logging.Log
+type EventArgs = log.Log
 
 // EventRst is the result of "log" event.
 // Cause there is no need for result, this

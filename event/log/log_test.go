@@ -2,19 +2,19 @@ package log
 
 import (
 	"github.com/leoleoasd/EduOJBackend/base/event"
-	"github.com/leoleoasd/EduOJBackend/base/logging"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 func TestLogEvent(t *testing.T) {
-	lastLog := logging.Log{}
+	lastLog := log.Log{}
 	event.RegisterListener("test_log_event", func(arg EventArgs) {
 		lastLog = arg
 	})
-	log := logging.Log{
-		Level:   logging.DEBUG,
+	log := log.Log{
+		Level:   log.DEBUG,
 		Time:    time.Now(),
 		Message: "123",
 		Caller:  "233",
