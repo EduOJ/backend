@@ -27,7 +27,7 @@ func InitFromConfig(logConf config.Node) (err error) {
 				case "console":
 					logger0.addWriter(&consoleWriter{
 						Level: stringToLevel[strings.ToUpper(
-							string(writerConf.MustGet("level", "DEBUG").(config.StringNode)))],
+							writerConf.MustGet("level", "DEBUG").Value().(string))],
 					})
 				case "database":
 					// TODO
@@ -40,6 +40,7 @@ func InitFromConfig(logConf config.Node) (err error) {
 				return errors.New("invalid writer name")
 			}
 		}
+		// TODO: event writer
 		logger0.setReady()
 		return nil
 	}

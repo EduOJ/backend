@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"os"
@@ -12,6 +11,8 @@ import (
 func serve() {
 	readConfig()
 	initLog()
+	initRedis()
+	initGorm()
 	// TODO: init database
 	initEcho()
 
@@ -23,12 +24,11 @@ func serve() {
 	<-s
 	log.Fatal("Server closing.")
 	log.Fatal("Hit ctrl+C again to forceShutdown quit.")
-	shutdownCtx, forceShutdown := context.WithCancel(context.Background())
 	go func() {
 		<-s
-		forceShutdown()
+		cancel()
 	}()
-	err := base.Echo.Shutdown(shutdownCtx)
+	err := base.Echo.Shutdown(baseContext)
 	if err != nil {
 		if err.Error() == "context canceled" {
 			log.Fatal("Force quitting.")
