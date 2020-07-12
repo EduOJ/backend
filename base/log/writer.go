@@ -110,7 +110,6 @@ func (w *databaseWriter) init() {
 					return
 				}
 			}
-
 		}
 	}()
 }
