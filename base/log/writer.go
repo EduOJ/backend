@@ -2,7 +2,11 @@ package log
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
+	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
+	"github.com/leoleoasd/EduOJBackend/base/exit"
+	"github.com/leoleoasd/EduOJBackend/database/models"
 )
 
 // Writers should only be used in this package.
@@ -17,7 +21,10 @@ type consoleWriter struct {
 }
 
 // Writes to the database for reading from web.
-type databaseWriter struct{}
+type databaseWriter struct {
+	Level
+	queue chan Log
+}
 
 // Calling log listeners.
 type eventWriter struct{}
@@ -59,14 +66,55 @@ func (w *consoleWriter) log(l Log) {
 }
 
 func (w *databaseWriter) log(l Log) {
-	// TODO
+	// avoid blocking the main thread.
+	if l.Level >= w.Level {
+		select {
+		case w.queue <- l:
+		default:
+		}
+	}
 }
 
-func (w *databaseWriter) init() (err error) {
-	// TODO
-	return
+func (w *databaseWriter) init() {
+	w.queue = make(chan Log, 100)
+	exit.QuitWG.Add(1)
+	go func() {
+		for {
+			select {
+			case l := <-w.queue:
+				lm := models.Log{
+					Model: gorm.Model{
+						CreatedAt: l.Time,
+						UpdatedAt: l.Time,
+					},
+					Level:   int(l.Level),
+					Message: l.Message,
+					Caller:  l.Caller,
+				}
+				base.DB.Create(&lm)
+			case <-exit.BaseContext.Done():
+				select {
+				case l := <-w.queue:
+					lm := models.Log{
+						Model: gorm.Model{
+							CreatedAt: l.Time,
+							UpdatedAt: l.Time,
+						},
+						Level:   int(l.Level),
+						Message: l.Message,
+						Caller:  l.Caller,
+					}
+					base.DB.Create(&lm)
+				default:
+					exit.QuitWG.Done()
+					return
+				}
+			}
+
+		}
+	}()
 }
 
 func (w *eventWriter) log(l Log) {
-	event.FireEvent("log", l)
+	go event.FireEvent("log", l)
 }

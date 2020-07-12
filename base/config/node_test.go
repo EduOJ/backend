@@ -233,11 +233,11 @@ func TestNodeValue(t *testing.T) {
 				IntNode(123),
 			},
 		}, {
-			IntNode(123),123,
-		},{
-			BoolNode(false),false,
-		},{
-			StringNode("123"),"123",
+			IntNode(123), 123,
+		}, {
+			BoolNode(false), false,
+		}, {
+			StringNode("123"), "123",
 		},
 	}
 	for _, test := range tests {
