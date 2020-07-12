@@ -10,9 +10,9 @@ import (
 
 func testConfig() {
 	readConfig()
+	initGorm(false)
 	initLog()
 	initRedis()
-	initGorm(false)
 	c, err := config.Get(".")
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not get the root of config file "+opt.Config))

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"os"
 	"os/signal"
@@ -10,32 +10,24 @@ import (
 
 func serve() {
 	readConfig()
+	initGorm()
 	initLog()
 	initRedis()
-	initGorm()
-	// TODO: init database
-	initEcho()
+	startEcho()
 
-	go base.Echo.StartServer(base.Echo.Server)
-	log.Fatal("Server started at port ", base.Echo.Server.Addr)
-	s := make(chan os.Signal)
-	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
+	s := make(chan os.Signal, 1)
+	signal.Notify(s, syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
 
 	<-s
 	log.Fatal("Server closing.")
-	log.Fatal("Hit ctrl+C again to forceShutdown quit.")
+	log.Fatal("Hit ctrl+C again to force quit.")
+	exit.Close()
 	go func() {
 		<-s
-		cancel()
+		os.Exit(-1)
 	}()
-	err := base.Echo.Shutdown(baseContext)
-	if err != nil {
-		if err.Error() == "context canceled" {
-			log.Fatal("Force quitting.")
-		} else {
-			log.Fatal(err)
-		}
-	} else {
-		log.Fatal("Server closed. Quitting.")
-	}
+	exit.QuitWG.Wait()
 }

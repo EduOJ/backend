@@ -2,6 +2,14 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="GoUnhandledErrorResult" enabled="true" level="WARNING" enabled_by_default="true">
+      <functions>
+        <function importPath="fmt" name="Printf" />
+        <function importPath="fmt" name="Errorf" />
+        <function importPath="math/rand" name="Read" />
+        <function importPath="fmt" name="Println" />
+        <function importPath="fmt" name="Print" />
+        <function importPath="github.com/leoleoasd/EduOJBackend/base/event" name="FireEvent" />
+      </functions>
       <methods>
         <method importPath="hash" receiver="Hash" name="Write" />
         <method importPath="strings" receiver="*Builder" name="Write" />
