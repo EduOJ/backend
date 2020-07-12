@@ -199,10 +199,6 @@ func TestInitFromConfigSuccess(t *testing.T) {
 				"level": config.StringNode("InFO"),
 			}},
 			&config.MapNode{M: map[string]config.Node{
-				"name":  config.StringNode("database"),
-				"level": config.StringNode("InFO"),
-			}},
-			&config.MapNode{M: map[string]config.Node{
 				"name":  config.StringNode("event"),
 				"level": config.StringNode("InFO"),
 			}},
