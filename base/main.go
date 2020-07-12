@@ -1,6 +1,7 @@
 package base
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/jinzhu/gorm"
@@ -11,22 +12,55 @@ import (
 	"github.com/pkg/errors"
 )
 
+import _ "github.com/jinzhu/gorm/dialects/mysql"
+import _ "github.com/jinzhu/gorm/dialects/postgres"
+import _ "github.com/jinzhu/gorm/dialects/sqlite"
+
 var Echo *echo.Echo
 var Redis *redis.Client
-var Gorm *gorm.DB
+var DB *gorm.DB
 
-// 以下内容不知道是否会用到
-//var Context context.Context
-//var Cancel context.CancelFunc
-//
-//func init() {
-//	Context, Cancel = context.WithCancel(context.Background())
-//}
+func InitGormFromConfig(_conf config.Node) error {
+	if conf, ok := _conf.(*config.MapNode); ok {
+		dialect := conf.MustGet("dialect", "").Value().(string)
+		uri := conf.MustGet("uri", "").Value().(string)
+		var err error
+		DB, err = gorm.Open(dialect, uri)
+		if err != nil {
+			return errors.Wrap(err, "could not connect to database")
+		}
+		return nil
+	} else {
+		return errors.New("database configuration should be a map")
+	}
+}
+
+func InitRedisFromConfig(_conf config.Node) error {
+	if conf, ok := _conf.(*config.MapNode); ok {
+		port := conf.MustGet("port", 6379).Value().(int)
+		host := conf.MustGet("host", "localhost").Value().(string)
+		username := conf.MustGet("username", "").Value().(string)
+		password := conf.MustGet("password", "").Value().(string)
+		Redis = redis.NewClient(&redis.Options{
+			Addr:               fmt.Sprint(host, ":", port),
+			Username:           username,
+			Password:           password,
+		})
+		// Test connection.
+		_, err := Redis.Ping(context.Background()).Result()
+		if err != nil {
+			return errors.Wrap(err, "could not connect to the redis server")
+		}
+		return nil
+	} else {
+		return errors.New("web server configuration should be a map")
+	}
+}
 
 // InitEchoFromConfig initialize the Echo object and starts the web server according to the config.
 func InitEchoFromConfig(_conf config.Node) error {
 	if conf, ok := _conf.(*config.MapNode); ok {
-		port := int(conf.MustGet("port", config.IntNode(8080)).(config.IntNode))
+		port := conf.MustGet("port", 8080).Value().(int)
 		Echo = echo.New()
 		Echo.Logger = &log.EchoLogger{}
 		Echo.HideBanner = true

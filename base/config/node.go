@@ -13,6 +13,7 @@ type Node interface {
 	String() string
 	Get(index string) (Node, error)
 	MustGet(index string, def interface{}) Node
+	Value() interface{}
 }
 
 type MapNode struct {
@@ -106,6 +107,10 @@ func (m *MapNode) MustGet(index string, def interface{}) Node {
 	return v
 }
 
+func (m *MapNode) Value() interface{} {
+	return m.M
+}
+
 func (s *SliceNode) String() string {
 	rst, _ := json.Marshal(s)
 	return string(rst)
@@ -172,6 +177,10 @@ func (s *SliceNode) MustGet(index string, def interface{}) Node {
 	return v
 }
 
+func (s *SliceNode) Value() interface{} {
+	return s.S
+}
+
 func (s StringNode) String() string {
 	data, _ := json.Marshal(s)
 	return string(data)
@@ -195,6 +204,10 @@ func (s StringNode) MustGet(index_ string, def interface{}) Node {
 	return v
 }
 
+func (s StringNode) Value() interface{} {
+	return string(s)
+}
+
 func (s IntNode) String() string {
 	return strconv.Itoa(int(s))
 }
@@ -215,6 +228,10 @@ func (s IntNode) MustGet(index_ string, def interface{}) Node {
 		panic(err)
 	}
 	return v
+}
+
+func (s IntNode) Value() interface{} {
+	return int(s)
 }
 
 func (s BoolNode) String() string {
@@ -240,6 +257,10 @@ func (s BoolNode) MustGet(index_ string, def interface{}) Node {
 		panic(err)
 	}
 	return v
+}
+
+func (s BoolNode) Value() interface{} {
+	return bool(s)
 }
 
 func buildOne(data interface{}) (Node, error) {

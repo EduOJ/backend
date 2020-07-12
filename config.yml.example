@@ -1,6 +1,9 @@
 database:
-  type: postgresql
-  uri: ...
+  dialect: postgres
+  uri: host=myhost port=myport user=gorm dbname=gorm password=mypassword
+redis:
+  host: 127.0.0.1
+  port: 6737
 log:
   - name: console
     level: debug
