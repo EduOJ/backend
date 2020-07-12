@@ -52,8 +52,10 @@ func TestConsoleWriter(t *testing.T) {
 
 func TestEventWriter(t *testing.T) {
 	lastLog := Log{}
+	done := make(chan struct{})
 	event.RegisterListener("log", func(arg Log) {
 		lastLog = arg
+		done <- struct{}{}
 	})
 	w := &eventWriter{}
 	log := Log{
@@ -63,5 +65,6 @@ func TestEventWriter(t *testing.T) {
 		Caller:  "233",
 	}
 	w.log(log)
+	<-done
 	assert.Equal(t, log, lastLog)
 }
