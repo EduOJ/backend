@@ -3,7 +3,7 @@ database:
   uri: host=myhost port=myport user=gorm dbname=gorm password=mypassword
 redis:
   host: 127.0.0.1
-  port: 6737
+  port: 6379
 log:
   - name: console
     level: debug

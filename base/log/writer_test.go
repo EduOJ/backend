@@ -1,13 +1,21 @@
 package log
 
 import (
+	"context"
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/kami-zh/go-capturer"
+	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
+	"github.com/leoleoasd/EduOJBackend/base/exit"
+	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
+	"sync"
 	"testing"
 	"time"
 )
+import _ "github.com/jinzhu/gorm/dialects/sqlite"
 
 func TestConsoleWriter(t *testing.T) {
 	levels := []struct {
@@ -67,4 +75,40 @@ func TestEventWriter(t *testing.T) {
 	w.log(log)
 	<-done
 	assert.Equal(t, log, lastLog)
+}
+
+func TestDatabaseWriter(t *testing.T){
+	oldDB := base.DB
+	base.DB, _ = gorm.Open("sqlite3", ":memory:")
+	database.Migrate()
+	oldWG := exit.QuitWG
+	exit.QuitWG = sync.WaitGroup{}
+	oldClose := exit.Close
+	oldContext := exit.BaseContext
+	exit.BaseContext, exit.Close = context.WithCancel(context.Background())
+	t.Cleanup(func() {
+		base.DB = oldDB
+		exit.QuitWG = oldWG
+		exit.Close = oldClose
+		exit.BaseContext = oldContext
+	})
+	log := Log{
+		Level:   DEBUG,
+		Time:    time.Now(),
+		Message: "123",
+		Caller:  "233",
+	}
+	w := databaseWriter{}
+	w.init()
+	w.log(log)
+	exit.Close()
+	exit.QuitWG.Wait()
+	lm := models.Log{}
+	base.DB.First(&lm)
+	assert.Equal(t, models.Log{
+		Model:   lm.Model,
+		Level:   0,
+		Message: "123",
+		Caller:  "233",
+	}, lm)
 }
