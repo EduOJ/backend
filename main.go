@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/leoleoasd/EduOJBackend/base/logging"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"os"
 )
 
 func main() {
 	parse()
 	if len(args) < 1 {
-		logging.Fatal("Please specific a command to run.")
+		log.Fatal("Please specific a command to run.")
 		// TODO: output usage
 		os.Exit(-1)
 	}

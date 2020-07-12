@@ -11,7 +11,7 @@ var conf Node
 
 // Get gets a value from the config object
 // Example:
-// value, err := conf.get("logging.0.level")
+// value, err := conf.get("log.0.level")
 var Get func(index string) (Node, error)
 
 // MustGet warps the Get function, when error accounts, returns the default value.

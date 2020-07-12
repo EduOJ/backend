@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/logging"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,13 +16,13 @@ func serve() {
 	initEcho()
 
 	go base.Echo.StartServer(base.Echo.Server)
-	logging.Fatal("Server started at port ", base.Echo.Server.Addr)
+	log.Fatal("Server started at port ", base.Echo.Server.Addr)
 	s := make(chan os.Signal)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
 
 	<-s
-	logging.Fatal("Server closing.")
-	logging.Fatal("Hit ctrl+C again to forceShutdown quit.")
+	log.Fatal("Server closing.")
+	log.Fatal("Hit ctrl+C again to forceShutdown quit.")
 	shutdownCtx, forceShutdown := context.WithCancel(context.Background())
 	go func() {
 		<-s
@@ -31,11 +31,11 @@ func serve() {
 	err := base.Echo.Shutdown(shutdownCtx)
 	if err != nil {
 		if err.Error() == "context canceled" {
-			logging.Fatal("Force quitting.")
+			log.Fatal("Force quitting.")
 		} else {
-			logging.Fatal(err)
+			log.Fatal(err)
 		}
 	} else {
-		logging.Fatal("Server closed. Quitting.")
+		log.Fatal("Server closed. Quitting.")
 	}
 }
