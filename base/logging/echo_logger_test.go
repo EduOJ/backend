@@ -21,29 +21,9 @@ func TestEchoLogger(t *testing.T) {
 	oldLogger := logger0
 	t.Cleanup(func() {
 		logger0 = oldLogger
-		Debug = logger0.Debug
-		Info = logger0.Info
-		Warning = logger0.Warning
-		Error = logger0.Error
-		Fatal = logger0.Fatal
-		Debugf = logger0.Debugf
-		Infof = logger0.Infof
-		Warningf = logger0.Warningf
-		Errorf = logger0.Errorf
-		Fatalf = logger0.Fatalf
 	})
 	fl := &fakeLogger{}
 	logger0 = fl
-	Debug = logger0.Debug
-	Info = logger0.Info
-	Warning = logger0.Warning
-	Error = logger0.Error
-	Fatal = logger0.Fatal
-	Debugf = logger0.Debugf
-	Infof = logger0.Infof
-	Warningf = logger0.Warningf
-	Errorf = logger0.Errorf
-	Fatalf = logger0.Fatalf
 	el := &EchoLogger{}
 	assert.Equal(t, os.Stdout, el.Output())
 	el.SetOutput(os.Stdout)

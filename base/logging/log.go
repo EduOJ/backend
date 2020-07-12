@@ -41,11 +41,11 @@ func (l Level) String() string {
 }
 
 var stringToLevel = map[string]Level{
-	"debug":   DEBUG,
-	"info":    INFO,
-	"warning": WARNING,
-	"error":   ERROR,
-	"fatal":   FATAL,
+	"DEBUG":   DEBUG,
+	"INFO":    INFO,
+	"WARNING": WARNING,
+	"ERROR":   ERROR,
+	"FATAL":   FATAL,
 }
 
 // Log struct contains essential information of a log.
