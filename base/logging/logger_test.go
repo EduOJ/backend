@@ -5,7 +5,6 @@ import (
 	"github.com/kami-zh/go-capturer"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"runtime"
 	"testing"
 	"time"
 )
@@ -60,15 +59,13 @@ func TestLogger(t *testing.T) {
 		level.logFunction(123, "321")
 		assert.Equal(t, w.lastLog.Level, level.l, "Level should be same.")
 		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), 5*time.Millisecond.Nanoseconds(), "Time difference should be less than 5 ms.")
-		_, _, line, _ := runtime.Caller(0)
-		assert.Equal(t, w.lastLog.Caller, fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogger:", line-3), "Caller should be this function.")
+		assert.Equal(t, w.lastLog.Caller, "testing.tRunner:991", "Caller should be this function.")
 		assert.Equal(t, w.lastLog.Message, fmt.Sprint(123, "321"))
 
 		level.logFFunction("%d 123 %s", 123, "321")
 		assert.Equal(t, w.lastLog.Level, level.l, "Level should be same.")
 		assert.Less(t, time.Since(w.lastLog.Time).Nanoseconds(), time.Millisecond.Nanoseconds(), "Time difference should be less than 1 ms.")
-		_, _, line, _ = runtime.Caller(0)
-		assert.Equal(t, w.lastLog.Caller, fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogger:", line-3), "Caller should be this function.")
+		assert.Equal(t, w.lastLog.Caller, "testing.tRunner:991", "Caller should be this function.")
 		assert.Equal(t, w.lastLog.Message, fmt.Sprintf("%d 123 %s", 123, "321"))
 	}
 }
@@ -143,25 +140,23 @@ func TestLogNotReady(t *testing.T) {
 		},
 	}
 	for _, level := range levels {
-		_, _, line, _ := runtime.Caller(0)
 		output := capturer.CaptureOutput(func() {
 			level.logFunction("sample log output")
 		})
 		txt := fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
 			colors[level.Level],
 			time.Now().Format("15:04:05"),
-			fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogNotReady.func1:", line+2),
+			"github.com/kami-zh/go-capturer.(*Capturer).capture:55",
 			level.Level.String(),
 			"sample log output")
 		assert.Equal(t, txt, output)
-		_, _, line, _ = runtime.Caller(0)
 		output = capturer.CaptureOutput(func() {
 			level.logFFunction("sample log output")
 		})
 		txt = fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
 			colors[level.Level],
 			time.Now().Format("15:04:05"),
-			fmt.Sprint("github.com/leoleoasd/EduOJBackend/base/logging.TestLogNotReady.func2:", line+2),
+			"github.com/kami-zh/go-capturer.(*Capturer).capture:55",
 			level.Level.String(),
 			"sample log output")
 		assert.Equal(t, txt, output)

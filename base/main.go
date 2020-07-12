@@ -5,6 +5,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/logging"
 	"github.com/pkg/errors"
@@ -28,9 +29,11 @@ func InitEchoFromConfig(_conf config.Node) error {
 		port := int(conf.MustGet("port", config.IntNode(8080)).(config.IntNode))
 		Echo = echo.New()
 		Echo.Logger = &logging.EchoLogger{}
-		go func() {
-			logging.Fatal(Echo.Start(fmt.Sprintf(":%d", port)))
-		}()
+		Echo.HideBanner = true
+		Echo.HidePort = true
+		Echo.Use(middleware.Recover())
+		Echo.Server.Addr = fmt.Sprintf(":%d", port)
+		// TODO: load routes and middleware.
 		return nil
 	} else {
 		return errors.New("web server configuration should be a map")

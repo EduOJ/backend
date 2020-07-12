@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -56,12 +57,21 @@ func (l *logger) setReady() {
 }
 
 func (l *logger) logWithLevelString(level Level, message string) {
-	// Get caller
-	var caller string
-	pc, _, line, _ := runtime.Caller(3)
-	f := runtime.FuncForPC(pc)
-	caller = fmt.Sprint(f.Name(), ":", line)
-
+	caller := "unknown"
+	{
+		// Find caller out of the log package.
+		pc := make([]uintptr, 5)
+		runtime.Callers(1, pc)
+		frames := runtime.CallersFrames(pc)
+		more := true
+		for more {
+			var frame runtime.Frame
+			frame, more = frames.Next()
+			if !strings.Contains(frame.File, "github.com/leoleoasd/EduOJBackend/base/log") {
+				caller = fmt.Sprint(frame.Func.Name(), ":", frame.Line)
+			}
+		}
+	}
 	log := Log{
 		Level:   level,
 		Time:    time.Now(),
