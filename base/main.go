@@ -42,9 +42,9 @@ func InitRedisFromConfig(_conf config.Node) error {
 		username := conf.MustGet("username", "").Value().(string)
 		password := conf.MustGet("password", "").Value().(string)
 		Redis = redis.NewClient(&redis.Options{
-			Addr:               fmt.Sprint(host, ":", port),
-			Username:           username,
-			Password:           password,
+			Addr:     fmt.Sprint(host, ":", port),
+			Username: username,
+			Password: password,
 		})
 		// Test connection.
 		_, err := Redis.Ping(context.Background()).Result()

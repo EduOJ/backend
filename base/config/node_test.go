@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -212,4 +213,37 @@ func TestMapNode_Child(t *testing.T) {
 			m.MustGet("boolNode", "").MustGet(".123", struct{}{})
 		})
 	})
+}
+
+func TestNodeValue(t *testing.T) {
+	tests := []struct {
+		Node  Node
+		Value interface{}
+	}{
+		{
+			&MapNode{M: map[string]Node{
+				"123": IntNode(123),
+			}}, map[string]Node{
+				"123": IntNode(123),
+			},
+		}, {
+			&SliceNode{[]Node{
+				IntNode(123),
+			}}, []Node{
+				IntNode(123),
+			},
+		}, {
+			IntNode(123),123,
+		},{
+			BoolNode(false),false,
+		},{
+			StringNode("123"),"123",
+		},
+	}
+	for _, test := range tests {
+		tt := reflect.TypeOf(test.Node)
+		t.Run("test"+tt.Name()+"Value", func(t *testing.T) {
+			assert.Equal(t, test.Value, test.Node.Value())
+		})
+	}
 }
