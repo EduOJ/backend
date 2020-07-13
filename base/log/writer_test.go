@@ -77,7 +77,7 @@ func TestEventWriter(t *testing.T) {
 	assert.Equal(t, log, lastLog)
 }
 
-func TestDatabaseWriter(t *testing.T){
+func TestDatabaseWriter(t *testing.T) {
 	oldDB := base.DB
 	base.DB, _ = gorm.Open("sqlite3", ":memory:")
 	database.Migrate()
@@ -105,10 +105,12 @@ func TestDatabaseWriter(t *testing.T){
 	exit.QuitWG.Wait()
 	lm := models.Log{}
 	base.DB.First(&lm)
+	ll := int(DEBUG)
 	assert.Equal(t, models.Log{
-		Model:   lm.Model,
-		Level:   0,
-		Message: "123",
-		Caller:  "233",
+		ID:        lm.ID,
+		Level:     &ll,
+		Message:   "123",
+		Caller:    "233",
+		CreatedAt: lm.CreatedAt,
 	}, lm)
 }

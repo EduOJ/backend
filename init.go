@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
@@ -64,7 +65,7 @@ func startEcho() {
 	base.Echo.HidePort = true
 	base.Echo.Use(middleware.Recover())
 	base.Echo.Server.Addr = fmt.Sprintf(":%d", port)
-	// TODO: load routes and middleware.
+	app.Register(base.Echo)
 	go func() {
 		err := base.Echo.StartServer(base.Echo.Server)
 		if err != nil {

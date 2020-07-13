@@ -17,5 +17,7 @@ func main() {
 		testConfig()
 	case "serve", "server", "http", "run":
 		serve()
+	case "migrate", "migration":
+		doMigrate()
 	}
 }
