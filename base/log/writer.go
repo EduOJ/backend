@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
@@ -82,27 +81,23 @@ func (w *databaseWriter) init() {
 		for {
 			select {
 			case l := <-w.queue:
+				ll := int(l.Level)
 				lm := models.Log{
-					Model: gorm.Model{
-						CreatedAt: l.Time,
-						UpdatedAt: l.Time,
-					},
-					Level:   int(l.Level),
-					Message: l.Message,
-					Caller:  l.Caller,
+					Level:     &ll,
+					Message:   l.Message,
+					Caller:    l.Caller,
+					CreatedAt: l.Time,
 				}
 				base.DB.Create(&lm)
 			case <-exit.BaseContext.Done():
 				select {
 				case l := <-w.queue:
+					ll := int(l.Level)
 					lm := models.Log{
-						Model: gorm.Model{
-							CreatedAt: l.Time,
-							UpdatedAt: l.Time,
-						},
-						Level:   int(l.Level),
-						Message: l.Message,
-						Caller:  l.Caller,
+						Level:     &ll,
+						Message:   l.Message,
+						Caller:    l.Caller,
+						CreatedAt: l.Time,
 					}
 					base.DB.Create(&lm)
 				default:

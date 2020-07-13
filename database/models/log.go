@@ -1,12 +1,13 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Log struct {
-	gorm.Model
-	Level   int
-	Message string
-	Caller  string
+	ID        uint `gorm:"primary_key"`
+	Level     *int
+	Message   string
+	Caller    string
+	CreatedAt time.Time
 }
