@@ -53,7 +53,7 @@ func startEcho() {
 		log.Fatal(errors.Wrap(err, "could not read http server config"))
 		os.Exit(-1)
 	}
-	if _, ok := echoConf.(*config.MapNode); ok {
+	if _, ok := echoConf.(*config.MapNode); !ok {
 		log.Fatal(errors.Wrap(errors.New("web server configuration should be a map"), "could not init http server with config "+echoConf.String()))
 		os.Exit(-1)
 	}
@@ -94,7 +94,7 @@ func initRedis() {
 		log.Fatal(errors.Wrap(err, "could not read redis config"))
 		os.Exit(-1)
 	}
-	if _, ok := redisConf.(*config.MapNode); ok {
+	if _, ok := redisConf.(*config.MapNode); !ok {
 		log.Fatal(errors.Wrap(errors.New("redis configuration should be a map"), "could not init http server with config "+redisConf.String()))
 		os.Exit(-1)
 	}
@@ -131,7 +131,7 @@ func initGorm(toMigrate ...bool) {
 		log.Fatal(errors.Wrap(err, "could not read database config"))
 		os.Exit(-1)
 	}
-	if _, ok := databaseConf.(*config.MapNode); ok {
+	if _, ok := databaseConf.(*config.MapNode); !ok {
 		log.Fatal(errors.Wrap(errors.New("database configuration should be a map"), "could not init http server with config "+databaseConf.String()))
 		os.Exit(-1)
 	}
