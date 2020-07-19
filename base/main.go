@@ -4,7 +4,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
-	_ "unsafe"
 )
 
 import _ "github.com/jinzhu/gorm/dialects/mysql"

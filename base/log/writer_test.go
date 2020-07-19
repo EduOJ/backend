@@ -1,5 +1,3 @@
-// +build !race
-
 package log
 
 import (
@@ -102,7 +100,11 @@ func TestDatabaseWriter(t *testing.T) {
 	exit.Close()
 	exit.QuitWG.Wait()
 	lm := models.Log{}
-	base.DB.First(&lm)
+	count := -1
+	assert.Equal(t, nil, base.DB.Table("logs").Count(&count).Error)
+	assert.LessOrEqual(t, 100, count)
+
+	assert.Equal(t, nil, base.DB.First(&lm).Error)
 	ll := int(DEBUG)
 	assert.Equal(t, models.Log{
 		ID:        lm.ID,

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/base/config"
+	"github.com/leoleoasd/EduOJBackend/base/exit"
+	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -185,6 +187,8 @@ func TestInitFromConfigFail(t *testing.T) {
 }
 
 func TestInitFromConfigSuccess(t *testing.T) {
+	t.Cleanup(database.SetupDatabaseForTest())
+	t.Cleanup(exit.SetupExitForTest())
 	oldLogger := logger0
 	t.Cleanup(func() {
 		logger0 = oldLogger
@@ -211,4 +215,6 @@ func TestInitFromConfigSuccess(t *testing.T) {
 	assert.Equal(t, true, l.ready)
 	err = InitFromConfig(&config.SliceNode{S: []config.Node{}})
 	assert.EqualError(t, err, "already initialized")
+	exit.Close()
+	exit.QuitWG.Wait()
 }
