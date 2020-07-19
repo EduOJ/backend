@@ -89,6 +89,8 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
+.idea/markdown-navigator*.xml
+
 /coverage*
 /test.*
 /config.yml
