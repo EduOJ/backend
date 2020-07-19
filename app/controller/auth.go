@@ -18,15 +18,10 @@ func Login(c echo.Context) error {
 }
 
 func Register(c echo.Context) error {
-	req := new(request.UserRequest)
+	req := new(request.RegisterRequest)
 	if err := c.Bind(req); err != nil {
 		log.Error(errors.Wrap(err, "could not bind request "), c)
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    -1,
-			Message: "Internal error",
-			Error:   nil,
-			Data:    nil,
-		})
+		return response.InternalErrorResp(c)
 	}
 	if err := c.Validate(req); err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
@@ -37,49 +32,32 @@ func Register(c echo.Context) error {
 					Reason: v.Tag(),
 				}
 			}
-			return c.JSON(http.StatusBadRequest, response.Response{
-				Code:    1,
-				Message: "validation error",
-				Error:   validationErrors,
-				Data:    nil,
-			})
+			return c.JSON(http.StatusBadRequest, response.ErrorResp(1, "validation error", validationErrors))
 		}
 		log.Error(errors.Wrap(err, "validate failed"), c)
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    -1,
-			Message: "Internal error",
-			Error:   nil,
-			Data:    nil,
-		})
+		return response.InternalErrorResp(c)
 	}
 	hashed, err := utils.HashPassword(req.Password)
 	if err != nil {
 		log.Error(errors.Wrap(err, "could not hash user password"))
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    -1,
-			Message: "Internal error",
-			Error:   nil,
-			Data:    nil,
-		})
+		return response.InternalErrorResp(c)
 	}
 	count := 0
-	base.DB.Model(&models.User{}).Where("email = ? or username = ?", req.Email, req.Nickname).Count(&count)
+	base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count)
 	if base.DB.Error != nil {
 		log.Error(errors.Wrap(err, "could not query user count"))
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    -1,
-			Message: "Internal error",
-			Error:   nil,
-			Data:    nil,
-		})
+		return response.InternalErrorResp(c)
 	}
 	if count != 0 {
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    2,
-			Message: "duplicate username or email",
-			Error:   nil,
-			Data:    nil,
-		})
+		return c.JSON(http.StatusBadRequest, response.ErrorResp(2, "duplicate email", nil))
+	}
+	base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count)
+	if base.DB.Error != nil {
+		log.Error(errors.Wrap(err, "could not query user count"))
+		return response.InternalErrorResp(c)
+	}
+	if count != 0 {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp(3, "duplicate username", nil))
 	}
 	user := models.User{
 		Username: req.Username,
@@ -90,12 +68,7 @@ func Register(c echo.Context) error {
 	err = base.DB.Create(&user).Error
 	if err != nil {
 		log.Error(errors.Wrap(err, "could not create user"))
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    -1,
-			Message: "Internal error",
-			Error:   nil,
-			Data:    nil,
-		})
+		return response.InternalErrorResp(c)
 	}
 	token := models.Token{
 		Token: utils.RandStr(32),
@@ -104,20 +77,15 @@ func Register(c echo.Context) error {
 	err = base.DB.Create(&token).Error
 	if err != nil {
 		log.Error(errors.Wrap(err, "could not create token for user"))
-		return c.JSON(http.StatusInternalServerError, response.Response{
-			Code:    -1,
-			Message: "Internal error",
-			Error:   nil,
-			Data:    nil,
-		})
+		return response.InternalErrorResp(c)
 	}
 	return c.JSON(http.StatusCreated, response.RegisterResponse{
 		Code:    0,
 		Message: "success",
 		Error:   nil,
 		Data: struct {
-			models.User  `json:"user"`
-			Token string `json:"token"`
+			models.User `json:"user"`
+			Token       string `json:"token"`
 		}{
 			user,
 			token.Token,

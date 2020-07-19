@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -246,4 +247,39 @@ func TestNodeValue(t *testing.T) {
 			assert.Equal(t, test.Value, test.Node.Value())
 		})
 	}
+}
+
+func TestBuildOne(t *testing.T) {
+	tests := []struct {
+		data  interface{}
+		error string
+	}{
+		{
+			[]interface{}{
+				interface{}(struct{}{}),
+			},
+			"illegal type",
+		},
+		{
+			map[interface{}]interface{}{
+				"test": interface{}(struct{}{}),
+			},
+			"illegal type",
+		},
+	}
+	for id, test := range tests {
+		t.Run(fmt.Sprint(id), func(t *testing.T) {
+			node, err := buildOne(test.data)
+			assert.Error(t, err)
+			assert.Equal(t, test.error, err.Error())
+			assert.Equal(t, nil, node)
+		})
+	}
+}
+
+func TestNode_Build(t *testing.T) {
+	m := &MapNode{}
+	assert.Equal(t, ErrTypeDontMatchError, m.Build(struct{}{}))
+	s := &SliceNode{}
+	assert.Equal(t, ErrTypeDontMatchError, s.Build(struct{}{}))
 }
