@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-	"time"
 )
 
 type fakeWriter struct {
@@ -138,23 +137,19 @@ func TestLogNotReady(t *testing.T) {
 		output := capturer.CaptureOutput(func() {
 			level.logFunction("sample log output")
 		})
-		txt := fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
-			colors[level.Level],
-			time.Now().Format("15:04:05"),
+		txt := fmt.Sprintf("[%s] ▶ %s\u001B[0m %s\n",
 			"github.com/kami-zh/go-capturer.(*Capturer).capture:55",
 			level.Level.String(),
 			"sample log output")
-		assert.Equal(t, txt, output)
+		assert.Equal(t, txt, output[15:])
 		output = capturer.CaptureOutput(func() {
 			level.logFFunction("sample log output")
 		})
-		txt = fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
-			colors[level.Level],
-			time.Now().Format("15:04:05"),
+		txt = fmt.Sprintf("[%s] ▶ %s\u001B[0m %s\n",
 			"github.com/kami-zh/go-capturer.(*Capturer).capture:55",
 			level.Level.String(),
 			"sample log output")
-		assert.Equal(t, txt, output)
+		assert.Equal(t, txt, output[15:])
 	}
 }
 
