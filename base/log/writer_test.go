@@ -1,9 +1,9 @@
+// +build !race
+
 package log
 
 import (
-	"context"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/kami-zh/go-capturer"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
@@ -11,7 +11,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
-	"sync"
 	"testing"
 	"time"
 )
@@ -77,21 +76,13 @@ func TestEventWriter(t *testing.T) {
 	assert.Equal(t, log, lastLog)
 }
 
+// This test contains a data race on exit's base context.
+// So this file isn't included in the race test.
+// This race won't happen in real situation.
+// Cause the exit lock shouldn't be replaced out of test.
 func TestDatabaseWriter(t *testing.T) {
-	oldDB := base.DB
-	base.DB, _ = gorm.Open("sqlite3", ":memory:")
-	database.Migrate()
-	oldWG := exit.QuitWG
-	exit.QuitWG = sync.WaitGroup{}
-	oldClose := exit.Close
-	oldContext := exit.BaseContext
-	exit.BaseContext, exit.Close = context.WithCancel(context.Background())
-	t.Cleanup(func() {
-		base.DB = oldDB
-		exit.QuitWG = oldWG
-		exit.Close = oldClose
-		exit.BaseContext = oldContext
-	})
+	t.Cleanup(database.SetupDatabaseForTest())
+	t.Cleanup(exit.SetupExitForTest())
 	log := Log{
 		Level:   DEBUG,
 		Time:    time.Now(),
@@ -99,8 +90,15 @@ func TestDatabaseWriter(t *testing.T) {
 		Caller:  "233",
 	}
 	w := databaseWriter{}
+	w.queue = make(chan Log, 100)
+	for i := 0; i < 1000; i += 1 {
+		w.log(log)
+	}
+	assert.Equal(t, 100, len(w.queue))
 	w.init()
-	w.log(log)
+	for i := 0; i < 1000; i += 1 {
+		w.log(log)
+	}
 	exit.Close()
 	exit.QuitWG.Wait()
 	lm := models.Log{}

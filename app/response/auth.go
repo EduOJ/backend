@@ -7,7 +7,7 @@ type RegisterResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		models.User  `json:"user"`
-		Token string `json:"token"`
+		models.User `json:"user"`
+		Token       string `json:"token"`
 	} `json:"data"`
 }
