@@ -11,6 +11,7 @@ func Register(e *echo.Echo) {
 	e.Validator = &Validator{
 		v: validator.New(),
 	}
+	e.Use(middleware.Recover)
 
 	api := e.Group("/api")
 

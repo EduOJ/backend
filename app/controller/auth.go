@@ -20,8 +20,7 @@ func Login(c echo.Context) error {
 func Register(c echo.Context) error {
 	req := new(request.RegisterRequest)
 	if err := c.Bind(req); err != nil {
-		log.Error(errors.Wrap(err, "could not bind request "), c)
-		return response.InternalErrorResp(c)
+		panic(err)
 	}
 	if err := c.Validate(req); err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
@@ -37,25 +36,13 @@ func Register(c echo.Context) error {
 		log.Error(errors.Wrap(err, "validate failed"), c)
 		return response.InternalErrorResp(c)
 	}
-	hashed, err := utils.HashPassword(req.Password)
-	if err != nil {
-		log.Error(errors.Wrap(err, "could not hash user password"))
-		return response.InternalErrorResp(c)
-	}
+	hashed := utils.HashPassword(req.Password)
 	count := 0
-	base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count)
-	if base.DB.Error != nil {
-		log.Error(errors.Wrap(err, "could not query user count"))
-		return response.InternalErrorResp(c)
-	}
+	panicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp(2, "duplicate email", nil))
 	}
-	base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count)
-	if base.DB.Error != nil {
-		log.Error(errors.Wrap(err, "could not query user count"))
-		return response.InternalErrorResp(c)
-	}
+	panicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp(3, "duplicate username", nil))
 	}
@@ -65,20 +52,12 @@ func Register(c echo.Context) error {
 		Email:    req.Email,
 		Password: hashed,
 	}
-	err = base.DB.Create(&user).Error
-	if err != nil {
-		log.Error(errors.Wrap(err, "could not create user"))
-		return response.InternalErrorResp(c)
-	}
+	panicIfDBError(base.DB.Create(&user), "could not create user")
 	token := models.Token{
 		Token: utils.RandStr(32),
 		User:  user,
 	}
-	err = base.DB.Create(&token).Error
-	if err != nil {
-		log.Error(errors.Wrap(err, "could not create token for user"))
-		return response.InternalErrorResp(c)
-	}
+	panicIfDBError(base.DB.Create(&token), "could not create token for user")
 	return c.JSON(http.StatusCreated, response.RegisterResponse{
 		Code:    0,
 		Message: "success",

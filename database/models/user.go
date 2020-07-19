@@ -10,6 +10,6 @@ type User struct {
 	Password string `json:"-" validate:"required,max=30,min=5"`
 
 	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	UpdatedAt time.Time  `json:"-"`
 	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
 }
