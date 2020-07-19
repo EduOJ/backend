@@ -20,6 +20,7 @@ func SetupDatabaseForTest() func() {
 		panic(err)
 	}
 	base.DB = x
+	base.DB.LogMode(false)
 	Migrate()
 	return func() {
 		base.DB = oldDB

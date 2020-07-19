@@ -18,12 +18,16 @@ type Response struct {
 }
 
 func InternalErrorResp(c echo.Context) error {
-	return c.JSON(http.StatusInternalServerError, Response{
+	return c.JSON(http.StatusInternalServerError, MakeInternalErrorResp())
+}
+
+func MakeInternalErrorResp() Response {
+	return Response{
 		Code:    -1,
 		Message: "Internal error",
 		Error:   nil,
 		Data:    nil,
-	})
+	}
 }
 
 func ErrorResp(code int, message string, error interface{}) Response {
