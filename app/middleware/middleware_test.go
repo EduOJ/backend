@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
@@ -57,7 +58,12 @@ func MakeResp(req *http.Request) *http.Response {
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
-	println(base.DB.HasTable("users"))
+	configFile := bytes.NewBufferString("debug: false")
+	err := config.ReadConfig(configFile)
+	if err != nil {
+		panic(err)
+	}
+
 	base.Echo = echo.New()
 	app.Register(base.Echo)
 	os.Exit(m.Run())

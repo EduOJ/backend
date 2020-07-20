@@ -9,5 +9,6 @@ log:
     level: debug
   - name: database
     level: error
+debug: false
 server:
   port: 8080

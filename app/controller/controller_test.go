@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
@@ -18,6 +19,25 @@ import (
 
 func JsonEQ(t *testing.T, expected, actual interface{}) {
 	assert.JSONEq(t, MustJsonEncode(t, expected), MustJsonEncode(t, actual))
+}
+
+func MustJsonDecode(data interface{}, out interface{}) {
+	var err error
+	if dataResp, ok := data.(*http.Response); ok {
+		data, err = ioutil.ReadAll(dataResp.Body)
+		if err != nil {
+			panic(err)
+		}
+	}
+	if dataString, ok := data.(string); ok {
+		data = []byte(dataString)
+	}
+	if dataBytes, ok := data.([]byte); ok {
+		err = json.Unmarshal(dataBytes, out)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func MustJsonEncode(t *testing.T, data interface{}) string {
@@ -57,7 +77,12 @@ func MakeResp(req *http.Request) *http.Response {
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
-	println(base.DB.HasTable("users"))
+	configFile := bytes.NewBufferString("debug: true")
+	err := config.ReadConfig(configFile)
+	if err != nil {
+		panic(err)
+	}
+
 	base.Echo = echo.New()
 	app.Register(base.Echo)
 	os.Exit(m.Run())
