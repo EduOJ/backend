@@ -3,8 +3,11 @@ package middleware
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/pkg/errors"
+	"net/http"
+	"runtime/debug"
 )
 
 func Recover(next echo.HandlerFunc) echo.HandlerFunc {
@@ -16,7 +19,12 @@ func Recover(next echo.HandlerFunc) echo.HandlerFunc {
 				} else {
 					log.Error("controller panics: ", xx)
 				}
-				response.InternalErrorResp(c)
+				if config.MustGet("debug", false).Value().(bool) {
+					stack := debug.Stack()
+					c.JSON(http.StatusInternalServerError, response.ErrorResp(-1, "internal error", string(stack)))
+				} else {
+					response.InternalErrorResp(c)
+				}
 			}
 		}()
 		return next(c)

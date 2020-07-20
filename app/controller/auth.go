@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -14,7 +15,57 @@ import (
 )
 
 func Login(c echo.Context) error {
-	return nil
+	req := new(request.LoginRequest)
+	if err := c.Bind(req); err != nil {
+		panic(err)
+	}
+	if err := c.Validate(req); err != nil {
+		if e, ok := err.(validator.ValidationErrors); ok {
+			validationErrors := make([]response.ValidationError, len(e))
+			for i, v := range e {
+				validationErrors[i] = response.ValidationError{
+					Field:  v.Field(),
+					Reason: v.Tag(),
+				}
+			}
+			return c.JSON(http.StatusBadRequest, response.ErrorResp(1, "validation error", validationErrors))
+		}
+		log.Error(errors.Wrap(err, "validate failed"), c)
+		return response.InternalErrorResp(c)
+	}
+	t := base.DB.HasTable("users")
+	_ = t
+	user := models.User{}
+	t = base.DB.HasTable("users")
+	err := base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
+	t = base.DB.HasTable("users")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, response.ErrorResp(2, "wrong username or email", nil))
+		} else {
+			panic(errors.Wrap(err, "could not query username or email"))
+		}
+	}
+	if !utils.VerifyPassword(req.Password, user.Password) {
+		return c.JSON(http.StatusForbidden, response.ErrorResp(3, "wrong password", nil))
+	}
+	token := models.Token{
+		Token: utils.RandStr(32),
+		User:  user,
+	}
+	panicIfDBError(base.DB.Create(&token), "could not create token for user")
+	return c.JSON(http.StatusOK, response.RegisterResponse{
+		Code:    0,
+		Message: "success",
+		Error:   nil,
+		Data: struct {
+			models.User `json:"user"`
+			Token       string `json:"token"`
+		}{
+			user,
+			token.Token,
+		},
+	})
 }
 
 func Register(c echo.Context) error {

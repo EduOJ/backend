@@ -143,6 +143,7 @@ func initGorm(toMigrate ...bool) {
 		log.Fatal(errors.Wrap(err, "could not init database with config "+databaseConf.String()))
 		os.Exit(-1)
 	}
+	base.DB.LogMode(false)
 	if len(toMigrate) == 0 || toMigrate[0] {
 		database.Migrate()
 	}
