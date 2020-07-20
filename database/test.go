@@ -1,3 +1,5 @@
+//+build test
+
 package database
 
 import (
@@ -20,6 +22,7 @@ func SetupDatabaseForTest() func() {
 		panic(err)
 	}
 	base.DB = x
+	base.DB.DB().SetMaxOpenConns(1)
 	base.DB.LogMode(false)
 	Migrate()
 	return func() {
