@@ -1,15 +1,65 @@
 package models
 
-import "time"
+import (
+	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/pkg/errors"
+	"time"
+)
 
 type User struct {
 	ID       uint   `gorm:"primary_key" json:"id"`
 	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5"`
-	Nickname string `json:"nickname" validate:"required,max=30,min=5"`
-	Email    string `gorm:"unique_index" json:"email" validate:"required,email,max=30,min=5"`
-	Password string `json:"-" validate:"required,max=30,min=5"`
+	Nickname string `json:"nickname"`
+	Email    string `gorm:"unique_index" json:"email"`
+	Password string `json:"-"`
+
+	Roles      []UserHasRole `json:"roles"`
+	RoleLoaded bool          `gorm:"-"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"-"`
 	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
+}
+
+func (u *User) LoadRoles() {
+	base.DB.Set("gorm:auto_preload", true).Model(u).Related(&u.Roles)
+}
+
+func (u *User) Can(permission string, target ...HasRole) bool {
+	if len(target) > 1 {
+		panic(errors.New("target length should be one!"))
+	}
+	if !u.RoleLoaded {
+		u.LoadRoles()
+	}
+	if len(target) == 0 {
+		// Generic permission
+		for _, role := range u.Roles {
+			if role.Target == nil || *role.Target == "" {
+				if role.Name == "admin" {
+					return true
+				}
+				for _, perm := range role.Permissions {
+					if perm.Name == permission {
+						return true
+					}
+				}
+			}
+		}
+	} else {
+		// Specific permisison
+		for _, role := range u.Roles {
+			if role.Target != nil && *role.Target == target[0].TypeName() && role.TargetID == target[0].ID() {
+				if role.Name == "admin" {
+					return true
+				}
+				for _, perm := range role.Permissions {
+					if perm.Name == permission {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
 }
