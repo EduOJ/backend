@@ -94,3 +94,5 @@ fabric.properties
 /coverage*
 /test.*
 /config.yml
+
+.idea/EduOJBackend.iml
