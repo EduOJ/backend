@@ -22,6 +22,9 @@ type User struct {
 }
 
 func (u *User) LoadRoles() {
+	if u.Roles == nil {
+		u.Roles = make([]UserHasRole, 0)
+	}
 	base.DB.Set("gorm:auto_preload", true).Model(u).Related(&u.Roles)
 }
 
