@@ -35,11 +35,11 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 	if len(target) == 0 {
 		// Generic permission
 		for _, role := range u.Roles {
-			if role.Target == nil || *role.Target == "" {
-				if role.Name == "admin" {
+			if role.Role.Target == nil || *role.Role.Target == "" {
+				if role.Role.Name == "admin" {
 					return true
 				}
-				for _, perm := range role.Permissions {
+				for _, perm := range role.Role.Permissions {
 					if perm.Name == permission {
 						return true
 					}
@@ -49,11 +49,11 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 	} else {
 		// Specific permisison
 		for _, role := range u.Roles {
-			if role.Target != nil && *role.Target == target[0].TypeName() && role.TargetID == target[0].ID() {
-				if role.Name == "admin" {
+			if role.Role.Target != nil && *role.Role.Target == target[0].TypeName() && role.TargetID == target[0].ID() {
+				if role.Role.Name == "admin" {
 					return true
 				}
-				for _, perm := range role.Permissions {
+				for _, perm := range role.Role.Permissions {
 					if perm.Name == permission {
 						return true
 					}
