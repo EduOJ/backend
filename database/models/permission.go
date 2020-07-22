@@ -9,7 +9,7 @@ type UserHasRole struct {
 	ID       uint `gorm:"primary_key" json:"id"`
 	UserID   uint `json:"user_id"`
 	RoleID   uint `json:"role_id"`
-	Role     `json:"role"`
+	Role     Role `json:"role"`
 	TargetID uint `json:"target_id"`
 }
 
