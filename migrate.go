@@ -8,7 +8,7 @@ import (
 
 func doMigrate() {
 
-	if len(args) == 1{
+	if len(args) == 1 {
 		readConfig()
 		initGorm()
 		log.Fatal("Migrate succeed!")
@@ -33,6 +33,10 @@ rollback_last: rollback last migration.`)
 			initGorm(false)
 			m := database.GetMigration()
 			err := m.RollbackTo("0")
+			if err != nil {
+				log.Error(err)
+			}
+			err = m.RollbackLast()
 			if err != nil {
 				log.Error(err)
 			} else {
