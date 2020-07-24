@@ -40,7 +40,7 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 		for _, role := range u.Roles {
 			if role.Role.Target == nil || *role.Role.Target == "" {
 				for _, perm := range role.Role.Permissions {
-					if perm.Name == permission || permission == "all" {
+					if perm.Name == permission || perm.Name == "all" {
 						return true
 					}
 				}
@@ -51,7 +51,7 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 		for _, role := range u.Roles {
 			if role.Role.Target != nil && *role.Role.Target == target[0].TypeName() && role.TargetID == target[0].ID() {
 				for _, perm := range role.Role.Permissions {
-					if perm.Name == permission || permission == "all" {
+					if perm.Name == permission || perm.Name == "all" {
 						return true
 					}
 				}
