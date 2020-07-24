@@ -58,11 +58,11 @@ func GetMigration() *gormigrate.Gormigrate {
 					UserID    uint
 					CreatedAt time.Time `json:"created_at"`
 				}
-				err :=  tx.AutoMigrate(&Token{}).Error
+				err := tx.AutoMigrate(&Token{}).Error
 				if err != nil {
 					return err
 				}
-				err = tx.Model(&Token{}).AddForeignKey("user_id","users(id)","CASCADE", "CASCADE").Error
+				err = tx.Model(&Token{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
 				return err
 			},
 			Rollback: func(tx *gorm.DB) error {
@@ -99,9 +99,9 @@ func GetMigration() *gormigrate.Gormigrate {
 				}
 
 				type Role struct {
-					ID          uint    `gorm:"primary_key" json:"id"`
-					Name        string  `json:"name"`
-					Target      *string `json:"target"`
+					ID     uint    `gorm:"primary_key" json:"id"`
+					Name   string  `json:"name"`
+					Target *string `json:"target"`
 				}
 
 				type Permission struct {
@@ -148,13 +148,13 @@ func GetMigration() *gormigrate.Gormigrate {
 
 func Migrate() {
 	/*
-	err := base.DB.AutoMigrate(
-		&models.Log{}, &models.User{}, &models.Token{}, &models.Config{}, &models.UserHasRole{}, &models.Role{}, &models.Permission{}).Error
-	if err != nil {
-		fmt.Print(err)
-		panic(err)
-	}
-	 */
+		err := base.DB.AutoMigrate(
+			&models.Log{}, &models.User{}, &models.Token{}, &models.Config{}, &models.UserHasRole{}, &models.Role{}, &models.Permission{}).Error
+		if err != nil {
+			fmt.Print(err)
+			panic(err)
+		}
+	*/
 	m := GetMigration()
 	if err := m.Migrate(); err != nil {
 		log.Fatalf("Could not migrate: %v", err)
