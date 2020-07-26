@@ -29,12 +29,12 @@ func TestRecover(t *testing.T) {
 
 	req := MakeReq(t, "POST", "/panics_with_error", &bytes.Buffer{})
 	resp := (*http.Response)(nil)
-	_ = capturer.CaptureOutput(func() {
+	capturer.CaptureOutput(func() {
 		resp = MakeResp(req)
 	})
 	JsonEQ(t, response.MakeInternalErrorResp(), resp)
 	req = MakeReq(t, "POST", "/panics_with_other", &bytes.Buffer{})
-	_ = capturer.CaptureOutput(func() {
+	capturer.CaptureOutput(func() {
 		resp = MakeResp(req)
 	})
 	JsonEQ(t, response.MakeInternalErrorResp(), resp)
