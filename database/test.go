@@ -1,5 +1,3 @@
-//+build test
-
 package database
 
 import (

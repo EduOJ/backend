@@ -5,17 +5,17 @@ import (
 	"testing"
 )
 
-type TestClass struct{
+type TestClass struct {
 	HasRole
 	typeName string
-	id uint
+	id       uint
 }
 
-func (c TestClass)  TypeName() string{
+func (c TestClass) TypeName() string {
 	return c.typeName
 }
 
-func (c TestClass) ID() uint{
+func (c TestClass) ID() uint {
 	return c.id
 }
 
@@ -24,39 +24,39 @@ func TestCan(t *testing.T) {
 
 	class_A := TestClass{
 		typeName: "class",
-		id: 65,
+		id:       65,
 	}
 	class_B := TestClass{
 		typeName: "class",
-		id: 66,
+		id:       66,
 	}
 	teacherAddHomework := Permission{
-		ID: 100,
+		ID:     100,
 		RoleID: 201,
-		Name: "add_homework",
+		Name:   "add_homework",
 	}
 
 	teacherCheckHomework := Permission{
-		ID: 101,
+		ID:     101,
 		RoleID: 200,
-		Name: "check_homework",
+		Name:   "check_homework",
 	}
 
 	assistantCheckHomework := Permission{
-		ID: 101,
+		ID:     101,
 		RoleID: 201,
-		Name: "check_homework",
+		Name:   "check_homework",
 	}
 
 	adminAll := Permission{
-		ID: 102,
+		ID:     102,
 		RoleID: 202,
-		Name: "all",
+		Name:   "all",
 	}
 
-	teacher :=Role{
-		ID:200,
-		Name: "teacher",
+	teacher := Role{
+		ID:     200,
+		Name:   "teacher",
 		Target: &classString,
 		Permissions: []Permission{
 			teacherAddHomework,
@@ -64,18 +64,18 @@ func TestCan(t *testing.T) {
 		},
 	}
 
-	assistant :=Role{
-		ID:201,
-		Name: "Assistant",
+	assistant := Role{
+		ID:     201,
+		Name:   "Assistant",
 		Target: &classString,
 		Permissions: []Permission{
 			assistantCheckHomework,
 		},
 	}
 
-	admin :=Role{
-		ID:202,
-		Name: "Admin",
+	admin := Role{
+		ID:     202,
+		Name:   "Admin",
 		Target: &classString,
 		Permissions: []Permission{
 			adminAll,
@@ -83,34 +83,34 @@ func TestCan(t *testing.T) {
 	}
 
 	testUser0TeacherClassA := UserHasRole{
-		ID: 300,
-		UserID: 400,
-		RoleID: 200,
-		Role: teacher,
+		ID:       300,
+		UserID:   400,
+		RoleID:   200,
+		Role:     teacher,
 		TargetID: 65,
 	}
 
 	testUser0AssistantClassB := UserHasRole{
-		ID: 301,
-		UserID: 400,
-		RoleID: 201,
-		Role: assistant,
+		ID:       301,
+		UserID:   400,
+		RoleID:   201,
+		Role:     assistant,
 		TargetID: 66,
 	}
 
 	testUser1AdminClassA := UserHasRole{
-		ID: 302,
-		UserID: 401,
-		RoleID: 202,
-		Role: admin,
+		ID:       302,
+		UserID:   401,
+		RoleID:   202,
+		Role:     admin,
 		TargetID: 65,
 	}
 
 	testUser1TeacherClassB := UserHasRole{
-		ID: 303,
-		UserID: 401,
-		RoleID: 200,
-		Role: teacher,
+		ID:       303,
+		UserID:   401,
+		RoleID:   200,
+		Role:     teacher,
 		TargetID: 66,
 	}
 
@@ -160,4 +160,3 @@ func TestCan(t *testing.T) {
 	})
 
 }
-
