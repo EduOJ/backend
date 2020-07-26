@@ -36,4 +36,4 @@ Common return codes.
 |  -1  |     服务器内部错误      |
 |  1   | 验证错误, 详见error字段 |
 |  2   |     无效的Token       |
-
+|  3   |     Token已过时       |

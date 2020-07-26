@@ -43,7 +43,7 @@ func TestLogin(t *testing.T) {
 	}))
 	resp := response.LoginResponse{}
 	MustJsonDecode(httpResp, &resp)
-	user1Token := resp.Data.Token
+	//user1Token := resp.Data.Token
 
 
 
@@ -111,17 +111,18 @@ func TestLogin(t *testing.T) {
 			Data: nil,
 		}, httpResp)
 	})
-	t.Run("requestWithCorrectToken", func(t *testing.T) {
-		t.Parallel()
-		httpResp := MakeResp(MakeReq(t, "POST", "/api/login/login_middleware_test", request.LoggedRequest{
-			Token: user1Token,
-		}))
-		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		JsonEQ(t, response.Response{
-			Code:    0,
-			Message: "login_middleware_test",
-			Error: nil,
-			Data: nil,
-		}, httpResp)
-	})
+	//t.Run("requestWithCorrectToken", func(t *testing.T) {
+	//	t.Parallel()
+	//	httpResp := MakeResp(MakeReq(t, "POST", "/api/login/login_middleware_test", request.LoggedRequest{
+	//		Token: user1Token,
+	//	}))
+	//	assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+	//	JsonEQ(t, response.Response{
+	//		Code:    0,
+	//		Message: "login_middleware_test",
+	//		Error: nil,
+	//		Data: nil,
+	//	}, httpResp)
+	//})
+	//TODO: complete login_test (timeout check and cover)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	eduMiddleware "github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
@@ -151,4 +152,16 @@ func initGorm(toMigrate ...bool) {
 
 	// Cause we need to wait until all logs are wrote to the db
 	// So we dont close db connection here.
+}
+
+func initAuth(){
+	log.Debug("Starting auth.")
+	authConf, err := config.Get("auth")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not read auth config"))
+		os.Exit(-1)
+	}
+	TokenEffectiveTime :=authConf.MustGet("token_effective_time",600).Value().(int)
+	eduMiddleware.InitTokenEffectiveTime(TokenEffectiveTime)
+	log.Debug("Auth initialized.")
 }
