@@ -19,5 +19,9 @@ func Register(e *echo.Echo) {
 	auth.POST("/login", controller.Login).Name = "auth.login"
 	auth.POST("/register", controller.Register).Name = "auth.register"
 
+	login := api.Group("/login",middleware.Login)
+	//for APIs that require login
+
+	_ = login
 	// TODO: routes.
 }

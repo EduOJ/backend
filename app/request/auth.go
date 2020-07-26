@@ -11,3 +11,7 @@ type RegisterRequest struct {
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=50,min=5"`
 	Password string `json:"password" form:"password" query:"password" validate:"required,max=30,min=5"`
 }
+
+type LoggedRequest struct {
+	Token string `validate:"required,alpha,len=32"`
+}
