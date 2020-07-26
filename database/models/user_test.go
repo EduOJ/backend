@@ -1,162 +1,137 @@
 package models
 
 import (
+	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type TestClass struct {
-	HasRole
-	typeName string
-	id       uint
+	ID uint
 }
 
 func (c TestClass) TypeName() string {
-	return c.typeName
+	return "test_class"
 }
 
-func (c TestClass) ID() uint {
-	return c.id
+func (c TestClass) GetID() uint {
+	return c.ID
+}
+
+func TestUser_GrantRole(t *testing.T) {
+	t.Cleanup(database.SetupDatabaseForTest())
+	u := User{
+		Username: "test_user_grant_role",
+		Nickname: "test_user_grant_role",
+		Email:    "test_user_grant_role",
+		Password: "test_user_grant_role",
+	}
+	base.DB.Create(&u)
+	r := Role{
+		Name: "ttt",
+	}
+	base.DB.Create(&r)
+	u.GrantRole(r)
+	assert.Equal(t, r, u.Roles[0].Role)
+	{
+		dummy := "test_class"
+		r = Role{
+			Name:   "ttt123",
+			Target: &dummy,
+		}
+	}
+	base.DB.Create(&r)
+	u.GrantRole(r, TestClass{ID: 2})
+	assert.Equal(t, r, u.Roles[1].Role)
+	assert.Equal(t, uint(2), u.Roles[1].TargetID)
 }
 
 func TestCan(t *testing.T) {
-	classString := "class"
-
-	class_A := TestClass{
-		typeName: "class",
-		id:       65,
-	}
-	class_B := TestClass{
-		typeName: "class",
-		id:       66,
-	}
-	teacherAddHomework := Permission{
-		ID:     100,
-		RoleID: 201,
-		Name:   "add_homework",
-	}
-
-	teacherCheckHomework := Permission{
-		ID:     101,
-		RoleID: 200,
-		Name:   "check_homework",
-	}
-
-	assistantCheckHomework := Permission{
-		ID:     101,
-		RoleID: 201,
-		Name:   "check_homework",
-	}
-
-	adminAll := Permission{
-		ID:     102,
-		RoleID: 202,
-		Name:   "all",
-	}
-
+	t.Cleanup(database.SetupDatabaseForTest())
+	base.DB.AutoMigrate(&TestClass{})
+	classA := TestClass{}
+	classB := TestClass{}
+	base.DB.Create(&classA)
+	base.DB.Create(&classB)
+	dummy := "test_class"
 	teacher := Role{
-		ID:     200,
 		Name:   "teacher",
-		Target: &classString,
-		Permissions: []Permission{
-			teacherAddHomework,
-			teacherCheckHomework,
-		},
+		Target: &dummy,
 	}
-
 	assistant := Role{
-		ID:     201,
-		Name:   "Assistant",
-		Target: &classString,
-		Permissions: []Permission{
-			assistantCheckHomework,
-		},
+		Name:   "assistant",
+		Target: &dummy,
 	}
-
 	admin := Role{
-		ID:     202,
-		Name:   "Admin",
-		Target: &classString,
-		Permissions: []Permission{
-			adminAll,
-		},
+		Name:   "admin",
+		Target: &dummy,
 	}
-
-	testUser0TeacherClassA := UserHasRole{
-		ID:       300,
-		UserID:   400,
-		RoleID:   200,
-		Role:     teacher,
-		TargetID: 65,
+	globalRole := Role{
+		Name: "global_role",
 	}
-
-	testUser0AssistantClassB := UserHasRole{
-		ID:       301,
-		UserID:   400,
-		RoleID:   201,
-		Role:     assistant,
-		TargetID: 66,
+	globalAdmin := Role{
+		Name: "global_admin",
 	}
-
-	testUser1AdminClassA := UserHasRole{
-		ID:       302,
-		UserID:   401,
-		RoleID:   202,
-		Role:     admin,
-		TargetID: 65,
-	}
-
-	testUser1TeacherClassB := UserHasRole{
-		ID:       303,
-		UserID:   401,
-		RoleID:   200,
-		Role:     teacher,
-		TargetID: 66,
-	}
+	base.DB.Create(&teacher)
+	base.DB.Create(&assistant)
+	base.DB.Create(&admin)
+	base.DB.Create(&globalRole)
+	base.DB.Create(&globalAdmin)
+	teacher.AddPermission("permission_teacher")
+	teacher.AddPermission("permission_both")
+	assistant.AddPermission("permission_both")
+	admin.AddPermission("all")
+	globalRole.AddPermission("global_permission")
+	globalAdmin.AddPermission("all")
 
 	testUser0 := User{
-		ID:       400,
 		Username: "test_user_0",
 		Nickname: "tu0",
 		Email:    "tu0@e.com",
 		Password: "",
-
-		Roles: []UserHasRole{
-			testUser0TeacherClassA,
-			testUser0AssistantClassB,
-		},
-		RoleLoaded: true,
 	}
-
 	testUser1 := User{
-		ID:       401,
 		Username: "test_user_1",
 		Nickname: "tu1",
 		Email:    "tu1@e.com",
 		Password: "",
-
-		Roles: []UserHasRole{
-			testUser1AdminClassA,
-			testUser1TeacherClassB,
-		},
-		RoleLoaded: true,
 	}
-
-	t.Run("normalPermission", func(t *testing.T) {
-		assert.Equal(t, true, testUser0.Can("add_homework", class_A))
-		assert.Equal(t, false, testUser0.Can("add_homework", class_B))
-		assert.Equal(t, true, testUser0.Can("check_homework", class_A))
-		assert.Equal(t, true, testUser0.Can("check_homework", class_B))
-		assert.Equal(t, false, testUser0.Can("check_homework"))
-		assert.Equal(t, true, testUser1.Can("add_homework", class_B))
-		assert.Equal(t, true, testUser1.Can("check_homework", class_B))
+	base.DB.Create(&testUser0)
+	base.DB.Create(&testUser1)
+	testUser0.GrantRole(teacher, classA)
+	testUser0.GrantRole(assistant, classB)
+	testUser1.GrantRole(admin, classB)
+	testUser0.GrantRole(globalRole)
+	testUser1.GrantRole(globalAdmin)
+	t.Run("scoped", func(t *testing.T) {
+		t.Run("normal", func(t *testing.T) {
+			assert := assert.New(t)
+			assert.True(testUser0.Can("permission_teacher", classA))
+			assert.False(testUser0.Can("permission_teacher", classB))
+			assert.True(testUser0.Can("permission_both", classA))
+			assert.True(testUser0.Can("permission_both", classB))
+			assert.False(testUser0.Can("permission_both"))
+			assert.True(testUser1.Can("permission_teacher", classB))
+			assert.True(testUser1.Can("permission_both", classB))
+		})
+		t.Run("admin", func(t *testing.T) {
+			assert := assert.New(t)
+			assert.False(testUser1.Can("all", classA))
+			assert.True(testUser1.Can("all", classB))
+			assert.True(testUser1.Can("permission_teacher", classB))
+			assert.True(testUser1.Can("permission_both", classB))
+			assert.True(testUser1.Can("permission_non_existing", classB))
+		})
 	})
-	t.Run("allPermission", func(t *testing.T) {
-		assert.Equal(t, true, testUser1.Can("all", class_A))
-		assert.Equal(t, false, testUser1.Can("all", class_B))
-		assert.Equal(t, true, testUser1.Can("add_homework", class_A))
-		assert.Equal(t, true, testUser1.Can("check_homework", class_A))
-		assert.Equal(t, true, testUser1.Can("remove_homework", class_A))
+	t.Run("global", func(t *testing.T) {
+		assert := assert.New(t)
+		assert.True(testUser0.Can("global_permission"))
+		assert.False(testUser0.Can("non_existing_permission"))
+		assert.True(testUser1.Can("global_permission"))
+		assert.True(testUser1.Can("non_existing_permission"))
 	})
-
+	assert.Panics(t, func() {
+		testUser0.Can("xxx", classA, classB)
+	})
 }

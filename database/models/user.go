@@ -21,10 +21,20 @@ type User struct {
 	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
 }
 
-func (u *User) LoadRoles() {
-	if u.Roles == nil {
-		u.Roles = make([]UserHasRole, 0)
+func (u *User) GrantRole(role Role, target ...HasRole) {
+	if len(target) == 0 {
+		base.DB.Model(u).Association("Roles").Append(UserHasRole{
+			Role: role,
+		})
+	} else {
+		base.DB.Model(u).Association("Roles").Append(UserHasRole{
+			Role:     role,
+			TargetID: target[0].GetID(),
+		})
 	}
+}
+
+func (u *User) LoadRoles() {
 	base.DB.Set("gorm:auto_preload", true).Model(u).Related(&u.Roles)
 }
 
@@ -49,7 +59,7 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 	} else {
 		// Specific permisison
 		for _, role := range u.Roles {
-			if role.Role.Target != nil && *role.Role.Target == target[0].TypeName() && role.TargetID == target[0].ID() {
+			if role.Role.Target != nil && *role.Role.Target == target[0].TypeName() && role.TargetID == target[0].GetID() {
 				for _, perm := range role.Role.Permissions {
 					if perm.Name == permission || perm.Name == "all" {
 						return true
