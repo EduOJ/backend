@@ -1,7 +1,9 @@
 package models
 
+import "github.com/leoleoasd/EduOJBackend/base"
+
 type HasRole interface {
-	ID() uint
+	GetID() uint
 	TypeName() string
 }
 
@@ -24,4 +26,12 @@ type Permission struct {
 	ID     uint   `gorm:"primary_key" json:"id"`
 	RoleID uint   `json:"role_id"`
 	Name   string `json:"name"`
+}
+
+func (r *Role) AddPermission(name string) {
+	p := Permission{
+		RoleID: r.ID,
+		Name:   name,
+	}
+	base.DB.Model(r).Association("Permissions").Append(p)
 }
