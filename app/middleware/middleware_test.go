@@ -41,6 +41,25 @@ func MustJsonEncode(t *testing.T, data interface{}) string {
 	return string(j)
 }
 
+func MustJsonDecode(data interface{}, out interface{}) {
+	var err error
+	if dataResp, ok := data.(*http.Response); ok {
+		data, err = ioutil.ReadAll(dataResp.Body)
+		if err != nil {
+			panic(err)
+		}
+	}
+	if dataString, ok := data.(string); ok {
+		data = []byte(dataString)
+	}
+	if dataBytes, ok := data.([]byte); ok {
+		err = json.Unmarshal(dataBytes, out)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func MakeReq(t *testing.T, method string, path string, data interface{}) *http.Request {
 	j, err := json.Marshal(data)
 	assert.Equal(t, nil, err)
