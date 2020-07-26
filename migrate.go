@@ -25,18 +25,12 @@ rollback_last: rollback last migration.`)
 		case "migrate":
 			readConfig()
 			initGorm()
-			initLog()
-			initRedis()
 			log.Fatal("Migrate succeed!")
 		case "rollback":
 			readConfig()
 			initGorm(false)
 			m := database.GetMigration()
-			err := m.RollbackTo("0")
-			if err != nil {
-				log.Error(err)
-			}
-			err = m.RollbackLast()
+			err := m.RollbackTo("start")
 			if err != nil {
 				log.Error(err)
 			} else {

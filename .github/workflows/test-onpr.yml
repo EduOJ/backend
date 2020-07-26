@@ -17,7 +17,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Go Test
-        run: go test ./... -tags test
+        run: go test ./...
   test-race:
     strategy:
       matrix:
@@ -34,4 +34,4 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Go Test Race
-        run: go test ./... -race -tags test
+        run: go test ./... -race

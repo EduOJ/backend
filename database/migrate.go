@@ -1,18 +1,29 @@
 package database
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/log"
 	"gopkg.in/gormigrate.v1"
+	"reflect"
 	"time"
 )
 
 func GetMigration() *gormigrate.Gormigrate {
 	return gormigrate.New(base.DB, gormigrate.DefaultOptions, []*gormigrate.Migration{
+		// dummy
+		{
+			ID: "start",
+			Migrate: func(tx *gorm.DB) error {
+				return nil
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return nil
+			},
+		},
 		// create logs table
 		{
-			ID: "0",
+			ID: "create_logs_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Log struct {
 					ID        uint `gorm:"primary_key"`
@@ -29,7 +40,7 @@ func GetMigration() *gormigrate.Gormigrate {
 		},
 		// create users table
 		{
-			ID: "1",
+			ID: "create_users_table",
 			Migrate: func(tx *gorm.DB) error {
 				type User struct {
 					ID       uint   `gorm:"primary_key" json:"id"`
@@ -50,7 +61,7 @@ func GetMigration() *gormigrate.Gormigrate {
 		},
 		// add tokens table
 		{
-			ID: "3",
+			ID: "create_tokens_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Token struct {
 					ID        uint   `gorm:"primary_key" json:"id"`
@@ -62,7 +73,9 @@ func GetMigration() *gormigrate.Gormigrate {
 				if err != nil {
 					return err
 				}
-				err = tx.Model(&Token{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
+				if reflect.TypeOf(tx.DB().Driver()).String() != "*sqlite3.SQLiteDriver" {
+					err = tx.Model(&Token{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
+				}
 				return err
 			},
 			Rollback: func(tx *gorm.DB) error {
@@ -71,7 +84,7 @@ func GetMigration() *gormigrate.Gormigrate {
 		},
 		// add configs table
 		{
-			ID: "4",
+			ID: "create_configs_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Config struct {
 					ID        uint `gorm:"primary_key"`
@@ -88,7 +101,7 @@ func GetMigration() *gormigrate.Gormigrate {
 		},
 		// add permissions
 		{
-			ID: "5",
+			ID: "add_permissions",
 			Migrate: func(tx *gorm.DB) (err error) {
 
 				type UserHasRole struct {
@@ -113,17 +126,19 @@ func GetMigration() *gormigrate.Gormigrate {
 				if err != nil {
 					return
 				}
-				err = tx.Model(&UserHasRole{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
-				if err != nil {
-					return
-				}
-				err = tx.Model(&UserHasRole{}).AddForeignKey("role_id", "roles(id)", "CASCADE", "CASCADE").Error
-				if err != nil {
-					return
-				}
-				err = tx.Model(&Permission{}).AddForeignKey("role_id", "roles(id)", "CASCADE", "CASCADE").Error
-				if err != nil {
-					return
+				if reflect.TypeOf(tx.DB().Driver()).String() != "*sqlite3.SQLiteDriver" {
+					err = tx.Model(&UserHasRole{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
+					if err != nil {
+						return
+					}
+					err = tx.Model(&UserHasRole{}).AddForeignKey("role_id", "roles(id)", "CASCADE", "CASCADE").Error
+					if err != nil {
+						return
+					}
+					err = tx.Model(&Permission{}).AddForeignKey("role_id", "roles(id)", "CASCADE", "CASCADE").Error
+					if err != nil {
+						return
+					}
 				}
 				return
 			},
@@ -157,7 +172,7 @@ func Migrate() {
 	*/
 	m := GetMigration()
 	if err := m.Migrate(); err != nil {
-		log.Fatalf("Could not migrate: %v", err)
+		fmt.Printf("Could not migrate: %v", err)
 		panic(err)
 	}
 }
