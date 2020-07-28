@@ -50,8 +50,9 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp(3, "wrong password", nil))
 	}
 	token := models.Token{
-		Token: utils.RandStr(32),
-		User:  user,
+		Token:      utils.RandStr(32),
+		User:       user,
+		RememberMe: req.RememberMe,
 	}
 	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
 	return c.JSON(http.StatusOK, response.RegisterResponse{

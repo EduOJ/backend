@@ -3,6 +3,7 @@ package request
 type LoginRequest struct {
 	UsernameOrEmail string `json:"username" form:"username" query:"username" validate:"required,min=5,max=30"`
 	Password        string `json:"password" form:"password" query:"password" validate:"required,min=5,max=30"`
+	RememberMe      bool   `json:"remember_me"`
 }
 
 type RegisterRequest struct {

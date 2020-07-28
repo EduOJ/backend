@@ -64,6 +64,7 @@ func TestLogin(t *testing.T) {
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user1.Username,
 			Password:        "test_login_password",
+			RememberMe:      false,
 		}))
 		resp := response.LoginResponse{}
 		MustJsonDecode(httpResp, &resp)
@@ -77,18 +78,47 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.True(t, user1.UpdatedAt.Equal(token.User.UpdatedAt))
 		assert.Equal(t, user1, token.User)
+		assert.False(t, token.RememberMe)
 	})
-	t.Run("loginWithEmailSuccess", func(t *testing.T) {
-		user1 := models.User{
+	t.Run("loginWithUsernameAndRememberMeSuccess", func(t *testing.T) {
+		user2 := models.User{
 			Username: "test_login_2",
 			Nickname: "test_login_2_rand_str",
 			Email:    "test_login_2@mail.com",
 			Password: utils.HashPassword("test_login_password"),
 		}
-		base.DB.Create(&user1)
+		base.DB.Create(&user2)
 		t.Parallel()
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user1.Email,
+			UsernameOrEmail: user2.Username,
+			Password:        "test_login_password",
+			RememberMe:      true,
+		}))
+		resp := response.LoginResponse{}
+		MustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, 0, resp.Code)
+		assert.Equal(t, "success", resp.Message)
+		assert.Equal(t, nil, resp.Error)
+		JsonEQ(t, user2, resp.Data.User)
+		token, err := utils.GetToken(resp.Data.Token)
+		base.DB.Where("id = ?", user2.ID).First(&user2)
+		assert.Equal(t, nil, err)
+		assert.True(t, user2.UpdatedAt.Equal(token.User.UpdatedAt))
+		assert.Equal(t, user2, token.User)
+		assert.True(t, token.RememberMe)
+	})
+	t.Run("loginWithEmailSuccess", func(t *testing.T) {
+		user3 := models.User{
+			Username: "test_login_3",
+			Nickname: "test_login_3_rand_str",
+			Email:    "test_login_3@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+		}
+		base.DB.Create(&user3)
+		t.Parallel()
+		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
+			UsernameOrEmail: user3.Email,
 			Password:        "test_login_password",
 		}))
 		resp := response.LoginResponse{}
@@ -97,23 +127,23 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, 0, resp.Code)
 		assert.Equal(t, "success", resp.Message)
 		assert.Equal(t, nil, resp.Error)
-		JsonEQ(t, user1, resp.Data.User)
+		JsonEQ(t, user3, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
-		base.DB.Where("id = ?", user1.ID).First(&user1)
+		base.DB.Where("id = ?", user3.ID).First(&user3)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, user1, token.User)
+		assert.Equal(t, user3, token.User)
 	})
 	t.Run("loginWrongPassword", func(t *testing.T) {
-		user1 := models.User{
-			Username: "test_login_3",
-			Nickname: "test_login_3_rand_str",
-			Email:    "test_login_13mail.com",
+		user4 := models.User{
+			Username: "test_login_4",
+			Nickname: "test_login_4_rand_str",
+			Email:    "test_login_4@mail.com",
 			Password: utils.HashPassword("test_login_password"),
 		}
-		base.DB.Create(&user1)
+		base.DB.Create(&user4)
 		t.Parallel()
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user1.Email,
+			UsernameOrEmail: user4.Email,
 			Password:        "wrong_password",
 		}))
 		resp := response.LoginResponse{}

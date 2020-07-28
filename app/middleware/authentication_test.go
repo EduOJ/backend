@@ -61,9 +61,22 @@ func TestAuthentication(t *testing.T) {
 	expiredToken := models.Token{
 		Token:     utils.RandStr(32),
 		User:      testUser,
-		UpdatedAt: time.Now().Add(-1 * time.Second * time.Duration(200*3600)),
+		UpdatedAt: time.Now().Add(-1 * time.Second * time.Duration(2000)),
 	}
 	base.DB.Save(&expiredToken)
+	effectiveRememberMeToken := models.Token{
+		Token:      utils.RandStr(32),
+		User:       testUser,
+		RememberMe: true,
+	}
+	base.DB.Save(&effectiveRememberMeToken)
+	expiredRememberMeToken := models.Token{
+		Token:      utils.RandStr(32),
+		User:       testUser,
+		UpdatedAt:  time.Now().Add(-1 * time.Second * time.Duration(720000)),
+		RememberMe: true,
+	}
+	base.DB.Save(&expiredRememberMeToken)
 
 	type testType struct {
 		name        string
@@ -86,12 +99,18 @@ func TestAuthentication(t *testing.T) {
 			statusCode:  http.StatusRequestTimeout,
 			resp:        response.ErrorResp(1, "session expired", nil),
 		},
+		{
+			name:        "testExpiredRememberMeToken",
+			tokenString: expiredRememberMeToken.Token,
+			statusCode:  http.StatusRequestTimeout,
+			resp:        response.ErrorResp(1, "session expired", nil),
+		},
 	}
 	for _, test := range failTests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			req.Header.Set("token", test.tokenString)
+			req.Header.Set("Authorization", test.tokenString)
 			httpResp := MakeResp(req)
 			resp := response.Response{}
 			MustJsonDecode(httpResp, &resp)
@@ -107,10 +126,18 @@ func TestAuthentication(t *testing.T) {
 			user:        models.User{},
 			statusCode:  http.StatusOK,
 			resp:        httpSuccessResponse,
-		}, {
+		},
+		{
 			name:        "testEffectiveToken",
 			tokenString: effectiveToken.Token,
 			user:        effectiveToken.User,
+			statusCode:  http.StatusOK,
+			resp:        httpSuccessResponse,
+		},
+		{
+			name:        "effectiveRememberMeToken",
+			tokenString: effectiveRememberMeToken.Token,
+			user:        effectiveRememberMeToken.User,
 			statusCode:  http.StatusOK,
 			resp:        httpSuccessResponse,
 		},
@@ -120,7 +147,7 @@ func TestAuthentication(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			req.Header.Set("token", test.tokenString)
+			req.Header.Set("Authorization", test.tokenString)
 			httpResp := MakeResp(req)
 			resp := response.Response{}
 			MustJsonDecode(httpResp, &resp)
