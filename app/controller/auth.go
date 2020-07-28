@@ -53,7 +53,7 @@ func Login(c echo.Context) error {
 		Token: utils.RandStr(32),
 		User:  user,
 	}
-	panicIfDBError(base.DB.Create(&token), "could not create token for user")
+	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
 	return c.JSON(http.StatusOK, response.RegisterResponse{
 		Code:    0,
 		Message: "success",
@@ -89,11 +89,11 @@ func Register(c echo.Context) error {
 	}
 	hashed := utils.HashPassword(req.Password)
 	count := 0
-	panicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp(2, "duplicate email", nil))
 	}
-	panicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp(3, "duplicate username", nil))
 	}
@@ -103,12 +103,12 @@ func Register(c echo.Context) error {
 		Email:    req.Email,
 		Password: hashed,
 	}
-	panicIfDBError(base.DB.Create(&user), "could not create user")
+	utils.PanicIfDBError(base.DB.Create(&user), "could not create user")
 	token := models.Token{
 		Token: utils.RandStr(32),
 		User:  user,
 	}
-	panicIfDBError(base.DB.Create(&token), "could not create token for user")
+	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
 	return c.JSON(http.StatusCreated, response.RegisterResponse{
 		Code:    0,
 		Message: "success",

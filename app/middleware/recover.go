@@ -11,7 +11,7 @@ import (
 )
 
 func Recover(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c echo.Context) (err error) {
 		defer func() {
 			if xx := recover(); xx != nil {
 				if err, ok := xx.(error); ok {
@@ -21,12 +21,13 @@ func Recover(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 				if config.MustGet("debug", false).Value().(bool) {
 					stack := debug.Stack()
-					c.JSON(http.StatusInternalServerError, response.ErrorResp(-1, "internal error", string(stack)))
+					err = c.JSON(http.StatusInternalServerError, response.ErrorResp(-1, "internal error", string(stack)))
 				} else {
-					response.InternalErrorResp(c)
+					err = response.InternalErrorResp(c)
 				}
 			}
 		}()
-		return next(c)
+		err = next(c)
+		return
 	}
 }
