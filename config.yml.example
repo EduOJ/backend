@@ -13,4 +13,4 @@ debug: false
 server:
   port: 8080
 auth:
-  token_effective_time: 600
+  session_timeout: 168

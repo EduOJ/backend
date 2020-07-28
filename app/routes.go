@@ -13,15 +13,14 @@ func Register(e *echo.Echo) {
 	}
 	e.Use(middleware.Recover)
 
-	api := e.Group("/api")
+	api := e.Group("/api", middleware.Authentication)
 
 	auth := api.Group("/auth", middleware.Auth)
 	auth.POST("/login", controller.Login).Name = "auth.login"
 	auth.POST("/register", controller.Register).Name = "auth.register"
 
-	login := api.Group("/login",middleware.Login)
-	//for APIs that require login
+	loginCheck := api.Group("/", middleware.LoginCheck)
 
-	_ = login
+	_ = loginCheck
 	// TODO: routes.
 }
