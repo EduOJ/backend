@@ -158,10 +158,10 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
+		//add UpdateAt column
 		{
 			ID: "add_updated_at_column_to_tokens",
 			Migrate: func(tx *gorm.DB) error {
-				// when table already exists, it just adds fields as columns
 				type Token struct {
 					UpdatedAt time.Time
 				}
@@ -169,6 +169,19 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Table("tokens").DropColumn("updated_at").Error
+			},
+		},
+		//add RememberMe column
+		{
+			ID: "add_remember_me_column_to_tokens",
+			Migrate: func(tx *gorm.DB) error {
+				type Token struct {
+					RememberMe bool
+				}
+				return tx.AutoMigrate(&Token{}).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Table("tokens").DropColumn("remember_me").Error
 			},
 		},
 	})

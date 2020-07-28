@@ -13,4 +13,5 @@ debug: false
 server:
   port: 8080
 auth:
-  session_timeout: 168
+  session_timeout: 1200
+  remember_me_timeout: 604800

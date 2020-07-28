@@ -14,10 +14,11 @@ import (
 )
 
 var sessionTimeout time.Duration
+var RememberMeTimeout time.Duration
 
 func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		tokenString := c.Request().Header.Get("token")
+		tokenString := c.Request().Header.Get("Authorization")
 		if tokenString == "" {
 			return next(c)
 		}
@@ -30,10 +31,20 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 			return response.InternalErrorResp(c)
 		}
 		if sessionTimeout == 0 {
-			sessionTimeoutInt := config.MustGet("auth.session_timeout", 168).Value().(int)
-			sessionTimeout = -1 * time.Second * time.Duration(sessionTimeoutInt*3600)
+			sessionTimeoutInt := config.MustGet("auth.session_timeout", 1200).Value().(int)
+			sessionTimeout = -1 * time.Second * time.Duration(sessionTimeoutInt)
 		}
-		if time.Now().Add(sessionTimeout).After(token.UpdatedAt) {
+		if RememberMeTimeout == 0 {
+			RememberMeTimeoutInt := config.MustGet("auth.remember_me_timeout", 604800).Value().(int)
+			RememberMeTimeout = -1 * time.Second * time.Duration(RememberMeTimeoutInt)
+		}
+		var timeout time.Duration
+		if token.RememberMe {
+			timeout = RememberMeTimeout
+		} else {
+			timeout = sessionTimeout
+		}
+		if time.Now().Add(timeout).After(token.UpdatedAt) {
 			base.DB.Delete(&token)
 			return c.JSON(http.StatusRequestTimeout, response.ErrorResp(1, "session expired", nil))
 		}
@@ -41,7 +52,6 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 		utils.PanicIfDBError(base.DB.Save(&token), "could not update token")
 		c.Set("user", token.User)
 		return next(c)
-		//TODO:remember me
 		//TODO:delete earliest token if one user have too much token
 	}
 }
