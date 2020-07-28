@@ -23,8 +23,6 @@ func TestLogin(t *testing.T) {
 	}
 	base.DB.Create(&user1)
 	// strip monotonic time
-	user1.CreatedAt = user1.CreatedAt.Round(0)
-	user1.UpdatedAt = user1.UpdatedAt.Round(0)
 	t.Run("loginWithoutParams", func(t *testing.T) {
 		t.Parallel()
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
@@ -74,10 +72,11 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, "success", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 		JsonEQ(t, user1, resp.Data.User)
-		// TODO: uncomment the following lines on assert's fix
-		//user, err := utils.GetUserFromToken(resp.Data.Token)
-		//assert.Equal(t, nil, err)
-		//assert.Equal(t, user1, user)
+		token, err := utils.GetToken(resp.Data.Token)
+		base.DB.Where("id = ?", user1.ID).First(&user1)
+		assert.Equal(t, nil, err)
+		assert.True(t, user1.UpdatedAt.Equal(token.User.UpdatedAt))
+		assert.Equal(t, user1, token.User)
 	})
 	t.Run("loginWithEmailSuccess", func(t *testing.T) {
 		t.Parallel()
@@ -92,10 +91,10 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, "success", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 		JsonEQ(t, user1, resp.Data.User)
-		// TODO: uncomment the following lines on assert's fix
-		//user, err := utils.GetUserFromToken(resp.Data.Token)
-		//assert.Equal(t, nil, err)
-		// assert.Equal(t, user1, user)
+		token, err := utils.GetToken(resp.Data.Token)
+		base.DB.Where("id = ?", user1.ID).First(&user1)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, user1, token.User)
 	})
 	t.Run("loginWrongPassword", func(t *testing.T) {
 		t.Parallel()
