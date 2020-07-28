@@ -19,11 +19,11 @@ func VerifyPassword(password, hashed string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password)) == nil
 }
 
-func GetUserFromToken(token string) (user models.User, err error) {
+func GetToken(tokenString string) (token models.Token, err error) {
 	t := models.Token{}
-	err = base.DB.Preload("User").Where("token = ?", token).First(&t).Error
+	err = base.DB.Preload("User").Where("token = ?", tokenString).First(&t).Error
 	if err != nil {
 		return
 	}
-	return t.User, nil
+	return t, nil
 }

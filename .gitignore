@@ -97,3 +97,5 @@ fabric.properties
 
 .idea/EduOJBackend.iml
 .idea/backend.iml
+
+/testing_requests

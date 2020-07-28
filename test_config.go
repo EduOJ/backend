@@ -9,11 +9,11 @@ import (
 )
 
 func testConfig() {
+	//TODO: test config using config.Get
 	readConfig()
 	initGorm(false)
 	initLog()
 	initRedis()
-	initAuth()
 	c, err := config.Get(".")
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not get the root of config file "+opt.Config))
