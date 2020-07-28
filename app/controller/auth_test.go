@@ -15,13 +15,6 @@ import (
 
 func TestLogin(t *testing.T) {
 	t.Parallel()
-	user1 := models.User{
-		Username: "test_login_1",
-		Nickname: "test_login_1_rand_str",
-		Email:    "test_login_1@mail.com",
-		Password: utils.HashPassword("test_login_password"),
-	}
-	base.DB.Create(&user1)
 	// strip monotonic time
 	t.Run("loginWithoutParams", func(t *testing.T) {
 		t.Parallel()
@@ -60,6 +53,13 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
+		user1 := models.User{
+			Username: "test_login_1",
+			Nickname: "test_login_1_rand_str",
+			Email:    "test_login_1@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+		}
+		base.DB.Create(&user1)
 		t.Parallel()
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user1.Username,
@@ -79,6 +79,13 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user1, token.User)
 	})
 	t.Run("loginWithEmailSuccess", func(t *testing.T) {
+		user1 := models.User{
+			Username: "test_login_2",
+			Nickname: "test_login_2_rand_str",
+			Email:    "test_login_2@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+		}
+		base.DB.Create(&user1)
 		t.Parallel()
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user1.Email,
@@ -97,6 +104,13 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user1, token.User)
 	})
 	t.Run("loginWrongPassword", func(t *testing.T) {
+		user1 := models.User{
+			Username: "test_login_3",
+			Nickname: "test_login_3_rand_str",
+			Email:    "test_login_13mail.com",
+			Password: utils.HashPassword("test_login_password"),
+		}
+		base.DB.Create(&user1)
 		t.Parallel()
 		httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user1.Email,
