@@ -77,7 +77,8 @@ func MakeResp(req *http.Request) *http.Response {
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
-	configFile := bytes.NewBufferString("debug: false")
+	configFile := bytes.NewBufferString("debug: false" +
+		"\nauth:\n  session_timeout: 168")
 	err := config.ReadConfig(configFile)
 	if err != nil {
 		panic(err)

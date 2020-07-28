@@ -20,7 +20,6 @@ func Register(e *echo.Echo) {
 	auth.POST("/register", controller.Register).Name = "auth.register"
 
 	loginCheck := api.Group("/", middleware.LoginCheck)
-
 	_ = loginCheck
 	// TODO: routes.
 }

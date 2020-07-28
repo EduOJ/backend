@@ -30,35 +30,26 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 			return response.InternalErrorResp(c)
 		}
 		if sessionTimeout == 0 {
-			authConf, err := config.Get("database")
-			sessionTimeoutInt := 168
-			if err != nil || authConf == nil {
-				log.Warning("Cannot read auth config")
-			} else {
-				sessionTimeoutInt = authConf.MustGet("session_timeout", 168).Value().(int)
-			}
-			sessionTimeout = time.Second * time.Duration(sessionTimeoutInt*3600)
-			if err != nil {
-				log.Error(errors.Wrap(err, "ParseDuration failed"), c)
-				return response.InternalErrorResp(c)
-			}
+			sessionTimeoutInt := config.MustGet("auth.session_timeout", 168).Value().(int)
+			sessionTimeout = -1 * time.Second * time.Duration(sessionTimeoutInt*3600)
 		}
-		if time.Now().Add(sessionTimeout).Before(token.UpdatedAt) {
+		if time.Now().Add(sessionTimeout).After(token.UpdatedAt) {
 			base.DB.Delete(&token)
 			return c.JSON(http.StatusRequestTimeout, response.ErrorResp(1, "session expired", nil))
 		}
 		token.UpdatedAt = time.Now()
 		utils.PanicIfDBError(base.DB.Save(&token), "could not update token")
-		c.Set("token", token)
-		log.Debug(token.UpdatedAt.String())
+		c.Set("user", token.User)
 		return next(c)
+		//TODO:remember me
+		//TODO:delete earliest token if one user have too much token
 	}
 }
 
 func LoginCheck(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		token := c.Get("token")
-		if token == nil {
+		user := c.Get("user")
+		if user == nil {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp(1, "Unauthorized", nil))
 		}
 		return next(c)
