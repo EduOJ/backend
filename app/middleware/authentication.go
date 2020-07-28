@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
@@ -18,10 +19,12 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		tokenString := c.Request().Header.Get("token")
 		if tokenString == "" {
+			return next(c)
+		}
+		token, err := utils.GetToken(tokenString)
+		if err == gorm.ErrRecordNotFound {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp(1, "Unauthorized", nil))
 		}
-		log.Debug(tokenString) //TODO: remove this debug
-		token, err := utils.GetToken(tokenString)
 		if err != nil {
 			log.Error(errors.Wrap(err, "fail to get user from token"), c)
 			return response.InternalErrorResp(c)
@@ -32,7 +35,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 			if err != nil || authConf == nil {
 				log.Warning("Cannot read auth config")
 			} else {
-				sessionTimeoutInt = authConf.MustGet("dialect", 168).Value().(int)
+				sessionTimeoutInt = authConf.MustGet("session_timeout", 168).Value().(int)
 			}
 			sessionTimeout = time.Second * time.Duration(sessionTimeoutInt*3600)
 			if err != nil {
@@ -40,12 +43,14 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 				return response.InternalErrorResp(c)
 			}
 		}
-		if time.Now().Add(sessionTimeout).After(token.UpdatedAt) {
+		if time.Now().Add(sessionTimeout).Before(token.UpdatedAt) {
 			base.DB.Delete(&token)
-			return c.JSON(http.StatusRequestTimeout, response.ErrorResp(1, "session timeout", nil))
+			return c.JSON(http.StatusRequestTimeout, response.ErrorResp(1, "session expired", nil))
 		}
 		token.UpdatedAt = time.Now()
+		utils.PanicIfDBError(base.DB.Save(&token), "could not update token")
 		c.Set("token", token)
+		log.Debug(token.UpdatedAt.String())
 		return next(c)
 	}
 }
