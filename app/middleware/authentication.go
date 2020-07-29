@@ -52,7 +52,6 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 		utils.PanicIfDBError(base.DB.Save(&token), "could not update token")
 		c.Set("user", token.User)
 		return next(c)
-		//TODO:delete earliest token if one user have too much token
 	}
 }
 

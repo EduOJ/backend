@@ -7,12 +7,15 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"net/http"
 )
+
+var tokenCountMaximum int
 
 func Login(c echo.Context) error {
 	req := new(request.LoginRequest)
@@ -55,6 +58,12 @@ func Login(c echo.Context) error {
 		RememberMe: req.RememberMe,
 	}
 	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
+	if tokenCountMaximum == 0 {
+		tokenCountMaximum = config.MustGet("auth.token_count_maximum", 10).Value().(int)
+	}
+	var lastPassToken models.Token
+	utils.PanicIfDBError(base.DB.Preload("User").Model(models.Token{}).Where("user_id = ?", &user.ID).Order("updated_at desc").Limit(tokenCountMaximum).Find(&lastPassToken), "could not find and order tokens for user")
+	utils.PanicIfDBError(base.DB.Preload("User").Model(models.Token{}).Delete(models.Token{}, "user_id = ? AND updated_at < ?", user.ID, lastPassToken.UpdatedAt), "could not delete tokens for user")
 	return c.JSON(http.StatusOK, response.RegisterResponse{
 		Code:    0,
 		Message: "success",

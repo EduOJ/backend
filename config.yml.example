@@ -15,3 +15,4 @@ server:
 auth:
   session_timeout: 1200
   remember_me_timeout: 604800
+  token_count_maximum: 10
