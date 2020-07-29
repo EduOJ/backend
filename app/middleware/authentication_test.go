@@ -15,6 +15,19 @@ import (
 	"testing"
 )
 
+func testController(context echo.Context) error {
+	user := context.Get("user")
+	if user == nil {
+		user = models.User{}
+	}
+	return context.JSON(http.StatusOK, response.Response{
+		Code:    0,
+		Message: "success",
+		Error:   nil,
+		Data:    user,
+	})
+}
+
 func TestAuthentication(t *testing.T) {
 	oldEcho := base.Echo
 	base.Echo = echo.New()
@@ -29,21 +42,7 @@ func TestAuthentication(t *testing.T) {
 	}
 
 	base.Echo.Use(middleware.Authentication)
-	base.Echo.POST("/test_authentication", func(context echo.Context) error {
-		user := context.Get("user")
-		if user == nil {
-			user = models.User{}
-		}
-		return context.JSON(http.StatusOK, response.Response{
-			Code:    0,
-			Message: "success",
-			Error:   nil,
-			Data:    user,
-		})
-	})
-	base.Echo.POST("/test_loginCheck", func(context echo.Context) error {
-		return context.JSON(http.StatusOK, httpSuccessResponse)
-	}, middleware.LoginCheck)
+	base.Echo.POST("/test_authentication", testController)
 
 	req := MakeReq(t, "POST", "/test_authentication", &bytes.Buffer{})
 	testUser := models.User{
@@ -161,4 +160,31 @@ func TestAuthentication(t *testing.T) {
 		})
 	}
 
+	base.Echo.POST("/test_loginCheck", testController, middleware.LoginCheck)
+	LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", &bytes.Buffer{})
+
+	t.Run("testLoginCheckFail", func(t *testing.T) {
+		t.Parallel()
+		LoginCheckReq.Header.Set("Authorization", "")
+		httpResp := MakeResp(LoginCheckReq)
+		resp := response.Response{}
+		MustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp(1, "Unauthorized", nil), resp)
+	})
+
+	t.Run("testLoginCheckSuccess", func(t *testing.T) {
+		t.Parallel()
+		LoginCheckReq.Header.Set("Authorization", effectiveToken.Token)
+		httpResp := MakeResp(LoginCheckReq)
+		resp := response.Response{}
+		MustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		JsonEQ(t, response.Response{
+			Code:    0,
+			Message: "success",
+			Error:   nil,
+			Data:    effectiveToken.User,
+		}, resp)
+	})
 }
