@@ -13,6 +13,6 @@ debug: false
 server:
   port: 8080
 auth:
-  session_timeout: 1200
-  remember_me_timeout: 604800
-  token_count_maximum: 10
+  session_timeout: 1200 # The valid duration of token without choosing "remember me"
+  remember_me_timeout: 604800 # The valid duration of token with choosing "remember me"
+  session_count: 10 # The maximum number of sessions a user can have

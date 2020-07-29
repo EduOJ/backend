@@ -5,16 +5,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/pkg/errors"
 	"net/http"
 	"time"
 )
-
-var sessionTimeout time.Duration
-var RememberMeTimeout time.Duration
 
 func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -30,21 +26,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Error(errors.Wrap(err, "fail to get user from token"), c)
 			return response.InternalErrorResp(c)
 		}
-		if sessionTimeout == 0 {
-			sessionTimeoutInt := config.MustGet("auth.session_timeout", 1200).Value().(int)
-			sessionTimeout = -1 * time.Second * time.Duration(sessionTimeoutInt)
-		}
-		if RememberMeTimeout == 0 {
-			RememberMeTimeoutInt := config.MustGet("auth.remember_me_timeout", 604800).Value().(int)
-			RememberMeTimeout = -1 * time.Second * time.Duration(RememberMeTimeoutInt)
-		}
-		var timeout time.Duration
-		if token.RememberMe {
-			timeout = RememberMeTimeout
-		} else {
-			timeout = sessionTimeout
-		}
-		if time.Now().Add(timeout).After(token.UpdatedAt) {
+		if utils.IsTokenExpired(token) {
 			base.DB.Delete(&token)
 			return c.JSON(http.StatusRequestTimeout, response.ErrorResp(1, "session expired", nil))
 		}
