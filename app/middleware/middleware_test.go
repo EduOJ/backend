@@ -78,7 +78,7 @@ func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
 	configFile := bytes.NewBufferString("debug: false" +
-		"\nauth:\n  session_timeout: 1200\n  remember_me_timeout: 604800")
+		"\nauth:\n  session_timeout: 1200\n  remember_me_timeout: 604800\n  token_count_maximum: 10")
 	err := config.ReadConfig(configFile)
 	if err != nil {
 		panic(err)

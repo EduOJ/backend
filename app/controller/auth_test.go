@@ -153,6 +153,43 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, "wrong password", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
+	t.Run("loginSuccessAndDeleteEarliestToken", func(t *testing.T) {
+		user5 := models.User{
+			Username: "test_login_5",
+			Nickname: "test_login_5_rand_str",
+			Email:    "test_login_5@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+		}
+		base.DB.Create(&user5)
+		t.Parallel()
+		var expectedTokens []models.Token
+		var actualTokens []models.Token
+		for i := 0; i < 11; i++ {
+			httpResp := MakeResp(MakeReq(t, "POST", "/api/auth/login", request.LoginRequest{
+				UsernameOrEmail: user5.Username,
+				Password:        "test_login_password",
+				RememberMe:      false,
+			}))
+			resp := response.LoginResponse{}
+			MustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+			assert.Equal(t, 0, resp.Code)
+			assert.Equal(t, "success", resp.Message)
+			assert.Equal(t, nil, resp.Error)
+			JsonEQ(t, user5, resp.Data.User)
+			token, err := utils.GetToken(resp.Data.Token)
+			if i != 0 {
+				expectedTokens = append(expectedTokens, token)
+			}
+			base.DB.Where("id = ?", user5.ID).First(&user5)
+			assert.Equal(t, nil, err)
+			assert.True(t, user5.UpdatedAt.Equal(token.User.UpdatedAt))
+			assert.Equal(t, user5, token.User)
+			assert.False(t, token.RememberMe)
+		}
+		utils.PanicIfDBError(base.DB.Preload("User").Where("user_id = ?", user5.ID).Find(&actualTokens).Order("updated_at"), "can't find actual tokens")
+		JsonEQ(t, expectedTokens, actualTokens)
+	})
 }
 
 func TestRegister(t *testing.T) {

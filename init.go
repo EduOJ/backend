@@ -108,7 +108,7 @@ func initRedis() {
 		Username: username,
 		Password: password,
 	})
-	// Test connection.
+	// test connection.
 	_, err = base.Redis.Ping(context.Background()).Result()
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not init redis with config "+redisConf.String()))
