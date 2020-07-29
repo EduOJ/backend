@@ -19,5 +19,7 @@ func main() {
 		serve()
 	case "migrate", "migration":
 		doMigrate()
+	case "clean", "clean-up", "clean-db":
+		clean()
 	}
 }
