@@ -5,39 +5,35 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"sync"
 	"time"
 )
 
-var initialized bool
+var initAuth sync.Once
 var SessionTimeout time.Duration
 var RememberMeTimeout time.Duration
 var SessionCount int
 
-func InitAuthConfig() {
+func initAuthConfig() {
 	sessionTimeoutInt := config.MustGet("auth.session_timeout", 1200).Value().(int)
 	SessionTimeout = time.Second * time.Duration(sessionTimeoutInt)
 	RememberMeTimeoutInt := config.MustGet("auth.remember_me_timeout", 604800).Value().(int)
 	RememberMeTimeout = time.Second * time.Duration(RememberMeTimeoutInt)
 	SessionCount = config.MustGet("auth.session_count", 10).Value().(int)
-	initialized = true
 }
 
 func IsTokenExpired(token models.Token) bool {
-	if !initialized {
-		InitAuthConfig()
-	}
-	var timeout time.Duration
+	initAuth.Do(initAuthConfig)
 	if token.RememberMe {
-		timeout = RememberMeTimeout
+		return token.UpdatedAt.Add(RememberMeTimeout).Before(time.Now())
 	} else {
-		timeout = SessionTimeout
+		return token.UpdatedAt.Add(SessionTimeout).Before(time.Now())
 	}
-	return token.UpdatedAt.Add(timeout).Before(time.Now())
 }
 
 //TODO: Use this function in timed tasks
 func CleanUpExpiredTokens() error {
-	InitAuthConfig()
+	initAuthConfig()
 	var users []models.User
 	err := base.DB.Model(models.User{}).Find(&users).Error
 	if err != nil {
