@@ -21,5 +21,16 @@ func Register(e *echo.Echo) {
 
 	loginCheck := api.Group("/", middleware.LoginCheck)
 	_ = loginCheck
+
+	admin := api.Group("/admin")
+	admin.POST("/user", controller.Todo)
+	admin.PUT("/user/:id", controller.Todo)
+	admin.DELETE("/user/:id", controller.Todo)
+	admin.GET("/user/:id", controller.Todo)
+	admin.GET("/users", controller.Todo)
+
+	api.GET("/user/:id", controller.Todo)
+	api.GET("/users", controller.Todo)
+
 	// TODO: routes.
 }
