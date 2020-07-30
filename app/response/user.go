@@ -3,7 +3,6 @@ package response
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
 type GetUserResponse struct {
-	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -12,7 +11,6 @@ type GetUserResponse struct {
 }
 
 type GetUsersResponse struct {
-	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {

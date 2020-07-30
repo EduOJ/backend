@@ -3,7 +3,6 @@ package response
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
 type RegisterResponse struct {
-	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -13,7 +12,6 @@ type RegisterResponse struct {
 }
 
 type LoginResponse struct {
-	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {

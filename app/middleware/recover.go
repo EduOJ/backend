@@ -21,7 +21,7 @@ func Recover(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 				if config.MustGet("debug", false).Value().(bool) {
 					stack := debug.Stack()
-					err = c.JSON(http.StatusInternalServerError, response.ErrorResp(-1, "internal error", string(stack)))
+					err = c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", string(stack)))
 				} else {
 					err = response.InternalErrorResp(c)
 				}

@@ -20,7 +20,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		token, err := utils.GetToken(tokenString)
 		if err == gorm.ErrRecordNotFound {
-			return c.JSON(http.StatusUnauthorized, response.ErrorResp(1, "Token not found", nil))
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp("AUTH_TOKEN_NOT_FOUND", nil))
 		}
 		if err != nil {
 			log.Error(errors.Wrap(err, "fail to get user from token"), c)
@@ -28,7 +28,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if utils.IsTokenExpired(token) {
 			base.DB.Delete(&token)
-			return c.JSON(http.StatusRequestTimeout, response.ErrorResp(1, "session expired", nil))
+			return c.JSON(http.StatusRequestTimeout, response.ErrorResp("AUTH_SESSION_EXPIRED", nil))
 		}
 		token.UpdatedAt = time.Now()
 		utils.PanicIfDBError(base.DB.Save(&token), "could not update token")
@@ -41,7 +41,7 @@ func LoginCheck(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := c.Get("user")
 		if user == nil {
-			return c.JSON(http.StatusUnauthorized, response.ErrorResp(1, "Unauthorized", nil))
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp("AUTH_NEED_TOKEN", nil))
 		}
 		return next(c)
 	}
