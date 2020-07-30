@@ -1,7 +1,6 @@
 package middleware_test
 
 import (
-	"bytes"
 	"github.com/go-playground/assert/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
@@ -44,53 +43,50 @@ func TestAuthentication(t *testing.T) {
 	base.Echo.Use(middleware.Authentication)
 	base.Echo.POST("/test_authentication", testController)
 
-	req := MakeReq(t, "POST", "/test_authentication", &bytes.Buffer{})
 	testUser := models.User{
-		Username: "testUser",
-		Nickname: "testUserNickname",
-		Email:    "testUser@e.com",
+		Username: "testAuthenticationMiddle",
+		Nickname: "testAuthenticationMiddle",
+		Email:    "testAuthenticationMiddle@e.com",
 		Password: "",
 	}
-	base.DB.Save(&testUser)
+	assert.Equal(t, nil, base.DB.Save(&testUser).Error)
+
 	effectiveToken := models.Token{
 		Token: utils.RandStr(32),
 		User:  testUser,
 	}
-	base.DB.Save(&effectiveToken)
 	expiredToken := models.Token{
 		Token:     utils.RandStr(32),
 		User:      testUser,
 		UpdatedAt: time.Now().Add(-1 * time.Second * time.Duration(2000)),
 	}
-	base.DB.Save(&expiredToken)
 	effectiveRememberMeToken := models.Token{
 		Token:      utils.RandStr(32),
 		User:       testUser,
 		RememberMe: true,
 	}
-	base.DB.Save(&effectiveRememberMeToken)
 	expiredRememberMeToken := models.Token{
 		Token:      utils.RandStr(32),
 		User:       testUser,
 		UpdatedAt:  time.Now().Add(-1 * time.Second * time.Duration(720000)),
 		RememberMe: true,
 	}
-	base.DB.Save(&expiredRememberMeToken)
+	assert.Equal(t, nil, base.DB.Save(&effectiveToken).Error)
+	assert.Equal(t, nil, base.DB.Save(&expiredToken).Error)
+	assert.Equal(t, nil, base.DB.Save(&effectiveRememberMeToken).Error)
+	assert.Equal(t, nil, base.DB.Save(&expiredRememberMeToken).Error)
 
-	type testType struct {
+	failTests := []struct {
 		name        string
 		tokenString string
-		user        models.User
 		statusCode  int
 		resp        response.Response
-	}
-
-	failTests := []testType{
+	}{
 		{
 			name:        "testNon-existingToken",
 			tokenString: "Non-existingToken",
 			statusCode:  http.StatusUnauthorized,
-			resp:        response.ErrorResp(1, "Unauthorized", nil),
+			resp:        response.ErrorResp(1, "Token not found", nil),
 		},
 		{
 			name:        "testExpiredToken",
@@ -109,6 +105,7 @@ func TestAuthentication(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
+			req := MakeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
 			httpResp := MakeResp(req)
 			resp := response.Response{}
@@ -118,7 +115,13 @@ func TestAuthentication(t *testing.T) {
 		})
 	}
 
-	successTests := []testType{
+	successTests := []struct {
+		name        string
+		tokenString string
+		user        models.User
+		statusCode  int
+		resp        response.Response
+	}{
 		{
 			name:        "testEmptyToken",
 			tokenString: "",
@@ -146,6 +149,7 @@ func TestAuthentication(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
+			req := MakeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
 			httpResp := MakeResp(req)
 			resp := response.Response{}
@@ -161,10 +165,10 @@ func TestAuthentication(t *testing.T) {
 	}
 
 	base.Echo.POST("/test_loginCheck", testController, middleware.LoginCheck)
-	LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", &bytes.Buffer{})
 
 	t.Run("testLoginCheckFail", func(t *testing.T) {
 		t.Parallel()
+		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
 		LoginCheckReq.Header.Set("Authorization", "")
 		httpResp := MakeResp(LoginCheckReq)
 		resp := response.Response{}
@@ -175,6 +179,7 @@ func TestAuthentication(t *testing.T) {
 
 	t.Run("testLoginCheckSuccess", func(t *testing.T) {
 		t.Parallel()
+		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
 		LoginCheckReq.Header.Set("Authorization", effectiveToken.Token)
 		httpResp := MakeResp(LoginCheckReq)
 		resp := response.Response{}

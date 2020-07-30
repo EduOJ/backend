@@ -19,6 +19,7 @@ type User struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"-"`
 	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
+	//TODO: bio
 }
 
 func (u *User) GrantRole(role Role, target ...HasRole) {
