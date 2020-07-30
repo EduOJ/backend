@@ -54,10 +54,7 @@ func Login(c echo.Context) error {
 		User:       user,
 		RememberMe: req.RememberMe,
 	}
-	err = base.DB.Create(&token).Error
-	if err != nil {
-		log.Error(errors.Wrap(err, "could not create token for user"))
-	}
+	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for users")
 	return c.JSON(http.StatusOK, response.RegisterResponse{
 		Message: "SUCCESS",
 		Error:   nil,
