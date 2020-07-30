@@ -12,7 +12,7 @@ Common return codes.
 
 |         code         |       结果       |
 |:--------------------:|:---------------:|
-| AUTH_TOKEN_NOT_FOUND | Token not found |
+| AUTH_TOKEN_NOT_FOUND |   未找到token    |
 | AUTH_SESSION_EXPIRED |   session超时    |
 |   AUTH_NEED_TOKEN    |   未提供token    |
 
