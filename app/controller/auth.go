@@ -28,7 +28,7 @@ func Login(c echo.Context) error {
 					Reason: v.Tag(),
 				}
 			}
-			return c.JSON(http.StatusBadRequest, response.ErrorResp(1, "validation error", validationErrors))
+			return c.JSON(http.StatusBadRequest, response.ErrorResp("VALIDATION_ERROR", validationErrors))
 		}
 		log.Error(errors.Wrap(err, "validate failed"), c)
 		return response.InternalErrorResp(c)
@@ -41,13 +41,13 @@ func Login(c echo.Context) error {
 	t = base.DB.HasTable("users")
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return c.JSON(http.StatusNotFound, response.ErrorResp(2, "wrong username or email", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_USERNAME", nil))
 		} else {
 			panic(errors.Wrap(err, "could not query username or email"))
 		}
 	}
 	if !utils.VerifyPassword(req.Password, user.Password) {
-		return c.JSON(http.StatusForbidden, response.ErrorResp(3, "wrong password", nil))
+		return c.JSON(http.StatusForbidden, response.ErrorResp("WRONG_PASSWORD", nil))
 	}
 	token := models.Token{
 		Token:      utils.RandStr(32),
@@ -59,8 +59,7 @@ func Login(c echo.Context) error {
 		log.Error(errors.Wrap(err, "could not create token for user"))
 	}
 	return c.JSON(http.StatusOK, response.RegisterResponse{
-		Code:    0,
-		Message: "success",
+		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
 			models.User `json:"user"`
@@ -86,7 +85,7 @@ func Register(c echo.Context) error {
 					Reason: v.Tag(),
 				}
 			}
-			return c.JSON(http.StatusBadRequest, response.ErrorResp(1, "validation error", validationErrors))
+			return c.JSON(http.StatusBadRequest, response.ErrorResp("VALIDATION_ERROR", validationErrors))
 		}
 		log.Error(errors.Wrap(err, "validate failed"), c)
 		return response.InternalErrorResp(c)
@@ -95,11 +94,11 @@ func Register(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp(2, "duplicate email", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp(3, "duplicate username", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_USERNAME", nil))
 	}
 	user := models.User{
 		Username: req.Username,
@@ -114,8 +113,7 @@ func Register(c echo.Context) error {
 	}
 	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
 	return c.JSON(http.StatusCreated, response.RegisterResponse{
-		Code:    0,
-		Message: "success",
+		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
 			models.User `json:"user"`

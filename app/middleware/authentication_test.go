@@ -20,8 +20,7 @@ func testController(context echo.Context) error {
 		user = models.User{}
 	}
 	return context.JSON(http.StatusOK, response.Response{
-		Code:    0,
-		Message: "success",
+		Message: "SUCCESS",
 		Error:   nil,
 		Data:    user,
 	})
@@ -34,8 +33,7 @@ func TestAuthentication(t *testing.T) {
 		base.Echo = oldEcho
 	})
 	httpSuccessResponse := response.Response{
-		Code:    0,
-		Message: "success",
+		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
 	}
@@ -86,19 +84,19 @@ func TestAuthentication(t *testing.T) {
 			name:        "testNon-existingToken",
 			tokenString: "Non-existingToken",
 			statusCode:  http.StatusUnauthorized,
-			resp:        response.ErrorResp(1, "Token not found", nil),
+			resp:        response.ErrorResp("AUTH_TOKEN_NOT_FOUND", nil),
 		},
 		{
 			name:        "testExpiredToken",
 			tokenString: expiredToken.Token,
 			statusCode:  http.StatusRequestTimeout,
-			resp:        response.ErrorResp(1, "session expired", nil),
+			resp:        response.ErrorResp("AUTH_SESSION_EXPIRED", nil),
 		},
 		{
 			name:        "testExpiredRememberMeToken",
 			tokenString: expiredRememberMeToken.Token,
 			statusCode:  http.StatusRequestTimeout,
-			resp:        response.ErrorResp(1, "session expired", nil),
+			resp:        response.ErrorResp("AUTH_SESSION_EXPIRED", nil),
 		},
 	}
 	for _, test := range failTests {
@@ -156,8 +154,7 @@ func TestAuthentication(t *testing.T) {
 			MustJsonDecode(httpResp, &resp)
 			assert.Equal(t, test.statusCode, httpResp.StatusCode)
 			JsonEQ(t, response.Response{
-				Code:    0,
-				Message: "success",
+				Message: "SUCCESS",
 				Error:   nil,
 				Data:    test.user,
 			}, resp)
@@ -174,7 +171,7 @@ func TestAuthentication(t *testing.T) {
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
-		assert.Equal(t, response.ErrorResp(1, "Unauthorized", nil), resp)
+		assert.Equal(t, response.ErrorResp("AUTH_NEED_TOKEN", nil), resp)
 	})
 
 	t.Run("testLoginCheckSuccess", func(t *testing.T) {
@@ -186,8 +183,7 @@ func TestAuthentication(t *testing.T) {
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		JsonEQ(t, response.Response{
-			Code:    0,
-			Message: "success",
+			Message: "SUCCESS",
 			Error:   nil,
 			Data:    effectiveToken.User,
 		}, resp)

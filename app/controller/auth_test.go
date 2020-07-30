@@ -24,8 +24,7 @@ func TestLogin(t *testing.T) {
 		}))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		JsonEQ(t, response.Response{
-			Code:    1,
-			Message: "validation error",
+			Message: "VALIDATION_ERROR",
 			Error: []map[string]string{
 				{
 					"field":  "UsernameOrEmail",
@@ -48,8 +47,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
-		assert.Equal(t, 2, resp.Code)
-		assert.Equal(t, "wrong username or email", resp.Message)
+		assert.Equal(t, "WRONG_USERNAME", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
@@ -69,8 +67,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		assert.Equal(t, 0, resp.Code)
-		assert.Equal(t, "success", resp.Message)
+		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 		JsonEQ(t, user1, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
@@ -97,8 +94,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		assert.Equal(t, 0, resp.Code)
-		assert.Equal(t, "success", resp.Message)
+		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 		JsonEQ(t, user2, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
@@ -124,8 +120,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		assert.Equal(t, 0, resp.Code)
-		assert.Equal(t, "success", resp.Message)
+		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 		JsonEQ(t, user3, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
@@ -149,8 +144,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
-		assert.Equal(t, 3, resp.Code)
-		assert.Equal(t, "wrong password", resp.Message)
+		assert.Equal(t, "WRONG_PASSWORD", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
 }
@@ -166,8 +160,7 @@ func TestRegister(t *testing.T) {
 		}))
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		JsonEQ(t, response.Response{
-			Code:    1,
-			Message: "validation error",
+			Message: "VALIDATION_ERROR",
 			Error: []map[string]string{
 				{
 					"field":  "Username",
@@ -218,7 +211,7 @@ func TestRegister(t *testing.T) {
 			Email:    "test_registerUserSuccess_0@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		JsonEQ(t, response.ErrorResp(2, "duplicate email", nil), respResponse)
+		JsonEQ(t, response.ErrorResp("DUPLICATE_EMAIL", nil), respResponse)
 		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
 		respResponse = MakeResp(MakeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
@@ -226,7 +219,7 @@ func TestRegister(t *testing.T) {
 			Email:    "test_registerUserSuccess_1@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		JsonEQ(t, response.ErrorResp(3, "duplicate username", nil), respResponse)
+		JsonEQ(t, response.ErrorResp("DUPLICATE_USERNAME", nil), respResponse)
 		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
 	})
 }

@@ -11,7 +11,6 @@ type ValidationError struct {
 }
 
 type Response struct {
-	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    interface{} `json:"data"`
@@ -23,16 +22,14 @@ func InternalErrorResp(c echo.Context) error {
 
 func MakeInternalErrorResp() Response {
 	return Response{
-		Code:    -1,
-		Message: "Internal error",
+		Message: "INTERNAL_ERROR",
 		Error:   nil,
 		Data:    nil,
 	}
 }
 
-func ErrorResp(code int, message string, error interface{}) Response {
+func ErrorResp(message string, error interface{}) Response {
 	return Response{
-		Code:    code,
 		Message: message,
 		Error:   error,
 		Data:    nil,
