@@ -20,7 +20,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		token, err := utils.GetToken(tokenString)
 		if err == gorm.ErrRecordNotFound {
-			return c.JSON(http.StatusUnauthorized, response.ErrorResp(1, "Unauthorized", nil))
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp(1, "Token not found", nil))
 		}
 		if err != nil {
 			log.Error(errors.Wrap(err, "fail to get user from token"), c)

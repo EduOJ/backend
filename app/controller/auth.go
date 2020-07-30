@@ -56,7 +56,7 @@ func Login(c echo.Context) error {
 	}
 	err = base.DB.Create(&token).Error
 	if err != nil {
-		log.Error("could not create token for user")
+		log.Error(errors.Wrap(err, "could not create token for user"))
 	}
 	return c.JSON(http.StatusOK, response.RegisterResponse{
 		Code:    0,
