@@ -1,30 +1,18 @@
 package middleware_test
 
 import (
-	"github.com/go-playground/assert/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/stretchr/testify/assert"
 	"time"
 
 	"github.com/leoleoasd/EduOJBackend/base"
 	"net/http"
 	"testing"
 )
-
-func testController(context echo.Context) error {
-	user := context.Get("user")
-	if user == nil {
-		user = models.User{}
-	}
-	return context.JSON(http.StatusOK, response.Response{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data:    user,
-	})
-}
 
 func TestAuthentication(t *testing.T) {
 	oldEcho := base.Echo

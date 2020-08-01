@@ -24,19 +24,28 @@ type User struct {
 
 func (u *User) GrantRole(role Role, target ...HasRole) {
 	if len(target) == 0 {
-		base.DB.Model(u).Association("Roles").Append(UserHasRole{
+		err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
 			Role: role,
-		})
+		}).Error
+		if err != nil {
+			panic(err)
+		}
 	} else {
-		base.DB.Model(u).Association("Roles").Append(UserHasRole{
+		err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
 			Role:     role,
 			TargetID: target[0].GetID(),
-		})
+		}).Error
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
 func (u *User) LoadRoles() {
-	base.DB.Set("gorm:auto_preload", true).Model(u).Related(&u.Roles)
+	err := base.DB.Set("gorm:auto_preload", true).Model(u).Related(&u.Roles).Error
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (u *User) Can(permission string, target ...HasRole) bool {
