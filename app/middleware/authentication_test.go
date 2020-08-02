@@ -33,7 +33,7 @@ func TestAuthentication(t *testing.T) {
 	}
 	assert.Equal(t, nil, base.DB.Save(&testUser).Error)
 
-	effectiveToken := models.Token{
+	activeToken := models.Token{
 		Token: utils.RandStr(32),
 		User:  testUser,
 	}
@@ -42,7 +42,7 @@ func TestAuthentication(t *testing.T) {
 		User:      testUser,
 		UpdatedAt: time.Now().Add(-1 * time.Second * time.Duration(2000)),
 	}
-	effectiveRememberMeToken := models.Token{
+	activeRememberMeToken := models.Token{
 		Token:      utils.RandStr(32),
 		User:       testUser,
 		RememberMe: true,
@@ -53,9 +53,9 @@ func TestAuthentication(t *testing.T) {
 		UpdatedAt:  time.Now().Add(-1 * time.Second * time.Duration(720000)),
 		RememberMe: true,
 	}
-	assert.Equal(t, nil, base.DB.Save(&effectiveToken).Error)
+	assert.Equal(t, nil, base.DB.Save(&activeToken).Error)
 	assert.Equal(t, nil, base.DB.Save(&expiredToken).Error)
-	assert.Equal(t, nil, base.DB.Save(&effectiveRememberMeToken).Error)
+	assert.Equal(t, nil, base.DB.Save(&activeRememberMeToken).Error)
 	assert.Equal(t, nil, base.DB.Save(&expiredRememberMeToken).Error)
 
 	failTests := []struct {
@@ -85,7 +85,7 @@ func TestAuthentication(t *testing.T) {
 	}
 	for _, test := range failTests {
 		test := test
-		t.Run(test.name, func(t *testing.T) {
+		t.Run("failTests"+test.name, func(t *testing.T) {
 			t.Parallel()
 			req := MakeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
@@ -113,15 +113,15 @@ func TestAuthentication(t *testing.T) {
 		},
 		{
 			name:        "testEffectiveToken",
-			tokenString: effectiveToken.Token,
-			user:        effectiveToken.User,
+			tokenString: activeToken.Token,
+			user:        activeToken.User,
 			statusCode:  http.StatusOK,
 			resp:        httpSuccessResponse,
 		},
 		{
-			name:        "effectiveRememberMeToken",
-			tokenString: effectiveRememberMeToken.Token,
-			user:        effectiveRememberMeToken.User,
+			name:        "activeRememberMeToken",
+			tokenString: activeRememberMeToken.Token,
+			user:        activeRememberMeToken.User,
 			statusCode:  http.StatusOK,
 			resp:        httpSuccessResponse,
 		},
@@ -129,7 +129,7 @@ func TestAuthentication(t *testing.T) {
 
 	for _, test := range successTests {
 		test := test
-		t.Run(test.name, func(t *testing.T) {
+		t.Run("successTests"+test.name, func(t *testing.T) {
 			t.Parallel()
 			req := MakeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
@@ -161,7 +161,7 @@ func TestAuthentication(t *testing.T) {
 	t.Run("testLoginCheckSuccess", func(t *testing.T) {
 		t.Parallel()
 		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
-		LoginCheckReq.Header.Set("Authorization", effectiveToken.Token)
+		LoginCheckReq.Header.Set("Authorization", activeToken.Token)
 		httpResp := MakeResp(LoginCheckReq, e)
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
@@ -169,7 +169,7 @@ func TestAuthentication(t *testing.T) {
 		JsonEQ(t, response.Response{
 			Message: "SUCCESS",
 			Error:   nil,
-			Data:    effectiveToken.User,
+			Data:    activeToken.User,
 		}, resp)
 	})
 }
