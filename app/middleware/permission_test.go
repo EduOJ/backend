@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"fmt"
 	"github.com/kami-zh/go-capturer"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
@@ -9,23 +10,22 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
 	"net/http"
-	"strconv"
 	"testing"
 )
 
-type TestClass struct {
+type testClass struct {
 	ID uint `gorm:"primary_key" json:"id"`
 }
 
-func (c TestClass) TypeName() string {
+func (c testClass) TypeName() string {
 	return "test_class"
 }
 
-func (c TestClass) GetID() uint {
+func (c testClass) GetID() uint {
 	return c.ID
 }
 
-func AddUser(user models.User) func(next echo.HandlerFunc) echo.HandlerFunc {
+func setUser(user models.User) func(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Set("user", user)
@@ -34,7 +34,7 @@ func AddUser(user models.User) func(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func ResponseWithUser(user models.User) response.Response {
+func responseWithUser(user models.User) response.Response {
 	return response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -42,22 +42,20 @@ func ResponseWithUser(user models.User) response.Response {
 	}
 }
 
-func TestPermission(t *testing.T) {
+func TestHasPermission(t *testing.T) {
 	oldEcho := base.Echo
 	base.Echo = echo.New()
 	t.Cleanup(func() {
 		base.Echo = oldEcho
 	})
-	classA := TestClass{}
-	classB := TestClass{}
-	assert.Nil(t, base.DB.AutoMigrate(&TestClass{}).Error)
-	assert.True(t, base.DB.HasTable(&TestClass{}))
+	classA := testClass{}
+	classB := testClass{}
+	assert.Nil(t, base.DB.AutoMigrate(&testClass{}).Error)
+	assert.True(t, base.DB.HasTable(&testClass{}))
 	assert.Nil(t, base.DB.Create(&classA).Error)
 	assert.Nil(t, base.DB.Create(&classB).Error)
 	assert.Nil(t, base.DB.First(&classA).Error)
 	assert.Nil(t, base.DB.First(&classB).Error)
-	classAID := strconv.Itoa(int(classA.ID))
-	classBID := strconv.Itoa(int(classB.ID))
 	dummy := "test_class"
 	adminRole := models.Role{
 		Name:   "admin",
@@ -82,60 +80,131 @@ func TestPermission(t *testing.T) {
 	globalAdminRole.AddPermission("all")
 	globalPermRole.AddPermission("testPerm")
 
-	userWithoutPerms := models.User{
-		Username: "userWithoutPerms",
+	testHasPermUserWithoutPerms := models.User{
+		Username: "testHasPermUserWithoutPerms",
 		Nickname: "uwp",
 		Email:    "uwop@e.com",
 		Password: "",
 	}
-	userWithClassAPerm := models.User{
-		Username: "userWithClassAPerm",
+	testHasPermUserWithClassAPerm := models.User{
+		Username: "testHasPermUserWithClassAPerm",
 		Nickname: "uwcap",
 		Email:    "uwcap@e.com",
 		Password: "",
 	}
-	userWithAllClassAPerms := models.User{
-		Username: "userWithAllClassAPerms",
+	testHasPermUserWithAllClassAPerms := models.User{
+		Username: "testHasPermUserWithAllClassAPerms",
 		Nickname: "uwacap",
 		Email:    "uwacap@e.com",
 		Password: "",
 	}
-	userWithPerm := models.User{
-		Username: "userWithPerm",
+	testHasPermUserWithPerm := models.User{
+		Username: "testHasPermUserWithPerm",
 		Nickname: "uwp",
 		Email:    "uwp@e.com",
 		Password: "",
 	}
-	administrator := models.User{
-		Username: "administrator",
+	testHasPermAdministrator := models.User{
+		Username: "testHasPermAdministrator",
 		Nickname: "a",
 		Email:    "a@e.com",
 		Password: "",
 	}
-	assert.Nil(t, base.DB.Create(&userWithoutPerms).Error)
-	assert.Nil(t, base.DB.Create(&userWithClassAPerm).Error)
-	assert.Nil(t, base.DB.Create(&userWithAllClassAPerms).Error)
-	assert.Nil(t, base.DB.Create(&userWithPerm).Error)
-	assert.Nil(t, base.DB.Create(&administrator).Error)
-	userWithClassAPerm.GrantRole(permRole, classA)
-	userWithAllClassAPerms.GrantRole(adminRole, classA)
-	userWithPerm.GrantRole(globalPermRole)
-	administrator.GrantRole(globalAdminRole)
-	groups := []*echo.Group{
-		base.Echo.Group("/noUser"),
-		base.Echo.Group("/userWithoutPerms", AddUser(userWithoutPerms)),
-		base.Echo.Group("/userWithClassAPerm", AddUser(userWithClassAPerm)),
-		base.Echo.Group("/userWithAllClassAPerms", AddUser(userWithAllClassAPerms)),
-		base.Echo.Group("/userWithPerm", AddUser(userWithPerm)),
-		base.Echo.Group("/administrator", AddUser(administrator)),
+	assert.Nil(t, base.DB.Create(&testHasPermUserWithoutPerms).Error)
+	assert.Nil(t, base.DB.Create(&testHasPermUserWithClassAPerm).Error)
+	assert.Nil(t, base.DB.Create(&testHasPermUserWithAllClassAPerms).Error)
+	assert.Nil(t, base.DB.Create(&testHasPermUserWithPerm).Error)
+	assert.Nil(t, base.DB.Create(&testHasPermAdministrator).Error)
+	testHasPermUserWithClassAPerm.GrantRole(permRole, classA)
+	testHasPermUserWithAllClassAPerms.GrantRole(adminRole, classA)
+	testHasPermUserWithPerm.GrantRole(globalPermRole)
+	testHasPermAdministrator.GrantRole(globalAdminRole)
+
+	users := []models.User{
+		testHasPermUserWithoutPerms,
+		testHasPermUserWithClassAPerm,
+		testHasPermUserWithAllClassAPerms,
+		testHasPermUserWithPerm,
+		testHasPermAdministrator,
 	}
-	for _, group := range groups {
-		group.POST("/test_perm_global", testController, middleware.Permission("testPerm"))
-		group.POST("/test_perm/:id", testController, middleware.Permission("testPerm", "test_class"))
-		group.POST("/test_all_global", testController, middleware.Permission("all"))
-		group.POST("/test_all/:id", testController, middleware.Permission("all", "test_class"))
+
+	permTests := []struct {
+		name       string
+		permName   string
+		targetType *string
+		targetID   uint
+	}{
+		{
+			name:     "test_perm_global",
+			permName: "testPerm",
+		},
+		{
+			name:       "test_perm",
+			permName:   "testPerm",
+			targetType: &dummy,
+			targetID:   classA.ID,
+		},
+		{
+			name:       "test_perm",
+			permName:   "testPerm",
+			targetType: &dummy,
+			targetID:   classB.ID,
+		},
+		{
+			name:     "test_all_global",
+			permName: "nonExitingPerm",
+		},
+		{
+			name:       "test_all",
+			permName:   "non_exiting",
+			targetType: &dummy,
+			targetID:   classA.ID,
+		},
+		{
+			name:       "test_all",
+			permName:   "nonExitingPerm",
+			targetType: &dummy,
+			targetID:   classB.ID,
+		},
 	}
+
+	//           user|permTest
+	expectedRet := [][]bool{
+		//per_g per_A  per_B  all_g  all_A  all_B
+		{false, false, false, false, false, false}, //testHasPermUserWithoutPerms
+		{false, true, false, false, false, false},  //testHasPermUserWithClassAPerm
+		{false, true, false, false, true, false},   //testHasPermUserWithAllClassAPerms
+		{true, false, false, false, false, false},  //testHasPermUserWithPerm
+		{true, false, false, true, false, false},   //testHasPermAdministrator
+	}
+
+	for userIndex, user := range users {
+		t.Run(user.Username, func(t *testing.T) {
+			group := base.Echo.Group("/"+user.Username, setUser(user))
+			for permTestIndex, permTest := range permTests {
+				httpResp := (*http.Response)(nil)
+				resp := response.Response{}
+				if permTest.targetType == nil {
+					group.POST("/"+permTest.name, testController, middleware.HasPermission(permTest.permName))
+					httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.name, nil))
+				} else {
+					group.POST("/"+permTest.name+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
+					httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.name, permTest.targetID), nil))
+				}
+				MustJsonDecode(httpResp, &resp)
+				if expectedRet[userIndex][permTestIndex] {
+					assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+					JsonEQ(t, responseWithUser(user), resp)
+				} else {
+					assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+					assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
+				}
+			}
+		})
+	}
+
 	t.Run("testNoUser", func(t *testing.T) {
+		base.Echo.Group("/noUser").POST("/test_perm_global", testController, middleware.HasPermission("testPerm"))
 		resp := response.Response{}
 		httpResp := (*http.Response)(nil)
 		capturer.CaptureOutput(func() {
@@ -145,136 +214,13 @@ func TestPermission(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	})
-	t.Run("testUserWithoutPerms", func(t *testing.T) {
-		resps := make([]response.Response, 4)
-		httpResps := []*http.Response{
-			MakeResp(MakeReq(t, "POST", "/userWithoutPerms/test_perm_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithoutPerms/test_perm/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithoutPerms/test_all_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithoutPerms/test_all/"+classAID, nil)),
-		}
-		for index, httpResp := range httpResps {
-			MustJsonDecode(httpResp, &resps[index])
-		}
-		assert.Equal(t, http.StatusForbidden, httpResps[0].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[0])
-		assert.Equal(t, http.StatusForbidden, httpResps[1].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[1])
-		assert.Equal(t, http.StatusForbidden, httpResps[2].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[2])
-		assert.Equal(t, http.StatusForbidden, httpResps[3].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[3])
-	})
-	t.Run("testUserWithClassAPerm", func(t *testing.T) {
-		resps := make([]response.Response, 6)
-		httpResps := []*http.Response{
-			MakeResp(MakeReq(t, "POST", "/userWithClassAPerm/test_perm_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithClassAPerm/test_perm/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithClassAPerm/test_perm/"+classBID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithClassAPerm/test_all_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithClassAPerm/test_all/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithClassAPerm/test_all/"+classBID, nil)),
-		}
-		for index, httpResp := range httpResps {
-			MustJsonDecode(httpResp, &resps[index])
-		}
-		assert.Equal(t, http.StatusForbidden, httpResps[0].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[0])
-		assert.Equal(t, http.StatusOK, httpResps[1].StatusCode)
-		JsonEQ(t, ResponseWithUser(userWithClassAPerm), resps[1])
-		assert.Equal(t, http.StatusForbidden, httpResps[2].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[2])
-		assert.Equal(t, http.StatusForbidden, httpResps[3].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[3])
-		assert.Equal(t, http.StatusForbidden, httpResps[4].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[4])
-		assert.Equal(t, http.StatusForbidden, httpResps[5].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[5])
-	})
-	t.Run("testUserWithAllClassAPerms", func(t *testing.T) {
-		resps := make([]response.Response, 6)
-		httpResps := []*http.Response{
-			MakeResp(MakeReq(t, "POST", "/userWithAllClassAPerms/test_perm_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithAllClassAPerms/test_perm/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithAllClassAPerms/test_perm/"+classBID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithAllClassAPerms/test_all_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithAllClassAPerms/test_all/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithAllClassAPerms/test_all/"+classBID, nil)),
-		}
-		for index, httpResp := range httpResps {
-			MustJsonDecode(httpResp, &resps[index])
-		}
-		assert.Equal(t, http.StatusForbidden, httpResps[0].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[0])
-		assert.Equal(t, http.StatusOK, httpResps[1].StatusCode)
-		JsonEQ(t, ResponseWithUser(userWithAllClassAPerms), resps[1])
-		assert.Equal(t, http.StatusForbidden, httpResps[2].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[2])
-		assert.Equal(t, http.StatusForbidden, httpResps[3].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[3])
-		assert.Equal(t, http.StatusOK, httpResps[4].StatusCode)
-		JsonEQ(t, ResponseWithUser(userWithAllClassAPerms), resps[4])
-		assert.Equal(t, http.StatusForbidden, httpResps[5].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[5])
-	})
-	t.Run("testUserWithPerm", func(t *testing.T) {
-		resps := make([]response.Response, 6)
-		httpResps := []*http.Response{
-			MakeResp(MakeReq(t, "POST", "/userWithPerm/test_perm_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithPerm/test_perm/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithPerm/test_perm/"+classBID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithPerm/test_all_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithPerm/test_all/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/userWithPerm/test_all/"+classBID, nil)),
-		}
-		for index, httpResp := range httpResps {
-			MustJsonDecode(httpResp, &resps[index])
-		}
-		assert.Equal(t, http.StatusOK, httpResps[0].StatusCode)
-		JsonEQ(t, ResponseWithUser(userWithPerm), resps[0])
-		assert.Equal(t, http.StatusForbidden, httpResps[1].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[1])
-		assert.Equal(t, http.StatusForbidden, httpResps[2].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[2])
-		assert.Equal(t, http.StatusForbidden, httpResps[3].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[3])
-		assert.Equal(t, http.StatusForbidden, httpResps[4].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[4])
-		assert.Equal(t, http.StatusForbidden, httpResps[5].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[5])
-	})
-	t.Run("testAdministrator", func(t *testing.T) {
-		resps := make([]response.Response, 6)
-		httpResps := []*http.Response{
-			MakeResp(MakeReq(t, "POST", "/administrator/test_perm_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/administrator/test_perm/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/administrator/test_perm/"+classBID, nil)),
-			MakeResp(MakeReq(t, "POST", "/administrator/test_all_global", nil)),
-			MakeResp(MakeReq(t, "POST", "/administrator/test_all/"+classAID, nil)),
-			MakeResp(MakeReq(t, "POST", "/administrator/test_all/"+classBID, nil)),
-		}
-		for index, httpResp := range httpResps {
-			MustJsonDecode(httpResp, &resps[index])
-		}
-		assert.Equal(t, http.StatusOK, httpResps[0].StatusCode)
-		JsonEQ(t, ResponseWithUser(administrator), resps[0])
-		assert.Equal(t, http.StatusForbidden, httpResps[1].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[1])
-		assert.Equal(t, http.StatusForbidden, httpResps[2].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[2])
-		assert.Equal(t, http.StatusOK, httpResps[3].StatusCode)
-		JsonEQ(t, ResponseWithUser(administrator), resps[3])
-		assert.Equal(t, http.StatusForbidden, httpResps[4].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[4])
-		assert.Equal(t, http.StatusForbidden, httpResps[5].StatusCode)
-		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resps[5])
-	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
-		groups[5].POST("/testMultipleTarget", testController, middleware.Permission("all", "targetA", "targetB"))
+		adminGroup := base.Echo.Group("/testHasPermAdministrator", setUser(testHasPermAdministrator))
+		adminGroup.POST("/testMultipleTarget", testController, middleware.HasPermission("all", "targetA", "targetB"))
 		httpResp := (*http.Response)(nil)
 		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/administrator/testMultipleTarget", nil))
+			httpResp = MakeResp(MakeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil))
 		})
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
@@ -288,7 +234,7 @@ func TestPermission(t *testing.T) {
 				c.Set("user", "nonUser")
 				return next(c)
 			}
-		}, middleware.Permission("all"))
+		}, middleware.HasPermission("all"))
 		httpResp := (*http.Response)(nil)
 		capturer.CaptureOutput(func() {
 			httpResp = MakeResp(MakeReq(t, "POST", "/testNonUser", nil))
@@ -299,5 +245,5 @@ func TestPermission(t *testing.T) {
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	})
 
-	assert.Nil(t, base.DB.DropTable(&TestClass{}).Error)
+	assert.Nil(t, base.DB.DropTable(&testClass{}).Error)
 }
