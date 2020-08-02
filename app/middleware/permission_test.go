@@ -43,14 +43,8 @@ func responseWithUser(user models.User) response.Response {
 
 func TestHasPermission(t *testing.T) {
 	e := echo.New()
-	classA := testClass{}
-	classB := testClass{}
-	assert.Nil(t, base.DB.AutoMigrate(&testClass{}).Error)
-	assert.True(t, base.DB.HasTable(&testClass{}))
-	assert.Nil(t, base.DB.Create(&classA).Error)
-	assert.Nil(t, base.DB.Create(&classB).Error)
-	assert.Nil(t, base.DB.First(&classA).Error)
-	assert.Nil(t, base.DB.First(&classB).Error)
+	classA := testClass{ID: 1}
+	classB := testClass{ID: 2}
 	dummy := "test_class"
 	adminRole := models.Role{
 		Name:   "admin",
@@ -264,5 +258,12 @@ func TestHasPermission(t *testing.T) {
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	})
 
-	assert.Nil(t, base.DB.DropTable(&testClass{}).Error)
+	t.Run("testIllegalRouteParam", func(t *testing.T) {
+		t.Parallel()
+		httpResp := MakeResp(MakeReq(t, "POST", "/testHasPermUserWithoutPerms/test_perm/aaa", nil), e)
+		resp := response.Response{}
+		MustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
+	})
 }

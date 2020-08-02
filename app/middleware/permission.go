@@ -37,6 +37,7 @@ func HasPermission(perm string, targets ...string) func(next echo.HandlerFunc) e
 					id, err := strconv.ParseUint(c.Param("id"), 10, strconv.IntSize)
 					if err != nil {
 						log.Errorf("illegal id: %s", c.Param("id"))
+						return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 					}
 					can = u.Can(perm, &hasRole{
 						ID:   uint(id),
