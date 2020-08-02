@@ -160,3 +160,20 @@ func TestIsReady(t *testing.T) {
 	l.setReady()
 	assert.Equal(t, true, l.isReady())
 }
+
+func TestLogger_Disable(t *testing.T) {
+	var l = &logger{}
+	assert.Equal(t, false, l.disabled)
+
+	output := capturer.CaptureOutput(func() {
+		l.Debug("test")
+	})
+	assert.NotEqual(t, "", output)
+
+	l.Disable()
+	assert.Equal(t, true, l.Disabled())
+	output = capturer.CaptureOutput(func() {
+		l.Debug("test")
+	})
+	assert.Equal(t, "", output)
+}

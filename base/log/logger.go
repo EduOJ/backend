@@ -13,6 +13,8 @@ type _logger interface {
 	removeWriter(t reflect.Type)
 	isReady() bool
 	setReady()
+	Disabled() bool
+	Disable()
 	Debug(items ...interface{})
 	Info(items ...interface{})
 	Warning(items ...interface{})
@@ -26,8 +28,9 @@ type _logger interface {
 }
 
 type logger struct {
-	writers []_writer //Writers.
-	ready   bool
+	writers  []_writer //Writers.
+	ready    bool
+	disabled bool
 }
 
 // Add a writer to the logger.
@@ -56,7 +59,18 @@ func (l *logger) setReady() {
 	l.ready = true
 }
 
+func (l *logger) Disabled() bool {
+	return l.disabled
+}
+
+func (l *logger) Disable() {
+	l.disabled = true
+}
+
 func (l *logger) logWithLevelString(level Level, message string) {
+	if l.disabled {
+		return
+	}
 	caller := "unknown"
 	{
 		// Find caller out of the log package.

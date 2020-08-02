@@ -91,3 +91,11 @@ func Errorf(format string, items ...interface{}) {
 func Fatalf(format string, items ...interface{}) {
 	logger0.Fatalf(format, items...)
 }
+
+func Disable() {
+	logger0.Disable()
+}
+
+func Disabled() bool {
+	return logger0.Disabled()
+}
