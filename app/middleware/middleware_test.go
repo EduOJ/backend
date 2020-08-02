@@ -62,18 +62,11 @@ func MustJsonDecode(data interface{}, out interface{}) {
 	}
 }
 
-func MakeReq(t *testing.T, method string, path string, data interface{}, header ...map[string]string) *http.Request {
+func MakeReq(t *testing.T, method string, path string, data interface{}) *http.Request {
 	j, err := json.Marshal(data)
 	assert.Equal(t, nil, err)
 	req := httptest.NewRequest(method, path, bytes.NewReader(j))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	if len(header) == 1 {
-		for key := range header[0] {
-			req.Header.Set(key, header[0][key])
-		}
-	} else if len(header) > 1 {
-		panic("There can be at most one header map")
-	}
 	return req
 }
 
