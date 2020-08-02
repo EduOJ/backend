@@ -10,6 +10,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"sync"
 	"testing"
 )
 
@@ -188,33 +189,42 @@ func TestHasPermission(t *testing.T) {
 			"all_global":  true,
 		},
 	}
+	var expectedRetLock sync.RWMutex
 
 	for _, user := range users {
 		t.Run(user.Username, func(t *testing.T) {
+
 			group := e.Group("/"+user.Username, setUser(user))
 			for _, permTest := range permTests {
-				httpResp := (*http.Response)(nil)
-				resp := response.Response{}
-				if permTest.targetType == nil {
-					group.POST("/"+permTest.path, testController, middleware.HasPermission(permTest.permName))
-					httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.path, nil), e)
-				} else {
-					group.POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
-					httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.path, permTest.targetID), nil), e)
-				}
-				MustJsonDecode(httpResp, &resp)
-				if expectedRet[user.Username][permTest.name] {
-					assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-					JsonEQ(t, responseWithUser(user), resp)
-				} else {
-					assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
-					assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
-				}
+				t.Run(permTest.name, func(t *testing.T) {
+
+					httpResp := (*http.Response)(nil)
+					resp := response.Response{}
+					if permTest.targetType == nil {
+						group.POST("/"+permTest.path, testController, middleware.HasPermission(permTest.permName))
+						httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.path, nil), e)
+					} else {
+						group.POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
+						httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.path, permTest.targetID), nil), e)
+					}
+					MustJsonDecode(httpResp, &resp)
+					expectedRetLock.RLock()
+					expectedResult := expectedRet[user.Username][permTest.name]
+					expectedRetLock.RUnlock()
+					if expectedResult {
+						assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+						JsonEQ(t, responseWithUser(user), resp)
+					} else {
+						assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+						assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
+					}
+				})
 			}
 		})
 	}
 
 	t.Run("testNoUser", func(t *testing.T) {
+		t.Parallel()
 		e.Group("/noUser").POST("/test_perm_global", testController, middleware.HasPermission("testPerm"))
 		resp := response.Response{}
 		httpResp := (*http.Response)(nil)
@@ -227,6 +237,7 @@ func TestHasPermission(t *testing.T) {
 	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
+		t.Parallel()
 		adminGroup := e.Group("/testHasPermAdministrator", setUser(testHasPermAdministrator))
 		adminGroup.POST("/testMultipleTarget", testController, middleware.HasPermission("all", "targetA", "targetB"))
 		httpResp := (*http.Response)(nil)
@@ -240,6 +251,7 @@ func TestHasPermission(t *testing.T) {
 	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
+		t.Parallel()
 		e.POST("/testNonUser", testController, func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				c.Set("user", "nonUser")
