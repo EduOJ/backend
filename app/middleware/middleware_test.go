@@ -70,9 +70,9 @@ func MakeReq(t *testing.T, method string, path string, data interface{}) *http.R
 	return req
 }
 
-func MakeResp(req *http.Request) *http.Response {
+func MakeResp(req *http.Request, e *echo.Echo) *http.Response {
 	rec := httptest.NewRecorder()
-	base.Echo.ServeHTTP(rec, req)
+	e.ServeHTTP(rec, req)
 	return rec.Result()
 }
 
