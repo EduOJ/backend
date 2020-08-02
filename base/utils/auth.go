@@ -33,7 +33,7 @@ func IsTokenExpired(token models.Token) bool {
 
 //TODO: Use this function in timed tasks
 func CleanUpExpiredTokens() error {
-	initAuthConfig()
+	initAuth.Do(initAuthConfig)
 	var users []models.User
 	err := base.DB.Model(models.User{}).Find(&users).Error
 	if err != nil {
