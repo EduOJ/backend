@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app"
-	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/database"
-	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -75,18 +73,6 @@ func MakeResp(req *http.Request, e *echo.Echo) *http.Response {
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 	return rec.Result()
-}
-
-func testController(context echo.Context) error {
-	user := context.Get("user")
-	if user == nil {
-		user = models.User{}
-	}
-	return context.JSON(http.StatusOK, response.Response{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data:    user,
-	})
 }
 
 func TestMain(m *testing.M) {

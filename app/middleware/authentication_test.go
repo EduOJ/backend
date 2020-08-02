@@ -14,6 +14,18 @@ import (
 	"testing"
 )
 
+func testController(context echo.Context) error {
+	user := context.Get("user")
+	if user == nil {
+		user = models.User{}
+	}
+	return context.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    user,
+	})
+}
+
 func TestAuthentication(t *testing.T) {
 	e := echo.New()
 	httpSuccessResponse := response.Response{
@@ -24,6 +36,7 @@ func TestAuthentication(t *testing.T) {
 
 	e.Use(middleware.Authentication)
 	e.POST("/test_authentication", testController)
+	e.POST("/test_loginCheck", testController, middleware.LoginCheck)
 
 	testUser := models.User{
 		Username: "testAuthenticationMiddle",
@@ -144,8 +157,6 @@ func TestAuthentication(t *testing.T) {
 			}, resp)
 		})
 	}
-
-	e.POST("/test_loginCheck", testController, middleware.LoginCheck)
 
 	t.Run("testLoginCheckFail", func(t *testing.T) {
 		t.Parallel()

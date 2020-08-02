@@ -10,8 +10,9 @@ import (
 )
 
 func TestRecover(t *testing.T) {
-	e := echo.New()
+	t.Parallel()
 
+	e := echo.New()
 	e.Use(middleware.Recover)
 	e.POST("/panics_with_error", func(context echo.Context) error {
 		panic(errors.New("123"))
