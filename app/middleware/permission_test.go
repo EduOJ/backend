@@ -126,69 +126,84 @@ func TestHasPermission(t *testing.T) {
 
 	permTests := []struct {
 		name       string
+		path       string
 		permName   string
 		targetType *string
 		targetID   uint
 	}{
 		{
-			name:     "test_perm_global",
+			name:     "perm_global",
+			path:     "test_perm_global",
 			permName: "testPerm",
 		},
 		{
-			name:       "test_perm",
+			name:       "perm_a",
+			path:       "test_perm",
 			permName:   "testPerm",
 			targetType: &dummy,
 			targetID:   classA.ID,
 		},
 		{
-			name:       "test_perm",
+			name:       "perm_b",
+			path:       "test_perm",
 			permName:   "testPerm",
 			targetType: &dummy,
 			targetID:   classB.ID,
 		},
 		{
-			name:     "test_all_global",
+			name:     "all_global",
+			path:     "test_all_global",
 			permName: "nonExitingPerm",
 		},
 		{
-			name:       "test_all",
+			name:       "all_a",
+			path:       "test_all",
 			permName:   "non_exiting",
 			targetType: &dummy,
 			targetID:   classA.ID,
 		},
 		{
-			name:       "test_all",
+			name:       "all_b",
+			path:       "test_all",
 			permName:   "nonExitingPerm",
 			targetType: &dummy,
 			targetID:   classB.ID,
 		},
 	}
 
-	//           user|permTest
-	expectedRet := [][]bool{
-		//per_g per_A  per_B  all_g  all_A  all_B
-		{false, false, false, false, false, false}, //testHasPermUserWithoutPerms
-		{false, true, false, false, false, false},  //testHasPermUserWithClassAPerm
-		{false, true, false, false, true, false},   //testHasPermUserWithAllClassAPerms
-		{true, false, false, false, false, false},  //testHasPermUserWithPerm
-		{true, false, false, true, false, false},   //testHasPermAdministrator
+	expectedRet := map[string]map[string]bool{
+		"testHasPermUserWithoutPerms": {},
+		"testHasPermUserWithClassAPerm": {
+			"perm_a": true,
+		},
+		"testHasPermUserWithAllClassAPerms": {
+			"perm_a": true,
+			"all_a":  true,
+		},
+		"testHasPermUserWithPerm": {
+			"perm_global": true,
+		},
+		"testHasPermAdministrator": {
+			"perm_global": true,
+			"all_global":  true,
+		},
 	}
 
-	for userIndex, user := range users {
+	for _, user := range users {
 		t.Run(user.Username, func(t *testing.T) {
 			group := e.Group("/"+user.Username, setUser(user))
-			for permTestIndex, permTest := range permTests {
+			for _, permTest := range permTests {
 				httpResp := (*http.Response)(nil)
 				resp := response.Response{}
 				if permTest.targetType == nil {
-					group.POST("/"+permTest.name, testController, middleware.HasPermission(permTest.permName))
-					httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.name, nil), e)
+					group.POST("/"+permTest.path, testController, middleware.HasPermission(permTest.permName))
+					httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.path, nil), e)
 				} else {
-					group.POST("/"+permTest.name+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
-					httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.name, permTest.targetID), nil), e)
+					group.POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
+					httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.path, permTest.targetID), nil), e)
 				}
 				MustJsonDecode(httpResp, &resp)
-				if expectedRet[userIndex][permTestIndex] {
+				if expectedRet[user.Username][permTest.name] {
 					assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 					JsonEQ(t, responseWithUser(user), resp)
 				} else {
