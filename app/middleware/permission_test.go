@@ -2,7 +2,6 @@ package middleware_test
 
 import (
 	"fmt"
-	"github.com/kami-zh/go-capturer"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -10,7 +9,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
 	"net/http"
-	"sync"
 	"testing"
 )
 
@@ -189,28 +187,44 @@ func TestHasPermission(t *testing.T) {
 			"all_global":  true,
 		},
 	}
-	var expectedRetLock sync.RWMutex
+	userGroups := make([]*echo.Group, len(users))
+	for i, user := range users {
+		userGroups[i] = e.Group("/"+user.Username, setUser(user))
+		for _, permTest := range permTests {
+			if permTest.targetType == nil {
+				userGroups[i].POST("/"+permTest.path, testController, middleware.HasPermission(permTest.permName))
+			} else {
+				userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
+			}
+		}
+	}
+	e.POST("/noUser/test_perm_global", testController, middleware.HasPermission("testPerm"))
+	e.POST("/testHasPermAdministrator/testMultipleTarget",
+		testController,
+		setUser(testHasPermAdministrator),
+		middleware.HasPermission("all", "targetA", "targetB"))
+	e.POST("/testNonUser", testController, func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Set("user", "nonUser")
+			return next(c)
+		}
+	}, middleware.HasPermission("all"))
 
 	for _, user := range users {
 		t.Run(user.Username, func(t *testing.T) {
 
-			group := e.Group("/"+user.Username, setUser(user))
 			for _, permTest := range permTests {
 				t.Run(permTest.name, func(t *testing.T) {
 
 					httpResp := (*http.Response)(nil)
 					resp := response.Response{}
 					if permTest.targetType == nil {
-						group.POST("/"+permTest.path, testController, middleware.HasPermission(permTest.permName))
 						httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.path, nil), e)
 					} else {
-						group.POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
 						httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.path, permTest.targetID), nil), e)
 					}
 					MustJsonDecode(httpResp, &resp)
-					expectedRetLock.RLock()
 					expectedResult := expectedRet[user.Username][permTest.name]
-					expectedRetLock.RUnlock()
 					if expectedResult {
 						assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 						JsonEQ(t, responseWithUser(user), resp)
@@ -225,12 +239,8 @@ func TestHasPermission(t *testing.T) {
 
 	t.Run("testNoUser", func(t *testing.T) {
 		t.Parallel()
-		e.Group("/noUser").POST("/test_perm_global", testController, middleware.HasPermission("testPerm"))
 		resp := response.Response{}
-		httpResp := (*http.Response)(nil)
-		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/noUser/test_perm_global", nil), e)
-		})
+		httpResp := MakeResp(MakeReq(t, "POST", "/noUser/test_perm_global", nil), e)
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
@@ -238,12 +248,7 @@ func TestHasPermission(t *testing.T) {
 
 	t.Run("testAdministrator", func(t *testing.T) {
 		t.Parallel()
-		adminGroup := e.Group("/testHasPermAdministrator", setUser(testHasPermAdministrator))
-		adminGroup.POST("/testMultipleTarget", testController, middleware.HasPermission("all", "targetA", "targetB"))
-		httpResp := (*http.Response)(nil)
-		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil), e)
-		})
+		httpResp := MakeResp(MakeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil), e)
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
@@ -252,16 +257,7 @@ func TestHasPermission(t *testing.T) {
 
 	t.Run("testAdministrator", func(t *testing.T) {
 		t.Parallel()
-		e.POST("/testNonUser", testController, func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
-				c.Set("user", "nonUser")
-				return next(c)
-			}
-		}, middleware.HasPermission("all"))
-		httpResp := (*http.Response)(nil)
-		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/testNonUser", nil), e)
-		})
+		httpResp := MakeResp(MakeReq(t, "POST", "/testNonUser", nil), e)
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
