@@ -206,10 +206,10 @@ func TestHasPermission(t *testing.T) {
 
 	for _, user := range users {
 		t.Run(user.Username, func(t *testing.T) {
-
+			t.Parallel()
 			for _, permTest := range permTests {
 				t.Run(permTest.name, func(t *testing.T) {
-
+					t.Parallel()
 					httpResp := (*http.Response)(nil)
 					resp := response.Response{}
 					if permTest.targetType == nil {
