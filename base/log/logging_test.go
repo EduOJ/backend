@@ -3,6 +3,7 @@ package log
 import (
 	"errors"
 	"fmt"
+	"github.com/kami-zh/go-capturer"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/database"
@@ -13,6 +14,7 @@ import (
 
 type fakeLogger struct {
 	ready              bool
+	disabled           bool
 	lastFunctionCalled string
 }
 
@@ -26,6 +28,13 @@ func (f *fakeLogger) isReady() bool {
 
 func (f *fakeLogger) setReady() {
 	f.ready = true
+}
+func (f *fakeLogger) Disabled() bool {
+	return f.disabled
+}
+
+func (f *fakeLogger) Disable() {
+	f.disabled = true
 }
 
 func (f *fakeLogger) Debug(items ...interface{}) {
@@ -217,4 +226,26 @@ func TestInitFromConfigSuccess(t *testing.T) {
 	assert.EqualError(t, err, "already initialized")
 	exit.Close()
 	exit.QuitWG.Wait()
+}
+
+func TestLogging_Disable(t *testing.T) {
+	oldLogger := logger0
+	t.Cleanup(func() {
+		logger0 = oldLogger
+	})
+	l := &logger{}
+	logger0 = l
+	assert.Equal(t, false, l.disabled)
+
+	output := capturer.CaptureOutput(func() {
+		l.Debug("test")
+	})
+	assert.NotEqual(t, "", output)
+
+	Disable()
+	assert.Equal(t, true, Disabled())
+	output = capturer.CaptureOutput(func() {
+		l.Debug("test")
+	})
+	assert.Equal(t, "", output)
 }
