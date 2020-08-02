@@ -15,19 +15,15 @@ import (
 )
 
 func TestAuthentication(t *testing.T) {
-	oldEcho := base.Echo
-	base.Echo = echo.New()
-	t.Cleanup(func() {
-		base.Echo = oldEcho
-	})
+	e := echo.New()
 	httpSuccessResponse := response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
 	}
 
-	base.Echo.Use(middleware.Authentication)
-	base.Echo.POST("/test_authentication", testController)
+	e.Use(middleware.Authentication)
+	e.POST("/test_authentication", testController)
 
 	testUser := models.User{
 		Username: "testAuthenticationMiddle",
@@ -93,7 +89,7 @@ func TestAuthentication(t *testing.T) {
 			t.Parallel()
 			req := MakeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
-			httpResp := MakeResp(req)
+			httpResp := MakeResp(req, e)
 			resp := response.Response{}
 			MustJsonDecode(httpResp, &resp)
 			assert.Equal(t, test.statusCode, httpResp.StatusCode)
@@ -137,7 +133,7 @@ func TestAuthentication(t *testing.T) {
 			t.Parallel()
 			req := MakeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
-			httpResp := MakeResp(req)
+			httpResp := MakeResp(req, e)
 			resp := response.Response{}
 			MustJsonDecode(httpResp, &resp)
 			assert.Equal(t, test.statusCode, httpResp.StatusCode)
@@ -149,13 +145,13 @@ func TestAuthentication(t *testing.T) {
 		})
 	}
 
-	base.Echo.POST("/test_loginCheck", testController, middleware.LoginCheck)
+	e.POST("/test_loginCheck", testController, middleware.LoginCheck)
 
 	t.Run("testLoginCheckFail", func(t *testing.T) {
 		t.Parallel()
 		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
 		LoginCheckReq.Header.Set("Authorization", "")
-		httpResp := MakeResp(LoginCheckReq)
+		httpResp := MakeResp(LoginCheckReq, e)
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
@@ -166,7 +162,7 @@ func TestAuthentication(t *testing.T) {
 		t.Parallel()
 		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
 		LoginCheckReq.Header.Set("Authorization", effectiveToken.Token)
-		httpResp := MakeResp(LoginCheckReq)
+		httpResp := MakeResp(LoginCheckReq, e)
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)

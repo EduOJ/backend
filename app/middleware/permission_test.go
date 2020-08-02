@@ -43,11 +43,7 @@ func responseWithUser(user models.User) response.Response {
 }
 
 func TestHasPermission(t *testing.T) {
-	oldEcho := base.Echo
-	base.Echo = echo.New()
-	t.Cleanup(func() {
-		base.Echo = oldEcho
-	})
+	e := echo.New()
 	classA := testClass{}
 	classB := testClass{}
 	assert.Nil(t, base.DB.AutoMigrate(&testClass{}).Error)
@@ -180,16 +176,16 @@ func TestHasPermission(t *testing.T) {
 
 	for userIndex, user := range users {
 		t.Run(user.Username, func(t *testing.T) {
-			group := base.Echo.Group("/"+user.Username, setUser(user))
+			group := e.Group("/"+user.Username, setUser(user))
 			for permTestIndex, permTest := range permTests {
 				httpResp := (*http.Response)(nil)
 				resp := response.Response{}
 				if permTest.targetType == nil {
 					group.POST("/"+permTest.name, testController, middleware.HasPermission(permTest.permName))
-					httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.name, nil))
+					httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.name, nil), e)
 				} else {
 					group.POST("/"+permTest.name+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
-					httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.name, permTest.targetID), nil))
+					httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.name, permTest.targetID), nil), e)
 				}
 				MustJsonDecode(httpResp, &resp)
 				if expectedRet[userIndex][permTestIndex] {
@@ -204,11 +200,11 @@ func TestHasPermission(t *testing.T) {
 	}
 
 	t.Run("testNoUser", func(t *testing.T) {
-		base.Echo.Group("/noUser").POST("/test_perm_global", testController, middleware.HasPermission("testPerm"))
+		e.Group("/noUser").POST("/test_perm_global", testController, middleware.HasPermission("testPerm"))
 		resp := response.Response{}
 		httpResp := (*http.Response)(nil)
 		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/noUser/test_perm_global", nil))
+			httpResp = MakeResp(MakeReq(t, "POST", "/noUser/test_perm_global", nil), e)
 		})
 		MustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
@@ -216,11 +212,11 @@ func TestHasPermission(t *testing.T) {
 	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
-		adminGroup := base.Echo.Group("/testHasPermAdministrator", setUser(testHasPermAdministrator))
+		adminGroup := e.Group("/testHasPermAdministrator", setUser(testHasPermAdministrator))
 		adminGroup.POST("/testMultipleTarget", testController, middleware.HasPermission("all", "targetA", "targetB"))
 		httpResp := (*http.Response)(nil)
 		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil))
+			httpResp = MakeResp(MakeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil), e)
 		})
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
@@ -229,7 +225,7 @@ func TestHasPermission(t *testing.T) {
 	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
-		base.Echo.POST("/testNonUser", testController, func(next echo.HandlerFunc) echo.HandlerFunc {
+		e.POST("/testNonUser", testController, func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				c.Set("user", "nonUser")
 				return next(c)
@@ -237,7 +233,7 @@ func TestHasPermission(t *testing.T) {
 		}, middleware.HasPermission("all"))
 		httpResp := (*http.Response)(nil)
 		capturer.CaptureOutput(func() {
-			httpResp = MakeResp(MakeReq(t, "POST", "/testNonUser", nil))
+			httpResp = MakeResp(MakeReq(t, "POST", "/testNonUser", nil), e)
 		})
 		resp := response.Response{}
 		MustJsonDecode(httpResp, &resp)
