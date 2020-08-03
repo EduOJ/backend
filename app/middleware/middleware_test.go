@@ -18,11 +18,11 @@ import (
 	"testing"
 )
 
-func JsonEQ(t *testing.T, expected, actual interface{}) {
-	assert.JSONEq(t, MustJsonEncode(t, expected), MustJsonEncode(t, actual))
+func jsonEQ(t *testing.T, expected, actual interface{}) {
+	assert.JSONEq(t, mustJsonEncode(t, expected), mustJsonEncode(t, actual))
 }
 
-func MustJsonEncode(t *testing.T, data interface{}) string {
+func mustJsonEncode(t *testing.T, data interface{}) string {
 	var err error
 	if dataResp, ok := data.(*http.Response); ok {
 		data, err = ioutil.ReadAll(dataResp.Body)
@@ -42,7 +42,7 @@ func MustJsonEncode(t *testing.T, data interface{}) string {
 	return string(j)
 }
 
-func MustJsonDecode(data interface{}, out interface{}) {
+func mustJsonDecode(data interface{}, out interface{}) {
 	var err error
 	if dataResp, ok := data.(*http.Response); ok {
 		data, err = ioutil.ReadAll(dataResp.Body)
@@ -61,7 +61,7 @@ func MustJsonDecode(data interface{}, out interface{}) {
 	}
 }
 
-func MakeReq(t *testing.T, method string, path string, data interface{}) *http.Request {
+func makeReq(t *testing.T, method string, path string, data interface{}) *http.Request {
 	j, err := json.Marshal(data)
 	assert.Equal(t, nil, err)
 	req := httptest.NewRequest(method, path, bytes.NewReader(j))
@@ -69,7 +69,7 @@ func MakeReq(t *testing.T, method string, path string, data interface{}) *http.R
 	return req
 }
 
-func MakeResp(req *http.Request, e *echo.Echo) *http.Response {
+func makeResp(req *http.Request, e *echo.Echo) *http.Response {
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 	return rec.Result()

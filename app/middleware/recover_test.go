@@ -21,11 +21,11 @@ func TestRecover(t *testing.T) {
 		panic("123")
 	})
 
-	req := MakeReq(t, "POST", "/panics_with_error", &bytes.Buffer{})
-	resp := MakeResp(req, e)
-	JsonEQ(t, response.MakeInternalErrorResp(), resp)
-	req = MakeReq(t, "POST", "/panics_with_other", &bytes.Buffer{})
-	resp = MakeResp(req, e)
-	JsonEQ(t, response.MakeInternalErrorResp(), resp)
+	req := makeReq(t, "POST", "/panics_with_error", &bytes.Buffer{})
+	resp := makeResp(req, e)
+	jsonEQ(t, response.MakeInternalErrorResp(), resp)
+	req = makeReq(t, "POST", "/panics_with_other", &bytes.Buffer{})
+	resp = makeResp(req, e)
+	jsonEQ(t, response.MakeInternalErrorResp(), resp)
 
 }

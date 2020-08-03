@@ -100,11 +100,11 @@ func TestAuthentication(t *testing.T) {
 		test := test
 		t.Run("failTests"+test.name, func(t *testing.T) {
 			t.Parallel()
-			req := MakeReq(t, "POST", "/test_authentication", nil)
+			req := makeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
-			httpResp := MakeResp(req, e)
+			httpResp := makeResp(req, e)
 			resp := response.Response{}
-			MustJsonDecode(httpResp, &resp)
+			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, test.statusCode, httpResp.StatusCode)
 			assert.Equal(t, test.resp, resp)
 		})
@@ -144,13 +144,13 @@ func TestAuthentication(t *testing.T) {
 		test := test
 		t.Run("successTests"+test.name, func(t *testing.T) {
 			t.Parallel()
-			req := MakeReq(t, "POST", "/test_authentication", nil)
+			req := makeReq(t, "POST", "/test_authentication", nil)
 			req.Header.Set("Authorization", test.tokenString)
-			httpResp := MakeResp(req, e)
+			httpResp := makeResp(req, e)
 			resp := response.Response{}
-			MustJsonDecode(httpResp, &resp)
+			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, test.statusCode, httpResp.StatusCode)
-			JsonEQ(t, response.Response{
+			jsonEQ(t, response.Response{
 				Message: "SUCCESS",
 				Error:   nil,
 				Data:    test.user,
@@ -160,24 +160,24 @@ func TestAuthentication(t *testing.T) {
 
 	t.Run("testLoginCheckFail", func(t *testing.T) {
 		t.Parallel()
-		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
+		LoginCheckReq := makeReq(t, "POST", "/test_loginCheck", nil)
 		LoginCheckReq.Header.Set("Authorization", "")
-		httpResp := MakeResp(LoginCheckReq, e)
+		httpResp := makeResp(LoginCheckReq, e)
 		resp := response.Response{}
-		MustJsonDecode(httpResp, &resp)
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("AUTH_NEED_TOKEN", nil), resp)
 	})
 
 	t.Run("testLoginCheckSuccess", func(t *testing.T) {
 		t.Parallel()
-		LoginCheckReq := MakeReq(t, "POST", "/test_loginCheck", nil)
+		LoginCheckReq := makeReq(t, "POST", "/test_loginCheck", nil)
 		LoginCheckReq.Header.Set("Authorization", activeToken.Token)
-		httpResp := MakeResp(LoginCheckReq, e)
+		httpResp := makeResp(LoginCheckReq, e)
 		resp := response.Response{}
-		MustJsonDecode(httpResp, &resp)
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		JsonEQ(t, response.Response{
+		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data:    activeToken.User,
