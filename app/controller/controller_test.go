@@ -94,6 +94,12 @@ func makeReq(t *testing.T, method string, path string, data interface{}, options
 	return req
 }
 
+func makeResp(req *http.Request) *http.Response {
+	rec := httptest.NewRecorder()
+	base.Echo.ServeHTTP(rec, req)
+	return rec.Result()
+}
+
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
