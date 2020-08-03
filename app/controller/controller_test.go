@@ -60,18 +60,38 @@ func mustJsonEncode(t *testing.T, data interface{}) string {
 	return string(j)
 }
 
-func makeReq(t *testing.T, method string, path string, data interface{}) *http.Request {
+type reqOption interface {
+	make(r *http.Request)
+}
+
+type headerOption map[string][]string
+type queryOption map[string][]string
+
+func (h headerOption) make(r *http.Request) {
+	for k, v := range h {
+		for _, s := range v {
+			r.Header.Add(k, s)
+		}
+	}
+}
+
+func (q queryOption) make(r *http.Request) {
+	for k, v := range q {
+		for _, s := range v {
+			r.URL.Query().Add(k, s)
+		}
+	}
+}
+
+func makeReq(t *testing.T, method string, path string, data interface{}, options ...reqOption) *http.Request {
 	j, err := json.Marshal(data)
 	assert.Equal(t, nil, err)
 	req := httptest.NewRequest(method, path, bytes.NewReader(j))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	for _, option := range options {
+		option.make(req)
+	}
 	return req
-}
-
-func makeResp(req *http.Request) *http.Response {
-	rec := httptest.NewRecorder()
-	base.Echo.ServeHTTP(rec, req)
-	return rec.Result()
 }
 
 func TestMain(m *testing.M) {
