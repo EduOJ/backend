@@ -213,15 +213,15 @@ func TestHasPermission(t *testing.T) {
 					httpResp := (*http.Response)(nil)
 					resp := response.Response{}
 					if permTest.targetType == nil {
-						httpResp = MakeResp(MakeReq(t, "POST", "/"+user.Username+"/"+permTest.path, nil), e)
+						httpResp = makeResp(makeReq(t, "POST", "/"+user.Username+"/"+permTest.path, nil), e)
 					} else {
-						httpResp = MakeResp(MakeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.path, permTest.targetID), nil), e)
+						httpResp = makeResp(makeReq(t, "POST", fmt.Sprintf("/%s/%s/%d", user.Username, permTest.path, permTest.targetID), nil), e)
 					}
-					MustJsonDecode(httpResp, &resp)
+					mustJsonDecode(httpResp, &resp)
 					expectedResult := expectedRet[user.Username][permTest.name]
 					if expectedResult {
 						assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-						JsonEQ(t, responseWithUser(user), resp)
+						jsonEQ(t, responseWithUser(user), resp)
 					} else {
 						assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
 						assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
@@ -234,35 +234,35 @@ func TestHasPermission(t *testing.T) {
 	t.Run("testNoUser", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := MakeResp(MakeReq(t, "POST", "/noUser/test_perm_global", nil), e)
-		MustJsonDecode(httpResp, &resp)
+		httpResp := makeResp(makeReq(t, "POST", "/noUser/test_perm_global", nil), e)
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
 		t.Parallel()
-		httpResp := MakeResp(MakeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil), e)
+		httpResp := makeResp(makeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil), e)
 		resp := response.Response{}
-		MustJsonDecode(httpResp, &resp)
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	})
 
 	t.Run("testAdministrator", func(t *testing.T) {
 		t.Parallel()
-		httpResp := MakeResp(MakeReq(t, "POST", "/testNonUser", nil), e)
+		httpResp := makeResp(makeReq(t, "POST", "/testNonUser", nil), e)
 		resp := response.Response{}
-		MustJsonDecode(httpResp, &resp)
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
 		assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	})
 
 	t.Run("testIllegalRouteParam", func(t *testing.T) {
 		t.Parallel()
-		httpResp := MakeResp(MakeReq(t, "POST", "/testHasPermUserWithoutPerms/test_perm/aaa", nil), e)
+		httpResp := makeResp(makeReq(t, "POST", "/testHasPermUserWithoutPerms/test_perm/aaa", nil), e)
 		resp := response.Response{}
-		MustJsonDecode(httpResp, &resp)
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
 	})
