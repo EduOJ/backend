@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"reflect"
+	"regexp"
 	"sync"
 	"time"
 )
@@ -60,4 +63,25 @@ func CleanUpExpiredTokens() error {
 		}
 	}
 	return nil
+}
+
+func IsValidUsername(field string) ValidateFunc {
+	return func(req interface{}) (ret bool, tag string) {
+		username := reflect.ValueOf(req).Elem().FieldByName(field).String()
+		ret, err := regexp.MatchString(fmt.Sprintf("[\\w\\d_]{%d}", len(username)), username)
+		if err != nil {
+			panic(errors.Wrap(err, "could not finish username verification"))
+		}
+		if !ret {
+			tag = "Illegal username (only alphas numbers and underscores are allowed to use in username)"
+		}
+		return
+	}
+}
+
+func GetValidUsername(field string) ExtraValidate {
+	return ExtraValidate{
+		field:    "username",
+		validate: IsValidUsername(field),
+	}
 }
