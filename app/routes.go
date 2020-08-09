@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/controller"
+	adminController "github.com/leoleoasd/EduOJBackend/app/controller/admin"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 )
 
@@ -23,11 +24,11 @@ func Register(e *echo.Echo) {
 	_ = loginCheck
 
 	admin := api.Group("/admin")
-	admin.POST("/user", controller.Todo)
-	admin.PUT("/user/:id", controller.Todo)
-	admin.DELETE("/user/:id", controller.Todo)
-	admin.GET("/user/:id", controller.Todo)
-	admin.GET("/users", controller.Todo)
+	admin.POST("/user", adminController.PostUser)
+	admin.PUT("/user/:id", adminController.PutUser)
+	admin.DELETE("/user/:id", adminController.DeleteUser)
+	admin.GET("/user/:id", adminController.GetUser)
+	admin.GET("/users", adminController.GetUsers)
 
 	api.GET("/user/:id", controller.Todo)
 	api.GET("/users", controller.Todo)

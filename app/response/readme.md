@@ -31,3 +31,31 @@ Common return codes.
 |:---------------------------:|:--------------------:|
 |  REGISTER_DUPLICATE_EMAIL   |       邮箱重复        |
 | REGISTER_DUPLICATE_USERNAME |       用户名重复       |
+
+## Admin
+
+### User
+
+|         code                 |         结果          |
+|:----------------------------:|:--------------------:|
+|     QUERY_USER_WRONG_ID      |      错误的ID/用户名   |
+
+#### PostUser
+
+|            code              |         结果          |
+|:----------------------------:|:--------------------:|
+|  POST_USER_DUPLICATE_EMAIL   |       邮箱重复        |
+| POST_USER_DUPLICATE_USERNAME |       用户名重复       |
+
+#### PutUser
+
+|         code                 |         结果          |
+|:----------------------------:|:--------------------:|
+|  PUT_USER_DUPLICATE_EMAIL    |       邮箱重复         |
+|  PUT_USER_DUPLICATE_USERNAME |       用户名重复       |
+
+#### GetUsers
+
+|            code                 |         结果          |
+|:-------------------------------:|:--------------------:|
+| GET_USERS_OFFSET_OUT_OF_BOUNDS  |        偏移量越界      |
