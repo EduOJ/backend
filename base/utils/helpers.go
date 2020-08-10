@@ -56,7 +56,7 @@ func BindAndValidate(req interface{}, c *echo.Context, customValidations ...Cust
 		}
 		// The final used length of "validationErrors" isn't greater than len(e)+len(customErrors)
 		validationErrors = make([]response.ValidationError, 0, len(e)+len(customErrors))
-		for i, v := range e {
+		for _, v := range e {
 			field := v.Field()
 			tag := v.Tag()
 			for _, ev := range customErrors {
@@ -65,10 +65,10 @@ func BindAndValidate(req interface{}, c *echo.Context, customValidations ...Cust
 					ev.fieldAppeared = true
 				}
 			}
-			validationErrors[i] = response.ValidationError{
+			validationErrors = append(validationErrors, response.ValidationError{
 				Field:  field,
 				Reason: tag,
-			}
+			})
 		}
 	} else if len(customErrors) == 0 {
 		//There are neither standard validation errors or custom validation errors.

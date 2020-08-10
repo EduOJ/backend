@@ -74,7 +74,7 @@ func GetUser(c echo.Context) error {
 
 func GetUsers(c echo.Context) error {
 	req := new(request.GetUsersRequest)
-	err, ok := utils.BindAndValidate(req, &c, utils.GetValidUsername("Username"))
+	err, ok := utils.BindAndValidate(req, &c, utils.GetUsernameValidator("Username"))
 	if !ok {
 		return err
 	}
