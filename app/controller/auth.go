@@ -55,7 +55,7 @@ func Login(c echo.Context) error {
 
 func Register(c echo.Context) error {
 	req := new(request.RegisterRequest)
-	err, ok := utils.BindAndValidate(req, &c, utils.GetValidUsername("Username"))
+	err, ok := utils.BindAndValidate(req, &c, utils.GetUsernameValidator("Username"))
 	if !ok {
 		return err
 	}
