@@ -16,24 +16,24 @@ func PanicIfDBError(db *gorm.DB, message string) {
 	}
 }
 
-//The function for custom validations
+// The function for custom validations
 type ValidateFunc func(req interface{}) (bool, string)
 
-//The structure to save custom validations
+// The structure to save custom validations
 type CustomValidation struct {
-	requestField  string
-	validate      ValidateFunc
-	fieldAppeared bool
-	tag           string
+	requestField  string       // The field in the request
+	validate      ValidateFunc // The custom validating function
+	fieldAppeared bool         // If this field has standard validation error (this variable is useless now)
+	tag           string       // The custom validation tag
 }
 
 func BindAndValidate(req interface{}, c *echo.Context, customValidations ...CustomValidation) (err error, ok bool) {
 	if err := (*c).Bind(req); err != nil {
 		panic(err)
 	}
-	//execute custom validation, collect custom validation errors in "customErrors"
-	//The final used length of "customErrors" isn't greater than len(customValidations)
-	customErrors := make([]CustomValidation, len(customValidations))
+	// Execute custom validation, collect custom validation errors in "customErrors"
+	// The final used length of "customErrors" isn't greater than len(customValidations)
+	customErrors := make([]CustomValidation, 0, len(customValidations))
 	for _, ev := range customValidations {
 		ok, tag := ev.validate(req)
 		if !ok {
@@ -41,21 +41,21 @@ func BindAndValidate(req interface{}, c *echo.Context, customValidations ...Cust
 			customErrors = append(customErrors, ev)
 		}
 	}
-	//Combine the custom validation errors and standard validation errors
+	// Combine the custom validation errors and standard validation errors
 	var validationErrors []response.ValidationError
 	if err := (*c).Validate(req); err != nil {
-		//There are standard validation errors.
-		//For those fields with both custom and standard validation errors, we insert
-		//the custom errors' tags into standard errors' tags;
-		//For those fields with only standard validation errors, the errors would be
-		//record in "response.ValidationError" structures.
+		// There are standard validation errors.
+		// For those fields with both custom and standard validation errors, we insert
+		// the custom errors' tags into standard errors' tags;
+		// For those fields with only standard validation errors, the errors would be
+		// record in "response.ValidationError" structures.
 		e, ok := err.(validator.ValidationErrors)
 		if !ok {
 			log.Error(errors.Wrap(err, "validate failed"), *c)
 			return response.InternalErrorResp(*c), false
 		}
-		//The final used length of "validationErrors" isn't greater than len(e)+len(customErrors)
-		validationErrors = make([]response.ValidationError, len(e)+len(customErrors))
+		// The final used length of "validationErrors" isn't greater than len(e)+len(customErrors)
+		validationErrors = make([]response.ValidationError, 0, len(e)+len(customErrors))
 		for i, v := range e {
 			field := v.Field()
 			tag := v.Tag()
@@ -75,9 +75,9 @@ func BindAndValidate(req interface{}, c *echo.Context, customValidations ...Cust
 		//So we just return
 		return nil, true
 	}
-	//The fields with standard errors are processed by the if at 42, so the fields
-	//only have custom errors here. We create "response.ValidationError" structures
-	//to record them.
+	// The fields with standard errors are processed by the if at 42, so the fields
+	// only have custom errors here. We create "response.ValidationError" structures
+	// to record them.
 	for _, ev := range customErrors {
 		if !ev.fieldAppeared {
 			validationErrors = append(validationErrors, response.ValidationError{
