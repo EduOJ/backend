@@ -60,7 +60,15 @@ Common return codes.
 |:-------------------------------:|:--------------------:|
 | GET_USERS_OFFSET_OUT_OF_BOUNDS  |        偏移量越界      |
 
+
+
 ## User
+
+### GetUsers
+
+|            code                 |         结果          |
+|:-------------------------------:|:--------------------:|
+| GET_USERS_OFFSET_OUT_OF_BOUNDS  |        偏移量越界      |
 
 ### ChangePassword
 

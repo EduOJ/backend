@@ -29,8 +29,8 @@ func Register(e *echo.Echo) {
 	admin.GET("/user/:id", adminController.GetUser)
 	admin.GET("/users", adminController.GetUsers)
 
-	api.GET("/user/:id", controller.Todo)
-	api.GET("/users", controller.Todo)
+	api.GET("/user/:id", controller.GetUser)
+	api.GET("/users", controller.GetUsers)
 
 	loginCheck.POST("/user/change_password", controller.ChangePassword)
 
