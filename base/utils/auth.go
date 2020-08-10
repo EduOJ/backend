@@ -34,7 +34,7 @@ func IsTokenExpired(token models.Token) bool {
 	}
 }
 
-//TODO: Use this function in timed tasks
+// TODO: Use this function in timed tasks
 func CleanUpExpiredTokens() error {
 	initAuth.Do(initAuthConfig)
 	var users []models.User
@@ -65,13 +65,13 @@ func CleanUpExpiredTokens() error {
 	return nil
 }
 
-//The username custom validating function generator
+// The username custom validating function generator
 func IsValidUsername(structField string) ValidateFunc {
-	//The username custom validating function
+	// The username custom validating function
 	return func(req interface{}) (ret bool, tag string) {
-		//get username from request using reflect
+		// Get username from request using reflect
 		username := reflect.ValueOf(req).Elem().FieldByName(structField).String()
-		//validate username
+		// validate username
 		ret, err := regexp.MatchString(fmt.Sprintf("[\\w\\d_]{%d}", len(username)), username)
 		if err != nil {
 			panic(errors.Wrap(err, "could not finish username verification"))
@@ -83,9 +83,9 @@ func IsValidUsername(structField string) ValidateFunc {
 	}
 }
 
-func GetUsernameValidation(structField string) CustomValidation {
+func GetUsernameValidator(structField string) CustomValidation {
 	return CustomValidation{
-		requestField: "username",                   //the field in the request
-		validate:     IsValidUsername(structField), //the field in the structure (usually "Username")
+		requestField: "username",                   // the field in the request
+		validate:     IsValidUsername(structField), // the field in the structure (usually "Username")
 	}
 }
