@@ -1,7 +1,7 @@
 package admin
 
 type PostUserRequest struct {
-	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,printascii"`
+	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=5"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=50,min=5"`
 	Password string `json:"password" form:"password" query:"password" validate:"required,max=30,min=5"`
@@ -9,7 +9,7 @@ type PostUserRequest struct {
 }
 
 type PutUserRequest struct {
-	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,printascii"`
+	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=5"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=50,min=5"`
 	Password string `json:"password" form:"password" query:"password" validate:"required,max=30,min=5"`

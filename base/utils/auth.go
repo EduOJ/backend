@@ -1,13 +1,10 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
-	"reflect"
-	"regexp"
 	"sync"
 	"time"
 )
@@ -63,29 +60,4 @@ func CleanUpExpiredTokens() error {
 		}
 	}
 	return nil
-}
-
-// The username custom validating function generator
-func IsValidUsername(structField string) ValidateFunc {
-	// The username custom validating function
-	return func(req interface{}) (ret bool, tag string) {
-		// Get username from request using reflect
-		username := reflect.ValueOf(req).Elem().FieldByName(structField).String()
-		// validate username
-		ret, err := regexp.MatchString(fmt.Sprintf("[\\w\\d_]{%d}", len(username)), username)
-		if err != nil {
-			panic(errors.Wrap(err, "could not finish username verification"))
-		}
-		if !ret {
-			tag = "Illegal username (only alphas numbers and underscores are allowed to use in username)"
-		}
-		return
-	}
-}
-
-func GetUsernameValidator(structField string) CustomValidation {
-	return CustomValidation{
-		requestField: "username",                   // the field in the request
-		validate:     IsValidUsername(structField), // the field in the structure (usually "Username")
-	}
 }
