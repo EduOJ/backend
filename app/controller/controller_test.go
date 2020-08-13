@@ -103,7 +103,12 @@ func makeResp(req *http.Request) *http.Response {
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
-	configFile := bytes.NewBufferString("debug: true")
+	configFile := bytes.NewBufferString(`debug: true
+server:
+  port: 8080
+  origin:
+    - http://127.0.0.1:8000
+`)
 	err := config.ReadConfig(configFile)
 	if err != nil {
 		panic(err)
