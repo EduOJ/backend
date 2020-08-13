@@ -29,11 +29,11 @@ type CustomValidation struct {
 	tag           string       // The custom validation tag
 }
 
-func BindAndValidate(req interface{}, c *echo.Context) (err error, ok bool) {
-	if err := (*c).Bind(req); err != nil {
+func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
+	if err := c.Bind(req); err != nil {
 		panic(err)
 	}
-	if err := (*c).Validate(req); err != nil {
+	if err := c.Validate(req); err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
 			validationErrors := make([]response.ValidationError, len(e))
 			for i, v := range e {
@@ -42,10 +42,10 @@ func BindAndValidate(req interface{}, c *echo.Context) (err error, ok bool) {
 					Reason: v.Tag(),
 				}
 			}
-			return (*c).JSON(http.StatusBadRequest, response.ErrorResp("VALIDATION_ERROR", validationErrors)), false
+			return c.JSON(http.StatusBadRequest, response.ErrorResp("VALIDATION_ERROR", validationErrors)), false
 		}
 		log.Error(errors.Wrap(err, "validate failed"), c)
-		return response.InternalErrorResp(*c), false
+		return response.InternalErrorResp(c), false
 	}
 	return nil, true
 }
