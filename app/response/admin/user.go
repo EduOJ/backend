@@ -31,6 +31,7 @@ type GetUsersResponse struct {
 	Error   interface{} `json:"error"`
 	Data    struct {
 		Users  []models.User `json:"users"` // TODO:modify models.users
+		Total  int           `json:"total"`
 		Count  int           `json:"count"`
 		Offset int           `json:"offset"`
 		Prev   string        `json:"prev"`
