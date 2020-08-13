@@ -57,7 +57,7 @@ func ChangePassword(c echo.Context) error {
 
 func GetUser(c echo.Context) error {
 
-	user, err, ok := queryUser(c)
+	user, err, ok := findUser(c)
 	if !ok {
 		return err
 	}
@@ -114,7 +114,7 @@ func GetUsers(c echo.Context) error {
 	})
 }
 
-func queryUser(c echo.Context) (models.User, error, bool) {
+func findUser(c echo.Context) (models.User, error, bool) {
 	id := c.Param("id")
 	user := models.User{}
 	err := base.DB.Where("id = ?", id).First(&user).Error
@@ -122,7 +122,7 @@ func queryUser(c echo.Context) (models.User, error, bool) {
 		err = base.DB.Where("username = ?", id).First(&user).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
-				return user, c.JSON(http.StatusNotFound, response.ErrorResp("QUERY_USER_WRONG_ID", nil)), false
+				return user, c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil)), false
 			} else {
 				panic(errors.Wrap(err, "could not query username"))
 			}
