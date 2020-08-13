@@ -129,6 +129,7 @@ func GetUsers(c echo.Context) error {
 		return err
 	}
 	var users []models.User
+	var total int
 
 	//if req.OrderBy != "" {
 	//	err = base.DB.Where("username like ? and nickname like ?", "%"+req.Username+"%", "%"+req.Nickname+"%").Order(req.OrderBy).Find(&users).Error
@@ -156,9 +157,12 @@ func GetUsers(c echo.Context) error {
 		req.Limit = 20 // Default limit
 	}
 	err = query.Limit(req.Limit).Offset(req.Offset).Find(&users).Error
-
 	if err != nil {
 		panic(errors.Wrap(err, "could not query users"))
+	}
+	err = query.Count(&total).Error
+	if err != nil {
+		panic(errors.Wrap(err, "could not query count of users"))
 	}
 
 	prevURL := c.Request().URL
@@ -178,12 +182,14 @@ func GetUsers(c echo.Context) error {
 		Error:   nil,
 		Data: struct {
 			Users  []models.User `json:"users"`
+			Total  int           `json:"total"`
 			Count  int           `json:"count"`
 			Offset int           `json:"offset"`
 			Prev   string        `json:"prev"`
 			Next   string        `json:"next"`
 		}{
 			users,
+			total,
 			len(users),
 			req.Offset,
 			prevURL.String(),
