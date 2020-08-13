@@ -18,7 +18,7 @@ import (
 
 func PostUser(c echo.Context) error {
 	req := new(adminRequest.PostUserRequest)
-	err, ok := utils.BindAndValidate(req, &c)
+	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
 	}
@@ -57,7 +57,7 @@ func PostUser(c echo.Context) error {
 
 func PutUser(c echo.Context) error {
 	req := new(adminRequest.PutUserRequest)
-	err, ok := utils.BindAndValidate(req, &c)
+	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
 	}
@@ -130,7 +130,7 @@ func GetUser(c echo.Context) error {
 
 func GetUsers(c echo.Context) error {
 	req := new(adminRequest.GetUsersRequest)
-	err, ok := utils.BindAndValidate(req, &c)
+	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
 	}

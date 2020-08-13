@@ -14,7 +14,7 @@ import (
 
 func Login(c echo.Context) error {
 	req := new(request.LoginRequest)
-	if err, ok := utils.BindAndValidate(req, &c); !ok {
+	if err, ok := utils.BindAndValidate(req, c); !ok {
 		return err
 	}
 	user := models.User{}
@@ -50,7 +50,7 @@ func Login(c echo.Context) error {
 
 func Register(c echo.Context) error {
 	req := new(request.RegisterRequest)
-	err, ok := utils.BindAndValidate(req, &c)
+	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
 	}
