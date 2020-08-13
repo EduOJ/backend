@@ -9,13 +9,29 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/pkg/errors"
 	"net/http"
+	"regexp"
 )
 
+var usernameRegex *regexp.Regexp
+
+func validateUsername(fl validator.FieldLevel) bool {
+	return usernameRegex.MatchString(fl.Field().String())
+}
+
 func Register(e *echo.Echo) {
-	e.Validator = &Validator{
-		v: validator.New(),
+	v := validator.New()
+	usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+	err := v.RegisterValidation("username", validateUsername)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not register validation"))
+		panic(err)
 	}
+	e.Validator = &Validator{
+		v: v,
+	}
+
 	e.Use(middleware.Recover)
 	var origins []string
 	if n, err := config.Get("server.origin"); err == nil {

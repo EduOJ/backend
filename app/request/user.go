@@ -4,7 +4,7 @@ type GetUserRequest struct {
 }
 
 type GetUsersRequest struct {
-	Username string `json:"username" form:"username" query:"username" validate:"max=30,printascii"`
+	Username string `json:"username" form:"username" query:"username" validate:"max=30,username"`
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"max=30"`
 
 	Limit  int `json:"limit" form:"limit" query:"limit" validate:"max=100,min=0"`
