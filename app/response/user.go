@@ -6,7 +6,7 @@ type GetUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		models.User `json:"user"`
+		*models.User `json:"user"`
 	} `json:"data"`
 }
 

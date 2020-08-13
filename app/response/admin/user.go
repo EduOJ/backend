@@ -6,7 +6,7 @@ type PostUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		models.User `json:"user"`
+		*models.User `json:"user"`
 	} `json:"data"`
 }
 
@@ -14,7 +14,7 @@ type PutUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		models.User `json:"user"`
+		*models.User `json:"user"`
 	} `json:"data"`
 }
 
@@ -22,7 +22,7 @@ type GetUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		models.User `json:"user"`
+		*models.User `json:"user"`
 	} `json:"data"`
 }
 

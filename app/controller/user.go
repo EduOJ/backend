@@ -14,15 +14,18 @@ import (
 
 func GetUser(c echo.Context) error {
 
-	user, err, ok := findUser(c)
-	if !ok {
-		return err
+	id := c.Param("id")
+	user, err := utils.FindUser(id)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
 	}
 	return c.JSON(http.StatusOK, response.GetUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
+			*models.User `json:"user"`
 		}{
 			user,
 		},
@@ -69,23 +72,4 @@ func GetUsers(c echo.Context) error {
 			"", //TODO:fill this
 		},
 	})
-}
-
-func findUser(c echo.Context) (models.User, error, bool) {
-	id := c.Param("id")
-	user := models.User{}
-	err := base.DB.Where("id = ?", id).First(&user).Error
-	if err == gorm.ErrRecordNotFound {
-		err = base.DB.Where("username = ?", id).First(&user).Error
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return user, c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil)), false
-			} else {
-				panic(errors.Wrap(err, "could not query username"))
-			}
-		}
-	} else if err != nil {
-		panic(errors.Wrap(err, "could not query id"))
-	}
-	return user, nil, true
 }

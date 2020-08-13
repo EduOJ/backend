@@ -48,9 +48,9 @@ func PostUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
+			*models.User `json:"user"`
 		}{
-			user,
+			&user,
 		},
 	})
 }
@@ -61,9 +61,12 @@ func PutUser(c echo.Context) error {
 	if !ok {
 		return err
 	}
-	user, err, ok := queryUser(c)
-	if !ok {
-		return err
+	id := c.Param("id")
+	user, err := utils.FindUser(id)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
 	}
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
@@ -85,7 +88,7 @@ func PutUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
+			*models.User `json:"user"`
 		}{
 			user,
 		},
@@ -93,9 +96,12 @@ func PutUser(c echo.Context) error {
 }
 
 func DeleteUser(c echo.Context) error {
-	user, err, ok := queryUser(c)
-	if !ok {
-		return err
+	id := c.Param("id")
+	user, err := utils.FindUser(id)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
 	}
 	utils.PanicIfDBError(base.DB.Delete(&user), "could not delete user")
 	return c.JSON(http.StatusOK, response.Response{
@@ -107,15 +113,18 @@ func DeleteUser(c echo.Context) error {
 
 func GetUser(c echo.Context) error {
 
-	user, err, ok := queryUser(c)
-	if !ok {
-		return err
+	id := c.Param("id")
+	user, err := utils.FindUser(id)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
 	}
 	return c.JSON(http.StatusOK, adminResponse.GetUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
+			*models.User `json:"user"`
 		}{
 			user,
 		},
@@ -196,25 +205,6 @@ func GetUsers(c echo.Context) error {
 			nextURL.String(),
 		},
 	})
-}
-
-func queryUser(c echo.Context) (models.User, error, bool) {
-	id := c.Param("id")
-	user := models.User{}
-	err := base.DB.Where("id = ?", id).First(&user).Error
-	if err == gorm.ErrRecordNotFound {
-		err = base.DB.Where("username = ?", id).First(&user).Error
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return user, c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil)), false
-			} else {
-				panic(errors.Wrap(err, "could not query username"))
-			}
-		}
-	} else if err != nil {
-		panic(errors.Wrap(err, "could not query id"))
-	}
-	return user, nil, true
 }
 
 //TODO:add tests
