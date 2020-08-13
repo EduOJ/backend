@@ -14,25 +14,20 @@ import (
 
 func Login(c echo.Context) error {
 	req := new(request.LoginRequest)
-	err, ok := utils.BindAndValidate(req, &c)
-	if !ok {
+	if err, ok := utils.BindAndValidate(req, &c); !ok {
 		return err
 	}
-	t := base.DB.HasTable("users")
-	_ = t
 	user := models.User{}
-	t = base.DB.HasTable("users")
-	err = base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
-	t = base.DB.HasTable("users")
+	err := base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("LOGIN_WRONG_USERNAME", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_USERNAME", nil))
 		} else {
 			panic(errors.Wrap(err, "could not query username or email"))
 		}
 	}
 	if !utils.VerifyPassword(req.Password, user.Password) {
-		return c.JSON(http.StatusForbidden, response.ErrorResp("LOGIN_WRONG_PASSWORD", nil))
+		return c.JSON(http.StatusForbidden, response.ErrorResp("WRONG_PASSWORD", nil))
 	}
 	token := models.Token{
 		Token:      utils.RandStr(32),
@@ -63,11 +58,11 @@ func Register(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("REGISTER_DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("REGISTER_DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_USERNAME", nil))
 	}
 	user := models.User{
 		Username: req.Username,

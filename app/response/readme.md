@@ -21,16 +21,16 @@ Common return codes.
 
 ### Login
 
-|         code         |         结果          |
-|:--------------------:|:--------------------:|
-| LOGIN_WRONG_USERNAME |    错误的用户名/邮箱    |
-| LOGIN_WRONG_PASSWORD |       密码错误        |
+|         code       |         结果          |
+|:------------------:|:--------------------:|
+|   WRONG_USERNAME   |    错误的用户名/邮箱    |
+|   WRONG_PASSWORD   |       密码错误        |
 ### Register
 
-|            code             |         结果          |
-|:---------------------------:|:--------------------:|
-|  REGISTER_DUPLICATE_EMAIL   |       邮箱重复        |
-| REGISTER_DUPLICATE_USERNAME |       用户名重复       |
+|            code            |         结果          |
+|:--------------------------:|:--------------------:|
+|      DUPLICATE_EMAIL       |       邮箱重复        |
+|     DUPLICATE_USERNAME     |       用户名重复       |
 
 ## Admin
 
@@ -38,21 +38,10 @@ Common return codes.
 
 |         code                 |         结果          |
 |:----------------------------:|:--------------------:|
-|     QUERY_USER_WRONG_ID      |      错误的ID/用户名   |
+|         USER_NOT_FOUND       |     无法找到指定user   |
+|     USER_DUPLICATE_EMAIL     |        邮箱重复        |
+|    USER_DUPLICATE_USERNAME   |       用户名重复       |
 
-#### PostUser
-
-|            code              |         结果          |
-|:----------------------------:|:--------------------:|
-|  POST_USER_DUPLICATE_EMAIL   |       邮箱重复        |
-| POST_USER_DUPLICATE_USERNAME |       用户名重复       |
-
-#### PutUser
-
-|         code                 |         结果          |
-|:----------------------------:|:--------------------:|
-|  PUT_USER_DUPLICATE_EMAIL    |       邮箱重复         |
-|  PUT_USER_DUPLICATE_USERNAME |       用户名重复       |
 
 #### GetUsers
 
