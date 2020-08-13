@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
-	adminRequest "github.com/leoleoasd/EduOJBackend/app/request/admin"
+	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
-	adminResponse "github.com/leoleoasd/EduOJBackend/app/response/admin"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -35,8 +34,8 @@ func GetUser(c echo.Context) error {
 }
 
 func GetUsers(c echo.Context) error {
-	req := new(adminRequest.GetUsersRequest)
-	err, ok := utils.BindAndValidate(req, &c)
+	req := new(request.GetUsersRequest)
+	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
 	}
@@ -94,7 +93,7 @@ func GetUsers(c echo.Context) error {
 		nextUrlStr = nil
 	}
 
-	return c.JSON(http.StatusOK, adminResponse.GetUsersResponse{
+	return c.JSON(http.StatusOK, response.GetUsersResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
