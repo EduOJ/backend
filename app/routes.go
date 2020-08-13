@@ -14,7 +14,7 @@ import (
 	"regexp"
 )
 
-var usernameRegex *regexp.Regexp
+var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 func validateUsername(fl validator.FieldLevel) bool {
 	return usernameRegex.MatchString(fl.Field().String())
@@ -22,7 +22,6 @@ func validateUsername(fl validator.FieldLevel) bool {
 
 func Register(e *echo.Echo) {
 	v := validator.New()
-	usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 	err := v.RegisterValidation("username", validateUsername)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not register validation"))

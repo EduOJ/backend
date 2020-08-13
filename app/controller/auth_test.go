@@ -47,7 +47,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
-		assert.Equal(t, "LOGIN_WRONG_USERNAME", resp.Message)
+		assert.Equal(t, "WRONG_USERNAME", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
@@ -139,12 +139,12 @@ func TestLogin(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user4.Email,
-			Password:        "LOGIN_WRONG_PASSWORD",
+			Password:        "WRONG_PASSWORD",
 		}))
 		resp := response.LoginResponse{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
-		assert.Equal(t, "LOGIN_WRONG_PASSWORD", resp.Message)
+		assert.Equal(t, "WRONG_PASSWORD", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
 }
@@ -211,7 +211,7 @@ func TestRegister(t *testing.T) {
 			Email:    "test_registerUserSuccess_0@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		jsonEQ(t, response.ErrorResp("REGISTER_DUPLICATE_EMAIL", nil), respResponse)
+		jsonEQ(t, response.ErrorResp("DUPLICATE_EMAIL", nil), respResponse)
 		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
 		respResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
@@ -219,7 +219,7 @@ func TestRegister(t *testing.T) {
 			Email:    "test_registerUserSuccess_1@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		jsonEQ(t, response.ErrorResp("REGISTER_DUPLICATE_USERNAME", nil), respResponse)
+		jsonEQ(t, response.ErrorResp("DUPLICATE_USERNAME", nil), respResponse)
 		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
 	})
 }

@@ -206,7 +206,7 @@ func queryUser(c echo.Context) (models.User, error, bool) {
 		err = base.DB.Where("username = ?", id).First(&user).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
-				return user, c.JSON(http.StatusNotFound, response.ErrorResp("QUERY_USER_WRONG_ID", nil)), false
+				return user, c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil)), false
 			} else {
 				panic(errors.Wrap(err, "could not query username"))
 			}
