@@ -61,8 +61,7 @@ func PutUser(c echo.Context) error {
 	if !ok {
 		return err
 	}
-	id := c.Param("id")
-	user, err := utils.FindUser(id)
+	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
 	} else if err != nil {
@@ -96,8 +95,7 @@ func PutUser(c echo.Context) error {
 }
 
 func DeleteUser(c echo.Context) error {
-	id := c.Param("id")
-	user, err := utils.FindUser(id)
+	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
 	} else if err != nil {
@@ -113,8 +111,7 @@ func DeleteUser(c echo.Context) error {
 
 func GetUser(c echo.Context) error {
 
-	id := c.Param("id")
-	user, err := utils.FindUser(id)
+	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
 	} else if err != nil {
@@ -140,11 +137,6 @@ func GetUsers(c echo.Context) error {
 	var users []models.User
 	var total int
 
-	//if req.OrderBy != "" {
-	//	err = base.DB.Where("username like ? and nickname like ?", "%"+req.Username+"%", "%"+req.Nickname+"%").Order(req.OrderBy).Find(&users).Error
-	//} else {
-	//	err = base.DB.Where("username like ? and nickname like ?", "%"+req.Username+"%", "%"+req.Nickname+"%").Find(&users).Error
-	//}
 	query := base.DB.Model(&models.User{})
 	if req.OrderBy != "" {
 		order := strings.SplitN(req.OrderBy, ".", 2)
@@ -174,17 +166,27 @@ func GetUsers(c echo.Context) error {
 		panic(errors.Wrap(err, "could not query count of users"))
 	}
 
-	prevURL := c.Request().URL
-	if req.Offset-req.Limit >= 0 {
-		prevURL.Query().Set("offset", fmt.Sprint(req.Offset-req.Limit))
-	} else {
-		prevURL.Query().Set("offset", "0")
-	}
-	prevURL.Query().Set("limit", fmt.Sprint(req.Limit))
+	var nextUrlStr *string
+	var prevUrlStr *string
 
-	nextURL := c.Request().URL
-	nextURL.Query().Set("offset", fmt.Sprint(req.Offset+req.Limit))
-	prevURL.Query().Set("limit", fmt.Sprint(req.Limit))
+	if req.Offset-req.Limit >= 0 {
+		prevURL := c.Request().URL
+		prevURL.Query().Set("offset", fmt.Sprint(req.Offset-req.Limit))
+		prevURL.Query().Set("limit", fmt.Sprint(req.Limit))
+		tt := prevURL.String()
+		prevUrlStr = &tt
+	} else {
+		prevUrlStr = nil
+	}
+	if req.Offset+len(users) < total {
+		nextURL := c.Request().URL
+		nextURL.Query().Set("offset", fmt.Sprint(req.Offset+req.Limit))
+		nextURL.Query().Set("limit", fmt.Sprint(req.Limit))
+		tt := nextURL.String()
+		nextUrlStr = &tt
+	} else {
+		nextUrlStr = nil
+	}
 
 	return c.JSON(http.StatusOK, adminResponse.GetUsersResponse{
 		Message: "SUCCESS",
@@ -194,15 +196,15 @@ func GetUsers(c echo.Context) error {
 			Total  int           `json:"total"`
 			Count  int           `json:"count"`
 			Offset int           `json:"offset"`
-			Prev   string        `json:"prev"`
-			Next   string        `json:"next"`
+			Prev   *string       `json:"prev"`
+			Next   *string       `json:"next"`
 		}{
 			users,
 			total,
 			len(users),
 			req.Offset,
-			prevURL.String(),
-			nextURL.String(),
+			prevUrlStr,
+			nextUrlStr,
 		},
 	})
 }

@@ -34,7 +34,7 @@ type GetUsersResponse struct {
 		Total  int           `json:"total"`
 		Count  int           `json:"count"`
 		Offset int           `json:"offset"`
-		Prev   string        `json:"prev"`
-		Next   string        `json:"next"`
+		Prev   *string       `json:"prev"`
+		Next   *string       `json:"next"`
 	} `json:"data"`
 }
