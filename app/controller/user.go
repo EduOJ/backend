@@ -57,15 +57,18 @@ func ChangePassword(c echo.Context) error {
 
 func GetUser(c echo.Context) error {
 
-	user, err, ok := findUser(c)
-	if !ok {
-		return err
+	id := c.Param("id")
+	user, err := utils.FindUser(id)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
 	}
 	return c.JSON(http.StatusOK, response.GetUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
+			*models.User `json:"user"`
 		}{
 			user,
 		},

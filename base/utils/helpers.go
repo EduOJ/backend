@@ -5,7 +5,9 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"net/http"
 )
@@ -46,4 +48,22 @@ func BindAndValidate(req interface{}, c *echo.Context) (err error, ok bool) {
 		return response.InternalErrorResp(*c), false
 	}
 	return nil, true
+}
+
+func FindUser(id string) (*models.User, error) {
+	user := models.User{}
+	err := base.DB.Where("id = ?", id).First(&user).Error
+	if err == gorm.ErrRecordNotFound {
+		err = base.DB.Where("username = ?", id).First(&user).Error
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, err
+			} else {
+				panic(errors.Wrap(err, "could not query username"))
+			}
+		}
+	} else if err != nil {
+		panic(errors.Wrap(err, "could not query id"))
+	}
+	return &user, nil
 }
