@@ -11,7 +11,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 )
+
+type testClass struct {
+	ID uint `gorm:"primary_key" json:"id"`
+}
+
+func (c testClass) TypeName() string {
+	return "test_class"
+}
+
+func (c testClass) GetID() uint {
+	return c.ID
+}
 
 func TestLogin(t *testing.T) {
 	t.Parallel()
@@ -52,10 +65,12 @@ func TestLogin(t *testing.T) {
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
 		user1 := models.User{
-			Username: "test_login_1",
-			Nickname: "test_login_1_rand_str",
-			Email:    "test_login_1@mail.com",
-			Password: utils.HashPassword("test_login_password"),
+			Username:   "test_login_1",
+			Nickname:   "test_login_1_rand_str",
+			Email:      "test_login_1@mail.com",
+			Password:   utils.HashPassword("test_login_password"),
+			RoleLoaded: true,
+			Roles:      []models.UserHasRole{},
 		}
 		base.DB.Create(&user1)
 		t.Parallel()
@@ -73,16 +88,19 @@ func TestLogin(t *testing.T) {
 		token, err := utils.GetToken(resp.Data.Token)
 		base.DB.Where("id = ?", user1.ID).First(&user1)
 		assert.Equal(t, nil, err)
+		token.User.LoadRoles()
 		assert.True(t, user1.UpdatedAt.Equal(token.User.UpdatedAt))
 		assert.Equal(t, user1, token.User)
 		assert.False(t, token.RememberMe)
 	})
 	t.Run("loginWithUsernameAndRememberMeSuccess", func(t *testing.T) {
 		user2 := models.User{
-			Username: "test_login_2",
-			Nickname: "test_login_2_rand_str",
-			Email:    "test_login_2@mail.com",
-			Password: utils.HashPassword("test_login_password"),
+			Username:   "test_login_2",
+			Nickname:   "test_login_2_rand_str",
+			Email:      "test_login_2@mail.com",
+			Password:   utils.HashPassword("test_login_password"),
+			RoleLoaded: true,
+			Roles:      []models.UserHasRole{},
 		}
 		base.DB.Create(&user2)
 		t.Parallel()
@@ -100,16 +118,19 @@ func TestLogin(t *testing.T) {
 		token, err := utils.GetToken(resp.Data.Token)
 		base.DB.Where("id = ?", user2.ID).First(&user2)
 		assert.Equal(t, nil, err)
+		token.User.LoadRoles()
 		assert.True(t, user2.UpdatedAt.Equal(token.User.UpdatedAt))
 		assert.Equal(t, user2, token.User)
 		assert.True(t, token.RememberMe)
 	})
 	t.Run("loginWithEmailSuccess", func(t *testing.T) {
 		user3 := models.User{
-			Username: "test_login_3",
-			Nickname: "test_login_3_rand_str",
-			Email:    "test_login_3@mail.com",
-			Password: utils.HashPassword("test_login_password"),
+			Username:   "test_login_3",
+			Nickname:   "test_login_3_rand_str",
+			Email:      "test_login_3@mail.com",
+			Password:   utils.HashPassword("test_login_password"),
+			RoleLoaded: true,
+			Roles:      []models.UserHasRole{},
 		}
 		base.DB.Create(&user3)
 		t.Parallel()
@@ -126,6 +147,7 @@ func TestLogin(t *testing.T) {
 		token, err := utils.GetToken(resp.Data.Token)
 		base.DB.Where("id = ?", user3.ID).First(&user3)
 		assert.Equal(t, nil, err)
+		token.User.LoadRoles()
 		assert.Equal(t, user3, token.User)
 	})
 	t.Run("loginWrongPassword", func(t *testing.T) {
@@ -146,6 +168,69 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
 		assert.Equal(t, "WRONG_PASSWORD", resp.Message)
 		assert.Equal(t, nil, resp.Error)
+	})
+	t.Run("loginWithUsernameAndRolesSuccess", func(t *testing.T) {
+
+		classA := testClass{ID: 1}
+		dummy := "test_class"
+		adminRole := models.Role{
+			Name:   "admin",
+			Target: &dummy,
+		}
+		base.DB.Create(&adminRole)
+		adminRole.AddPermission("all")
+		user5 := models.User{
+			Username:   "test_login_5",
+			Nickname:   "test_login_5_rand_str",
+			Email:      "test_login_5@mail.com",
+			Password:   utils.HashPassword("test_login_password"),
+			RoleLoaded: true,
+			Roles:      []models.UserHasRole{},
+		}
+		base.DB.Create(&user5)
+		user5.GrantRole(adminRole, classA)
+
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
+			UsernameOrEmail: user5.Username,
+			Password:        "test_login_password",
+			RememberMe:      false,
+		}))
+		resp := struct {
+			Message string      `json:"message"`
+			Error   interface{} `json:"error"`
+			Data    struct {
+				User struct {
+					ID       uint   `gorm:"primary_key" json:"id"`
+					Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
+					Nickname string `gorm:"index:nickname" json:"nickname"`
+					Email    string `gorm:"unique_index" json:"email"`
+					Password string `json:"-"`
+
+					Roles      []models.Role `json:"roles"`
+					RoleLoaded bool          `gorm:"-"`
+
+					CreatedAt time.Time  `json:"created_at"`
+					UpdatedAt time.Time  `json:"-"`
+					DeletedAt *time.Time `sql:"index" json:"deleted_at"`
+					//TODO: bio
+				}
+				Token string `json:"token"`
+			} `json:"data"`
+		}{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, "SUCCESS", resp.Message)
+		assert.Equal(t, nil, resp.Error)
+
+		jsonEQ(t, user5, resp.Data.User)
+		token, err := utils.GetToken(resp.Data.Token)
+		base.DB.Where("id = ?", user5.ID).First(&user5)
+		assert.Equal(t, nil, err)
+		token.User.LoadRoles()
+		assert.True(t, user5.UpdatedAt.Equal(token.User.UpdatedAt))
+		assert.Equal(t, user5, token.User)
+		assert.False(t, token.RememberMe)
 	})
 }
 

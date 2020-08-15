@@ -1,6 +1,9 @@
 package models
 
-import "github.com/leoleoasd/EduOJBackend/base"
+import (
+	"encoding/json"
+	"github.com/leoleoasd/EduOJBackend/base"
+)
 
 type HasRole interface {
 	GetID() uint
@@ -34,4 +37,9 @@ func (r *Role) AddPermission(name string) {
 		Name:   name,
 	}
 	base.DB.Model(r).Association("Permissions").Append(p)
+}
+
+func (u UserHasRole) MarshalJSON() ([]byte, error) {
+	ret, err := json.Marshal(u.Role)
+	return ret, err
 }
