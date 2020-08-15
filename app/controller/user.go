@@ -33,6 +33,23 @@ func GetUser(c echo.Context) error {
 	})
 }
 
+func GetUserMe(c echo.Context) error {
+	var user models.User
+	var ok bool
+	if user, ok = c.Get("user").(models.User); !ok {
+		panic("could not convert my user into type models.User")
+	}
+	return c.JSON(http.StatusOK, response.GetUserResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*models.User `json:"user"`
+		}{
+			&user,
+		},
+	})
+}
+
 func GetUsers(c echo.Context) error {
 	req := new(request.GetUsersRequest)
 	err, ok := utils.BindAndValidate(req, c)
