@@ -214,7 +214,7 @@ func TestLogin(t *testing.T) {
 					UpdatedAt time.Time  `json:"-"`
 					DeletedAt *time.Time `sql:"index" json:"deleted_at"`
 					//TODO: bio
-				}
+				} `json:"user"`
 				Token string `json:"token"`
 			} `json:"data"`
 		}{}
