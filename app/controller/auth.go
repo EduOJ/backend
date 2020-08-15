@@ -35,6 +35,9 @@ func Login(c echo.Context) error {
 		RememberMe: req.RememberMe,
 	}
 	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for users")
+	if !user.RoleLoaded {
+		user.LoadRoles()
+	}
 	return c.JSON(http.StatusOK, response.RegisterResponse{
 		Message: "SUCCESS",
 		Error:   nil,
