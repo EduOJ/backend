@@ -26,11 +26,11 @@ func PostUser(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("POST_USER_DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("POST_USER_DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_USERNAME", nil))
 	}
 	user := models.User{
 		Username: req.Username,
@@ -70,11 +70,11 @@ func PutUser(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Email != req.Email) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("PUT_USER_DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Username != req.Username) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("PUT_USER_DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_USERNAME", nil))
 	}
 	hashed := utils.HashPassword(req.Password)
 	user.Username = req.Username

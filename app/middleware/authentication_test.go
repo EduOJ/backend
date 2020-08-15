@@ -26,7 +26,7 @@ func testController(context echo.Context) error {
 	})
 }
 
-func TestAuthentication(t *testing.T) {
+func TestAuthenticationAndLoginCheck(t *testing.T) {
 	e := echo.New()
 	httpSuccessResponse := response.Response{
 		Message: "SUCCESS",
