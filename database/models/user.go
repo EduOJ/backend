@@ -46,6 +46,7 @@ func (u *User) LoadRoles() {
 	if err != nil {
 		panic(err)
 	}
+	u.RoleLoaded = true
 }
 
 func (u *User) Can(permission string, target ...HasRole) bool {

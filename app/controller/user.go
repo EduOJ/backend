@@ -82,6 +82,9 @@ func GetUserMe(c echo.Context) error {
 	if user, ok = c.Get("user").(models.User); !ok {
 		panic("could not convert my user into type models.User")
 	}
+	if !user.RoleLoaded {
+		user.LoadRoles()
+	}
 	return c.JSON(http.StatusOK, response.GetUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,

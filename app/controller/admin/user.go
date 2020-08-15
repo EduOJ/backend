@@ -117,22 +117,8 @@ func GetUser(c echo.Context) error {
 	} else if err != nil {
 		panic(err)
 	}
-	return c.JSON(http.StatusOK, adminResponse.GetUserResponse{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data: struct {
-			*models.User `json:"user"`
-		}{
-			user,
-		},
-	})
-}
-
-func GetUserMe(c echo.Context) error {
-	var user models.User
-	var ok bool
-	if user, ok = c.Get("user").(models.User); !ok {
-		panic("could not convert my user into type models.User")
+	if !user.RoleLoaded {
+		user.LoadRoles()
 	}
 	return c.JSON(http.StatusOK, adminResponse.GetUserResponse{
 		Message: "SUCCESS",
@@ -140,7 +126,7 @@ func GetUserMe(c echo.Context) error {
 		Data: struct {
 			*models.User `json:"user"`
 		}{
-			&user,
+			user,
 		},
 	})
 }

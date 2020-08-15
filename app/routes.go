@@ -64,7 +64,6 @@ func Register(e *echo.Echo) {
 	admin.POST("/user", adminController.PostUser)
 	admin.PUT("/user/:id", adminController.PutUser)
 	admin.DELETE("/user/:id", adminController.DeleteUser)
-	admin.GET("/user/me", adminController.GetUserMe)
 	admin.GET("/user/:id", adminController.GetUser)
 	admin.GET("/users", adminController.GetUsers)
 
