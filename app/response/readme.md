@@ -31,3 +31,11 @@ Common return codes.
 |:---------------------------:|:--------------------:|
 |  REGISTER_DUPLICATE_EMAIL   |       邮箱重复        |
 | REGISTER_DUPLICATE_USERNAME |       用户名重复       |
+
+## User
+
+### ChangePassword
+
+|         code         |         结果          |
+|:--------------------:|:--------------------:|
+|    WRONG_PASSWORD    |       密码错误        |
