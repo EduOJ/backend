@@ -1,4 +1,4 @@
-package admin
+package response
 
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
@@ -18,7 +18,7 @@ type PutUserResponse struct {
 	} `json:"data"`
 }
 
-type GetUserResponse struct {
+type AdminGetUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -26,7 +26,7 @@ type GetUserResponse struct {
 	} `json:"data"`
 }
 
-type GetUsersResponse struct {
+type AdminGetUsersResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {

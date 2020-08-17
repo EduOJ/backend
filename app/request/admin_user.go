@@ -1,4 +1,4 @@
-package admin
+package request
 
 type PostUserRequest struct {
 	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
@@ -19,10 +19,10 @@ type PutUserRequest struct {
 type DeleteUserRequest struct {
 }
 
-type GetUserRequest struct {
+type AdminGetUserRequest struct {
 }
 
-type GetUsersRequest struct {
+type AdminGetUsersRequest struct {
 	Search string `json:"search" form:"search" query:"search"`
 
 	Limit  int `json:"limit" form:"limit" query:"limit" validate:"max=100,min=0"`

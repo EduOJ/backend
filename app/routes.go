@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/controller"
-	adminController "github.com/leoleoasd/EduOJBackend/app/controller/admin"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
@@ -61,11 +60,11 @@ func Register(e *echo.Echo) {
 
 	admin := loginCheck.Group("/admin")
 	// TODO: add HasPermission
-	admin.POST("/user", adminController.PostUser)
-	admin.PUT("/user/:id", adminController.PutUser)
-	admin.DELETE("/user/:id", adminController.DeleteUser)
-	admin.GET("/user/:id", adminController.GetUser)
-	admin.GET("/users", adminController.GetUsers)
+	admin.POST("/user", controller.PostUser)
+	admin.PUT("/user/:id", controller.PutUser)
+	admin.DELETE("/user/:id", controller.DeleteUser)
+	admin.GET("/user/:id", controller.AdminGetUser)
+	admin.GET("/users", controller.AdminGetUsers)
 
 	loginCheck.GET("/user/me", controller.GetUserMe)
 	api.GET("/user/:id", controller.GetUser)
