@@ -51,24 +51,24 @@ func TestChangePassword(t *testing.T) {
 
 	t.Run("testChangePasswordSuccess", func(t *testing.T) {
 		t.Parallel()
-		user1 := models.User{
+		user := models.User{
 			Username: "test_change_passwd_1",
 			Nickname: "test_change_passwd_1_rand_str",
 			Email:    "test_change_passwd_1@mail.com",
 			Password: utils.HashPassword("test_change_passwd_old_passwd"),
 		}
-		assert.Nil(t, base.DB.Create(&user1).Error)
+		assert.Nil(t, base.DB.Create(&user).Error)
 		token1 := models.Token{
 			Token: utils.RandStr(32),
-			User:  user1,
+			User:  user,
 		}
 		token2 := models.Token{
 			Token: utils.RandStr(32),
-			User:  user1,
+			User:  user,
 		}
 		token3 := models.Token{
 			Token: utils.RandStr(32),
-			User:  user1,
+			User:  user,
 		}
 		assert.Nil(t, base.DB.Create(&token1).Error)
 		assert.Nil(t, base.DB.Create(&token2).Error)
@@ -81,13 +81,13 @@ func TestChangePassword(t *testing.T) {
 		}))
 		var tokens []models.Token
 		var updatedUser models.User
-		assert.Nil(t, base.DB.Preload("User").Where("user_id = ?", user1.ID).Find(&tokens).Error)
+		assert.Nil(t, base.DB.Preload("User").Where("user_id = ?", user.ID).Find(&tokens).Error)
 		token1, _ = utils.GetToken(token1.Token)
 		assert.Equal(t, []models.Token{
 			token1,
 		}, tokens)
 
-		assert.Nil(t, base.DB.First(&updatedUser, user1.ID).Error)
+		assert.Nil(t, base.DB.First(&updatedUser, user.ID).Error)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
@@ -99,16 +99,16 @@ func TestChangePassword(t *testing.T) {
 
 	t.Run("testChangePasswordWithWrongPassword", func(t *testing.T) {
 		t.Parallel()
-		user3 := models.User{
-			Username: "test_change_passwd_3",
-			Nickname: "test_change_passwd_3_rand_str",
-			Email:    "test_change_passwd_3@mail.com",
+		user := models.User{
+			Username: "test_change_passwd_2",
+			Nickname: "test_change_passwd_2_rand_str",
+			Email:    "test_change_passwd_2@mail.com",
 			Password: utils.HashPassword("test_change_passwd_old_passwd"),
 		}
-		assert.Nil(t, base.DB.Create(&user3).Error)
+		assert.Nil(t, base.DB.Create(&user).Error)
 		mainToken := models.Token{
 			Token: utils.RandStr(32),
-			User:  user3,
+			User:  user,
 		}
 		assert.Nil(t, base.DB.Create(&mainToken).Error)
 		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
