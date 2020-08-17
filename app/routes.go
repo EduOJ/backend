@@ -19,8 +19,7 @@ func Register(e *echo.Echo) {
 	auth.POST("/login", controller.Login).Name = "auth.login"
 	auth.POST("/register", controller.Register).Name = "auth.register"
 
-	loginCheck := api.Group("/", middleware.LoginCheck)
-	_ = loginCheck
+	loginCheck := api.Group("", middleware.LoginCheck)
 
 	admin := api.Group("/admin")
 	admin.POST("/user", controller.Todo)
@@ -31,6 +30,8 @@ func Register(e *echo.Echo) {
 
 	api.GET("/user/:id", controller.Todo)
 	api.GET("/users", controller.Todo)
+
+	loginCheck.POST("/user/change_password", controller.ChangePassword)
 
 	// TODO: routes.
 }

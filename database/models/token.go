@@ -9,5 +9,5 @@ type Token struct {
 	User       User
 	RememberMe bool      `json:"remember_me"`
 	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	UpdatedAt  time.Time `json:"-"`
 }
