@@ -1,12 +1,11 @@
-package admin_test
+package controller_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/gorm"
-	adminRequest "github.com/leoleoasd/EduOJBackend/app/request/admin"
+	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
-	adminResponse "github.com/leoleoasd/EduOJBackend/app/response/admin"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -16,33 +15,13 @@ import (
 	"testing"
 )
 
-type testClass struct {
-	ID uint `gorm:"primary_key" json:"id"`
-}
-
-func (c testClass) TypeName() string {
-	return "test_class"
-}
-
-func (c testClass) GetID() uint {
-	return c.ID
-}
-
-func getToken(t *testing.T) (token models.Token) {
-	token = models.Token{
-		Token: utils.RandStr(32),
-	}
-	assert.Nil(t, base.DB.Create(&token).Error)
-	return
-}
-
 func TestPostUser(t *testing.T) {
 	t.Parallel()
 	token := getToken(t)
 
 	t.Run("postUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "POST", "/api/admin/user", adminRequest.PostUserRequest{
+		resp := makeResp(makeReq(t, "POST", "/api/admin/user", request.PostUserRequest{
 			Username: "",
 			Nickname: "",
 			Email:    "",
@@ -76,7 +55,7 @@ func TestPostUser(t *testing.T) {
 	})
 	t.Run("postUserSuccess", func(t *testing.T) {
 		t.Parallel()
-		respResponse := makeResp(makeReq(t, "POST", "/api/admin/user", adminRequest.PostUserRequest{
+		respResponse := makeResp(makeReq(t, "POST", "/api/admin/user", request.PostUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_0@mail.com",
@@ -85,7 +64,7 @@ func TestPostUser(t *testing.T) {
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusCreated, respResponse.StatusCode)
-		resp := adminResponse.PostUserResponse{}
+		resp := response.PostUserResponse{}
 		respBytes, err := ioutil.ReadAll(respResponse.Body)
 		assert.Equal(t, nil, err)
 		err = json.Unmarshal(respBytes, &resp)
@@ -95,7 +74,7 @@ func TestPostUser(t *testing.T) {
 		assert.Equal(t, nil, err)
 		jsonEQ(t, resp.Data.User, user)
 
-		respResponse = makeResp(makeReq(t, "POST", "/api/admin/user", adminRequest.PostUserRequest{
+		respResponse = makeResp(makeReq(t, "POST", "/api/admin/user", request.PostUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_0@mail.com",
@@ -105,7 +84,7 @@ func TestPostUser(t *testing.T) {
 		}))
 		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
 		jsonEQ(t, response.ErrorResp("USER_DUPLICATE_EMAIL", nil), respResponse)
-		respResponse = makeResp(makeReq(t, "POST", "/api/admin/user", adminRequest.PostUserRequest{
+		respResponse = makeResp(makeReq(t, "POST", "/api/admin/user", request.PostUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_1@mail.com",
@@ -131,7 +110,7 @@ func TestPutUser(t *testing.T) {
 		}
 		assert.Nil(t, base.DB.Create(&user1).Error)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user1.ID), adminRequest.PutUserRequest{
+		resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user1.ID), request.PutUserRequest{
 			Username: "",
 			Nickname: "",
 			Email:    "",
@@ -166,7 +145,7 @@ func TestPutUser(t *testing.T) {
 	t.Run("putUserNonExist", func(t *testing.T) {
 		t.Run("deleteUserNonExistId", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", "/api/admin/user/10001", adminRequest.PutUserRequest{
+			resp := makeResp(makeReq(t, "PUT", "/api/admin/user/10001", request.PutUserRequest{
 				Username: "test_put_user_non_exist",
 				Nickname: "test_put_user_non_exist_nick",
 				Email:    "test_put_user_non_exist@e.com",
@@ -179,7 +158,7 @@ func TestPutUser(t *testing.T) {
 		})
 		t.Run("deleteUserNonExistUsername", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_non_existing_user", adminRequest.PutUserRequest{
+			resp := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_non_existing_user", request.PutUserRequest{
 				Username: "test_put_user_non_exist",
 				Nickname: "test_put_user_non_exist_nick",
 				Email:    "test_put_user_non_exist@e.com",
@@ -215,7 +194,7 @@ func TestPutUser(t *testing.T) {
 			}
 			assert.Nil(t, base.DB.Create(&user4).Error)
 			t.Parallel()
-			respResponse := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user4.ID), adminRequest.PutUserRequest{
+			respResponse := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user4.ID), request.PutUserRequest{
 				Username: "test_putUserSuccess_0",
 				Nickname: "test_putUserSuccess_0",
 				Email:    "test_putUserSuccess_0@mail.com",
@@ -224,7 +203,7 @@ func TestPutUser(t *testing.T) {
 				"Authorization": {token.Token},
 			}))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
-			resp := adminResponse.PutUserResponse{}
+			resp := response.PutUserResponse{}
 			respBytes, err := ioutil.ReadAll(respResponse.Body)
 			assert.Equal(t, nil, err)
 			err = json.Unmarshal(respBytes, &resp)
@@ -243,7 +222,7 @@ func TestPutUser(t *testing.T) {
 			}
 			assert.Nil(t, base.DB.Create(&user5).Error)
 			t.Parallel()
-			respResponse := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_user_5", adminRequest.PutUserRequest{
+			respResponse := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_user_5", request.PutUserRequest{
 				Username: "test_putUserSuccess_1",
 				Nickname: "test_putUserSuccess_1",
 				Email:    "test_putUserSuccess_1@mail.com",
@@ -252,7 +231,7 @@ func TestPutUser(t *testing.T) {
 				"Authorization": {token.Token},
 			}))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
-			resp := adminResponse.PutUserResponse{}
+			resp := response.PutUserResponse{}
 			respBytes, err := ioutil.ReadAll(respResponse.Body)
 			assert.Equal(t, nil, err)
 			err = json.Unmarshal(respBytes, &resp)
@@ -264,7 +243,7 @@ func TestPutUser(t *testing.T) {
 		})
 		t.Run("putUserDuplicateEmail", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), adminRequest.PutUserRequest{
+			resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.PutUserRequest{
 				Username: "test_put_user_2",
 				Nickname: "test_put_user_2_rand_str",
 				Email:    "test_put_user_3@mail.com",
@@ -277,7 +256,7 @@ func TestPutUser(t *testing.T) {
 		})
 		t.Run("putUserDuplicateUsername", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), adminRequest.PutUserRequest{
+			resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.PutUserRequest{
 				Username: "test_put_user_3",
 				Nickname: "test_put_user_2_rand_str",
 				Email:    "test_put_user_2@mail.com",
@@ -296,7 +275,7 @@ func TestDeleteUser(t *testing.T) {
 	token := getToken(t)
 	t.Run("deleteUserNonExistId", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/10002", adminRequest.DeleteUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/10002", request.DeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -304,7 +283,7 @@ func TestDeleteUser(t *testing.T) {
 	})
 	t.Run("deleteUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_non_existing_user", adminRequest.DeleteUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_non_existing_user", request.DeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -319,7 +298,7 @@ func TestDeleteUser(t *testing.T) {
 		}
 		assert.Nil(t, base.DB.Create(&user1).Error)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/user/%d", user1.ID), adminRequest.DeleteUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/user/%d", user1.ID), request.DeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -341,7 +320,7 @@ func TestDeleteUser(t *testing.T) {
 		}
 		assert.Nil(t, base.DB.Create(&user2).Error)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_user_2", adminRequest.DeleteUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_user_2", request.DeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -355,12 +334,12 @@ func TestDeleteUser(t *testing.T) {
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
 	})
 }
-func TestGetUser(t *testing.T) {
+func TestAdminGetUser(t *testing.T) {
 	t.Parallel()
 	token := getToken(t)
 	t.Run("getUserNonExistId", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/admin/user/10003", adminRequest.GetUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "GET", "/api/admin/user/10003", request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -368,7 +347,7 @@ func TestGetUser(t *testing.T) {
 	})
 	t.Run("getUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_non_existing_user", adminRequest.GetUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_non_existing_user", request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -385,11 +364,11 @@ func TestGetUser(t *testing.T) {
 		}
 		assert.Nil(t, base.DB.Create(&user1).Error)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user1.ID), adminRequest.GetUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user1.ID), request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, adminResponse.GetUserResponse{
+		jsonEQ(t, response.AdminGetUserResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -410,11 +389,11 @@ func TestGetUser(t *testing.T) {
 		}
 		assert.Nil(t, base.DB.Create(&user2).Error)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_user_2", adminRequest.GetUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_user_2", request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, adminResponse.GetUserResponse{
+		jsonEQ(t, response.AdminGetUserResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -444,11 +423,11 @@ func TestGetUser(t *testing.T) {
 		assert.Nil(t, base.DB.Create(&user3).Error)
 		user3.GrantRole(adminRole, classA)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user3.ID), adminRequest.GetUserRequest{}, headerOption{
+		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user3.ID), request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, adminResponse.GetUserResponse{
+		jsonEQ(t, response.AdminGetUserResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {

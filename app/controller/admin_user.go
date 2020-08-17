@@ -1,12 +1,11 @@
-package admin
+package controller
 
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
-	adminRequest "github.com/leoleoasd/EduOJBackend/app/request/admin"
+	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
-	adminResponse "github.com/leoleoasd/EduOJBackend/app/response/admin"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -17,7 +16,7 @@ import (
 )
 
 func PostUser(c echo.Context) error {
-	req := new(adminRequest.PostUserRequest)
+	req := new(request.PostUserRequest)
 	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
@@ -44,7 +43,7 @@ func PostUser(c echo.Context) error {
 		User:  user,
 	}
 	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
-	return c.JSON(http.StatusCreated, adminResponse.PostUserResponse{
+	return c.JSON(http.StatusCreated, response.PostUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -56,7 +55,7 @@ func PostUser(c echo.Context) error {
 }
 
 func PutUser(c echo.Context) error {
-	req := new(adminRequest.PutUserRequest)
+	req := new(request.PutUserRequest)
 	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
@@ -83,7 +82,7 @@ func PutUser(c echo.Context) error {
 	user.Password = hashed
 	user.UpdatedAt = time.Now()
 	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
-	return c.JSON(http.StatusOK, adminResponse.PutUserResponse{
+	return c.JSON(http.StatusOK, response.PutUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -109,7 +108,7 @@ func DeleteUser(c echo.Context) error {
 	})
 }
 
-func GetUser(c echo.Context) error {
+func AdminGetUser(c echo.Context) error {
 
 	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
@@ -120,7 +119,7 @@ func GetUser(c echo.Context) error {
 	if !user.RoleLoaded {
 		user.LoadRoles()
 	}
-	return c.JSON(http.StatusOK, adminResponse.GetUserResponse{
+	return c.JSON(http.StatusOK, response.AdminGetUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -131,8 +130,8 @@ func GetUser(c echo.Context) error {
 	})
 }
 
-func GetUsers(c echo.Context) error {
-	req := new(adminRequest.GetUsersRequest)
+func AdminGetUsers(c echo.Context) error {
+	req := new(request.AdminGetUsersRequest)
 	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
@@ -191,7 +190,7 @@ func GetUsers(c echo.Context) error {
 		nextUrlStr = nil
 	}
 
-	return c.JSON(http.StatusOK, adminResponse.GetUsersResponse{
+	return c.JSON(http.StatusOK, response.AdminGetUsersResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
