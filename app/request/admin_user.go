@@ -1,6 +1,6 @@
 package request
 
-type PostUserRequest struct {
+type AdminCreateUserRequest struct {
 	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=5"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=50,min=5"`
@@ -8,7 +8,7 @@ type PostUserRequest struct {
 	//TODO: add to class
 }
 
-type PutUserRequest struct {
+type AdminUpdateUserRequest struct {
 	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=5"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=50,min=5"`
@@ -16,7 +16,7 @@ type PutUserRequest struct {
 	//TODO: add to class
 }
 
-type DeleteUserRequest struct {
+type AdminDeleteUserRequest struct {
 }
 
 type AdminGetUserRequest struct {

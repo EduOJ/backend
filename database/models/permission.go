@@ -40,6 +40,12 @@ func (r *Role) AddPermission(name string) {
 }
 
 func (u UserHasRole) MarshalJSON() ([]byte, error) {
-	ret, err := json.Marshal(u.Role)
+	ret, err := json.Marshal(struct {
+		Role     Role `json:"role"`
+		TargetID uint `json:"target_id"`
+	}{
+		Role:     u.Role,
+		TargetID: u.TargetID,
+	})
 	return ret, err
 }

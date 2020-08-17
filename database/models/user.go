@@ -14,7 +14,7 @@ type User struct {
 	Password string `json:"-"`
 
 	Roles      []UserHasRole `json:"roles"`
-	RoleLoaded bool          `gorm:"-"`
+	RoleLoaded bool          `gorm:"-" json:"-"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"-"`
