@@ -18,7 +18,7 @@ func GetUser(c echo.Context) error {
 
 	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}

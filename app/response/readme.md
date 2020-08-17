@@ -36,11 +36,11 @@ Common return codes.
 
 ### User
 
-|         code                 |         结果          |
-|:----------------------------:|:--------------------:|
-|         USER_NOT_FOUND       |     无法找到指定user   |
-|     USER_DUPLICATE_EMAIL     |        邮箱重复        |
-|    USER_DUPLICATE_USERNAME   |       用户名重复       |
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|         NOT_FOUND       |     无法找到指定user   |
+|     DUPLICATE_EMAIL     |        邮箱重复        |
+|    DUPLICATE_USERNAME   |       用户名重复       |
 
 
 #### GetUsers

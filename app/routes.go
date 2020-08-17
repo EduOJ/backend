@@ -60,9 +60,9 @@ func Register(e *echo.Echo) {
 
 	admin := loginCheck.Group("/admin")
 	// TODO: add HasPermission
-	admin.POST("/user", controller.PostUser)
-	admin.PUT("/user/:id", controller.PutUser)
-	admin.DELETE("/user/:id", controller.DeleteUser)
+	admin.POST("/user", controller.AdminCreateUser)
+	admin.PUT("/user/:id", controller.AdminUpdateUser)
+	admin.DELETE("/user/:id", controller.AdminDeleteUser)
 	admin.GET("/user/:id", controller.AdminGetUser)
 	admin.GET("/users", controller.AdminGetUsers)
 

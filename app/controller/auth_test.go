@@ -64,18 +64,17 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
-		user1 := models.User{
-			Username:   "test_login_1",
-			Nickname:   "test_login_1_rand_str",
-			Email:      "test_login_1@mail.com",
-			Password:   utils.HashPassword("test_login_password"),
-			RoleLoaded: true,
-			Roles:      []models.UserHasRole{},
+		user := models.User{
+			Username: "test_login_1",
+			Nickname: "test_login_1_rand_str",
+			Email:    "test_login_1@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+			Roles:    []models.UserHasRole{},
 		}
-		base.DB.Create(&user1)
+		base.DB.Create(&user)
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user1.Username,
+			UsernameOrEmail: user.Username,
 			Password:        "test_login_password",
 			RememberMe:      false,
 		}))
@@ -84,28 +83,27 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
-		jsonEQ(t, user1, resp.Data.User)
+		jsonEQ(t, user, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
-		base.DB.Where("id = ?", user1.ID).First(&user1)
+		base.DB.Where("id = ?", user.ID).First(&user)
 		assert.Equal(t, nil, err)
 		token.User.LoadRoles()
-		assert.True(t, user1.UpdatedAt.Equal(token.User.UpdatedAt))
-		assert.Equal(t, user1, token.User)
+		assert.True(t, user.UpdatedAt.Equal(token.User.UpdatedAt))
+		jsonEQ(t, user, token.User)
 		assert.False(t, token.RememberMe)
 	})
 	t.Run("loginWithUsernameAndRememberMeSuccess", func(t *testing.T) {
-		user2 := models.User{
-			Username:   "test_login_2",
-			Nickname:   "test_login_2_rand_str",
-			Email:      "test_login_2@mail.com",
-			Password:   utils.HashPassword("test_login_password"),
-			RoleLoaded: true,
-			Roles:      []models.UserHasRole{},
+		user := models.User{
+			Username: "test_login_2",
+			Nickname: "test_login_2_rand_str",
+			Email:    "test_login_2@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+			Roles:    []models.UserHasRole{},
 		}
-		base.DB.Create(&user2)
+		base.DB.Create(&user)
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user2.Username,
+			UsernameOrEmail: user.Username,
 			Password:        "test_login_password",
 			RememberMe:      true,
 		}))
@@ -114,28 +112,27 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
-		jsonEQ(t, user2, resp.Data.User)
+		jsonEQ(t, user, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
-		base.DB.Where("id = ?", user2.ID).First(&user2)
+		base.DB.Where("id = ?", user.ID).First(&user)
 		assert.Equal(t, nil, err)
 		token.User.LoadRoles()
-		assert.True(t, user2.UpdatedAt.Equal(token.User.UpdatedAt))
-		assert.Equal(t, user2, token.User)
+		assert.True(t, user.UpdatedAt.Equal(token.User.UpdatedAt))
+		jsonEQ(t, user, token.User)
 		assert.True(t, token.RememberMe)
 	})
 	t.Run("loginWithEmailSuccess", func(t *testing.T) {
-		user3 := models.User{
-			Username:   "test_login_3",
-			Nickname:   "test_login_3_rand_str",
-			Email:      "test_login_3@mail.com",
-			Password:   utils.HashPassword("test_login_password"),
-			RoleLoaded: true,
-			Roles:      []models.UserHasRole{},
+		user := models.User{
+			Username: "test_login_3",
+			Nickname: "test_login_3_rand_str",
+			Email:    "test_login_3@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+			Roles:    []models.UserHasRole{},
 		}
-		base.DB.Create(&user3)
+		base.DB.Create(&user)
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user3.Email,
+			UsernameOrEmail: user.Email,
 			Password:        "test_login_password",
 		}))
 		resp := response.LoginResponse{}
@@ -143,24 +140,24 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
-		jsonEQ(t, user3, resp.Data.User)
+		jsonEQ(t, user, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
-		base.DB.Where("id = ?", user3.ID).First(&user3)
+		base.DB.Where("id = ?", user.ID).First(&user)
 		assert.Equal(t, nil, err)
 		token.User.LoadRoles()
-		assert.Equal(t, user3, token.User)
+		jsonEQ(t, user, token.User)
 	})
 	t.Run("loginWrongPassword", func(t *testing.T) {
-		user4 := models.User{
+		user := models.User{
 			Username: "test_login_4",
 			Nickname: "test_login_4_rand_str",
 			Email:    "test_login_4@mail.com",
 			Password: utils.HashPassword("test_login_password"),
 		}
-		base.DB.Create(&user4)
+		base.DB.Create(&user)
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user4.Email,
+			UsernameOrEmail: user.Email,
 			Password:        "WRONG_PASSWORD",
 		}))
 		resp := response.LoginResponse{}
@@ -179,20 +176,19 @@ func TestLogin(t *testing.T) {
 		}
 		base.DB.Create(&adminRole)
 		adminRole.AddPermission("all")
-		user5 := models.User{
-			Username:   "test_login_5",
-			Nickname:   "test_login_5_rand_str",
-			Email:      "test_login_5@mail.com",
-			Password:   utils.HashPassword("test_login_password"),
-			RoleLoaded: true,
-			Roles:      []models.UserHasRole{},
+		user := models.User{
+			Username: "test_login_5",
+			Nickname: "test_login_5_rand_str",
+			Email:    "test_login_5@mail.com",
+			Password: utils.HashPassword("test_login_password"),
+			Roles:    []models.UserHasRole{},
 		}
-		base.DB.Create(&user5)
-		user5.GrantRole(adminRole, classA)
+		base.DB.Create(&user)
+		user.GrantRole(adminRole, classA)
 
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
-			UsernameOrEmail: user5.Username,
+			UsernameOrEmail: user.Username,
 			Password:        "test_login_password",
 			RememberMe:      false,
 		}))
@@ -207,8 +203,11 @@ func TestLogin(t *testing.T) {
 					Email    string `gorm:"unique_index" json:"email"`
 					Password string `json:"-"`
 
-					Roles      []models.Role `json:"roles"`
-					RoleLoaded bool          `gorm:"-"`
+					Roles []struct {
+						Role     models.Role `json:"role"`
+						TargetID uint        `json:"target_id"`
+					} `json:"roles"`
+					RoleLoaded bool `gorm:"-" json:"-"`
 
 					CreatedAt time.Time  `json:"created_at"`
 					UpdatedAt time.Time  `json:"-"`
@@ -223,13 +222,13 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, "SUCCESS", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 
-		jsonEQ(t, user5, resp.Data.User)
+		jsonEQ(t, user, resp.Data.User)
 		token, err := utils.GetToken(resp.Data.Token)
-		base.DB.Where("id = ?", user5.ID).First(&user5)
+		base.DB.Where("id = ?", user.ID).First(&user)
 		assert.Equal(t, nil, err)
 		token.User.LoadRoles()
-		assert.True(t, user5.UpdatedAt.Equal(token.User.UpdatedAt))
-		assert.Equal(t, user5, token.User)
+		assert.True(t, user.UpdatedAt.Equal(token.User.UpdatedAt))
+		jsonEQ(t, user, token.User)
 		assert.False(t, token.RememberMe)
 	})
 }

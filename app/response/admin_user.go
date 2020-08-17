@@ -2,7 +2,7 @@ package response
 
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
-type PostUserResponse struct {
+type AdminCreateUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -10,7 +10,7 @@ type PostUserResponse struct {
 	} `json:"data"`
 }
 
-type PutUserResponse struct {
+type AdminUpdateUserResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
