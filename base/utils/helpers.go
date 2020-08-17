@@ -18,17 +18,6 @@ func PanicIfDBError(db *gorm.DB, message string) {
 	}
 }
 
-// The function for custom validations
-type ValidateFunc func(req interface{}) (bool, string)
-
-// The structure to save custom validations
-type CustomValidation struct {
-	requestField  string       // The field in the request
-	validate      ValidateFunc // The custom validating function
-	fieldAppeared bool         // If this field has standard validation error (this variable is useless now)
-	tag           string       // The custom validation tag
-}
-
 func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
 	if err := c.Bind(req); err != nil {
 		panic(err)
@@ -53,7 +42,7 @@ func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
 func FindUser(id string) (*models.User, error) {
 	user := models.User{}
 	err := base.DB.Where("id = ?", id).First(&user).Error
-	if err == gorm.ErrRecordNotFound {
+	if err != nil {
 		err = base.DB.Where("username = ?", id).First(&user).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -62,8 +51,6 @@ func FindUser(id string) (*models.User, error) {
 				panic(errors.Wrap(err, "could not query username"))
 			}
 		}
-	} else if err != nil {
-		panic(errors.Wrap(err, "could not query id"))
 	}
 	return &user, nil
 }

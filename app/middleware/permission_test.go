@@ -100,11 +100,11 @@ func TestHasPermission(t *testing.T) {
 		Email:    "a@e.com",
 		Password: "",
 	}
-	assert.Nil(t, base.DB.Create(&testHasPermUserWithoutPerms).Error)
-	assert.Nil(t, base.DB.Create(&testHasPermUserWithClassAPerm).Error)
-	assert.Nil(t, base.DB.Create(&testHasPermUserWithAllClassAPerms).Error)
-	assert.Nil(t, base.DB.Create(&testHasPermUserWithPerm).Error)
-	assert.Nil(t, base.DB.Create(&testHasPermAdministrator).Error)
+
+	base.DB.Create(&testHasPermUserWithClassAPerm)
+	base.DB.Create(&testHasPermUserWithAllClassAPerms)
+	base.DB.Create(&testHasPermUserWithPerm)
+	base.DB.Create(&testHasPermAdministrator)
 	testHasPermUserWithClassAPerm.GrantRole(permRole, classA)
 	testHasPermUserWithAllClassAPerms.GrantRole(adminRole, classA)
 	testHasPermUserWithPerm.GrantRole(globalPermRole)

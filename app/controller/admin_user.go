@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-func PostUser(c echo.Context) error {
-	req := new(request.PostUserRequest)
+func AdminCreateUser(c echo.Context) error {
+	req := new(request.AdminCreateUserRequest)
 	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
@@ -25,11 +25,11 @@ func PostUser(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_USERNAME", nil))
 	}
 	user := models.User{
 		Username: req.Username,
@@ -43,7 +43,7 @@ func PostUser(c echo.Context) error {
 		User:  user,
 	}
 	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
-	return c.JSON(http.StatusCreated, response.PostUserResponse{
+	return c.JSON(http.StatusCreated, response.AdminCreateUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -54,26 +54,26 @@ func PostUser(c echo.Context) error {
 	})
 }
 
-func PutUser(c echo.Context) error {
-	req := new(request.PutUserRequest)
+func AdminUpdateUser(c echo.Context) error {
+	req := new(request.AdminUpdateUserRequest)
 	err, ok := utils.BindAndValidate(req, c)
 	if !ok {
 		return err
 	}
 	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Email != req.Email) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Username != req.Username) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("USER_DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("DUPLICATE_USERNAME", nil))
 	}
 	hashed := utils.HashPassword(req.Password)
 	user.Username = req.Username
@@ -82,7 +82,7 @@ func PutUser(c echo.Context) error {
 	user.Password = hashed
 	user.UpdatedAt = time.Now()
 	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
-	return c.JSON(http.StatusOK, response.PutUserResponse{
+	return c.JSON(http.StatusOK, response.AdminUpdateUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -93,10 +93,10 @@ func PutUser(c echo.Context) error {
 	})
 }
 
-func DeleteUser(c echo.Context) error {
+func AdminDeleteUser(c echo.Context) error {
 	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
@@ -112,7 +112,7 @@ func AdminGetUser(c echo.Context) error {
 
 	user, err := utils.FindUser(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("USER_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
