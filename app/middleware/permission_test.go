@@ -42,6 +42,7 @@ func responseWithUser(user models.User) response.Response {
 }
 
 func TestHasPermission(t *testing.T) {
+	t.Parallel()
 	e := echo.New()
 	classA := testClass{ID: 1}
 	classB := testClass{ID: 2}

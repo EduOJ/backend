@@ -51,6 +51,7 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
+		t.Parallel()
 		user1 := models.User{
 			Username: "test_login_1",
 			Nickname: "test_login_1_rand_str",
@@ -58,7 +59,6 @@ func TestLogin(t *testing.T) {
 			Password: utils.HashPassword("test_login_password"),
 		}
 		base.DB.Create(&user1)
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user1.Username,
 			Password:        "test_login_password",
@@ -78,6 +78,7 @@ func TestLogin(t *testing.T) {
 		assert.False(t, token.RememberMe)
 	})
 	t.Run("loginWithUsernameAndRememberMeSuccess", func(t *testing.T) {
+		t.Parallel()
 		user2 := models.User{
 			Username: "test_login_2",
 			Nickname: "test_login_2_rand_str",
@@ -85,7 +86,6 @@ func TestLogin(t *testing.T) {
 			Password: utils.HashPassword("test_login_password"),
 		}
 		base.DB.Create(&user2)
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user2.Username,
 			Password:        "test_login_password",
@@ -105,6 +105,7 @@ func TestLogin(t *testing.T) {
 		assert.True(t, token.RememberMe)
 	})
 	t.Run("loginWithEmailSuccess", func(t *testing.T) {
+		t.Parallel()
 		user3 := models.User{
 			Username: "test_login_3",
 			Nickname: "test_login_3_rand_str",
@@ -112,7 +113,6 @@ func TestLogin(t *testing.T) {
 			Password: utils.HashPassword("test_login_password"),
 		}
 		base.DB.Create(&user3)
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user3.Email,
 			Password:        "test_login_password",
@@ -129,6 +129,7 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user3, token.User)
 	})
 	t.Run("loginWrongPassword", func(t *testing.T) {
+		t.Parallel()
 		user4 := models.User{
 			Username: "test_login_4",
 			Nickname: "test_login_4_rand_str",
@@ -136,7 +137,6 @@ func TestLogin(t *testing.T) {
 			Password: utils.HashPassword("test_login_password"),
 		}
 		base.DB.Create(&user4)
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user4.Email,
 			Password:        "LOGIN_WRONG_PASSWORD",

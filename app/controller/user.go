@@ -15,7 +15,7 @@ import (
 
 func ChangePassword(c echo.Context) error {
 	req := new(request.ChangePasswordRequest)
-	//TODO: user bind and validate
+	//TODO: use bind and validate
 	if err := c.Bind(req); err != nil {
 		panic(err)
 	}
@@ -45,8 +45,8 @@ func ChangePassword(c echo.Context) error {
 		panic("could not get tokenString from request header")
 	}
 	utils.PanicIfDBError(base.DB.Where("user_id = ? and token != ?", user.ID, tokenString).Delete(models.Token{}), "could not remove token")
-	hashed := utils.HashPassword(req.NewPassword)
-	utils.PanicIfDBError(base.DB.Model(&user).Update("password", hashed), "could not update password")
+	user.Password = utils.HashPassword(req.NewPassword)
+	base.DB.Save(&user)
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
