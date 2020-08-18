@@ -61,7 +61,8 @@ func TestUserHasRoleMarshalJSON(t *testing.T) {
 		RoleID: 2001,
 		Role:   role1,
 	}
-	baseTime := time.Date(2020, 8, 18, 13, 24, 24, 31972138, time.Now().Location())
+	location, _ := time.LoadLocation("Asia/Shanghai")
+	baseTime := time.Date(2020, 8, 18, 13, 24, 24, 31972138, location)
 	deleteTime := baseTime.Add(time.Minute * 5)
 	user := User{
 		ID:       4001,
