@@ -12,12 +12,45 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"testing"
 )
 
+var initAdminUser sync.Once
+var adminUser models.User
+
+func initAdminUserFunc() {
+	adminRole := models.Role{
+		Name:   "globalAdmin",
+		Target: nil,
+	}
+	base.DB.Create(&adminRole)
+	adminRole.AddPermission("create_user")
+	adminRole.AddPermission("update_user")
+	adminRole.AddPermission("delete_user")
+	adminUser = models.User{
+		Username: "test_user_admin_user",
+		Nickname: "test_user_admin_nickname",
+		Email:    "test_user_admin@mail.com",
+		Password: "test_user_admin_password",
+	}
+	base.DB.Create(&adminUser)
+	adminUser.GrantRole(adminRole)
+}
+
+func getAdminToken() (token models.Token) {
+	initAdminUser.Do(initAdminUserFunc)
+	token = models.Token{
+		User:  adminUser,
+		Token: utils.RandStr(32),
+	}
+	base.DB.Create(&token)
+	return
+}
+
 func TestAdminCreateUser(t *testing.T) {
 	t.Parallel()
-	token := getToken()
+	token := getAdminToken()
 
 	t.Run("testAdminCreateUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
@@ -32,22 +65,22 @@ func TestAdminCreateUser(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
-		jsonEQ(t, response.Response{
+		assert.Equal(t, response.Response{
 			Message: "VALIDATION_ERROR",
-			Error: []map[string]string{
-				{
+			Error: []interface{}{
+				map[string]interface{}{
 					"field":  "Username",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Nickname",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Email",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Password",
 					"reason": "required",
 				},
@@ -57,7 +90,7 @@ func TestAdminCreateUser(t *testing.T) {
 	})
 	t.Run("testAdminCreateUserSuccess", func(t *testing.T) {
 		t.Parallel()
-		respResponse := makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
+		httpResp := makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_0@mail.com",
@@ -65,9 +98,9 @@ func TestAdminCreateUser(t *testing.T) {
 		}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusCreated, respResponse.StatusCode)
+		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 		resp := response.AdminCreateUserResponse{}
-		respBytes, err := ioutil.ReadAll(respResponse.Body)
+		respBytes, err := ioutil.ReadAll(httpResp.Body)
 		assert.Equal(t, nil, err)
 		mustJsonDecode(respBytes, &resp)
 		user := models.User{}
@@ -83,7 +116,8 @@ func TestAdminCreateUser(t *testing.T) {
 			},
 		})
 
-		respResponse = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
+		resp2 := response.Response{}
+		httpResp = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_0@mail.com",
@@ -91,9 +125,10 @@ func TestAdminCreateUser(t *testing.T) {
 		}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
-		jsonEQ(t, response.ErrorResp("DUPLICATE_EMAIL", nil), respResponse)
-		respResponse = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
+		mustJsonDecode(httpResp, &resp2)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp2)
+		httpResp = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_1@mail.com",
@@ -101,14 +136,15 @@ func TestAdminCreateUser(t *testing.T) {
 		}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
-		jsonEQ(t, response.ErrorResp("DUPLICATE_USERNAME", nil), respResponse)
+		mustJsonDecode(httpResp, &resp2)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp2)
 	})
 }
 
 func TestAdminUpdateUser(t *testing.T) {
 	t.Parallel()
-	token := getToken()
+	token := getAdminToken()
 
 	t.Run("testAdminUpdateUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
@@ -119,7 +155,7 @@ func TestAdminUpdateUser(t *testing.T) {
 			Password: utils.HashPassword("test_put_user_1_password"),
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminUpdateUserRequest{
+		httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminUpdateUserRequest{
 			Username: "",
 			Nickname: "",
 			Email:    "",
@@ -127,23 +163,25 @@ func TestAdminUpdateUser(t *testing.T) {
 		}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		jsonEQ(t, response.Response{
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
 			Message: "VALIDATION_ERROR",
-			Error: []map[string]string{
-				{
+			Error: []interface{}{
+				map[string]interface{}{
 					"field":  "Username",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Nickname",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Email",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Password",
 					"reason": "required",
 				},
@@ -155,7 +193,8 @@ func TestAdminUpdateUser(t *testing.T) {
 		t.Parallel()
 		t.Run("testAdminUpdateUserNonExistId", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", "/api/admin/user/-1", request.AdminUpdateUserRequest{
+			resp := response.Response{}
+			httpResp := makeResp(makeReq(t, "PUT", "/api/admin/user/-1", request.AdminUpdateUserRequest{
 				Username: "test_put_user_non_exist",
 				Nickname: "test_put_user_non_exist_nick",
 				Email:    "test_put_user_non_exist@e.com",
@@ -163,12 +202,14 @@ func TestAdminUpdateUser(t *testing.T) {
 			}, headerOption{
 				"Authorization": {token.Token},
 			}))
-			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-			jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+			assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 		})
 		t.Run("testAdminUpdateUserNonExistUsername", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_non_existing_user", request.AdminUpdateUserRequest{
+			resp := response.Response{}
+			httpResp := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_non_existing_user", request.AdminUpdateUserRequest{
 				Username: "test_put_user_non_exist",
 				Nickname: "test_put_user_non_exist_nick",
 				Email:    "test_put_user_non_exist@e.com",
@@ -176,8 +217,9 @@ func TestAdminUpdateUser(t *testing.T) {
 			}, headerOption{
 				"Authorization": {token.Token},
 			}))
-			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-			jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+			assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 		})
 	})
 	t.Run("testAdminUpdateUserWithParams", func(t *testing.T) {
@@ -223,6 +265,7 @@ func TestAdminUpdateUser(t *testing.T) {
 			err = base.DB.Where("id = ?", user.ID).First(&databaseUser).Error
 			assert.Equal(t, nil, err)
 			jsonEQ(t, resp.Data.User, databaseUser)
+			jsonEQ(t, resp.Data.User, databaseUser)
 		})
 		t.Run("testAdminUpdateUserSuccessWithUsername", func(t *testing.T) {
 			t.Parallel()
@@ -254,7 +297,8 @@ func TestAdminUpdateUser(t *testing.T) {
 		})
 		t.Run("testAdminUpdateUserDuplicateEmail", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
+			resp := response.Response{}
+			httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
 				Username: "test_put_user_2",
 				Nickname: "test_put_user_2_rand_str",
 				Email:    "test_put_user_3@mail.com",
@@ -262,12 +306,14 @@ func TestAdminUpdateUser(t *testing.T) {
 			}, headerOption{
 				"Authorization": {token.Token},
 			}))
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-			jsonEQ(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp)
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+			assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp)
 		})
 		t.Run("testAdminUpdateUserDuplicateUsername", func(t *testing.T) {
 			t.Parallel()
-			resp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
+			resp := response.Response{}
+			httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
 				Username: "test_put_user_3",
 				Nickname: "test_put_user_2_rand_str",
 				Email:    "test_put_user_2@mail.com",
@@ -275,30 +321,35 @@ func TestAdminUpdateUser(t *testing.T) {
 			}, headerOption{
 				"Authorization": {token.Token},
 			}))
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-			jsonEQ(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp)
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+			assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp)
 		})
 	})
 }
 
 func TestAdminDeleteUser(t *testing.T) {
 	t.Parallel()
-	token := getToken()
+	token := getAdminToken()
 	t.Run("deleteUserNonExistId", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/-1", request.AdminDeleteUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/-1", request.AdminDeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 	})
 	t.Run("deleteUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_non_existing_user", request.AdminDeleteUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_non_existing_user", request.AdminDeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 	})
 	t.Run("deleteUserSuccessWithId", func(t *testing.T) {
 		t.Parallel()
@@ -309,11 +360,13 @@ func TestAdminDeleteUser(t *testing.T) {
 			Password: utils.HashPassword("test_delete_user_1_password"),
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminDeleteUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminDeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, response.Response{
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data:    nil,
@@ -331,11 +384,13 @@ func TestAdminDeleteUser(t *testing.T) {
 			Password: utils.HashPassword("test_delete_user_2_password"),
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_user_2", request.AdminDeleteUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_user_2", request.AdminDeleteUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, response.Response{
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data:    nil,
@@ -347,22 +402,26 @@ func TestAdminDeleteUser(t *testing.T) {
 }
 func TestAdminGetUser(t *testing.T) {
 	t.Parallel()
-	token := getToken()
+	token := getAdminToken()
 	t.Run("getUserNonExistId", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/admin/user/-1", request.AdminGetUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/-1", request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 	})
 	t.Run("getUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_non_existing_user", request.AdminGetUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_non_existing_user", request.AdminGetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 	})
 	t.Run("getUserSuccessWithId", func(t *testing.T) {
 		t.Parallel()

@@ -3,6 +3,7 @@ module github.com/leoleoasd/EduOJBackend
 go 1.14
 
 require (
+	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/go-redis/redis/v8 v8.0.0-beta.6
 	github.com/jessevdk/go-flags v1.4.0
@@ -24,4 +25,4 @@ require (
 	gopkg.in/yaml.v2 v2.3.0
 )
 
-replace github.com/stretchr/testify v1.6.1 => github.com/leoleoasd/testify v1.6.2-0.20200728091548-dbfc7ee10e01
+replace github.com/stretchr/testify v1.6.1 => github.com/leoleoasd/testify v1.6.2-0.20200818074144-885db91dbfe9

@@ -9,11 +9,27 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"sync"
 	"testing"
 )
 
-func getToken() (token models.Token) {
+var initNormalUser sync.Once
+var normalUser models.User
+
+func initNormalUserFunc() {
+	normalUser = models.User{
+		Username: "test_user_normal_user",
+		Nickname: "test_user_normal_nickname",
+		Email:    "test_user_normal@mail.com",
+		Password: "test_user_normal_password",
+	}
+	base.DB.Create(&normalUser)
+}
+
+func getNormalToken() (token models.Token) {
+	initNormalUser.Do(initNormalUserFunc)
 	token = models.Token{
+		User:  normalUser,
 		Token: utils.RandStr(32),
 	}
 	base.DB.Create(&token)
@@ -22,25 +38,30 @@ func getToken() (token models.Token) {
 
 func TestGetUser(t *testing.T) {
 	t.Parallel()
-	token := getToken()
+	token := getNormalToken()
 
 	t.Run("getUserNonExistId", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 	})
 	t.Run("getUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, headerOption{
+		resp := response.Response{}
+		httpResp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), resp)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
 	})
 	t.Run("getUserSuccessWithId", func(t *testing.T) {
+		t.Parallel()
 		user := models.User{
 			Username: "test_get_user_4",
 			Nickname: "test_get_user_4_rand_str",
@@ -48,7 +69,6 @@ func TestGetUser(t *testing.T) {
 			Password: utils.HashPassword("test_get_user_4_password"),
 		}
 		base.DB.Create(&user)
-		t.Parallel()
 		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/user/%d", user.ID), request.GetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))

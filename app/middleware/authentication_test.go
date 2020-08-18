@@ -151,11 +151,7 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 			resp := response.Response{}
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, test.statusCode, httpResp.StatusCode)
-			jsonEQ(t, response.Response{
-				Message: "SUCCESS",
-				Error:   nil,
-				Data:    test.user,
-			}, resp)
+			jsonEQ(t, responseWithUser(test.user), resp)
 		})
 	}
 
@@ -178,10 +174,6 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		jsonEQ(t, response.Response{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data:    activeToken.User,
-		}, resp)
+		jsonEQ(t, responseWithUser(activeToken.User), resp)
 	})
 }
