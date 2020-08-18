@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
-	"time"
 )
 
 type testClass struct {
@@ -169,6 +168,7 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameAndRolesSuccess", func(t *testing.T) {
+		t.Parallel()
 
 		classA := testClass{ID: 1}
 		dummy := "test_class"
@@ -188,50 +188,33 @@ func TestLogin(t *testing.T) {
 		base.DB.Create(&user)
 		user.GrantRole(adminRole, classA)
 
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", request.LoginRequest{
 			UsernameOrEmail: user.Username,
 			Password:        "test_login_password",
 			RememberMe:      false,
 		}))
-		resp := struct {
-			Message string      `json:"message"`
-			Error   interface{} `json:"error"`
-			Data    struct {
-				User struct {
-					ID       uint   `gorm:"primary_key" json:"id"`
-					Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
-					Nickname string `gorm:"index:nickname" json:"nickname"`
-					Email    string `gorm:"unique_index" json:"email"`
-					Password string `json:"-"`
-
-					Roles []struct {
-						Role     models.Role `json:"role"`
-						TargetID uint        `json:"target_id"`
-					} `json:"roles"`
-					RoleLoaded bool `gorm:"-" json:"-"`
-
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `sql:"index" json:"deleted_at"`
-					//TODO: bio
-				} `json:"user"`
-				Token string `json:"token"`
-			} `json:"data"`
-		}{}
-		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		assert.Equal(t, "SUCCESS", resp.Message)
-		assert.Equal(t, nil, resp.Error)
 
-		jsonEQ(t, user, resp.Data.User)
-		token, err := utils.GetToken(resp.Data.Token)
-		base.DB.Where("id = ?", user.ID).First(&user)
-		assert.Equal(t, nil, err)
-		token.User.LoadRoles()
-		assert.True(t, user.UpdatedAt.Equal(token.User.UpdatedAt))
-		jsonEQ(t, user, token.User)
-		assert.False(t, token.RememberMe)
+		tokens := make([]models.Token, 0)
+		base.DB.Model(&user).Related(&tokens)
+		assert.Equal(t, 1, len(tokens))
+
+		respUser := models.User{}
+		base.DB.Model(&tokens[0]).Preload("Roles.Role.Permissions").Related(&respUser)
+		base.DB.First(&user, user.ID)
+		assert.Equal(t, user, respUser)
+		jsonEQ(t, response.LoginResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				models.User `json:"user"`
+				Token       string `json:"token"`
+			}{
+				respUser,
+				tokens[0].Token,
+			},
+		}, httpResp)
+		assert.False(t, tokens[0].RememberMe)
 	})
 }
 
