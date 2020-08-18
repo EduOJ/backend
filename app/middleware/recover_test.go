@@ -2,6 +2,7 @@ package middleware_test
 
 import (
 	"bytes"
+	"github.com/go-playground/assert/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -21,11 +22,13 @@ func TestRecover(t *testing.T) {
 		panic("123")
 	})
 
+	resp := response.Response{}
 	req := makeReq(t, "POST", "/panics_with_error", &bytes.Buffer{})
-	resp := makeResp(req, e)
-	jsonEQ(t, response.MakeInternalErrorResp(), resp)
+	httpResp := makeResp(req, e)
+	mustJsonDecode(httpResp, &resp)
+	assert.Equal(t, response.MakeInternalErrorResp(), resp)
 	req = makeReq(t, "POST", "/panics_with_other", &bytes.Buffer{})
-	resp = makeResp(req, e)
-	jsonEQ(t, response.MakeInternalErrorResp(), resp)
-
+	httpResp = makeResp(req, e)
+	mustJsonDecode(httpResp, &resp)
+	assert.Equal(t, response.MakeInternalErrorResp(), resp)
 }

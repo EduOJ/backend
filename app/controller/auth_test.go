@@ -35,21 +35,23 @@ func TestLogin(t *testing.T) {
 			UsernameOrEmail: "",
 			Password:        "",
 		}))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
-		jsonEQ(t, response.Response{
+		assert.Equal(t, response.Response{
 			Message: "VALIDATION_ERROR",
-			Error: []map[string]string{
-				{
+			Error: []interface{}{
+				map[string]interface{}{
 					"field":  "UsernameOrEmail",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Password",
 					"reason": "required",
 				},
 			},
 			Data: nil,
-		}, httpResp)
+		}, resp)
 	})
 	t.Run("loginNotFound", func(t *testing.T) {
 		t.Parallel()
@@ -236,29 +238,31 @@ func TestLogin(t *testing.T) {
 func TestRegister(t *testing.T) {
 	t.Run("registerUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
-		resp := makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
+		httpResp := makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "",
 			Nickname: "",
 			Email:    "",
 			Password: "",
 		}))
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		jsonEQ(t, response.Response{
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
 			Message: "VALIDATION_ERROR",
-			Error: []map[string]string{
-				{
+			Error: []interface{}{
+				map[string]interface{}{
 					"field":  "Username",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Nickname",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Email",
 					"reason": "required",
 				},
-				{
+				map[string]interface{}{
 					"field":  "Password",
 					"reason": "required",
 				},
@@ -268,15 +272,15 @@ func TestRegister(t *testing.T) {
 	})
 	t.Run("registerUserSuccess", func(t *testing.T) {
 		t.Parallel()
-		respResponse := makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
+		httpResponse := makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
 			Nickname: "test_registerUserSuccess_0",
 			Email:    "test_registerUserSuccess_0@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		assert.Equal(t, http.StatusCreated, respResponse.StatusCode)
+		assert.Equal(t, http.StatusCreated, httpResponse.StatusCode)
 		resp := response.RegisterResponse{}
-		respBytes, err := ioutil.ReadAll(respResponse.Body)
+		respBytes, err := ioutil.ReadAll(httpResponse.Body)
 		assert.Equal(t, nil, err)
 		err = json.Unmarshal(respBytes, &resp)
 		assert.Equal(t, nil, err)
@@ -289,21 +293,25 @@ func TestRegister(t *testing.T) {
 		assert.Equal(t, user.ID, token.ID)
 		jsonEQ(t, resp.Data.User, user)
 
-		respResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
+		resp2 := response.Response{}
+		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
 			Nickname: "test_registerUserSuccess_0",
 			Email:    "test_registerUserSuccess_0@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		jsonEQ(t, response.ErrorResp("DUPLICATE_EMAIL", nil), respResponse)
-		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
-		respResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
+		mustJsonDecode(httpResponse, &resp2)
+		assert.Equal(t, http.StatusBadRequest, httpResponse.StatusCode)
+		assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp2)
+		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
 			Nickname: "test_registerUserSuccess_0",
 			Email:    "test_registerUserSuccess_1@mail.com",
 			Password: "test_registerUserSuccess_0",
 		}))
-		jsonEQ(t, response.ErrorResp("DUPLICATE_USERNAME", nil), respResponse)
-		assert.Equal(t, http.StatusBadRequest, respResponse.StatusCode)
+		mustJsonDecode(httpResponse, &resp2)
+		assert.Equal(t, http.StatusBadRequest, httpResponse.StatusCode)
+		assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp2)
+
 	})
 }
