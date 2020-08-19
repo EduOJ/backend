@@ -38,9 +38,7 @@ func Register(e *echo.Echo) {
 	auth.POST("/register", controller.Register).Name = "auth.register"
 	auth.GET("/email_registered", controller.EmailRegistered)
 
-	logged := api.Group("", middleware.Logged)
-
-	admin := logged.Group("/admin")
+	admin := api.Group("/admin", middleware.Logged)
 	// TODO: add HasPermission
 	admin.POST("/user", controller.AdminCreateUser)
 	admin.PUT("/user/:id", controller.AdminUpdateUser)
@@ -48,7 +46,7 @@ func Register(e *echo.Echo) {
 	admin.GET("/user/:id", controller.AdminGetUser)
 	admin.GET("/users", controller.AdminGetUsers)
 
-	logged.GET("/user/me", controller.GetUserMe)
+	api.GET("/user/me", controller.GetUserMe, middleware.Logged)
 	api.GET("/user/:id", controller.GetUser)
 	api.GET("/users", controller.GetUsers)
 
