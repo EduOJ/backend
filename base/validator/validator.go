@@ -1,10 +1,11 @@
-package utils
+package validator
 
 import (
 	zhLocal "github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
+	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/pkg/errors"
 	"regexp"
@@ -18,21 +19,30 @@ func (cv *Validator) Validate(i interface{}) error {
 	return cv.V.Struct(i)
 }
 
-var Validate *validator.Validate
 var Trans ut.Translator
 
-func init() { // TODO: add to init list?
+func InitValidator(e *echo.Echo) {
 	zh := zhLocal.New()
 	uni := ut.New(zh, zh)
 	var found bool
 	Trans, found = uni.GetTranslator("zh")
 	if !found {
-		log.Warning("could not found zh translator")
+		log.Fatal("could not found zh translator")
+		panic("could not found zh translator")
 	}
-	Validate = validator.New()
+	v := validator.New()
 	// add custom translation here
-	if err := zhTranslations.RegisterDefaultTranslations(Validate, Trans); err != nil {
-		log.Error(errors.Wrap(err, "could not register default translations"))
+	if err := zhTranslations.RegisterDefaultTranslations(v, Trans); err != nil {
+		log.Fatal(errors.Wrap(err, "could not register default translations"))
+		panic(errors.Wrap(err, "could not register default translations"))
+	}
+	err := v.RegisterValidation("username", ValidateUsername)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not register validation"))
+		panic(errors.Wrap(err, "could not register validation"))
+	}
+	e.Validator = &Validator{
+		V: v,
 	}
 }
 

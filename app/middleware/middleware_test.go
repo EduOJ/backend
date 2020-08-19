@@ -9,6 +9,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -120,6 +121,7 @@ auth:
 	log.Disable()
 
 	base.Echo = echo.New()
+	validator.InitValidator(base.Echo)
 	app.Register(base.Echo)
 	os.Exit(m.Run())
 }
