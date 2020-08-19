@@ -6,8 +6,9 @@ import (
 )
 
 type ValidationError struct {
-	Field  string `json:"field"`
-	Reason string `json:"reason"`
+	Field        string `json:"field"`
+	Reason       string `json:"reason"`
+	Localization string `json:"localization"`
 }
 
 type Response struct {
