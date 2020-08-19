@@ -121,7 +121,10 @@ auth:
 	log.Disable()
 
 	base.Echo = echo.New()
-	validator.InitValidator(base.Echo)
+	v := validator.New()
+	base.Echo.Validator = &validator.Validator{
+		V: v,
+	}
 	app.Register(base.Echo)
 	os.Exit(m.Run())
 }
