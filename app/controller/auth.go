@@ -91,3 +91,21 @@ func Register(c echo.Context) error {
 		},
 	})
 }
+
+func EmailRegistered(c echo.Context) error {
+	req := new(request.EmailRegistered)
+	err, ok := utils.BindAndValidate(req, c)
+	if !ok {
+		return err
+	}
+	var count int
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
+	if count != 0 {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("EMAIL_REGISTERED", nil))
+	}
+	return c.JSON(http.StatusCreated, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
