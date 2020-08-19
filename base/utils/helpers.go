@@ -27,8 +27,9 @@ func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
 			validationErrors := make([]response.ValidationError, len(e))
 			for i, v := range e {
 				validationErrors[i] = response.ValidationError{
-					Field:  v.Field(),
-					Reason: v.Tag(),
+					Field:        v.Field(),
+					Reason:       v.Tag(),
+					Localization: v.Translate(Trans),
 				}
 			}
 			return c.JSON(http.StatusBadRequest, response.ErrorResp("VALIDATION_ERROR", validationErrors)), false
