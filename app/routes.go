@@ -7,21 +7,10 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
-	"github.com/leoleoasd/EduOJBackend/base/utils"
-	"github.com/pkg/errors"
 	"net/http"
 )
 
 func Register(e *echo.Echo) {
-	err := utils.Validate.RegisterValidation("username", utils.ValidateUsername)
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not register validation"))
-		panic(err)
-	}
-	e.Validator = &utils.Validator{
-		V: utils.Validate,
-	}
-
 	e.Use(middleware.Recover)
 	var origins []string
 	if n, err := config.Get("server.origin"); err == nil {
