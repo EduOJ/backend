@@ -143,7 +143,7 @@ func TestAdminCreateUser(t *testing.T) {
 			"Authorization": {token.Token},
 		}))
 		mustJsonDecode(httpResp, &resp2)
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp2)
 		httpResp = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
 			Username: "test_post_user_success_0",
@@ -154,7 +154,7 @@ func TestAdminCreateUser(t *testing.T) {
 			"Authorization": {token.Token},
 		}))
 		mustJsonDecode(httpResp, &resp2)
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp2)
 	})
 }
@@ -324,7 +324,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				"Authorization": {token.Token},
 			}))
 			mustJsonDecode(httpResp, &resp)
-			assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp)
 		})
 		t.Run("testAdminUpdateUserDuplicateUsername", func(t *testing.T) {
@@ -339,7 +339,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				"Authorization": {token.Token},
 			}))
 			mustJsonDecode(httpResp, &resp)
-			assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp)
 		})
 	})
@@ -382,7 +382,7 @@ func TestAdminDeleteUser(t *testing.T) {
 			"Authorization": {token.Token},
 		}))
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, http.StatusNoContent, httpResp.StatusCode)
 		assert.Equal(t, response.Response{
 			Message: "SUCCESS",
 			Error:   nil,
@@ -406,7 +406,7 @@ func TestAdminDeleteUser(t *testing.T) {
 			"Authorization": {token.Token},
 		}))
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, http.StatusNoContent, httpResp.StatusCode)
 		assert.Equal(t, response.Response{
 			Message: "SUCCESS",
 			Error:   nil,
@@ -567,7 +567,7 @@ func TestAdminGetUsers(t *testing.T) {
 	baseUrl := "/api/admin/users"
 
 	t.Run("testAdminGetUsersSuccess", func(t *testing.T) {
-
+		t.Parallel()
 		tests := []struct {
 			name     string
 			req      request.AdminGetUsersRequest
