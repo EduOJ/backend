@@ -88,22 +88,22 @@ func TestAdminCreateUser(t *testing.T) {
 				map[string]interface{}{
 					"field":        "Username",
 					"reason":       "required",
-					"localization": "Username为必填字段",
+					"localization": "用户名为必填字段",
 				},
 				map[string]interface{}{
 					"field":        "Nickname",
 					"reason":       "required",
-					"localization": "Nickname为必填字段",
+					"localization": "昵称为必填字段",
 				},
 				map[string]interface{}{
 					"field":        "Email",
 					"reason":       "required",
-					"localization": "Email为必填字段",
+					"localization": "邮箱为必填字段",
 				},
 				map[string]interface{}{
 					"field":        "Password",
 					"reason":       "required",
-					"localization": "Password为必填字段",
+					"localization": "密码为必填字段",
 				},
 			},
 			Data: nil,
@@ -193,22 +193,22 @@ func TestAdminUpdateUser(t *testing.T) {
 				map[string]interface{}{
 					"field":        "Username",
 					"reason":       "required",
-					"localization": "Username为必填字段",
+					"localization": "用户名为必填字段",
 				},
 				map[string]interface{}{
 					"field":        "Nickname",
 					"reason":       "required",
-					"localization": "Nickname为必填字段",
+					"localization": "昵称为必填字段",
 				},
 				map[string]interface{}{
 					"field":        "Email",
 					"reason":       "required",
-					"localization": "Email为必填字段",
+					"localization": "邮箱为必填字段",
 				},
 				map[string]interface{}{
 					"field":        "Password",
 					"reason":       "required",
-					"localization": "Password为必填字段",
+					"localization": "密码为必填字段",
 				},
 			},
 			Data: nil,
