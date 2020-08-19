@@ -41,12 +41,14 @@ func TestLogin(t *testing.T) {
 			Message: "VALIDATION_ERROR",
 			Error: []interface{}{
 				map[string]interface{}{
-					"field":  "UsernameOrEmail",
-					"reason": "required",
+					"field":        "UsernameOrEmail",
+					"reason":       "required",
+					"localization": "UsernameOrEmail为必填字段",
 				},
 				map[string]interface{}{
-					"field":  "Password",
-					"reason": "required",
+					"field":        "Password",
+					"reason":       "required",
+					"localization": "Password为必填字段",
 				},
 			},
 			Data: nil,
@@ -234,20 +236,24 @@ func TestRegister(t *testing.T) {
 			Message: "VALIDATION_ERROR",
 			Error: []interface{}{
 				map[string]interface{}{
-					"field":  "Username",
-					"reason": "required",
+					"field":        "Username",
+					"reason":       "required",
+					"localization": "Username为必填字段",
 				},
 				map[string]interface{}{
-					"field":  "Nickname",
-					"reason": "required",
+					"field":        "Nickname",
+					"reason":       "required",
+					"localization": "Nickname为必填字段",
 				},
 				map[string]interface{}{
-					"field":  "Email",
-					"reason": "required",
+					"field":        "Email",
+					"reason":       "required",
+					"localization": "Email为必填字段",
 				},
 				map[string]interface{}{
-					"field":  "Password",
-					"reason": "required",
+					"field":        "Password",
+					"reason":       "required",
+					"localization": "Password为必填字段",
 				},
 			},
 			Data: nil,
