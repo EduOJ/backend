@@ -37,7 +37,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func LoginCheck(next echo.HandlerFunc) echo.HandlerFunc {
+func Logged(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := c.Get("user")
 		if user == nil {

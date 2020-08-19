@@ -30,7 +30,6 @@ func TestUsernameValidator(t *testing.T) {
 			err:   "Key: '' Error:Field validation for '' failed on the 'username' tag",
 		},
 	}
-	_ = tests
 	t.Run("testUsernameValidatorFail", func(t *testing.T) {
 		for _, test := range tests {
 			err := v.Var(test.field, "username")
