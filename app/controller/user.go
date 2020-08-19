@@ -11,6 +11,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -55,8 +56,7 @@ func GetUserMe(c echo.Context) error {
 
 func GetUsers(c echo.Context) error {
 	req := new(request.GetUsersRequest)
-	err, ok := utils.BindAndValidate(req, c)
-	if !ok {
+	if err, ok := utils.BindAndValidate(req, c); !ok {
 		return err
 	}
 	var users []models.User
@@ -77,12 +77,12 @@ func GetUsers(c echo.Context) error {
 		query = query.Order(strings.Join(order, " "))
 	}
 	if req.Search != "" {
-		query = query.Where("id like %?% or username like %?% or email like %?% or nickname like %?%", req.Search, req.Search, req.Search, req.Search)
+		query = query.Where("id like ? or username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
 	if req.Limit == 0 {
 		req.Limit = 20 // Default limit
 	}
-	err = query.Limit(req.Limit).Offset(req.Offset).Find(&users).Error
+	err := query.Limit(req.Limit).Offset(req.Offset).Find(&users).Error
 	if err != nil {
 		panic(errors.Wrap(err, "could not query users"))
 	}
@@ -96,19 +96,29 @@ func GetUsers(c echo.Context) error {
 
 	if req.Offset-req.Limit >= 0 {
 		prevURL := c.Request().URL
-		prevURL.Query().Set("offset", fmt.Sprint(req.Offset-req.Limit))
-		prevURL.Query().Set("limit", fmt.Sprint(req.Limit))
-		tt := prevURL.String()
-		prevUrlStr = &tt
+		q, err := url.ParseQuery(prevURL.RawQuery)
+		if err != nil {
+			panic(errors.Wrap(err, "could not parse query for url"))
+		}
+		q.Set("offset", fmt.Sprint(req.Offset-req.Limit))
+		q.Set("limit", fmt.Sprint(req.Limit))
+		prevURL.RawQuery = q.Encode()
+		temp := prevURL.String()
+		prevUrlStr = &temp
 	} else {
 		prevUrlStr = nil
 	}
 	if req.Offset+len(users) < total {
 		nextURL := c.Request().URL
-		nextURL.Query().Set("offset", fmt.Sprint(req.Offset+req.Limit))
-		nextURL.Query().Set("limit", fmt.Sprint(req.Limit))
-		tt := nextURL.String()
-		nextUrlStr = &tt
+		q, err := url.ParseQuery(nextURL.RawQuery)
+		if err != nil {
+			panic(errors.Wrap(err, "could not parse query for url"))
+		}
+		q.Set("offset", fmt.Sprint(req.Offset+req.Limit))
+		q.Set("limit", fmt.Sprint(req.Limit))
+		nextURL.RawQuery = q.Encode()
+		temp := nextURL.String()
+		nextUrlStr = &temp
 	} else {
 		nextUrlStr = nil
 	}
