@@ -20,6 +20,9 @@ var FieldTranslations = map[string]string{
 	"Email":           "邮箱",
 	"Password":        "密码",
 	"Search":          "搜索内容",
+	"Limit":           "单页个数",
+	"Offset":          "起始编号",
+	"OrderBy":         "排序方式",
 }
 
 // RegisterDefaultTranslations registers a set of default translations
