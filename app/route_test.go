@@ -8,7 +8,7 @@ import (
 
 func TestUsernameValidator(t *testing.T) {
 	v := validator.New()
-	assert.Nil(t, v.RegisterValidation("username", validateUsername))
+	assert.Nil(t, v.RegisterValidation("username", ValidateUsername))
 	t.Run("testUsernameValidatorSuccess", func(t *testing.T) {
 		assert.Nil(t, v.Var("abcdefghijklmnopqrstuvwxyz", "username"))
 		assert.Nil(t, v.Var("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "username"))

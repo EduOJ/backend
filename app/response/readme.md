@@ -32,6 +32,12 @@ Common return codes.
 |      DUPLICATE_EMAIL       |       邮箱重复        |
 |     DUPLICATE_USERNAME     |       用户名重复       |
 
+### EmailRegistered
+
+|            code            |         结果          |
+|:--------------------------:|:--------------------:|
+|      EMAIL_REGISTERED      |       邮箱已注册       |
+
 ## Admin
 
 ### User

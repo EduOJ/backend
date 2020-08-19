@@ -10,18 +10,11 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/pkg/errors"
 	"net/http"
-	"regexp"
 )
-
-var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-func validateUsername(fl validator.FieldLevel) bool {
-	return usernameRegex.MatchString(fl.Field().String())
-}
 
 func Register(e *echo.Echo) {
 	v := validator.New()
-	err := v.RegisterValidation("username", validateUsername)
+	err := v.RegisterValidation("username", ValidateUsername)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not register validation"))
 		panic(err)
@@ -55,6 +48,7 @@ func Register(e *echo.Echo) {
 	auth := api.Group("/auth", middleware.Auth)
 	auth.POST("/login", controller.Login).Name = "auth.login"
 	auth.POST("/register", controller.Register).Name = "auth.register"
+	auth.GET("/email_registered", controller.EmailRegistered)
 
 	loginCheck := api.Group("", middleware.LoginCheck)
 
