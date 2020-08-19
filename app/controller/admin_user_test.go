@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"sync"
 	"testing"
 )
@@ -46,6 +47,22 @@ func getAdminToken() (token models.Token) {
 	}
 	base.DB.Create(&token)
 	return
+}
+
+func getUrlStringPointer(url string, paras map[string]string) *string {
+	s := fmt.Sprintf("%s?", url)
+	keys := make([]string, 0, len(paras))
+	for key := range paras {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for index, key := range keys {
+		if index != 0 {
+			s += "&"
+		}
+		s += fmt.Sprintf("%s=%s", key, paras[key])
+	}
+	return &s
 }
 
 func TestAdminCreateUser(t *testing.T) {
@@ -501,6 +518,450 @@ func TestAdminGetUser(t *testing.T) {
 				*models.User `json:"user"`
 			}{
 				&user,
+			},
+		}, resp)
+	})
+}
+
+func TestAdminGetUsers(t *testing.T) {
+	t.Parallel()
+	user1 := models.User{
+		Username: "test_admin_get_users_01",
+		Nickname: "c_test_admin_get_users_1_nick",
+		Email:    "1_test_admin_get_users@e.com",
+		Password: "test_admin_get_users_1_passwd",
+	}
+	user2 := models.User{
+		Username: "test_admin_get_users_2",
+		Nickname: "a0_test_admin_get_users_2_nick",
+		Email:    "2_test_admin_get_users@e.com",
+		Password: "test_admin_get_users_2_passwd",
+	}
+	user3 := models.User{
+		Username: "test_admin_get_users_03",
+		Nickname: "d0_test_admin_get_users_3_nick",
+		Email:    "3_test_admin_get_users@f.com",
+		Password: "test_admin_get_users_3_passwd",
+	}
+	user4 := models.User{
+		Username: "test_admin_get_users_4",
+		Nickname: "b_test_admin_get_users_4_nick",
+		Email:    "4_test_admin_get_users@e.com",
+		Password: "test_admin_get_users_4_passwd",
+	}
+	assert.Nil(t, base.DB.Create(&user1).Error)
+	assert.Nil(t, base.DB.Create(&user2).Error)
+	assert.Nil(t, base.DB.Create(&user3).Error)
+	assert.Nil(t, base.DB.Create(&user4).Error)
+
+	type respData struct {
+		Users  []models.User `json:"users"` // TODO:modify models.users
+		Total  int           `json:"total"`
+		Count  int           `json:"count"`
+		Offset int           `json:"offset"`
+		Prev   *string       `json:"prev"`
+		Next   *string       `json:"next"`
+	}
+
+	token := getAdminToken()
+	baseUrl := "/api/admin/users"
+
+	t.Run("testAdminGetUsersSuccess", func(t *testing.T) {
+
+		tests := []struct {
+			name     string
+			req      request.AdminGetUsersRequest
+			respData respData
+		}{
+			{
+				name: "testAdminGetUsersAll",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users",
+				},
+				respData: respData{
+					Users: []models.User{
+						user1,
+						user2,
+						user3,
+						user4,
+					},
+					Total: 4,
+					Count: 4,
+				},
+			},
+			{
+				name: "testAdminGetUsersNonExist",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users_non_exist",
+				},
+				respData: respData{
+					Users: []models.User{},
+				},
+			},
+			{
+				name: "testAdminGetUsersSearchUsernameSingle",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users_2",
+				},
+				respData: respData{
+					Users: []models.User{
+						user2,
+					},
+					Total: 1,
+					Count: 1,
+				},
+			},
+			{
+				name: "testAdminGetUsersSearchNicknameSingle",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users_3_nick",
+				},
+				respData: respData{
+					Users: []models.User{
+						user3,
+					},
+					Total: 1,
+					Count: 1,
+				},
+			},
+			{
+				name: "testAdminGetUsersSearchEmailSingle",
+				req: request.AdminGetUsersRequest{
+					Search: "4_test_admin_get_users@e.com",
+				},
+				respData: respData{
+					Users: []models.User{
+						user4,
+					},
+					Total: 1,
+					Count: 1,
+				},
+			},
+			{
+				name: "testAdminGetUsersSearchUsernameMultiple",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users_0",
+				},
+				respData: respData{
+					Users: []models.User{
+						user1,
+						user3,
+					},
+					Total: 2,
+					Count: 2,
+				},
+			},
+			{
+				name: "testAdminGetUsersSearchNicknameMultiple",
+				req: request.AdminGetUsersRequest{
+					Search: "0_test_admin_get_users_",
+				},
+				respData: respData{
+					Users: []models.User{
+						user2,
+						user3,
+					},
+					Total: 2,
+					Count: 2,
+				},
+			},
+			{
+				name: "testAdminGetUsersSearchEmailMultiple",
+				req: request.AdminGetUsersRequest{
+					Search: "_test_admin_get_users@e.com",
+				},
+				respData: respData{
+					Users: []models.User{
+						user1,
+						user2,
+						user4,
+					},
+					Total: 3,
+					Count: 3,
+				},
+			},
+			{
+				name: "testAdminGetUsersLimit",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users",
+					Limit:  2,
+				},
+				respData: respData{
+					Users: []models.User{
+						user1,
+						user2,
+					},
+					Total: 4,
+					Count: 2,
+					Next: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "2",
+						"offset": "2",
+					}),
+				},
+			},
+			{
+				name: "testAdminGetUsersOffset",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users",
+					Limit:  2,
+				},
+				respData: respData{
+					Users: []models.User{
+						user1,
+						user2,
+					},
+					Total: 4,
+					Count: 2,
+					Next: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "2",
+						"offset": "2",
+					}),
+				},
+			},
+			{
+				name: "testAdminGetUsersLimitAndOffsetNext",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users",
+					Limit:  2,
+					Offset: 1,
+				},
+				respData: respData{
+					Users: []models.User{
+						user2,
+						user3,
+					},
+					Total:  4,
+					Count:  2,
+					Offset: 1,
+					Next: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "2",
+						"offset": "3",
+					}),
+				},
+			},
+			{
+				name: "testAdminGetUsersLimitAndOffsetPrev",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users",
+					Limit:  2,
+					Offset: 2,
+				},
+				respData: respData{
+					Users: []models.User{
+						user3,
+						user4,
+					},
+					Total:  4,
+					Count:  2,
+					Offset: 2,
+					Prev: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "2",
+						"offset": "0",
+					}),
+				},
+			},
+			{
+				name: "testAdminGetUsersLimitAndOffsetPrevNext",
+				req: request.AdminGetUsersRequest{
+					Search: "test_admin_get_users",
+					Limit:  1,
+					Offset: 2,
+				},
+				respData: respData{
+					Users: []models.User{
+						user3,
+					},
+					Total:  4,
+					Count:  1,
+					Offset: 2,
+					Prev: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "1",
+						"offset": "1",
+					}),
+					Next: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "1",
+						"offset": "3",
+					}),
+				},
+			},
+			{
+				name: "testAdminGetUsersOrderByIdDESC",
+				req: request.AdminGetUsersRequest{
+					Search:  "test_admin_get_users",
+					OrderBy: "id.DESC",
+				},
+				respData: respData{
+					Users: []models.User{
+						user4,
+						user3,
+						user2,
+						user1,
+					},
+					Total: 4,
+					Count: 4,
+				},
+			},
+			{
+				name: "testAdminGetUsersOrderByUsernameASC",
+				req: request.AdminGetUsersRequest{
+					Search:  "test_admin_get_users",
+					OrderBy: "username.ASC",
+				},
+				respData: respData{
+					Users: []models.User{
+						user1,
+						user3,
+						user2,
+						user4,
+					},
+					Total: 4,
+					Count: 4,
+				},
+			},
+			{
+				name: "testAdminGetUsersOrderByNicknameDESC",
+				req: request.AdminGetUsersRequest{
+					Search:  "test_admin_get_users",
+					OrderBy: "nickname.DESC",
+				},
+				respData: respData{
+					Users: []models.User{
+						user3,
+						user1,
+						user4,
+						user2,
+					},
+					Total: 4,
+					Count: 4,
+				},
+			},
+			{
+				name: "testAdminGetUsersOrderByNicknameDESCWithLimitAndOffset",
+				req: request.AdminGetUsersRequest{
+					Search:  "test_admin_get_users",
+					OrderBy: "nickname.DESC",
+					Limit:   1,
+					Offset:  2,
+				},
+				respData: respData{
+					Users: []models.User{
+						user4,
+					},
+					Total:  4,
+					Count:  1,
+					Offset: 2,
+					Prev: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "1",
+						"offset": "1",
+					}),
+					Next: getUrlStringPointer(baseUrl, map[string]string{
+						"limit":  "1",
+						"offset": "3",
+					}),
+				},
+			},
+		}
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				test := test
+				t.Parallel()
+				httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", test.req, headerOption{
+					"Authorization": {token.Token},
+				}))
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+				resp := response.Response{}
+				mustJsonDecode(httpResp, &resp)
+				jsonEQ(t, response.AdminGetUsersResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data:    test.respData,
+				}, resp)
+			})
+		}
+	})
+	t.Run("testAdminGetUsersWithWrongOrderByPara", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
+			Search:  "test_admin_get_users",
+			OrderBy: "wrongOrderByPara",
+		}, headerOption{
+			"Authorization": {token.Token},
+		}))
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		jsonEQ(t, response.Response{
+			Message: "INVALID_ORDER",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+	})
+	t.Run("testAdminGetUsersOrderByNonExistingColumn", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
+			Search:  "test_admin_get_users",
+			OrderBy: "nonExistingColumn.ASC",
+		}, headerOption{
+			"Authorization": {token.Token},
+		}))
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		jsonEQ(t, response.Response{
+			Message: "INVALID_ORDER",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+	})
+	t.Run("testAdminGetUsersOrderByNonExistingOrder", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
+			Search:  "test_admin_get_users",
+			OrderBy: "id.NonExistingOrder",
+		}, headerOption{
+			"Authorization": {token.Token},
+		}))
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		jsonEQ(t, response.Response{
+			Message: "INVALID_ORDER",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+	})
+	t.Run("testAdminGetUsersDefaultLimit", func(t *testing.T) {
+		t.Parallel()
+		// DL: default limit
+		users := make([]models.User, 25)
+		for i := 0; i < 25; i++ {
+			users[i] = models.User{
+				Username: fmt.Sprintf("test_DL_admin_get_users_%d", i),
+				Nickname: fmt.Sprintf("test_DL_admin_get_users_n_%d", i),
+				Email:    fmt.Sprintf("test_DL_admin_get_users_%d@e.e", i),
+				Password: fmt.Sprintf("test_DL_admin_get_users_pwd_%d", i),
+			}
+			base.DB.Create(&users[i])
+		}
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
+			Search: "test_DL_admin_get_users_",
+		}, headerOption{
+			"Authorization": {token.Token},
+		}))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		jsonEQ(t, response.AdminGetUsersResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: respData{
+				Users: users[:20],
+				Count: 20,
+				Total: 25,
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "20",
+					"offset": "20",
+				}),
 			},
 		}, resp)
 	})
