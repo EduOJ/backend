@@ -37,7 +37,7 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 
 	e.Use(middleware.Authentication)
 	e.POST("/test_authentication", testController)
-	e.POST("/test_loginCheck", testController, middleware.LoginCheck)
+	e.POST("/test_loginCheck", testController, middleware.Logged)
 
 	testUser := models.User{
 		Username: "testAuthenticationMiddle",
