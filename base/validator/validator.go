@@ -4,8 +4,8 @@ import (
 	zhLocal "github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	zhTranslations "github.com/leoleoasd/EduOJBackend/base/validator/translations/zh"
 	"github.com/pkg/errors"
 	"regexp"
 )
