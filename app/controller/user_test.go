@@ -224,7 +224,7 @@ func TestGetUsers(t *testing.T) {
 	baseUrl := "/api/users"
 
 	t.Run("testGetUsersSuccess", func(t *testing.T) {
-
+		t.Parallel()
 		tests := []struct {
 			name     string
 			req      request.GetUsersRequest

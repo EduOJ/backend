@@ -61,7 +61,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
-		assert.Equal(t, "WRONG_USERNAME", resp.Message)
+		assert.Equal(t, "NOT_FOUND", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
@@ -284,7 +284,7 @@ func TestRegister(t *testing.T) {
 			Password: "test_registerUserSuccess_0",
 		}))
 		mustJsonDecode(httpResponse, &resp2)
-		assert.Equal(t, http.StatusBadRequest, httpResponse.StatusCode)
+		assert.Equal(t, http.StatusConflict, httpResponse.StatusCode)
 		assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp2)
 		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
@@ -293,8 +293,47 @@ func TestRegister(t *testing.T) {
 			Password: "test_registerUserSuccess_0",
 		}))
 		mustJsonDecode(httpResponse, &resp2)
-		assert.Equal(t, http.StatusBadRequest, httpResponse.StatusCode)
+		assert.Equal(t, http.StatusConflict, httpResponse.StatusCode)
 		assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp2)
 
+	})
+}
+
+func TestEmailRegistered(t *testing.T) {
+	t.Parallel()
+	user := models.User{
+		Username: "test_email_registered_username",
+		Nickname: "test_email_registered_nickname",
+		Email:    "test_email_registered@e.com",
+		Password: "test_email_registered_passwd",
+	}
+	base.DB.Create(&user)
+	t.Run("testEmailRegisteredConflict", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/auth/email_registered", request.EmailRegistered{
+			Email: "test_email_registered@e.com",
+		}))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "EMAIL_REGISTERED",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+	})
+	t.Run("testEmailRegisteredSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/auth/email_registered", request.EmailRegistered{
+			Email: "test_email_registered_0@e.com",
+		}))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
 	})
 }
