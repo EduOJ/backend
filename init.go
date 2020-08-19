@@ -66,7 +66,10 @@ func startEcho() {
 	base.Echo.HidePort = true
 	base.Echo.Use(middleware.Recover())
 	base.Echo.Server.Addr = fmt.Sprintf(":%d", port)
-	validator.InitValidator(base.Echo)
+	v := validator.New()
+	base.Echo.Validator = &validator.Validator{
+		V: v,
+	}
 	app.Register(base.Echo)
 	go func() {
 		err := base.Echo.StartServer(base.Echo.Server)

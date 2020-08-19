@@ -5,7 +5,6 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
-	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/pkg/errors"
 	"regexp"
@@ -21,7 +20,7 @@ func (cv *Validator) Validate(i interface{}) error {
 
 var Trans ut.Translator
 
-func InitValidator(e *echo.Echo) {
+func init() {
 	zh := zhLocal.New()
 	uni := ut.New(zh, zh)
 	var found bool
@@ -30,24 +29,25 @@ func InitValidator(e *echo.Echo) {
 		log.Fatal("could not found zh translator")
 		panic("could not found zh translator")
 	}
+}
+
+func New() *validator.Validate {
 	v := validator.New()
 	// add custom translation here
 	if err := zhTranslations.RegisterDefaultTranslations(v, Trans); err != nil {
 		log.Fatal(errors.Wrap(err, "could not register default translations"))
 		panic(errors.Wrap(err, "could not register default translations"))
 	}
-	err := v.RegisterValidation("username", ValidateUsername)
+	err := v.RegisterValidation("username", validateUsername)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not register validation"))
 		panic(errors.Wrap(err, "could not register validation"))
 	}
-	e.Validator = &Validator{
-		V: v,
-	}
+	return v
 }
 
-var UsernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
-func ValidateUsername(fl validator.FieldLevel) bool {
-	return UsernameRegex.MatchString(fl.Field().String())
+func validateUsername(fl validator.FieldLevel) bool {
+	return usernameRegex.MatchString(fl.Field().String())
 }
