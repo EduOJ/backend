@@ -10,11 +10,11 @@ import (
 	"regexp"
 )
 
-type Validator struct {
+type echoValidator struct {
 	V *validator.Validate
 }
 
-func (cv *Validator) Validate(i interface{}) error {
+func (cv *echoValidator) Validate(i interface{}) error {
 	return cv.V.Struct(i)
 }
 
@@ -44,6 +44,12 @@ func New() *validator.Validate {
 		panic(errors.Wrap(err, "could not register validation"))
 	}
 	return v
+}
+
+func NewEchoValidator() *echoValidator {
+	return &echoValidator{
+		V: New(),
+	}
 }
 
 var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_]+$")
