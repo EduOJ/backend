@@ -12,6 +12,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/pkg/errors"
 	"os"
@@ -65,6 +66,7 @@ func startEcho() {
 	base.Echo.HidePort = true
 	base.Echo.Use(middleware.Recover())
 	base.Echo.Server.Addr = fmt.Sprintf(":%d", port)
+	validator.InitValidator(base.Echo)
 	app.Register(base.Echo)
 	go func() {
 		err := base.Echo.StartServer(base.Echo.Server)

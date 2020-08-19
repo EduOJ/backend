@@ -2,14 +2,14 @@ package app
 
 import (
 	"github.com/go-playground/validator/v10"
-	"github.com/leoleoasd/EduOJBackend/base/utils"
+	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestUsernameValidator(t *testing.T) {
 	v := validator.New()
-	assert.Nil(t, v.RegisterValidation("username", utils.ValidateUsername))
+	assert.Nil(t, v.RegisterValidation("username", validator2.ValidateUsername))
 	t.Run("testUsernameValidatorSuccess", func(t *testing.T) {
 		assert.Nil(t, v.Var("abcdefghijklmnopqrstuvwxyz", "username"))
 		assert.Nil(t, v.Var("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "username"))

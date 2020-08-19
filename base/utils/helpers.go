@@ -7,6 +7,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"net/http"
@@ -27,9 +28,9 @@ func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
 			validationErrors := make([]response.ValidationError, len(e))
 			for i, v := range e {
 				validationErrors[i] = response.ValidationError{
-					Field:        v.Field(),
-					Reason:       v.Tag(),
-					Localization: v.Translate(Trans),
+					Field:       v.Field(),
+					Reason:      v.Tag(),
+					Translation: v.Translate(validator2.Trans),
 				}
 			}
 			return c.JSON(http.StatusBadRequest, response.ErrorResp("VALIDATION_ERROR", validationErrors)), false
