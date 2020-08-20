@@ -290,7 +290,6 @@ func TestAdminUpdateUser(t *testing.T) {
 			err = base.DB.Where("id = ?", user.ID).First(&databaseUser).Error
 			assert.Equal(t, nil, err)
 			jsonEQ(t, resp.Data.User, databaseUser)
-			jsonEQ(t, resp.Data.User, databaseUser)
 		})
 		t.Run("testAdminUpdateUserSuccessWithUsername", func(t *testing.T) {
 			t.Parallel()

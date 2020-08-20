@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -8,6 +9,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"testing"
@@ -112,6 +114,7 @@ func TestGetUserMe(t *testing.T) {
 	t.Parallel()
 
 	t.Run("getUserSuccess", func(t *testing.T) {
+		t.Parallel()
 		user := models.User{
 			Username: "test_get_user_me_1",
 			Nickname: "test_get_user_me_1_rand_str",
@@ -125,7 +128,6 @@ func TestGetUserMe(t *testing.T) {
 			User:  user,
 		}
 		base.DB.Create(&token)
-		t.Parallel()
 		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
@@ -141,6 +143,7 @@ func TestGetUserMe(t *testing.T) {
 		}, resp)
 	})
 	t.Run("getUserSuccessWithRole", func(t *testing.T) {
+		t.Parallel()
 		classA := testClass{ID: 1}
 		dummy := "test_class"
 		adminRole := models.Role{
@@ -163,7 +166,6 @@ func TestGetUserMe(t *testing.T) {
 			User:  user,
 		}
 		base.DB.Create(&token)
-		t.Parallel()
 		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, headerOption{
 			"Authorization": {token.Token},
 		}))
@@ -624,6 +626,141 @@ func TestGetUsers(t *testing.T) {
 	})
 }
 
+func TestUpdateUserMe(t *testing.T) {
+	t.Parallel()
+	t.Run("testUpdateUserMeWithoutParams", func(t *testing.T) {
+		t.Parallel()
+		user := models.User{
+			Username: "test_put_user_me_1",
+			Nickname: "test_put_user_me_1_rand_str",
+			Email:    "test_put_user_me_1@mail.com",
+			Password: utils.HashPassword("test_put_user_me_1_password"),
+		}
+		base.DB.Create(&user)
+		token := models.Token{
+			Token: utils.RandStr(32),
+			User:  user,
+		}
+		base.DB.Create(&token)
+		httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+			Username: "",
+			Nickname: "",
+			Email:    "",
+		}, headerOption{
+			"Authorization": {token.Token},
+		}))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "VALIDATION_ERROR",
+			Error: []interface{}{
+				map[string]interface{}{
+					"field":        "Username",
+					"reason":       "required",
+					"localization": "用户名为必填字段",
+				},
+				map[string]interface{}{
+					"field":        "Nickname",
+					"reason":       "required",
+					"localization": "昵称为必填字段",
+				},
+				map[string]interface{}{
+					"field":        "Email",
+					"reason":       "required",
+					"localization": "邮箱为必填字段",
+				},
+			},
+			Data: nil,
+		}, resp)
+	})
+	t.Run("testUpdateUserMeWithParams", func(t *testing.T) {
+		t.Parallel()
+		user2 := models.User{
+			Username: "test_put_user_me_2",
+			Nickname: "test_put_user_me_2_rand_str",
+			Email:    "test_put_user_me_2@mail.com",
+			Password: utils.HashPassword("test_put_user_me_2_password"),
+		}
+		user3 := models.User{
+			Username: "test_put_user_me_3",
+			Nickname: "test_put_user_me_3_rand_str",
+			Email:    "test_put_user_me_3@mail.com",
+			Password: utils.HashPassword("test_put_user_me_3_password"),
+		}
+		base.DB.Create(&user2)
+		base.DB.Create(&user3)
+		user2.LoadRoles()
+		user3.LoadRoles()
+		user2Token := models.Token{
+			Token: utils.RandStr(32),
+			User:  user2,
+		}
+		base.DB.Create(&user2Token)
+		t.Run("testUpdateUserMeSuccess", func(t *testing.T) {
+			t.Parallel()
+			user := models.User{
+				Username: "test_put_user_me_4",
+				Nickname: "test_put_user_me_4_rand_str",
+				Email:    "test_put_user_me_4@mail.com",
+				Password: utils.HashPassword("test_put_user_me_4_password"),
+			}
+			base.DB.Create(&user)
+			user.LoadRoles()
+			token := models.Token{
+				Token: utils.RandStr(32),
+				User:  user,
+			}
+			base.DB.Create(&token)
+			respResponse := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+				Username: "test_put_user_me_success_0",
+				Nickname: "test_put_user_me_success_0",
+				Email:    "test_put_user_me_success_0@e.com",
+			}, headerOption{
+				"Authorization": {token.Token},
+			}))
+			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
+			resp := response.UpdateUserResponse{}
+			respBytes, err := ioutil.ReadAll(respResponse.Body)
+			assert.Equal(t, nil, err)
+			err = json.Unmarshal(respBytes, &resp)
+			assert.Equal(t, nil, err)
+			databaseUser := models.User{}
+			err = base.DB.Where("id = ?", user.ID).First(&databaseUser).Error
+			assert.Equal(t, nil, err)
+			databaseUser.LoadRoles()
+			jsonEQ(t, resp.Data.User, databaseUser)
+		})
+		t.Run("testUpdateUserMeDuplicateEmail", func(t *testing.T) {
+			t.Parallel()
+			resp := response.Response{}
+			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+				Username: "test_put_user_me_2",
+				Nickname: "test_put_user_me_2_rand_str",
+				Email:    "test_put_user_me_3@mail.com",
+			}, headerOption{
+				"Authorization": {user2Token.Token},
+			}))
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
+			assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp)
+		})
+		t.Run("testUpdateUserMeDuplicateUsername", func(t *testing.T) {
+			t.Parallel()
+			resp := response.Response{}
+			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+				Username: "test_put_user_me_3",
+				Nickname: "test_put_user_me_2_rand_str",
+				Email:    "test_put_user_me_2@mail.com",
+			}, headerOption{
+				"Authorization": {user2Token.Token},
+			}))
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
+			assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp)
+		})
+	})
+}
 
 func TestChangePassword(t *testing.T) {
 	t.Parallel()
