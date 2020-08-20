@@ -10,6 +10,14 @@ type GetUserResponse struct {
 	} `json:"data"`
 }
 
+type GetMeResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*models.User `json:"user"`
+	} `json:"data"`
+}
+
 type GetUsersResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
@@ -23,7 +31,7 @@ type GetUsersResponse struct {
 	} `json:"data"`
 }
 
-type UpdateUserResponse struct {
+type UpdateMeResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {

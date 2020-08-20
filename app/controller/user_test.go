@@ -642,7 +642,7 @@ func TestUpdateUserMe(t *testing.T) {
 			User:  user,
 		}
 		base.DB.Create(&token)
-		httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+		httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 			Username: "",
 			Nickname: "",
 			Email:    "",
@@ -712,7 +712,7 @@ func TestUpdateUserMe(t *testing.T) {
 				User:  user,
 			}
 			base.DB.Create(&token)
-			respResponse := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+			respResponse := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 				Username: "test_put_user_me_success_0",
 				Nickname: "test_put_user_me_success_0",
 				Email:    "test_put_user_me_success_0@e.com",
@@ -720,7 +720,7 @@ func TestUpdateUserMe(t *testing.T) {
 				"Authorization": {token.Token},
 			}))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
-			resp := response.UpdateUserResponse{}
+			resp := response.UpdateMeResponse{}
 			respBytes, err := ioutil.ReadAll(respResponse.Body)
 			assert.Equal(t, nil, err)
 			err = json.Unmarshal(respBytes, &resp)
@@ -734,7 +734,7 @@ func TestUpdateUserMe(t *testing.T) {
 		t.Run("testUpdateUserMeDuplicateEmail", func(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
-			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 				Username: "test_put_user_me_2",
 				Nickname: "test_put_user_me_2_rand_str",
 				Email:    "test_put_user_me_3@mail.com",
@@ -743,12 +743,12 @@ func TestUpdateUserMe(t *testing.T) {
 			}))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-			assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp)
+			assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp)
 		})
 		t.Run("testUpdateUserMeDuplicateUsername", func(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
-			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateUserRequest{
+			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 				Username: "test_put_user_me_3",
 				Nickname: "test_put_user_me_2_rand_str",
 				Email:    "test_put_user_me_2@mail.com",
@@ -757,7 +757,7 @@ func TestUpdateUserMe(t *testing.T) {
 			}))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-			assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp)
+			assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp)
 		})
 	})
 }
