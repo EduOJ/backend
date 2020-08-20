@@ -148,7 +148,7 @@ func TestAdminCreateUser(t *testing.T) {
 		}))
 		mustJsonDecode(httpResp, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-		assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp2)
+		assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp2)
 		httpResp = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
 			Username: "test_post_user_success_0",
 			Nickname: "test_post_user_success_0",
@@ -159,7 +159,7 @@ func TestAdminCreateUser(t *testing.T) {
 		}))
 		mustJsonDecode(httpResp, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-		assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp2)
+		assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp2)
 	})
 }
 
@@ -332,7 +332,7 @@ func TestAdminUpdateUser(t *testing.T) {
 			}))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-			assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp)
+			assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp)
 		})
 		t.Run("testAdminUpdateUserDuplicateUsername", func(t *testing.T) {
 			t.Parallel()
@@ -347,7 +347,7 @@ func TestAdminUpdateUser(t *testing.T) {
 			}))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-			assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp)
+			assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp)
 		})
 	})
 }

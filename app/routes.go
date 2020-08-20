@@ -46,8 +46,8 @@ func Register(e *echo.Echo) {
 	admin.GET("/user/:id", controller.AdminGetUser)
 	admin.GET("/users", controller.AdminGetUsers)
 
-	api.GET("/user/me", controller.GetUserMe, middleware.Logged)
-	api.PUT("/user/me", controller.UpdateUserMe, middleware.Logged)
+	api.GET("/user/me", controller.GetMe, middleware.Logged)
+	api.PUT("/user/me", controller.UpdateMe, middleware.Logged)
 	api.GET("/user/:id", controller.GetUser)
 	api.GET("/users", controller.GetUsers)
 

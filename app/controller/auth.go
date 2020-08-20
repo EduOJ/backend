@@ -21,7 +21,7 @@ func Login(c echo.Context) error {
 	err := base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_USERNAME", nil))
 		} else {
 			panic(errors.Wrap(err, "could not query username or email"))
 		}
@@ -61,11 +61,11 @@ func Register(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusConflict, response.ErrorResp("DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count != 0 {
-		return c.JSON(http.StatusConflict, response.ErrorResp("DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
 	user := models.User{
 		Username: req.Username,
