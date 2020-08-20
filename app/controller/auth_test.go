@@ -63,7 +63,7 @@ func TestLogin(t *testing.T) {
 		resp := response.LoginResponse{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
-		assert.Equal(t, "NOT_FOUND", resp.Message)
+		assert.Equal(t, "WRONG_USERNAME", resp.Message)
 		assert.Equal(t, nil, resp.Error)
 	})
 	t.Run("loginWithUsernameSuccess", func(t *testing.T) {
@@ -291,7 +291,7 @@ func TestRegister(t *testing.T) {
 		}))
 		mustJsonDecode(httpResponse, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResponse.StatusCode)
-		assert.Equal(t, response.ErrorResp("DUPLICATE_EMAIL", nil), resp2)
+		assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp2)
 		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
 			Username: "test_registerUserSuccess_0",
 			Nickname: "test_registerUserSuccess_0",
@@ -300,7 +300,7 @@ func TestRegister(t *testing.T) {
 		}))
 		mustJsonDecode(httpResponse, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResponse.StatusCode)
-		assert.Equal(t, response.ErrorResp("DUPLICATE_USERNAME", nil), resp2)
+		assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp2)
 
 	})
 }

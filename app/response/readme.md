@@ -25,12 +25,13 @@ Common return codes.
 |:------------------:|:--------------------:|
 |   WRONG_USERNAME   |    错误的用户名/邮箱    |
 |   WRONG_PASSWORD   |       密码错误        |
+
 ### Register
 
 |            code            |         结果          |
 |:--------------------------:|:--------------------:|
-|      DUPLICATE_EMAIL       |       邮箱重复        |
-|     DUPLICATE_USERNAME     |       用户名重复       |
+|      CONFLICT_EMAIL       |       邮箱重复        |
+|     CONFLICT_USERNAME     |       用户名重复       |
 
 ### EmailRegistered
 
@@ -42,28 +43,62 @@ Common return codes.
 
 ### User
 
+#### AdminCreateUser
+
 |           code          |         结果          |
 |:-----------------------:|:--------------------:|
-|         NOT_FOUND       |     无法找到指定user   |
-|     DUPLICATE_EMAIL     |        邮箱重复        |
-|    DUPLICATE_USERNAME   |       用户名重复       |
+|     CONFLICT_EMAIL     |        邮箱重复        |
+|    CONFLICT_USERNAME   |       用户名重复       |
 
+#### AdminUpdateUser
 
-#### GetUsers
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到指定user   |
+|     CONFLICT_EMAIL     |        邮箱重复        |
+|    CONFLICT_USERNAME   |       用户名重复       |
 
-|            code                 |         结果          |
-|:-------------------------------:|:--------------------:|
-| GET_USERS_OFFSET_OUT_OF_BOUNDS  |        偏移量越界      |
+#### AdminDeleteUser
 
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到指定user   |
+
+#### AdminGetUser
+
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到指定user   |
+
+#### AdminGetUsers
+
+|           code          |         结果         |
+|:-----------------------:|:-------------------:|
+|      INVALID_ORDER      |     无效的排序设置     |
 
 
 ## User
 
+### GetMe
+
+### UpdateMe
+
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|     CONFLICT_EMAIL     |        邮箱重复        |
+|    CONFLICT_USERNAME   |       用户名重复       |
+
+### GetUser
+
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到指定user   |
+
 ### GetUsers
 
-|            code                 |         结果          |
-|:-------------------------------:|:--------------------:|
-| GET_USERS_OFFSET_OUT_OF_BOUNDS  |        偏移量越界      |
+|           code          |         结果         |
+|:-----------------------:|:-------------------:|
+|      INVALID_ORDER      |     无效的排序设置     |
 
 ### ChangePassword
 

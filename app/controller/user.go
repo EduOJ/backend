@@ -34,7 +34,7 @@ func GetUser(c echo.Context) error {
 	})
 }
 
-func GetUserMe(c echo.Context) error {
+func GetMe(c echo.Context) error {
 	var user models.User
 	var ok bool
 	if user, ok = c.Get("user").(models.User); !ok {
@@ -43,7 +43,7 @@ func GetUserMe(c echo.Context) error {
 	if !user.RoleLoaded {
 		user.LoadRoles()
 	}
-	return c.JSON(http.StatusOK, response.GetUserResponse{
+	return c.JSON(http.StatusOK, response.GetMeResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -144,7 +144,7 @@ func GetUsers(c echo.Context) error {
 	})
 }
 
-func UpdateUserMe(c echo.Context) error {
+func UpdateMe(c echo.Context) error {
 	user, ok := c.Get("user").(models.User)
 	if !ok {
 		panic("could not convert my user into type models.User")
@@ -152,7 +152,7 @@ func UpdateUserMe(c echo.Context) error {
 	if !user.RoleLoaded {
 		user.LoadRoles()
 	}
-	req := request.UpdateUserRequest{}
+	req := request.UpdateMeRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
@@ -160,17 +160,17 @@ func UpdateUserMe(c echo.Context) error {
 	count := 0
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Email != req.Email) {
-		return c.JSON(http.StatusConflict, response.ErrorResp("DUPLICATE_EMAIL", nil))
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
 	}
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Username != req.Username) {
-		return c.JSON(http.StatusConflict, response.ErrorResp("DUPLICATE_USERNAME", nil))
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
-	return c.JSON(http.StatusOK, response.UpdateUserResponse{
+	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
