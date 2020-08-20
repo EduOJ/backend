@@ -55,8 +55,8 @@ func GetUserMe(c echo.Context) error {
 }
 
 func GetUsers(c echo.Context) error {
-	req := new(request.GetUsersRequest)
-	if err, ok := utils.BindAndValidate(req, c); !ok {
+	req := request.GetUsersRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
 	var users []models.User
@@ -152,8 +152,8 @@ func UpdateUserMe(c echo.Context) error {
 	if !user.RoleLoaded {
 		user.LoadRoles()
 	}
-	req := new(request.UpdateUserRequest)
-	err, ok := utils.BindAndValidate(req, c)
+	req := request.UpdateUserRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
@@ -182,8 +182,8 @@ func UpdateUserMe(c echo.Context) error {
 }
 
 func ChangePassword(c echo.Context) error {
-	req := new(request.ChangePasswordRequest)
-	err, ok := utils.BindAndValidate(req, c)
+	req := request.ChangePasswordRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}

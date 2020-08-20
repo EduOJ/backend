@@ -17,8 +17,8 @@ import (
 )
 
 func AdminCreateUser(c echo.Context) error {
-	req := new(request.AdminCreateUserRequest)
-	err, ok := utils.BindAndValidate(req, c)
+	req := request.AdminCreateUserRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
@@ -56,8 +56,8 @@ func AdminCreateUser(c echo.Context) error {
 }
 
 func AdminUpdateUser(c echo.Context) error {
-	req := new(request.AdminUpdateUserRequest)
-	err, ok := utils.BindAndValidate(req, c)
+	req := request.AdminUpdateUserRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
@@ -132,8 +132,8 @@ func AdminGetUser(c echo.Context) error {
 }
 
 func AdminGetUsers(c echo.Context) error {
-	req := new(request.AdminGetUsersRequest)
-	if err, ok := utils.BindAndValidate(req, c); !ok {
+	req := request.AdminGetUsersRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
 	var users []models.User

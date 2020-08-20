@@ -13,8 +13,8 @@ import (
 )
 
 func Login(c echo.Context) error {
-	req := new(request.LoginRequest)
-	if err, ok := utils.BindAndValidate(req, c); !ok {
+	req := request.LoginRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
 	user := models.User{}
@@ -52,8 +52,8 @@ func Login(c echo.Context) error {
 }
 
 func Register(c echo.Context) error {
-	req := new(request.RegisterRequest)
-	err, ok := utils.BindAndValidate(req, c)
+	req := request.RegisterRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
@@ -93,8 +93,8 @@ func Register(c echo.Context) error {
 }
 
 func EmailRegistered(c echo.Context) error {
-	req := new(request.EmailRegistered)
-	err, ok := utils.BindAndValidate(req, c)
+	req := request.EmailRegistered{}
+	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
