@@ -8,7 +8,7 @@ import (
 type ValidationError struct {
 	Field       string `json:"field"`
 	Reason      string `json:"reason"`
-	Translation string `json:"localization"`
+	Translation string `json:"translation"`
 }
 
 type Response struct {

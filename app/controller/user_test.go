@@ -656,19 +656,19 @@ func TestUpdateUserMe(t *testing.T) {
 			Message: "VALIDATION_ERROR",
 			Error: []interface{}{
 				map[string]interface{}{
-					"field":        "Username",
-					"reason":       "required",
-					"localization": "用户名为必填字段",
+					"field":       "Username",
+					"reason":      "required",
+					"translation": "用户名为必填字段",
 				},
 				map[string]interface{}{
-					"field":        "Nickname",
-					"reason":       "required",
-					"localization": "昵称为必填字段",
+					"field":       "Nickname",
+					"reason":      "required",
+					"translation": "昵称为必填字段",
 				},
 				map[string]interface{}{
-					"field":        "Email",
-					"reason":       "required",
-					"localization": "邮箱为必填字段",
+					"field":       "Email",
+					"reason":      "required",
+					"translation": "邮箱为必填字段",
 				},
 			},
 			Data: nil,
