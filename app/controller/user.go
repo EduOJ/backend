@@ -143,3 +143,40 @@ func GetUsers(c echo.Context) error {
 		},
 	})
 }
+
+func UpdateUserMe(c echo.Context) error {
+	user, ok := c.Get("user").(models.User)
+	if !ok {
+		panic("could not convert my user into type models.User")
+	}
+	if !user.RoleLoaded {
+		user.LoadRoles()
+	}
+	req := new(request.UpdateUserRequest)
+	err, ok := utils.BindAndValidate(req, c)
+	if !ok {
+		return err
+	}
+	count := 0
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
+	if count > 1 || (count == 1 && user.Email != req.Email) {
+		return c.JSON(http.StatusConflict, response.ErrorResp("DUPLICATE_EMAIL", nil))
+	}
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
+	if count > 1 || (count == 1 && user.Username != req.Username) {
+		return c.JSON(http.StatusConflict, response.ErrorResp("DUPLICATE_USERNAME", nil))
+	}
+	user.Username = req.Username
+	user.Nickname = req.Nickname
+	user.Email = req.Email
+	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
+	return c.JSON(http.StatusOK, response.UpdateUserResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*models.User `json:"user"`
+		}{
+			&user,
+		},
+	})
+}
