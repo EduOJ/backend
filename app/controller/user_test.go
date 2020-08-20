@@ -780,12 +780,14 @@ func TestChangePassword(t *testing.T) {
 			Message: "VALIDATION_ERROR",
 			Error: []map[string]string{
 				{
-					"field":  "OldPassword",
-					"reason": "required",
+					"field":       "OldPassword",
+					"reason":      "required",
+					"translation": "为必填字段",
 				},
 				{
-					"field":  "NewPassword",
-					"reason": "required",
+					"field":       "NewPassword",
+					"reason":      "required",
+					"translation": "为必填字段",
 				},
 			},
 			Data: nil,
