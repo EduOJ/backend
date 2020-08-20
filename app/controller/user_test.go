@@ -761,3 +761,112 @@ func TestUpdateUserMe(t *testing.T) {
 		})
 	})
 }
+
+func TestChangePassword(t *testing.T) {
+	t.Parallel()
+
+	token := getNormalToken()
+
+	t.Run("testChangePasswordWithoutParams", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
+			OldPassword: "",
+			NewPassword: "",
+		}, headerOption{
+			"Authorization": {token.Token},
+		}))
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "VALIDATION_ERROR",
+			Error: []map[string]string{
+				{
+					"field":       "OldPassword",
+					"reason":      "required",
+					"translation": "为必填字段",
+				},
+				{
+					"field":       "NewPassword",
+					"reason":      "required",
+					"translation": "为必填字段",
+				},
+			},
+			Data: nil,
+		}, httpResp)
+	})
+
+	t.Run("testChangePasswordSuccess", func(t *testing.T) {
+		t.Parallel()
+		user := models.User{
+			Username: "test_change_passwd_1",
+			Nickname: "test_change_passwd_1_rand_str",
+			Email:    "test_change_passwd_1@mail.com",
+			Password: utils.HashPassword("test_change_passwd_old_passwd"),
+		}
+		assert.Nil(t, base.DB.Create(&user).Error)
+		token1 := models.Token{
+			Token: utils.RandStr(32),
+			User:  user,
+		}
+		token2 := models.Token{
+			Token: utils.RandStr(32),
+			User:  user,
+		}
+		token3 := models.Token{
+			Token: utils.RandStr(32),
+			User:  user,
+		}
+		assert.Nil(t, base.DB.Create(&token1).Error)
+		assert.Nil(t, base.DB.Create(&token2).Error)
+		assert.Nil(t, base.DB.Create(&token3).Error)
+		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
+			OldPassword: "test_change_passwd_old_passwd",
+			NewPassword: "test_change_passwd_new_passwd",
+		}, headerOption{
+			"Authorization": {token1.Token},
+		}))
+		var tokens []models.Token
+		var updatedUser models.User
+		assert.Nil(t, base.DB.Preload("User").Where("user_id = ?", user.ID).Find(&tokens).Error)
+		token1, _ = utils.GetToken(token1.Token)
+		assert.Equal(t, []models.Token{
+			token1,
+		}, tokens)
+
+		assert.Nil(t, base.DB.First(&updatedUser, user.ID).Error)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data:    nil,
+		}, httpResp)
+		assert.True(t, utils.VerifyPassword("test_change_passwd_new_passwd", updatedUser.Password))
+	})
+
+	t.Run("testChangePasswordWithWrongPassword", func(t *testing.T) {
+		t.Parallel()
+		user := models.User{
+			Username: "test_change_passwd_2",
+			Nickname: "test_change_passwd_2_rand_str",
+			Email:    "test_change_passwd_2@mail.com",
+			Password: utils.HashPassword("test_change_passwd_old_passwd"),
+		}
+		assert.Nil(t, base.DB.Create(&user).Error)
+		mainToken := models.Token{
+			Token: utils.RandStr(32),
+			User:  user,
+		}
+		assert.Nil(t, base.DB.Create(&mainToken).Error)
+		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
+			OldPassword: "test_change_passwd_wrong",
+			NewPassword: "test_change_passwd_new_passwd",
+		}, headerOption{
+			"Authorization": {mainToken.Token},
+		}))
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "WRONG_PASSWORD",
+			Error:   nil,
+			Data:    nil,
+		}, httpResp)
+	})
+}

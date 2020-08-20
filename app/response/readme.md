@@ -23,7 +23,7 @@ Common return codes.
 
 |         code       |         结果          |
 |:------------------:|:--------------------:|
-|   NOT_FOUND   |    错误的用户名/邮箱    |
+|      NOT_FOUND     |    错误的用户名/邮箱    |
 |   WRONG_PASSWORD   |       密码错误        |
 ### Register
 
@@ -47,3 +47,11 @@ Common return codes.
 |        NOT_FOUND        |     无法找到指定user   |
 |     DUPLICATE_EMAIL     |        邮箱重复        |
 |    DUPLICATE_USERNAME   |       用户名重复       |
+
+## User
+
+### ChangePassword
+
+|         code         |         结果          |
+|:--------------------:|:--------------------:|
+|    WRONG_PASSWORD    |       密码错误        |

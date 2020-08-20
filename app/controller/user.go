@@ -180,3 +180,30 @@ func UpdateUserMe(c echo.Context) error {
 		},
 	})
 }
+
+func ChangePassword(c echo.Context) error {
+	req := new(request.ChangePasswordRequest)
+	err, ok := utils.BindAndValidate(req, c)
+	if !ok {
+		return err
+	}
+	user, ok := c.Get("user").(models.User)
+	if !ok {
+		panic("could not get user from context")
+	}
+	if !utils.VerifyPassword(req.OldPassword, user.Password) {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("WRONG_PASSWORD", nil))
+	}
+	tokenString := c.Request().Header.Get("Authorization")
+	if tokenString == "" {
+		panic("could not get tokenString from request header")
+	}
+	utils.PanicIfDBError(base.DB.Where("user_id = ? and token != ?", user.ID, tokenString).Delete(models.Token{}), "could not remove token")
+	user.Password = utils.HashPassword(req.NewPassword)
+	base.DB.Save(&user)
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}

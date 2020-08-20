@@ -51,5 +51,7 @@ func Register(e *echo.Echo) {
 	api.GET("/user/:id", controller.GetUser)
 	api.GET("/users", controller.GetUsers)
 
+	api.POST("/user/change_password", controller.ChangePassword, middleware.Logged)
+
 	// TODO: routes.
 }
