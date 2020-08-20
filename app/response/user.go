@@ -22,3 +22,11 @@ type GetUsersResponse struct {
 		Next   *string       `json:"next"`
 	} `json:"data"`
 }
+
+type UpdateUserResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*models.User `json:"user"`
+	} `json:"data"`
+}
