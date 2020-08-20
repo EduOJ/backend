@@ -11,16 +11,13 @@ import (
 )
 
 func TestFindUser(t *testing.T) {
-	t.Parallel()
 	t.Cleanup(database.SetupDatabaseForTest())
 	t.Run("findUserNonExist", func(t *testing.T) {
-		t.Parallel()
 		user, err := FindUser("test_find_user_non_exist")
 		assert.Nil(t, user)
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
 	})
 	t.Run("findUserSuccessWithId", func(t *testing.T) {
-		t.Parallel()
 		user := models.User{
 			Username: "test_find_user_id_username",
 			Nickname: "test_find_user_id_nickname",
@@ -35,7 +32,6 @@ func TestFindUser(t *testing.T) {
 		assert.Nil(t, err)
 	})
 	t.Run("findUserSuccessWithUsername", func(t *testing.T) {
-		t.Parallel()
 		user := models.User{
 			Username: "test_find_user_name_username",
 			Nickname: "test_find_user_name_nickname",
