@@ -29,6 +29,8 @@ func initAdminUserFunc() {
 	adminRole.AddPermission("create_user")
 	adminRole.AddPermission("update_user")
 	adminRole.AddPermission("delete_user")
+	adminRole.AddPermission("get_user")
+	adminRole.AddPermission("get_users")
 	adminUser = models.User{
 		Username: "test_user_admin_user",
 		Nickname: "test_user_admin_nickname",
