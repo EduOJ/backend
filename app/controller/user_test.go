@@ -83,10 +83,10 @@ func TestGetUserMe(t *testing.T) {
 	t.Run("getUserSuccess", func(t *testing.T) {
 		t.Parallel()
 		user := models.User{
-			Username: "test_get_user_me_1",
-			Nickname: "test_get_user_me_1_rand_str",
-			Email:    "test_get_user_me_1@mail.com",
-			Password: utils.HashPassword("test_get_user_me_1_password"),
+			Username: "test_get_me_1",
+			Nickname: "test_get_me_1_rand_str",
+			Email:    "test_get_me_1@mail.com",
+			Password: utils.HashPassword("test_get_me_1_password"),
 			Roles:    []models.UserHasRole{},
 		}
 		base.DB.Create(&user)
@@ -120,10 +120,10 @@ func TestGetUserMe(t *testing.T) {
 		base.DB.Create(&adminRole)
 		adminRole.AddPermission("all")
 		user := models.User{
-			Username: "test_get_user_me_2",
-			Nickname: "test_get_user_me_2_rand_str",
-			Email:    "test_get_user_me_2@mail.com",
-			Password: utils.HashPassword("test_get_user_me_2_password"),
+			Username: "test_get_me_2",
+			Nickname: "test_get_me_2_rand_str",
+			Email:    "test_get_me_2@mail.com",
+			Password: utils.HashPassword("test_get_me_2_password"),
 			Roles:    []models.UserHasRole{},
 		}
 		base.DB.Create(&user)
@@ -587,10 +587,10 @@ func TestUpdateUserMe(t *testing.T) {
 	t.Run("testUpdateUserMeWithoutParams", func(t *testing.T) {
 		t.Parallel()
 		user := models.User{
-			Username: "test_put_user_me_1",
-			Nickname: "test_put_user_me_1_rand_str",
-			Email:    "test_put_user_me_1@mail.com",
-			Password: utils.HashPassword("test_put_user_me_1_password"),
+			Username: "test_update_me_1",
+			Nickname: "test_update_me_1_rand_str",
+			Email:    "test_update_me_1@mail.com",
+			Password: utils.HashPassword("test_update_me_1_password"),
 		}
 		base.DB.Create(&user)
 		token := models.Token{
@@ -633,16 +633,16 @@ func TestUpdateUserMe(t *testing.T) {
 	t.Run("testUpdateUserMeWithParams", func(t *testing.T) {
 		t.Parallel()
 		user2 := models.User{
-			Username: "test_put_user_me_2",
-			Nickname: "test_put_user_me_2_rand_str",
-			Email:    "test_put_user_me_2@mail.com",
-			Password: utils.HashPassword("test_put_user_me_2_password"),
+			Username: "test_update_me_2",
+			Nickname: "test_update_me_2_rand_str",
+			Email:    "test_update_me_2@mail.com",
+			Password: utils.HashPassword("test_update_me_2_password"),
 		}
 		user3 := models.User{
-			Username: "test_put_user_me_3",
-			Nickname: "test_put_user_me_3_rand_str",
-			Email:    "test_put_user_me_3@mail.com",
-			Password: utils.HashPassword("test_put_user_me_3_password"),
+			Username: "test_update_me_3",
+			Nickname: "test_update_me_3_rand_str",
+			Email:    "test_update_me_3@mail.com",
+			Password: utils.HashPassword("test_update_me_3_password"),
 		}
 		base.DB.Create(&user2)
 		base.DB.Create(&user3)
@@ -656,10 +656,10 @@ func TestUpdateUserMe(t *testing.T) {
 		t.Run("testUpdateUserMeSuccess", func(t *testing.T) {
 			t.Parallel()
 			user := models.User{
-				Username: "test_put_user_me_4",
-				Nickname: "test_put_user_me_4_rand_str",
-				Email:    "test_put_user_me_4@mail.com",
-				Password: utils.HashPassword("test_put_user_me_4_password"),
+				Username: "test_update_me_4",
+				Nickname: "test_update_me_4_rand_str",
+				Email:    "test_update_me_4@mail.com",
+				Password: utils.HashPassword("test_update_me_4_password"),
 			}
 			base.DB.Create(&user)
 			user.LoadRoles()
@@ -669,9 +669,9 @@ func TestUpdateUserMe(t *testing.T) {
 			}
 			base.DB.Create(&token)
 			respResponse := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-				Username: "test_put_user_me_success_0",
-				Nickname: "test_put_user_me_success_0",
-				Email:    "test_put_user_me_success_0@e.com",
+				Username: "test_update_me_success_0",
+				Nickname: "test_update_me_success_0",
+				Email:    "test_update_me_success_0@e.com",
 			}, headerOption{
 				"Authorization": {token.Token},
 			}))
@@ -691,9 +691,9 @@ func TestUpdateUserMe(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-				Username: "test_put_user_me_2",
-				Nickname: "test_put_user_me_2_rand_str",
-				Email:    "test_put_user_me_3@mail.com",
+				Username: "test_update_me_2",
+				Nickname: "test_update_me_2_rand_str",
+				Email:    "test_update_me_3@mail.com",
 			}, headerOption{
 				"Authorization": {user2Token.Token},
 			}))
@@ -705,9 +705,9 @@ func TestUpdateUserMe(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-				Username: "test_put_user_me_3",
-				Nickname: "test_put_user_me_2_rand_str",
-				Email:    "test_put_user_me_2@mail.com",
+				Username: "test_update_me_3",
+				Nickname: "test_update_me_2_rand_str",
+				Email:    "test_update_me_2@mail.com",
 			}, headerOption{
 				"Authorization": {user2Token.Token},
 			}))
