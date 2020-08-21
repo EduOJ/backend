@@ -279,7 +279,7 @@ func TestRegister(t *testing.T) {
 		token := models.Token{}
 		err = base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error
 		assert.Equal(t, nil, err)
-		assert.Equal(t, user.ID, token.ID)
+		assert.Equal(t, user.ID, token.UserID)
 		jsonEQ(t, resp.Data.User, user)
 
 		resp2 := response.Response{}

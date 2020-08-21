@@ -10,13 +10,66 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
 )
+
+var adminUserOption headerOption
+var normalUserOption headerOption
+
+func initGeneralTestingUsers() {
+	adminRole := models.Role{
+		Name:   "globalAdmin",
+		Target: nil,
+	}
+	base.DB.Create(&adminRole)
+	adminRole.AddPermission("all")
+	adminUser := models.User{
+		Username: "test_admin_user",
+		Nickname: "test_admin_nickname",
+		Email:    "test_admin@mail.com",
+		Password: "test_admin_password",
+	}
+	normalUser := models.User{
+		Username: "test_normal_user",
+		Nickname: "test_normal_nickname",
+		Email:    "test_normal@mail.com",
+		Password: "test_normal_password",
+	}
+	base.DB.Create(&adminUser)
+	base.DB.Create(&normalUser)
+	adminUser.GrantRole(adminRole)
+	adminUserOption = headerOption{
+		"SetUserForTest": {strconv.Itoa(int(adminUser.ID))},
+	}
+	normalUserOption = headerOption{
+		"SetUserForTest": {strconv.Itoa(int(normalUser.ID))},
+	}
+}
+
+func setUserForTest(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userIdString := c.Request().Header.Get("SetUserForTest")
+		if userIdString == "" {
+			return next(c)
+		}
+		userId, err := strconv.Atoi(userIdString)
+		if err != nil {
+			panic(errors.Wrap(err, "could not convert user id string to user id"))
+		}
+		user := models.User{}
+		base.DB.First(&user, userId)
+		c.Set("user", user)
+		return next(c)
+	}
+}
 
 func jsonEQ(t *testing.T, expected, actual interface{}) {
 	assert.JSONEq(t, mustJsonEncode(t, expected), mustJsonEncode(t, actual))
@@ -118,5 +171,7 @@ server:
 	base.Echo = echo.New()
 	base.Echo.Validator = validator.NewEchoValidator()
 	app.Register(base.Echo)
+	base.Echo.Use(setUserForTest)
+	initGeneralTestingUsers()
 	os.Exit(m.Run())
 }
