@@ -13,43 +13,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sort"
-	"sync"
 	"testing"
 )
-
-var initAdminUser sync.Once
-var adminUser models.User
-
-func initAdminUserFunc() {
-	adminRole := models.Role{
-		Name:   "globalAdmin",
-		Target: nil,
-	}
-	base.DB.Create(&adminRole)
-	adminRole.AddPermission("create_user")
-	adminRole.AddPermission("update_user")
-	adminRole.AddPermission("delete_user")
-	adminRole.AddPermission("get_user")
-	adminRole.AddPermission("get_users")
-	adminUser = models.User{
-		Username: "test_user_admin_user",
-		Nickname: "test_user_admin_nickname",
-		Email:    "test_user_admin@mail.com",
-		Password: "test_user_admin_password",
-	}
-	base.DB.Create(&adminUser)
-	adminUser.GrantRole(adminRole)
-}
-
-func getAdminToken() (token models.Token) {
-	initAdminUser.Do(initAdminUserFunc)
-	token = models.Token{
-		User:  adminUser,
-		Token: utils.RandStr(32),
-	}
-	base.DB.Create(&token)
-	return
-}
 
 func getUrlStringPointer(url string, paras map[string]string) *string {
 	s := fmt.Sprintf("%s?", url)
@@ -69,7 +34,6 @@ func getUrlStringPointer(url string, paras map[string]string) *string {
 
 func TestAdminCreateUser(t *testing.T) {
 	t.Parallel()
-	token := getAdminToken()
 
 	t.Run("testAdminCreateUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
@@ -78,9 +42,7 @@ func TestAdminCreateUser(t *testing.T) {
 			Nickname: "",
 			Email:    "",
 			Password: "",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -118,9 +80,7 @@ func TestAdminCreateUser(t *testing.T) {
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_0@mail.com",
 			Password: "test_post_user_success_0",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 		resp := response.AdminCreateUserResponse{}
 		respBytes, err := ioutil.ReadAll(httpResp.Body)
@@ -145,9 +105,7 @@ func TestAdminCreateUser(t *testing.T) {
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_0@mail.com",
 			Password: "test_post_user_success_0",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		mustJsonDecode(httpResp, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp2)
@@ -156,18 +114,32 @@ func TestAdminCreateUser(t *testing.T) {
 			Nickname: "test_post_user_success_0",
 			Email:    "test_post_user_success_1@mail.com",
 			Password: "test_post_user_success_0",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		mustJsonDecode(httpResp, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp2)
+	})
+	t.Run("testAdminCreateUserPermissionDenied", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
+			Username: "test_post_user_perm",
+			Nickname: "test_post_user_perm",
+			Email:    "test_post_user_perm@mail.com",
+			Password: "test_post_user_perm",
+		}, normalUserOption))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "PERMISSION_DENIED",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
 	})
 }
 
 func TestAdminUpdateUser(t *testing.T) {
 	t.Parallel()
-	token := getAdminToken()
 
 	t.Run("testAdminUpdateUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
@@ -183,9 +155,7 @@ func TestAdminUpdateUser(t *testing.T) {
 			Nickname: "",
 			Email:    "",
 			Password: "",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
@@ -226,9 +196,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				Nickname: "test_put_user_non_exist_nick",
 				Email:    "test_put_user_non_exist@e.com",
 				Password: "test_put_user_non_exist_passwd",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -241,9 +209,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				Nickname: "test_put_user_non_exist_nick",
 				Email:    "test_put_user_non_exist@e.com",
 				Password: "test_put_user_non_exist_passwd",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -279,9 +245,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				Nickname: "test_putUserSuccess_0",
 				Email:    "test_putUserSuccess_0@mail.com",
 				Password: "test_putUserSuccess_0",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, adminUserOption))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
 			resp := response.AdminUpdateUserResponse{}
 			respBytes, err := ioutil.ReadAll(respResponse.Body)
@@ -307,9 +271,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				Nickname: "test_putUserSuccess_1",
 				Email:    "test_putUserSuccess_1@mail.com",
 				Password: "test_putUserSuccess_1",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, adminUserOption))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
 			resp := response.AdminUpdateUserResponse{}
 			respBytes, err := ioutil.ReadAll(respResponse.Body)
@@ -329,9 +291,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				Nickname: "test_put_user_2_rand_str",
 				Email:    "test_put_user_3@mail.com",
 				Password: "test_put_user_2_password",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp)
@@ -344,25 +304,37 @@ func TestAdminUpdateUser(t *testing.T) {
 				Nickname: "test_put_user_2_rand_str",
 				Email:    "test_put_user_2@mail.com",
 				Password: "test_put_user_2_password",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp)
+		})
+		t.Run("testAdminUpdateUserPermissionDenied", func(t *testing.T) {
+			t.Parallel()
+			httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
+				Username: "test_put_user_perm",
+				Nickname: "test_put_user_perm",
+				Email:    "test_put_user_perm@mail.com",
+				Password: "test_put_user_perm",
+			}, normalUserOption))
+			resp := response.Response{}
+			mustJsonDecode(httpResp, &resp)
+			assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+			assert.Equal(t, response.Response{
+				Message: "PERMISSION_DENIED",
+				Error:   nil,
+				Data:    nil,
+			}, resp)
 		})
 	})
 }
 
 func TestAdminDeleteUser(t *testing.T) {
 	t.Parallel()
-	token := getAdminToken()
 	t.Run("deleteUserNonExistId", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/-1", request.AdminDeleteUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/-1", request.AdminDeleteUserRequest{}, adminUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -370,9 +342,7 @@ func TestAdminDeleteUser(t *testing.T) {
 	t.Run("deleteUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_non_existing_user", request.AdminDeleteUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_non_existing_user", request.AdminDeleteUserRequest{}, adminUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -387,9 +357,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		}
 		base.DB.Create(&user)
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminDeleteUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminDeleteUserRequest{}, adminUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNoContent, httpResp.StatusCode)
 		assert.Equal(t, response.Response{
@@ -411,9 +379,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		}
 		base.DB.Create(&user)
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_user_2", request.AdminDeleteUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/test_delete_user_2", request.AdminDeleteUserRequest{}, adminUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNoContent, httpResp.StatusCode)
 		assert.Equal(t, response.Response{
@@ -425,16 +391,25 @@ func TestAdminDeleteUser(t *testing.T) {
 		err := base.DB.Where("id = ?", user.ID).First(&databaseUser).Error
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
 	})
+	t.Run("testAdminDeleteUserPermissionDenied", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "DELETE", "/api/admin/user/-1", request.AdminDeleteUserRequest{}, normalUserOption))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "PERMISSION_DENIED",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+	})
 }
 func TestAdminGetUser(t *testing.T) {
 	t.Parallel()
-	token := getAdminToken()
 	t.Run("getUserNonExistId", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/-1", request.AdminGetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/-1", request.AdminGetUserRequest{}, adminUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -442,9 +417,7 @@ func TestAdminGetUser(t *testing.T) {
 	t.Run("getUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_non_existing_user", request.AdminGetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_non_existing_user", request.AdminGetUserRequest{}, adminUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -459,9 +432,7 @@ func TestAdminGetUser(t *testing.T) {
 			Roles:    []models.UserHasRole{},
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminGetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminGetUserRequest{}, adminUserOption))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.AdminGetUserResponse{
 			Message: "SUCCESS",
@@ -483,9 +454,7 @@ func TestAdminGetUser(t *testing.T) {
 			Roles:    []models.UserHasRole{},
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_user_2", request.AdminGetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", "/api/admin/user/test_get_user_2", request.AdminGetUserRequest{}, adminUserOption))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.AdminGetUserResponse{
 			Message: "SUCCESS",
@@ -516,9 +485,7 @@ func TestAdminGetUser(t *testing.T) {
 		}
 		base.DB.Create(&user)
 		user.GrantRole(adminRole, classA)
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminGetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminGetUserRequest{}, adminUserOption))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.AdminGetUserResponse{
 			Message: "SUCCESS",
@@ -528,6 +495,18 @@ func TestAdminGetUser(t *testing.T) {
 			}{
 				&user,
 			},
+		}, resp)
+	})
+	t.Run("testAdminGetUserPermissionDenied", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/user/-1", request.AdminGetUserRequest{}, normalUserOption))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "PERMISSION_DENIED",
+			Error:   nil,
+			Data:    nil,
 		}, resp)
 	})
 }
@@ -572,7 +551,6 @@ func TestAdminGetUsers(t *testing.T) {
 		Next   *string       `json:"next"`
 	}
 
-	token := getAdminToken()
 	baseUrl := "/api/admin/users"
 
 	t.Run("testAdminGetUsersSuccess", func(t *testing.T) {
@@ -874,9 +852,7 @@ func TestAdminGetUsers(t *testing.T) {
 			t.Run(test.name, func(t *testing.T) {
 				test := test
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", test.req, headerOption{
-					"Authorization": {token.Token},
-				}))
+				httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", test.req, adminUserOption))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
@@ -893,9 +869,7 @@ func TestAdminGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
 			Search:  "test_admin_get_users",
 			OrderBy: "wrongOrderByPara",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -910,9 +884,7 @@ func TestAdminGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
 			Search:  "test_admin_get_users",
 			OrderBy: "nonExistingColumn.ASC",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -927,9 +899,7 @@ func TestAdminGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
 			Search:  "test_admin_get_users",
 			OrderBy: "id.NonExistingOrder",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -954,9 +924,7 @@ func TestAdminGetUsers(t *testing.T) {
 		}
 		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{
 			Search: "test_DL_admin_get_users_",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, adminUserOption))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -972,6 +940,18 @@ func TestAdminGetUsers(t *testing.T) {
 					"offset": "20",
 				}),
 			},
+		}, resp)
+	})
+	t.Run("testAdminGetUsersPermissionDenied", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", request.AdminGetUsersRequest{}, normalUserOption))
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "PERMISSION_DENIED",
+			Error:   nil,
+			Data:    nil,
 		}, resp)
 	})
 }
