@@ -259,13 +259,13 @@ func TestRegister(t *testing.T) {
 			Data: nil,
 		}, resp)
 	})
-	t.Run("registerUserSuccess", func(t *testing.T) {
+	t.Run("register_user_success", func(t *testing.T) {
 		t.Parallel()
 		httpResponse := makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
-			Username: "test_registerUserSuccess_0",
-			Nickname: "test_registerUserSuccess_0",
-			Email:    "test_registerUserSuccess_0@mail.com",
-			Password: "test_registerUserSuccess_0",
+			Username: "test_register_user_success_0",
+			Nickname: "test_register_user_success_0",
+			Email:    "test_register_user_success_0@mail.com",
+			Password: "test_register_user_success_0",
 		}))
 		assert.Equal(t, http.StatusCreated, httpResponse.StatusCode)
 		resp := response.RegisterResponse{}
@@ -274,7 +274,7 @@ func TestRegister(t *testing.T) {
 		err = json.Unmarshal(respBytes, &resp)
 		assert.Equal(t, nil, err)
 		user := models.User{}
-		err = base.DB.Where("email = ?", "test_registerUserSuccess_0@mail.com").First(&user).Error
+		err = base.DB.Where("email = ?", "test_register_user_success_0@mail.com").First(&user).Error
 		assert.Equal(t, nil, err)
 		token := models.Token{}
 		err = base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error
@@ -284,19 +284,19 @@ func TestRegister(t *testing.T) {
 
 		resp2 := response.Response{}
 		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
-			Username: "test_registerUserSuccess_0",
-			Nickname: "test_registerUserSuccess_0",
-			Email:    "test_registerUserSuccess_0@mail.com",
-			Password: "test_registerUserSuccess_0",
+			Username: "test_register_user_success_0",
+			Nickname: "test_register_user_success_0",
+			Email:    "test_register_user_success_0@mail.com",
+			Password: "test_register_user_success_0",
 		}))
 		mustJsonDecode(httpResponse, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResponse.StatusCode)
 		assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp2)
 		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
-			Username: "test_registerUserSuccess_0",
-			Nickname: "test_registerUserSuccess_0",
-			Email:    "test_registerUserSuccess_1@mail.com",
-			Password: "test_registerUserSuccess_0",
+			Username: "test_register_user_success_0",
+			Nickname: "test_register_user_success_0",
+			Email:    "test_register_user_success_1@mail.com",
+			Password: "test_register_user_success_0",
 		}))
 		mustJsonDecode(httpResponse, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResponse.StatusCode)

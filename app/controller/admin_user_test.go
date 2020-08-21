@@ -76,10 +76,10 @@ func TestAdminCreateUser(t *testing.T) {
 	t.Run("testAdminCreateUserSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
-			Username: "test_post_user_success_0",
-			Nickname: "test_post_user_success_0",
-			Email:    "test_post_user_success_0@mail.com",
-			Password: "test_post_user_success_0",
+			Username: "test_create_user_success_0",
+			Nickname: "test_create_user_success_0",
+			Email:    "test_create_user_success_0@mail.com",
+			Password: "test_create_user_success_0",
 		}, adminUserOption))
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 		resp := response.AdminCreateUserResponse{}
@@ -87,7 +87,7 @@ func TestAdminCreateUser(t *testing.T) {
 		assert.Equal(t, nil, err)
 		mustJsonDecode(respBytes, &resp)
 		user := models.User{}
-		err = base.DB.Where("email = ?", "test_post_user_success_0@mail.com").First(&user).Error
+		err = base.DB.Where("email = ?", "test_create_user_success_0@mail.com").First(&user).Error
 		assert.Equal(t, nil, err)
 		jsonEQ(t, resp, response.AdminCreateUserResponse{
 			Message: "SUCCESS",
@@ -101,19 +101,19 @@ func TestAdminCreateUser(t *testing.T) {
 
 		resp2 := response.Response{}
 		httpResp = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
-			Username: "test_post_user_success_0",
-			Nickname: "test_post_user_success_0",
-			Email:    "test_post_user_success_0@mail.com",
-			Password: "test_post_user_success_0",
+			Username: "test_create_user_success_0",
+			Nickname: "test_create_user_success_0",
+			Email:    "test_create_user_success_0@mail.com",
+			Password: "test_create_user_success_0",
 		}, adminUserOption))
 		mustJsonDecode(httpResp, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp2)
 		httpResp = makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
-			Username: "test_post_user_success_0",
-			Nickname: "test_post_user_success_0",
-			Email:    "test_post_user_success_1@mail.com",
-			Password: "test_post_user_success_0",
+			Username: "test_create_user_success_0",
+			Nickname: "test_create_user_success_0",
+			Email:    "test_create_user_success_1@mail.com",
+			Password: "test_create_user_success_0",
 		}, adminUserOption))
 		mustJsonDecode(httpResp, &resp2)
 		assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
@@ -122,10 +122,10 @@ func TestAdminCreateUser(t *testing.T) {
 	t.Run("testAdminCreateUserPermissionDenied", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/admin/user", request.AdminCreateUserRequest{
-			Username: "test_post_user_perm",
-			Nickname: "test_post_user_perm",
-			Email:    "test_post_user_perm@mail.com",
-			Password: "test_post_user_perm",
+			Username: "test_create_user_perm",
+			Nickname: "test_create_user_perm",
+			Email:    "test_create_user_perm@mail.com",
+			Password: "test_create_user_perm",
 		}, normalUserOption))
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -144,10 +144,10 @@ func TestAdminUpdateUser(t *testing.T) {
 	t.Run("testAdminUpdateUserWithoutParams", func(t *testing.T) {
 		t.Parallel()
 		user := models.User{
-			Username: "test_put_user_1",
-			Nickname: "test_put_user_1_rand_str",
-			Email:    "test_put_user_1@mail.com",
-			Password: utils.HashPassword("test_put_user_1_password"),
+			Username: "test_update_user_1",
+			Nickname: "test_update_user_1_rand_str",
+			Email:    "test_update_user_1@mail.com",
+			Password: utils.HashPassword("test_update_user_1_password"),
 		}
 		base.DB.Create(&user)
 		httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminUpdateUserRequest{
@@ -192,10 +192,10 @@ func TestAdminUpdateUser(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", "/api/admin/user/-1", request.AdminUpdateUserRequest{
-				Username: "test_put_user_non_exist",
-				Nickname: "test_put_user_non_exist_nick",
-				Email:    "test_put_user_non_exist@e.com",
-				Password: "test_put_user_non_exist_passwd",
+				Username: "test_update_user_non_exist",
+				Nickname: "test_update_user_non_exist_n",
+				Email:    "test_update_user_non_exist@e.com",
+				Password: "test_update_user_non_exist_p",
 			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
@@ -205,10 +205,10 @@ func TestAdminUpdateUser(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_non_existing_user", request.AdminUpdateUserRequest{
-				Username: "test_put_user_non_exist",
-				Nickname: "test_put_user_non_exist_nick",
-				Email:    "test_put_user_non_exist@e.com",
-				Password: "test_put_user_non_exist_passwd",
+				Username: "test_update_user_non_exist",
+				Nickname: "test_update_user_non_exist_n",
+				Email:    "test_update_user_non_exist@e.com",
+				Password: "test_update_user_non_exist_p",
 			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
@@ -218,33 +218,33 @@ func TestAdminUpdateUser(t *testing.T) {
 	t.Run("testAdminUpdateUserWithParams", func(t *testing.T) {
 		t.Parallel()
 		user2 := models.User{
-			Username: "test_put_user_2",
-			Nickname: "test_put_user_2_rand_str",
-			Email:    "test_put_user_2@mail.com",
-			Password: utils.HashPassword("test_put_user_2_password"),
+			Username: "test_update_user_2",
+			Nickname: "test_update_user_2_rand_str",
+			Email:    "test_update_user_2@mail.com",
+			Password: utils.HashPassword("test_update_user_2_password"),
 		}
 		base.DB.Create(&user2)
 		user3 := models.User{
-			Username: "test_put_user_3",
-			Nickname: "test_put_user_3_rand_str",
-			Email:    "test_put_user_3@mail.com",
-			Password: utils.HashPassword("test_put_user_3_password"),
+			Username: "test_update_user_3",
+			Nickname: "test_update_user_3_rand_str",
+			Email:    "test_update_user_3@mail.com",
+			Password: utils.HashPassword("test_update_user_3_password"),
 		}
 		base.DB.Create(&user3)
 		t.Run("testAdminUpdateUserSuccessWithId", func(t *testing.T) {
 			t.Parallel()
 			user := models.User{
-				Username: "test_put_user_4",
-				Nickname: "test_put_user_4_rand_str",
-				Email:    "test_put_user_4@mail.com",
-				Password: utils.HashPassword("test_put_user_4_password"),
+				Username: "test_update_user_4",
+				Nickname: "test_update_user_4_rand_str",
+				Email:    "test_update_user_4@mail.com",
+				Password: utils.HashPassword("test_update_user_4_password"),
 			}
 			base.DB.Create(&user)
 			respResponse := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user.ID), request.AdminUpdateUserRequest{
-				Username: "test_putUserSuccess_0",
-				Nickname: "test_putUserSuccess_0",
-				Email:    "test_putUserSuccess_0@mail.com",
-				Password: "test_putUserSuccess_0",
+				Username: "test_update_user_success_0",
+				Nickname: "test_update_user_success_0",
+				Email:    "test_update_user_success_0@mail.com",
+				Password: "test_update_user_success_0",
 			}, adminUserOption))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
 			resp := response.AdminUpdateUserResponse{}
@@ -260,17 +260,17 @@ func TestAdminUpdateUser(t *testing.T) {
 		t.Run("testAdminUpdateUserSuccessWithUsername", func(t *testing.T) {
 			t.Parallel()
 			user := models.User{
-				Username: "test_put_user_5",
-				Nickname: "test_put_user_5_rand_str",
-				Email:    "test_put_user_5@mail.com",
-				Password: utils.HashPassword("test_put_user_5_password"),
+				Username: "test_update_user_5",
+				Nickname: "test_update_user_5_rand_str",
+				Email:    "test_update_user_5@mail.com",
+				Password: utils.HashPassword("test_update_user_5_password"),
 			}
 			base.DB.Create(&user)
-			respResponse := makeResp(makeReq(t, "PUT", "/api/admin/user/test_put_user_5", request.AdminUpdateUserRequest{
-				Username: "test_putUserSuccess_1",
-				Nickname: "test_putUserSuccess_1",
-				Email:    "test_putUserSuccess_1@mail.com",
-				Password: "test_putUserSuccess_1",
+			respResponse := makeResp(makeReq(t, "PUT", "/api/admin/user/test_update_user_5", request.AdminUpdateUserRequest{
+				Username: "test_update_user_success_1",
+				Nickname: "test_update_user_success_1",
+				Email:    "test_update_user_success_1@mail.com",
+				Password: "test_update_user_success_1",
 			}, adminUserOption))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
 			resp := response.AdminUpdateUserResponse{}
@@ -287,10 +287,10 @@ func TestAdminUpdateUser(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
-				Username: "test_put_user_2",
-				Nickname: "test_put_user_2_rand_str",
-				Email:    "test_put_user_3@mail.com",
-				Password: "test_put_user_2_password",
+				Username: "test_update_user_2",
+				Nickname: "test_update_user_2_rand_str",
+				Email:    "test_update_user_3@mail.com",
+				Password: "test_update_user_2_password",
 			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
@@ -300,10 +300,10 @@ func TestAdminUpdateUser(t *testing.T) {
 			t.Parallel()
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
-				Username: "test_put_user_3",
-				Nickname: "test_put_user_2_rand_str",
-				Email:    "test_put_user_2@mail.com",
-				Password: "test_put_user_2_password",
+				Username: "test_update_user_3",
+				Nickname: "test_update_user_2_rand_str",
+				Email:    "test_update_user_2@mail.com",
+				Password: "test_update_user_2_password",
 			}, adminUserOption))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
@@ -312,10 +312,10 @@ func TestAdminUpdateUser(t *testing.T) {
 		t.Run("testAdminUpdateUserPermissionDenied", func(t *testing.T) {
 			t.Parallel()
 			httpResp := makeResp(makeReq(t, "PUT", fmt.Sprintf("/api/admin/user/%d", user2.ID), request.AdminUpdateUserRequest{
-				Username: "test_put_user_perm",
-				Nickname: "test_put_user_perm",
-				Email:    "test_put_user_perm@mail.com",
-				Password: "test_put_user_perm",
+				Username: "test_update_user_perm",
+				Nickname: "test_update_user_perm",
+				Email:    "test_update_user_perm@mail.com",
+				Password: "test_update_user_perm",
 			}, normalUserOption))
 			resp := response.Response{}
 			mustJsonDecode(httpResp, &resp)
