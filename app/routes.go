@@ -40,11 +40,11 @@ func Register(e *echo.Echo) {
 
 	admin := api.Group("/admin", middleware.Logged)
 	// TODO: add HasPermission
-	admin.POST("/user", controller.AdminCreateUser)
-	admin.PUT("/user/:id", controller.AdminUpdateUser)
-	admin.DELETE("/user/:id", controller.AdminDeleteUser)
-	admin.GET("/user/:id", controller.AdminGetUser)
-	admin.GET("/users", controller.AdminGetUsers)
+	admin.POST("/user", controller.AdminCreateUser, middleware.HasPermission("create_user"))
+	admin.PUT("/user/:id", controller.AdminUpdateUser, middleware.HasPermission("update_user"))
+	admin.DELETE("/user/:id", controller.AdminDeleteUser, middleware.HasPermission("delete_user"))
+	admin.GET("/user/:id", controller.AdminGetUser, middleware.HasPermission("get_user"))
+	admin.GET("/users", controller.AdminGetUsers, middleware.HasPermission("get_users"))
 
 	api.GET("/user/me", controller.GetMe, middleware.Logged)
 	api.PUT("/user/me", controller.UpdateMe, middleware.Logged)
