@@ -11,43 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
-	"sync"
 	"testing"
 )
 
-var initNormalUser sync.Once
-var normalUser models.User
-
-func initNormalUserFunc() {
-	normalUser = models.User{
-		Username: "test_user_normal_user",
-		Nickname: "test_user_normal_nickname",
-		Email:    "test_user_normal@mail.com",
-		Password: "test_user_normal_password",
-	}
-	base.DB.Create(&normalUser)
-}
-
-func getNormalToken() (token models.Token) {
-	initNormalUser.Do(initNormalUserFunc)
-	token = models.Token{
-		User:  normalUser,
-		Token: utils.RandStr(32),
-	}
-	base.DB.Create(&token)
-	return
-}
-
 func TestGetUser(t *testing.T) {
 	t.Parallel()
-	token := getNormalToken()
 
 	t.Run("getUserNonExistId", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, normalUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -55,9 +28,7 @@ func TestGetUser(t *testing.T) {
 	t.Run("getUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		httpResp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, normalUserOption))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -71,9 +42,7 @@ func TestGetUser(t *testing.T) {
 			Password: utils.HashPassword("test_get_user_4_password"),
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/user/%d", user.ID), request.GetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/user/%d", user.ID), request.GetUserRequest{}, normalUserOption))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.GetUserResponse{
 			Message: "SUCCESS",
@@ -94,9 +63,7 @@ func TestGetUser(t *testing.T) {
 		}
 		base.DB.Create(&user)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/user/test_get_user_5", request.GetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", "/api/user/test_get_user_5", request.GetUserRequest{}, normalUserOption))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.GetUserResponse{
 			Message: "SUCCESS",
@@ -222,7 +189,6 @@ func TestGetUsers(t *testing.T) {
 		Next   *string       `json:"next"`
 	}
 
-	token := getNormalToken()
 	baseUrl := "/api/users"
 
 	t.Run("testGetUsersSuccess", func(t *testing.T) {
@@ -524,9 +490,7 @@ func TestGetUsers(t *testing.T) {
 			t.Run(test.name, func(t *testing.T) {
 				test := test
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, headerOption{
-					"Authorization": {token.Token},
-				}))
+				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, normalUserOption))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
@@ -543,9 +507,7 @@ func TestGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search:  "test_get_users",
 			OrderBy: "wrongOrderByPara",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, normalUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -560,9 +522,7 @@ func TestGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search:  "test_get_users",
 			OrderBy: "nonExistingColumn.ASC",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, normalUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -577,9 +537,7 @@ func TestGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search:  "test_get_users",
 			OrderBy: "id.NonExistingOrder",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, normalUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -604,9 +562,7 @@ func TestGetUsers(t *testing.T) {
 		}
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search: "test_DL_get_users_",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, normalUserOption))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -765,16 +721,12 @@ func TestUpdateUserMe(t *testing.T) {
 func TestChangePassword(t *testing.T) {
 	t.Parallel()
 
-	token := getNormalToken()
-
 	t.Run("testChangePasswordWithoutParams", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
 			OldPassword: "",
 			NewPassword: "",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, normalUserOption))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		jsonEQ(t, response.Response{
 			Message: "VALIDATION_ERROR",
