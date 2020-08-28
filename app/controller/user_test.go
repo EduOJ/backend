@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -9,131 +8,131 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"net/http"
 	"testing"
 )
 
-// TODO: fix these
-
 func TestGetUser(t *testing.T) {
 	t.Parallel()
 
-	t.Run("getUserNonExistId", func(t *testing.T) {
-		t.Parallel()
-		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, applyNormalUser))
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
-		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
-	})
-	t.Run("getUserNonExistUsername", func(t *testing.T) {
-		t.Parallel()
-		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, applyNormalUser))
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
-		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
-	})
-	t.Run("getUserSuccessWithId", func(t *testing.T) {
-		t.Parallel()
-		user := models.User{
-			Username: "test_get_user_4",
-			Nickname: "test_get_user_4_nick",
-			Email:    "test_get_user_4@mail.com",
-			Password: utils.HashPassword("test_get_user_4_password"),
-		}
-		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/user/%d", user.ID), request.GetUserRequest{}, applyNormalUser))
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, response.GetUserResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*models.User `json:"user"`
-			}{
-				&user,
+	failTests := []failTest{
+		{
+			name:   "NonExistId",
+			method: "GET",
+			path:   "/api/user/-1",
+			req:    request.GetUserRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
 			},
-		}, resp)
-	})
-	t.Run("getUserSuccessWithUsername", func(t *testing.T) {
-		user := models.User{
-			Username: "test_get_user_5",
-			Nickname: "test_get_user_5_nick",
-			Email:    "test_get_user_5@mail.com",
-			Password: utils.HashPassword("test_get_user_5_password"),
-		}
-		base.DB.Create(&user)
-		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/user/test_get_user_5", request.GetUserRequest{}, applyNormalUser))
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, response.GetUserResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*models.User `json:"user"`
-			}{
-				&user,
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistUsername",
+			method: "GET",
+			path:   "/api/user/test_get_non_existing_user",
+			req:    request.GetUserRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
 			},
-		}, resp)
-	})
-}
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+	}
 
-func TestGetUserMe(t *testing.T) {
-	t.Parallel()
+	runFailTests(t, failTests, "GetUser")
 
-	t.Run("getUserSuccess", func(t *testing.T) {
-		t.Parallel()
-		user := models.User{
-			Username: "test_get_me_1",
-			Nickname: "test_get_me_1_nick",
-			Email:    "test_get_me_1@mail.com",
-			Password: utils.HashPassword("test_get_me_1_password"),
-			Roles:    []models.UserHasRole{},
-		}
-		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, applyUser(user)))
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, response.GetUserResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*models.User `json:"user"`
-			}{
-				&user,
+	classA := testClass{ID: 1}
+	dummy := "test_class"
+	testRole := models.Role{
+		Name:   "testGetUserRole",
+		Target: &dummy,
+	}
+	base.DB.Create(&testRole)
+	testRole.AddPermission("testGetUserPerm")
+
+	successTests := []struct {
+		name       string
+		path       string
+		req        request.GetUserRequest
+		user       models.User
+		role       models.Role
+		roleTarget models.HasRole
+	}{
+		{
+			name: "WithId",
+			path: "id",
+			req:  request.GetUserRequest{},
+			user: models.User{
+				Username: "test_get_user_1",
+				Nickname: "test_get_user_1_nick",
+				Email:    "test_get_user_1@mail.com",
+				Password: utils.HashPassword("test_get_user_1_pwd"),
 			},
-		}, resp)
-	})
-	t.Run("getUserSuccessWithRole", func(t *testing.T) {
-		t.Parallel()
-		classA := testClass{ID: 1}
-		dummy := "test_class"
-		adminRole := models.Role{
-			Name:   "testGetUserAdmin",
-			Target: &dummy,
-		}
-		base.DB.Create(&adminRole)
-		adminRole.AddPermission("all")
-		user := models.User{
-			Username: "test_get_me_2",
-			Nickname: "test_get_me_2_nick",
-			Email:    "test_get_me_2@mail.com",
-			Password: utils.HashPassword("test_get_me_2_password"),
-			Roles:    []models.UserHasRole{},
-		}
-		base.DB.Create(&user)
-		user.GrantRole(adminRole, classA)
-		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, applyUser(user)))
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		jsonEQ(t, response.GetUserResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*models.User `json:"user"`
-			}{
-				&user,
+			role:       models.Role{},
+			roleTarget: nil,
+		},
+		{
+			name: "WithUsername",
+			path: "/api/user/test_get_user_2",
+			req:  request.GetUserRequest{},
+			user: models.User{
+				Username: "test_get_user_2",
+				Nickname: "test_get_user_2_nick",
+				Email:    "test_get_user_2@mail.com",
+				Password: utils.HashPassword("test_get_user_2_pwd"),
 			},
-		}, resp)
+			role:       models.Role{},
+			roleTarget: nil,
+		},
+		{
+			name: "WithRole",
+			path: "id",
+			req:  request.GetUserRequest{},
+			user: models.User{
+				Username: "test_get_user_3",
+				Nickname: "test_get_user_3_nick",
+				Email:    "test_get_user_3@mail.com",
+				Password: utils.HashPassword("test_get_user_3_pwd"),
+			},
+			role:       testRole,
+			roleTarget: classA,
+		},
+	}
+
+	t.Run("testGetUserSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			t.Run("testGetUser"+test.name, func(t *testing.T) {
+				test := test
+				t.Parallel()
+				assert.Nil(t, base.DB.Create(&test.user).Error)
+				if test.role.ID != 0 {
+					test.user.GrantRole(test.role, test.roleTarget)
+				} else {
+					test.user.LoadRoles()
+				}
+				if test.path == "id" {
+					test.path = fmt.Sprintf("/api/user/%d", test.user.ID)
+				}
+				httpResp := makeResp(makeReq(t, "GET", test.path, test.req, applyNormalUser))
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+				databaseUser := models.User{}
+				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				assert.Equal(t, test.user.Username, databaseUser.Username)
+				assert.Equal(t, test.user.Nickname, databaseUser.Nickname)
+				assert.Equal(t, test.user.Email, databaseUser.Email)
+				jsonEQ(t, response.GetUserResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						*response.UserProfile `json:"user"`
+					}{
+						response.GetUserProfile(&test.user),
+					},
+				}, httpResp)
+			})
+		}
 	})
 }
 
@@ -163,319 +162,431 @@ func TestGetUsers(t *testing.T) {
 		Email:    "4_test_get_users@e.com",
 		Password: "test_get_users_4_passwd",
 	}
+	DLUsers := make([]models.User, 25) // DL: Default Limit
 	assert.Nil(t, base.DB.Create(&user1).Error)
 	assert.Nil(t, base.DB.Create(&user2).Error)
 	assert.Nil(t, base.DB.Create(&user3).Error)
 	assert.Nil(t, base.DB.Create(&user4).Error)
 
+	for i := 0; i < 25; i++ {
+		DLUsers[i] = models.User{
+			Username: fmt.Sprintf("test_DL_get_users_%d", i),
+			Nickname: fmt.Sprintf("test_DL_get_users_n_%d", i),
+			Email:    fmt.Sprintf("test_DL_get_users_%d@e.e", i),
+			Password: fmt.Sprintf("test_DL_get_users_pwd_%d", i),
+		}
+		assert.Nil(t, base.DB.Create(&DLUsers[i]).Error)
+	}
+
 	type respData struct {
-		Users  []models.User `json:"users"` // TODO:modify models.users
-		Total  int           `json:"total"`
-		Count  int           `json:"count"`
-		Offset int           `json:"offset"`
-		Prev   *string       `json:"prev"`
-		Next   *string       `json:"next"`
+		Users  []response.UserProfile `json:"users"`
+		Total  int                    `json:"total"`
+		Count  int                    `json:"count"`
+		Offset int                    `json:"offset"`
+		Prev   *string                `json:"prev"`
+		Next   *string                `json:"next"`
 	}
 
 	baseUrl := "/api/users"
 
+	failTests := []failTest{
+		{
+			name:   "WithWrongOrderByPara",
+			method: "GET",
+			path:   "/api/users",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "wrongOrderByPara",
+			},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("INVALID_ORDER", nil),
+		},
+		{
+			name:   "OrderByNonExistingColumn",
+			method: "GET",
+			path:   "/api/users",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "nonExistingColumn.ASC",
+			},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("INVALID_ORDER", nil),
+		},
+		{
+			name:   "OrderByNonExistingOrder",
+			method: "GET",
+			path:   "/api/users",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "id.NonExistingOrder",
+			},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("INVALID_ORDER", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "GetUsers")
+
+	successTests := []struct {
+		name     string
+		req      request.GetUsersRequest
+		respData respData
+	}{
+		{
+			name: "All",
+			req: request.GetUsersRequest{
+				Search: "test_get_users",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user4),
+				},
+				Total:  4,
+				Count:  4,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "NonExist",
+			req: request.GetUsersRequest{
+				Search: "test_get_users_non_exist",
+			},
+			respData: respData{
+				Users: []response.UserProfile{},
+			},
+		},
+		{
+			name: "SearchUsernameSingle",
+			req: request.GetUsersRequest{
+				Search: "test_get_users_2",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user2),
+				},
+				Total:  1,
+				Count:  1,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "SearchNicknameSingle",
+			req: request.GetUsersRequest{
+				Search: "test_get_users_3_nick",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
+				},
+				Total:  1,
+				Count:  1,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "SearchEmailSingle",
+			req: request.GetUsersRequest{
+				Search: "4_test_get_users@e.com",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user4),
+				},
+				Total:  1,
+				Count:  1,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "SearchUsernameMultiple",
+			req: request.GetUsersRequest{
+				Search: "test_get_users_0",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user3),
+				},
+				Total:  2,
+				Count:  2,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "SearchNicknameMultiple",
+			req: request.GetUsersRequest{
+				Search: "0_test_get_users_",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user3),
+				},
+				Total:  2,
+				Count:  2,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "SearchEmailMultiple",
+			req: request.GetUsersRequest{
+				Search: "_test_get_users@e.com",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user4),
+				},
+				Total:  3,
+				Count:  3,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "Limit",
+			req: request.GetUsersRequest{
+				Search: "test_get_users",
+				Limit:  2,
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
+				},
+				Total:  4,
+				Count:  2,
+				Offset: 0,
+				Prev:   nil,
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "2",
+					"offset": "2",
+				}),
+			},
+		},
+		{
+			name: "Offset",
+			req: request.GetUsersRequest{
+				Search: "test_get_users",
+				Limit:  2,
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
+				},
+				Total:  4,
+				Count:  2,
+				Offset: 0,
+				Prev:   nil,
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "2",
+					"offset": "2",
+				}),
+			},
+		},
+		{
+			name: "LimitAndOffsetNext",
+			req: request.GetUsersRequest{
+				Search: "test_get_users",
+				Limit:  2,
+				Offset: 1,
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user3),
+				},
+				Total:  4,
+				Count:  2,
+				Offset: 1,
+				Prev:   nil,
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "2",
+					"offset": "3",
+				}),
+			},
+		},
+		{
+			name: "LimitAndOffsetPrev",
+			req: request.GetUsersRequest{
+				Search: "test_get_users",
+				Limit:  2,
+				Offset: 2,
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user4),
+				},
+				Total:  4,
+				Count:  2,
+				Offset: 2,
+				Prev: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "2",
+					"offset": "0",
+				}),
+				Next: nil,
+			},
+		},
+		{
+			name: "LimitAndOffsetPrevNext",
+			req: request.GetUsersRequest{
+				Search: "test_get_users",
+				Limit:  1,
+				Offset: 2,
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
+				},
+				Total:  4,
+				Count:  1,
+				Offset: 2,
+				Prev: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "1",
+					"offset": "1",
+				}),
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "1",
+					"offset": "3",
+				}),
+			},
+		},
+		{
+			name: "OrderByIdDESC",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "id.DESC",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user4),
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user1),
+				},
+				Total:  4,
+				Count:  4,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "OrderByUsernameASC",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "username.ASC",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user4),
+				},
+				Total:  4,
+				Count:  4,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "OrderByNicknameDESC",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "nickname.DESC",
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user4),
+					*response.GetUserProfile(&user2),
+				},
+				Total:  4,
+				Count:  4,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+		},
+		{
+			name: "OrderByNicknameDESCWithLimitAndOffset",
+			req: request.GetUsersRequest{
+				Search:  "test_get_users",
+				OrderBy: "nickname.DESC",
+				Limit:   1,
+				Offset:  2,
+			},
+			respData: respData{
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user4),
+				},
+				Total:  4,
+				Count:  1,
+				Offset: 2,
+				Prev: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "1",
+					"offset": "1",
+				}),
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "1",
+					"offset": "3",
+				}),
+			},
+		},
+		{
+			name: "DefaultLimit",
+			req: request.GetUsersRequest{
+				Search: "test_DL_get_users_",
+			},
+			respData: respData{
+				Users:  response.GetUserProfileSlice(DLUsers[:20]),
+				Total:  25,
+				Count:  20,
+				Offset: 0,
+				Prev:   nil,
+				Next: getUrlStringPointer(baseUrl, map[string]string{
+					"limit":  "20",
+					"offset": "20",
+				}),
+			},
+		},
+	}
+
 	t.Run("testGetUsersSuccess", func(t *testing.T) {
 		t.Parallel()
-		tests := []struct {
-			name     string
-			req      request.GetUsersRequest
-			respData respData
-		}{
-			{
-				name: "testGetUsersAll",
-				req: request.GetUsersRequest{
-					Search: "test_get_users",
-				},
-				respData: respData{
-					Users: []models.User{
-						user1,
-						user2,
-						user3,
-						user4,
-					},
-					Total: 4,
-					Count: 4,
-				},
-			},
-			{
-				name: "testGetUsersNonExist",
-				req: request.GetUsersRequest{
-					Search: "test_get_users_non_exist",
-				},
-				respData: respData{
-					Users: []models.User{},
-				},
-			},
-			{
-				name: "testGetUsersSearchUsernameSingle",
-				req: request.GetUsersRequest{
-					Search: "test_get_users_2",
-				},
-				respData: respData{
-					Users: []models.User{
-						user2,
-					},
-					Total: 1,
-					Count: 1,
-				},
-			},
-			{
-				name: "testGetUsersSearchNicknameSingle",
-				req: request.GetUsersRequest{
-					Search: "test_get_users_3_nick",
-				},
-				respData: respData{
-					Users: []models.User{
-						user3,
-					},
-					Total: 1,
-					Count: 1,
-				},
-			},
-			{
-				name: "testGetUsersSearchEmailSingle",
-				req: request.GetUsersRequest{
-					Search: "4_test_get_users@e.com",
-				},
-				respData: respData{
-					Users: []models.User{
-						user4,
-					},
-					Total: 1,
-					Count: 1,
-				},
-			},
-			{
-				name: "testGetUsersSearchUsernameMultiple",
-				req: request.GetUsersRequest{
-					Search: "test_get_users_0",
-				},
-				respData: respData{
-					Users: []models.User{
-						user1,
-						user3,
-					},
-					Total: 2,
-					Count: 2,
-				},
-			},
-			{
-				name: "testGetUsersSearchNicknameMultiple",
-				req: request.GetUsersRequest{
-					Search: "0_test_get_users_",
-				},
-				respData: respData{
-					Users: []models.User{
-						user2,
-						user3,
-					},
-					Total: 2,
-					Count: 2,
-				},
-			},
-			{
-				name: "testGetUsersSearchEmailMultiple",
-				req: request.GetUsersRequest{
-					Search: "_test_get_users@e.com",
-				},
-				respData: respData{
-					Users: []models.User{
-						user1,
-						user2,
-						user4,
-					},
-					Total: 3,
-					Count: 3,
-				},
-			},
-			{
-				name: "testGetUsersLimit",
-				req: request.GetUsersRequest{
-					Search: "test_get_users",
-					Limit:  2,
-				},
-				respData: respData{
-					Users: []models.User{
-						user1,
-						user2,
-					},
-					Total: 4,
-					Count: 2,
-					Next: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "2",
-						"offset": "2",
-					}),
-				},
-			},
-			{
-				name: "testGetUsersOffset",
-				req: request.GetUsersRequest{
-					Search: "test_get_users",
-					Limit:  2,
-				},
-				respData: respData{
-					Users: []models.User{
-						user1,
-						user2,
-					},
-					Total: 4,
-					Count: 2,
-					Next: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "2",
-						"offset": "2",
-					}),
-				},
-			},
-			{
-				name: "testGetUsersLimitAndOffsetNext",
-				req: request.GetUsersRequest{
-					Search: "test_get_users",
-					Limit:  2,
-					Offset: 1,
-				},
-				respData: respData{
-					Users: []models.User{
-						user2,
-						user3,
-					},
-					Total:  4,
-					Count:  2,
-					Offset: 1,
-					Next: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "2",
-						"offset": "3",
-					}),
-				},
-			},
-			{
-				name: "testGetUsersLimitAndOffsetPrev",
-				req: request.GetUsersRequest{
-					Search: "test_get_users",
-					Limit:  2,
-					Offset: 2,
-				},
-				respData: respData{
-					Users: []models.User{
-						user3,
-						user4,
-					},
-					Total:  4,
-					Count:  2,
-					Offset: 2,
-					Prev: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "2",
-						"offset": "0",
-					}),
-				},
-			},
-			{
-				name: "testGetUsersLimitAndOffsetPrevNext",
-				req: request.GetUsersRequest{
-					Search: "test_get_users",
-					Limit:  1,
-					Offset: 2,
-				},
-				respData: respData{
-					Users: []models.User{
-						user3,
-					},
-					Total:  4,
-					Count:  1,
-					Offset: 2,
-					Prev: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "1",
-						"offset": "1",
-					}),
-					Next: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "1",
-						"offset": "3",
-					}),
-				},
-			},
-			{
-				name: "testGetUsersOrderByIdDESC",
-				req: request.GetUsersRequest{
-					Search:  "test_get_users",
-					OrderBy: "id.DESC",
-				},
-				respData: respData{
-					Users: []models.User{
-						user4,
-						user3,
-						user2,
-						user1,
-					},
-					Total: 4,
-					Count: 4,
-				},
-			},
-			{
-				name: "testGetUsersOrderByUsernameASC",
-				req: request.GetUsersRequest{
-					Search:  "test_get_users",
-					OrderBy: "username.ASC",
-				},
-				respData: respData{
-					Users: []models.User{
-						user1,
-						user3,
-						user2,
-						user4,
-					},
-					Total: 4,
-					Count: 4,
-				},
-			},
-			{
-				name: "testGetUsersOrderByNicknameDESC",
-				req: request.GetUsersRequest{
-					Search:  "test_get_users",
-					OrderBy: "nickname.DESC",
-				},
-				respData: respData{
-					Users: []models.User{
-						user3,
-						user1,
-						user4,
-						user2,
-					},
-					Total: 4,
-					Count: 4,
-				},
-			},
-			{
-				name: "testGetUsersOrderByNicknameDESCWithLimitAndOffset",
-				req: request.GetUsersRequest{
-					Search:  "test_get_users",
-					OrderBy: "nickname.DESC",
-					Limit:   1,
-					Offset:  2,
-				},
-				respData: respData{
-					Users: []models.User{
-						user4,
-					},
-					Total:  4,
-					Count:  1,
-					Offset: 2,
-					Prev: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "1",
-						"offset": "1",
-					}),
-					Next: getUrlStringPointer(baseUrl, map[string]string{
-						"limit":  "1",
-						"offset": "3",
-					}),
-				},
-			},
-		}
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
+		for _, test := range successTests {
+			t.Run("testGetUsers"+test.name, func(t *testing.T) {
 				test := test
 				t.Parallel()
 				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, applyNormalUser))
@@ -490,196 +601,260 @@ func TestGetUsers(t *testing.T) {
 			})
 		}
 	})
-	t.Run("testGetUsersWithWrongOrderByPara", func(t *testing.T) {
-		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
-			Search:  "test_get_users",
-			OrderBy: "wrongOrderByPara",
-		}, applyNormalUser))
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		jsonEQ(t, response.Response{
-			Message: "INVALID_ORDER",
-			Error:   nil,
-			Data:    nil,
-		}, resp)
-	})
-	t.Run("testGetUsersOrderByNonExistingColumn", func(t *testing.T) {
-		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
-			Search:  "test_get_users",
-			OrderBy: "nonExistingColumn.ASC",
-		}, applyNormalUser))
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		jsonEQ(t, response.Response{
-			Message: "INVALID_ORDER",
-			Error:   nil,
-			Data:    nil,
-		}, resp)
-	})
-	t.Run("testGetUsersOrderByNonExistingOrder", func(t *testing.T) {
-		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
-			Search:  "test_get_users",
-			OrderBy: "id.NonExistingOrder",
-		}, applyNormalUser))
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		jsonEQ(t, response.Response{
-			Message: "INVALID_ORDER",
-			Error:   nil,
-			Data:    nil,
-		}, resp)
-	})
-	t.Run("testGetUsersDefaultLimit", func(t *testing.T) {
-		t.Parallel()
-		// DL: default limit
-		users := make([]models.User, 25)
-		for i := 0; i < 25; i++ {
-			users[i] = models.User{
-				Username: fmt.Sprintf("test_DL_get_users_%d", i),
-				Nickname: fmt.Sprintf("test_DL_get_users_n_%d", i),
-				Email:    fmt.Sprintf("test_DL_get_users_%d@e.e", i),
-				Password: fmt.Sprintf("test_DL_get_users_pwd_%d", i),
-			}
-			base.DB.Create(&users[i])
-		}
-		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
-			Search: "test_DL_get_users_",
-		}, applyNormalUser))
-		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		jsonEQ(t, response.GetUsersResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: respData{
-				Users: users[:20],
-				Count: 20,
-				Total: 25,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
-					"limit":  "20",
-					"offset": "20",
-				}),
+}
+
+func TestGetUserMe(t *testing.T) {
+	t.Parallel()
+	classA := testClass{ID: 1}
+	dummy := "test_class"
+	testRole := models.Role{
+		Name:   "testGetMeTestRole",
+		Target: &dummy,
+	}
+	base.DB.Create(&testRole)
+	testRole.AddPermission("all")
+
+	successTests := []struct {
+		name       string
+		user       models.User
+		role       models.Role
+		roleTarget models.HasRole
+	}{
+		{
+			name: "Success",
+			user: models.User{
+				Username: "test_get_me_4",
+				Nickname: "test_get_me_4_nick",
+				Email:    "test_get_me_4@mail.com",
+				Password: utils.HashPassword("test_get_me_4_password"),
 			},
-		}, resp)
+			role:       models.Role{},
+			roleTarget: nil,
+		},
+		{
+			name: "SuccessWithRole",
+			user: models.User{
+				Username: "test_get_me_5",
+				Nickname: "test_get_me_5_nick",
+				Email:    "test_get_me_5@mail.com",
+				Password: utils.HashPassword("test_get_me_5_password"),
+			},
+			role:       testRole,
+			roleTarget: classA,
+		},
+	}
+
+	t.Run("testGetMeSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			t.Run("testGetMe"+test.name, func(t *testing.T) {
+				test := test
+				t.Parallel()
+				assert.Nil(t, base.DB.Create(&test.user).Error)
+				if test.role.ID != 0 {
+					test.user.GrantRole(test.role, test.roleTarget)
+				} else {
+					test.user.LoadRoles()
+				}
+				httpResp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetMeRequest{}, applyUser(test.user)))
+				resp := response.GetMeResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, test.user.Username, resp.Data.Username)
+				assert.Equal(t, test.user.Nickname, resp.Data.Nickname)
+				assert.Equal(t, test.user.Email, resp.Data.Email)
+				assert.Equal(t, response.GetRoleProfileSlice(test.user.Roles), resp.Data.Roles)
+				databaseUser := models.User{}
+				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				databaseUser.LoadRoles()
+				assert.Equal(t, test.user.Username, databaseUser.Username)
+				assert.Equal(t, test.user.Nickname, databaseUser.Nickname)
+				assert.Equal(t, test.user.Email, databaseUser.Email)
+				assert.Equal(t, test.user.Roles, databaseUser.Roles)
+			})
+		}
 	})
 }
 
 func TestUpdateUserMe(t *testing.T) {
 	t.Parallel()
-	t.Run("testUpdateUserMeWithoutParams", func(t *testing.T) {
-		t.Parallel()
-		user := models.User{
-			Username: "test_update_me_1",
-			Nickname: "test_update_me_1_nick",
-			Email:    "test_update_me_1@mail.com",
-			Password: utils.HashPassword("test_update_me_1_password"),
-		}
-		base.DB.Create(&user)
-		httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-			Username: "",
-			Nickname: "",
-			Email:    "",
-		}, applyUser(user)))
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
-		assert.Equal(t, response.Response{
-			Message: "VALIDATION_ERROR",
-			Error: []interface{}{
-				map[string]interface{}{
-					"field":       "Username",
-					"reason":      "required",
-					"translation": "用户名为必填字段",
-				},
-				map[string]interface{}{
-					"field":       "Nickname",
-					"reason":      "required",
-					"translation": "昵称为必填字段",
-				},
-				map[string]interface{}{
-					"field":       "Email",
-					"reason":      "required",
-					"translation": "邮箱为必填字段",
-				},
+
+	user1 := models.User{
+		Username: "test_update_me_1",
+		Nickname: "test_update_me_1_nick",
+		Email:    "test_update_me_1@mail.com",
+		Password: utils.HashPassword("test_update_me_1_password"),
+	}
+	user2 := models.User{
+		Username: "test_update_me_2",
+		Nickname: "test_update_me_2_nick",
+		Email:    "test_update_me_2@mail.com",
+		Password: utils.HashPassword("test_update_me_2_password"),
+	}
+	user3 := models.User{
+		Username: "test_update_me_3",
+		Nickname: "test_update_me_3_nick",
+		Email:    "test_update_me_3@mail.com",
+		Password: utils.HashPassword("test_update_me_3_password"),
+	}
+	dummyUserForConflict := models.User{
+		Username: "test_update_me_conflict",
+		Nickname: "test_update_me_conflict_nick",
+		Email:    "test_update_me_conflict@mail.com",
+		Password: utils.HashPassword("test_update_me_conflict_pwd"),
+	}
+	assert.Nil(t, base.DB.Create(&user1).Error)
+	assert.Nil(t, base.DB.Create(&user2).Error)
+	assert.Nil(t, base.DB.Create(&user3).Error)
+	assert.Nil(t, base.DB.Create(&dummyUserForConflict).Error)
+
+	failTests := []failTest{
+		{
+			name:   "WithoutParams",
+			method: "PUT",
+			path:   "/api/user/me",
+			req: request.UpdateMeRequest{
+				Username: "",
+				Nickname: "",
+				Email:    "",
 			},
-			Data: nil,
-		}, resp)
-	})
-	t.Run("testUpdateUserMeWithParams", func(t *testing.T) {
-		t.Parallel()
-		user2 := models.User{
-			Username: "test_update_me_2",
-			Nickname: "test_update_me_2_nick",
-			Email:    "test_update_me_2@mail.com",
-			Password: utils.HashPassword("test_update_me_2_password"),
-		}
-		user3 := models.User{
-			Username: "test_update_me_3",
-			Nickname: "test_update_me_3_nick",
-			Email:    "test_update_me_3@mail.com",
-			Password: utils.HashPassword("test_update_me_3_password"),
-		}
-		base.DB.Create(&user2)
-		base.DB.Create(&user3)
-		user2.LoadRoles()
-		user3.LoadRoles()
-		t.Run("testUpdateUserMeSuccess", func(t *testing.T) {
-			t.Parallel()
-			user := models.User{
+			reqOptions: []reqOption{
+				applyUser(user1),
+			},
+			statusCode: http.StatusBadRequest,
+			resp: response.Response{
+				Message: "VALIDATION_ERROR",
+				Error: []interface{}{
+					map[string]interface{}{
+						"field":       "Username",
+						"reason":      "required",
+						"translation": "用户名为必填字段",
+					},
+					map[string]interface{}{
+						"field":       "Nickname",
+						"reason":      "required",
+						"translation": "昵称为必填字段",
+					},
+					map[string]interface{}{
+						"field":       "Email",
+						"reason":      "required",
+						"translation": "邮箱为必填字段",
+					},
+				},
+				Data: nil,
+			},
+		},
+		{
+			name:   "ConflictUsername",
+			method: "PUT",
+			path:   "/api/user/me",
+			req: request.UpdateMeRequest{
+				Username: "test_update_me_conflict",
+				Nickname: "test_update_me_2_nick",
+				Email:    "test_update_me_2@mail.com",
+			},
+			reqOptions: []reqOption{
+				applyUser(user2),
+			},
+			statusCode: http.StatusConflict,
+			resp:       response.ErrorResp("CONFLICT_USERNAME", nil),
+		},
+		{
+			name:   "ConflictEmail",
+			method: "PUT",
+			path:   "/api/user/me",
+			req: request.UpdateMeRequest{
+				Username: "test_update_me_3",
+				Nickname: "test_update_me_3_nick",
+				Email:    "test_update_me_conflict@mail.com",
+			},
+			reqOptions: []reqOption{
+				applyUser(user3),
+			},
+			statusCode: http.StatusConflict,
+			resp:       response.ErrorResp("CONFLICT_EMAIL", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "UpdateMe")
+
+	classA := testClass{ID: 1}
+	dummy := "test_class"
+	testRole := models.Role{
+		Name:   "testUpdateMeTestRole",
+		Target: &dummy,
+	}
+	base.DB.Create(&testRole)
+	testRole.AddPermission("all")
+
+	successTests := []struct {
+		name       string
+		user       models.User
+		req        request.UpdateMeRequest
+		role       models.Role
+		roleTarget models.HasRole
+	}{
+		{
+			name: "Success",
+			user: models.User{
 				Username: "test_update_me_4",
 				Nickname: "test_update_me_4_nick",
 				Email:    "test_update_me_4@mail.com",
 				Password: utils.HashPassword("test_update_me_4_password"),
-			}
-			base.DB.Create(&user)
-			user.LoadRoles()
-			respResponse := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-				Username: "test_update_me_success_0",
-				Nickname: "test_update_me_success_0",
-				Email:    "test_update_me_success_0@e.com",
-			}, applyUser(user)))
-			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
-			resp := response.UpdateMeResponse{}
-			respBytes, err := ioutil.ReadAll(respResponse.Body)
-			assert.Equal(t, nil, err)
-			err = json.Unmarshal(respBytes, &resp)
-			assert.Equal(t, nil, err)
-			databaseUser := models.User{}
-			err = base.DB.Where("id = ?", user.ID).First(&databaseUser).Error
-			assert.Equal(t, nil, err)
-			databaseUser.LoadRoles()
-			jsonEQ(t, resp.Data.User, databaseUser)
-		})
-		t.Run("testUpdateUserMeDuplicateEmail", func(t *testing.T) {
-			t.Parallel()
-			resp := response.Response{}
-			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-				Username: "test_update_me_2",
-				Nickname: "test_update_me_2_nick",
-				Email:    "test_update_me_3@mail.com",
-			}, applyUser(user2)))
-			mustJsonDecode(httpResp, &resp)
-			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-			assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp)
-		})
-		t.Run("testUpdateUserMeDuplicateUsername", func(t *testing.T) {
-			t.Parallel()
-			resp := response.Response{}
-			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
-				Username: "test_update_me_3",
-				Nickname: "test_update_me_2_nick",
-				Email:    "test_update_me_2@mail.com",
-			}, applyUser(user2)))
-			mustJsonDecode(httpResp, &resp)
-			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
-			assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp)
-		})
+			},
+			req: request.UpdateMeRequest{
+				Username: "test_update_me_success_4",
+				Nickname: "test_update_me_success_4",
+				Email:    "test_update_me_success_4@e.com",
+			},
+			role:       models.Role{},
+			roleTarget: nil,
+		},
+		{
+			name: "SuccessWithRole",
+			user: models.User{
+				Username: "test_update_me_5",
+				Nickname: "test_update_me_5_nick",
+				Email:    "test_update_me_5@mail.com",
+				Password: utils.HashPassword("test_update_me_5_password"),
+			},
+			req: request.UpdateMeRequest{
+				Username: "test_update_me_success_5",
+				Nickname: "test_update_me_success_5",
+				Email:    "test_update_me_success_5@e.com",
+			},
+			role:       testRole,
+			roleTarget: classA,
+		},
+	}
+
+	t.Run("testUpdateMeSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			t.Run("testUpdateMe"+test.name, func(t *testing.T) {
+				test := test
+				t.Parallel()
+				assert.Nil(t, base.DB.Create(&test.user).Error)
+				if test.role.ID != 0 {
+					test.user.GrantRole(test.role, test.roleTarget)
+				} else {
+					test.user.LoadRoles()
+				}
+				httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", test.req, applyUser(test.user)))
+				resp := response.UpdateMeResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, test.req.Username, resp.Data.Username)
+				assert.Equal(t, test.req.Nickname, resp.Data.Nickname)
+				assert.Equal(t, test.req.Email, resp.Data.Email)
+				assert.Equal(t, response.GetRoleProfileSlice(test.user.Roles), resp.Data.Roles)
+				databaseUser := models.User{}
+				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				databaseUser.LoadRoles()
+				assert.Equal(t, test.req.Username, databaseUser.Username)
+				assert.Equal(t, test.req.Nickname, databaseUser.Nickname)
+				assert.Equal(t, test.req.Email, databaseUser.Email)
+				assert.Equal(t, test.user.Roles, databaseUser.Roles)
+			})
+		}
 	})
 }
 

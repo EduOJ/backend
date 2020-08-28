@@ -42,11 +42,11 @@ func Login(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
-			Token       string `json:"token"`
+			User  response.UserProfileForMe `json:"user"`
+			Token string                    `json:"token"`
 		}{
-			user,
-			token.Token,
+			User:  *response.GetUserProfileForMe(&user),
+			Token: token.Token,
 		},
 	})
 }
@@ -83,11 +83,11 @@ func Register(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			models.User `json:"user"`
-			Token       string `json:"token"`
+			User  response.UserProfileForMe `json:"user"`
+			Token string                    `json:"token"`
 		}{
-			user,
-			token.Token,
+			User:  *response.GetUserProfileForMe(&user),
+			Token: token.Token,
 		},
 	})
 }
