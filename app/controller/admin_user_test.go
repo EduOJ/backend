@@ -152,9 +152,9 @@ func TestAdminCreateUser(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*models.User `json:"user"`
+				*response.UserProfileForAdmin `json:"user"`
 			}{
-				&databaseUser,
+				response.GetUserProfileForAdmin(&databaseUser),
 			},
 		}, httpResp)
 	})
@@ -413,9 +413,9 @@ func TestAdminUpdateUser(t *testing.T) {
 					Message: "SUCCESS",
 					Error:   nil,
 					Data: struct {
-						*models.User `json:"user"`
+						*response.UserProfileForAdmin `json:"user"`
 					}{
-						&databaseUser,
+						response.GetUserProfileForAdmin(&databaseUser),
 					},
 				}, httpResp)
 			})
@@ -515,6 +515,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		}
 	})
 }
+
 func TestAdminGetUser(t *testing.T) {
 	t.Parallel()
 
@@ -578,25 +579,23 @@ func TestAdminGetUser(t *testing.T) {
 			path: "id",
 			req:  request.AdminGetUserRequest{},
 			user: models.User{
-				Username: "test_get_user_1",
-				Nickname: "test_get_user_1_nick",
-				Email:    "test_get_user_1@mail.com",
-				Password: utils.HashPassword("test_get_user_1_pwd"),
-				Roles:    []models.UserHasRole{},
+				Username: "test_admin_get_user_1",
+				Nickname: "test_admin_get_user_1_nick",
+				Email:    "test_admin_get_user_1@e.com",
+				Password: utils.HashPassword("test_admin_get_user_1_pwd"),
 			},
 			role:       models.Role{},
 			roleTarget: nil,
 		},
 		{
 			name: "WithUsername",
-			path: "/api/admin/user/test_get_user_2",
+			path: "/api/admin/user/test_admin_get_user_2",
 			req:  request.AdminGetUserRequest{},
 			user: models.User{
-				Username: "test_get_user_2",
-				Nickname: "test_get_user_2_nick",
-				Email:    "test_get_user_2@mail.com",
-				Password: utils.HashPassword("test_get_user_2_pwd"),
-				Roles:    []models.UserHasRole{},
+				Username: "test_admin_get_user_2",
+				Nickname: "test_admin_get_user_2_nick",
+				Email:    "test_admin_get_user_2@e.com",
+				Password: utils.HashPassword("test_admin_get_user_2_pwd"),
 			},
 			role:       models.Role{},
 			roleTarget: nil,
@@ -606,10 +605,10 @@ func TestAdminGetUser(t *testing.T) {
 			path: "id",
 			req:  request.AdminGetUserRequest{},
 			user: models.User{
-				Username: "test_get_user_3",
-				Nickname: "test_get_user_3_nick",
-				Email:    "test_get_user_3@mail.com",
-				Password: utils.HashPassword("test_get_user_3_pwd"),
+				Username: "test_admin_get_user_3",
+				Nickname: "test_admin_get_user_3_nick",
+				Email:    "test_admin_get_user_3@e.com",
+				Password: utils.HashPassword("test_admin_get_user_3_pwd"),
 			},
 			role:       testRole,
 			roleTarget: classA,
@@ -623,8 +622,10 @@ func TestAdminGetUser(t *testing.T) {
 				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
-				if test.role.Name != "" {
+				if test.role.ID != 0 {
 					test.user.GrantRole(test.role, test.roleTarget)
+				} else {
+					test.user.LoadRoles()
 				}
 				if test.path == "id" {
 					test.path = fmt.Sprintf("/api/admin/user/%d", test.user.ID)
@@ -640,9 +641,9 @@ func TestAdminGetUser(t *testing.T) {
 					Message: "SUCCESS",
 					Error:   nil,
 					Data: struct {
-						*models.User `json:"user"`
+						*response.UserProfileForAdmin `json:"user"`
 					}{
-						User: &test.user,
+						response.GetUserProfileForAdmin(&test.user),
 					},
 				}, httpResp)
 			})
@@ -693,12 +694,12 @@ func TestAdminGetUsers(t *testing.T) {
 	}
 
 	type respData struct {
-		Users  []models.User `json:"users"` // TODO:modify models.users
-		Total  int           `json:"total"`
-		Count  int           `json:"count"`
-		Offset int           `json:"offset"`
-		Prev   *string       `json:"prev"`
-		Next   *string       `json:"next"`
+		Users  []response.UserProfile `json:"users"`
+		Total  int                    `json:"total"`
+		Count  int                    `json:"count"`
+		Offset int                    `json:"offset"`
+		Prev   *string                `json:"prev"`
+		Next   *string                `json:"next"`
 	}
 
 	baseUrl := "/api/admin/users"
@@ -772,11 +773,11 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "test_admin_get_users",
 			},
 			respData: respData{
-				Users: []models.User{
-					user1,
-					user2,
-					user3,
-					user4,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user4),
 				},
 				Total:  4,
 				Count:  4,
@@ -791,7 +792,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "test_admin_get_users_non_exist",
 			},
 			respData: respData{
-				Users: []models.User{},
+				Users: []response.UserProfile{},
 			},
 		},
 		{
@@ -800,8 +801,8 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "test_admin_get_users_2",
 			},
 			respData: respData{
-				Users: []models.User{
-					user2,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user2),
 				},
 				Total:  1,
 				Count:  1,
@@ -816,8 +817,8 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "test_admin_get_users_3_nick",
 			},
 			respData: respData{
-				Users: []models.User{
-					user3,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
 				},
 				Total:  1,
 				Count:  1,
@@ -832,8 +833,8 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "4_test_admin_get_users@e.com",
 			},
 			respData: respData{
-				Users: []models.User{
-					user4,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user4),
 				},
 				Total:  1,
 				Count:  1,
@@ -848,9 +849,9 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "test_admin_get_users_0",
 			},
 			respData: respData{
-				Users: []models.User{
-					user1,
-					user3,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user3),
 				},
 				Total:  2,
 				Count:  2,
@@ -865,9 +866,9 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "0_test_admin_get_users_",
 			},
 			respData: respData{
-				Users: []models.User{
-					user2,
-					user3,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user3),
 				},
 				Total:  2,
 				Count:  2,
@@ -882,10 +883,10 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "_test_admin_get_users@e.com",
 			},
 			respData: respData{
-				Users: []models.User{
-					user1,
-					user2,
-					user4,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user4),
 				},
 				Total:  3,
 				Count:  3,
@@ -901,9 +902,9 @@ func TestAdminGetUsers(t *testing.T) {
 				Limit:  2,
 			},
 			respData: respData{
-				Users: []models.User{
-					user1,
-					user2,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
 				},
 				Total:  4,
 				Count:  2,
@@ -922,9 +923,9 @@ func TestAdminGetUsers(t *testing.T) {
 				Limit:  2,
 			},
 			respData: respData{
-				Users: []models.User{
-					user1,
-					user2,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user2),
 				},
 				Total:  4,
 				Count:  2,
@@ -944,9 +945,9 @@ func TestAdminGetUsers(t *testing.T) {
 				Offset: 1,
 			},
 			respData: respData{
-				Users: []models.User{
-					user2,
-					user3,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user3),
 				},
 				Total:  4,
 				Count:  2,
@@ -966,9 +967,9 @@ func TestAdminGetUsers(t *testing.T) {
 				Offset: 2,
 			},
 			respData: respData{
-				Users: []models.User{
-					user3,
-					user4,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user4),
 				},
 				Total:  4,
 				Count:  2,
@@ -988,8 +989,8 @@ func TestAdminGetUsers(t *testing.T) {
 				Offset: 2,
 			},
 			respData: respData{
-				Users: []models.User{
-					user3,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
 				},
 				Total:  4,
 				Count:  1,
@@ -1011,11 +1012,11 @@ func TestAdminGetUsers(t *testing.T) {
 				OrderBy: "id.DESC",
 			},
 			respData: respData{
-				Users: []models.User{
-					user4,
-					user3,
-					user2,
-					user1,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user4),
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user1),
 				},
 				Total:  4,
 				Count:  4,
@@ -1031,11 +1032,11 @@ func TestAdminGetUsers(t *testing.T) {
 				OrderBy: "username.ASC",
 			},
 			respData: respData{
-				Users: []models.User{
-					user1,
-					user3,
-					user2,
-					user4,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user2),
+					*response.GetUserProfile(&user4),
 				},
 				Total:  4,
 				Count:  4,
@@ -1051,11 +1052,11 @@ func TestAdminGetUsers(t *testing.T) {
 				OrderBy: "nickname.DESC",
 			},
 			respData: respData{
-				Users: []models.User{
-					user3,
-					user1,
-					user4,
-					user2,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user3),
+					*response.GetUserProfile(&user1),
+					*response.GetUserProfile(&user4),
+					*response.GetUserProfile(&user2),
 				},
 				Total:  4,
 				Count:  4,
@@ -1073,8 +1074,8 @@ func TestAdminGetUsers(t *testing.T) {
 				Offset:  2,
 			},
 			respData: respData{
-				Users: []models.User{
-					user4,
+				Users: []response.UserProfile{
+					*response.GetUserProfile(&user4),
 				},
 				Total:  4,
 				Count:  1,
@@ -1095,7 +1096,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Search: "test_DL_admin_get_users_",
 			},
 			respData: respData{
-				Users:  DLUsers[:20],
+				Users:  response.GetUserProfileSlice(DLUsers[:20]),
 				Total:  25,
 				Count:  20,
 				Offset: 0,

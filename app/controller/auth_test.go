@@ -32,7 +32,6 @@ func TestLogin(t *testing.T) {
 		Nickname: "test_login_wrong_password_nick",
 		Email:    "test_login_wrong_password@e.e",
 		Password: utils.HashPassword("test_login_password"),
-		Roles:    []models.UserHasRole{},
 	}
 	assert.Nil(t, base.DB.Create(&userTestingWrongPassword).Error)
 
@@ -114,7 +113,6 @@ func TestLogin(t *testing.T) {
 				Nickname: "test_login_1_nick",
 				Email:    "test_login_1@mail.com",
 				Password: utils.HashPassword("test_login_1_pwd"),
-				Roles:    []models.UserHasRole{},
 			},
 			req: request.LoginRequest{
 				UsernameOrEmail: "test_login_1",
@@ -131,7 +129,6 @@ func TestLogin(t *testing.T) {
 				Nickname: "test_login_2_nick",
 				Email:    "test_login_2@mail.com",
 				Password: utils.HashPassword("test_login_2_pwd"),
-				Roles:    []models.UserHasRole{},
 			},
 			req: request.LoginRequest{
 				UsernameOrEmail: "test_login_2@mail.com",
@@ -148,7 +145,6 @@ func TestLogin(t *testing.T) {
 				Nickname: "test_login_3_nick",
 				Email:    "test_login_3@mail.com",
 				Password: utils.HashPassword("test_login_3_pwd"),
-				Roles:    []models.UserHasRole{},
 			},
 			req: request.LoginRequest{
 				UsernameOrEmail: "test_login_3",
@@ -185,14 +181,15 @@ func TestLogin(t *testing.T) {
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.role.ID != 0 {
 					test.user.GrantRole(test.role, test.roleTarget)
+				} else {
+					test.user.LoadRoles()
 				}
 				httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", test.req))
 				resp := response.LoginResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, "SUCCESS", resp.Message)
 				assert.Nil(t, resp.Error)
-				resp.Data.User.LoadRoles() // TODO: fix this
-				jsonEQ(t, test.user, resp.Data.User)
+				jsonEQ(t, response.GetUserProfileForMe(&test.user), resp.Data.User)
 				token := models.Token{}
 				assert.Nil(t, base.DB.Preload("User").Where("token = ?", resp.Data.Token).First(&token).Error)
 				token.User.LoadRoles()
@@ -311,7 +308,7 @@ func TestRegister(t *testing.T) {
 		databaseUser := models.User{}
 		assert.Nil(t, base.DB.Where("email = ?", "test_register_3@mail.com").First(&databaseUser).Error)
 		// resp == database
-		jsonEQ(t, resp.Data.User, databaseUser)
+		jsonEQ(t, resp.Data.User, response.GetUserProfileForMe(&databaseUser))
 		token := models.Token{}
 		assert.Nil(t, base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error)
 		// token == database
