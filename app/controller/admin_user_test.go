@@ -394,8 +394,8 @@ func TestAdminUpdateUser(t *testing.T) {
 	t.Run("testAdminUpdateUserSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testAdminUpdateUser"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.originalUser).Error)
 				if test.path == "id" {
@@ -494,8 +494,8 @@ func TestAdminDeleteUser(t *testing.T) {
 	t.Run("testAdminDeleteUserSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testAdminDeleteUser"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.path == "id" {
@@ -618,8 +618,8 @@ func TestAdminGetUser(t *testing.T) {
 	t.Run("testAdminGetUserSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testAdminGetUser"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.role.ID != 0 {
@@ -1112,8 +1112,8 @@ func TestAdminGetUsers(t *testing.T) {
 	t.Run("testAdminGetUsersSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testAdminGetUsers"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", test.req, applyAdminUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)

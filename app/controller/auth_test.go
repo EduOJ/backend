@@ -175,8 +175,8 @@ func TestLogin(t *testing.T) {
 	t.Run("testLoginSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testLogin"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.role.ID != 0 {
