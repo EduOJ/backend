@@ -175,7 +175,7 @@ func TestLogin(t *testing.T) {
 		classA := testClass{ID: 1}
 		dummy := "test_class"
 		adminRole := models.Role{
-			Name:   "admin",
+			Name:   "testLoginAdmin",
 			Target: &dummy,
 		}
 		base.DB.Create(&adminRole)
@@ -281,6 +281,7 @@ func TestRegister(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.Equal(t, user.ID, token.UserID)
 		jsonEQ(t, resp.Data.User, user)
+		//TODO: also test if user info == requested info
 
 		resp2 := response.Response{}
 		httpResponse = makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
