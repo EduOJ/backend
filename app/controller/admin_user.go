@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 func AdminCreateUser(c echo.Context) error {
@@ -39,11 +38,6 @@ func AdminCreateUser(c echo.Context) error {
 		Password: hashed,
 	}
 	utils.PanicIfDBError(base.DB.Create(&user), "could not create user")
-	token := models.Token{
-		Token: utils.RandStr(32),
-		User:  user,
-	}
-	utils.PanicIfDBError(base.DB.Create(&token), "could not create token for user")
 	return c.JSON(http.StatusCreated, response.AdminCreateUserResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -76,12 +70,13 @@ func AdminUpdateUser(c echo.Context) error {
 	if count > 1 || (count == 1 && user.Username != req.Username) {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
-	hashed := utils.HashPassword(req.Password)
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
-	user.Password = hashed
-	user.UpdatedAt = time.Now()
+	if req.Password != "" && req.Password != "123456" {
+		hashed := utils.HashPassword(req.Password)
+		user.Password = hashed
+	}
 	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.AdminUpdateUserResponse{
 		Message: "SUCCESS",

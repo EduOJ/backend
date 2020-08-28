@@ -1,12 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 	"testing"
 )
 
@@ -25,7 +25,7 @@ func TestFindUser(t *testing.T) {
 			Password: "test_find_user_id_password",
 		}
 		assert.Nil(t, base.DB.Create(&user).Error)
-		foundUser, err := FindUser(strconv.Itoa(int(user.ID)))
+		foundUser, err := FindUser(fmt.Sprintf("%d", user.ID))
 		if foundUser != nil {
 			assert.Equal(t, user, *foundUser)
 		}

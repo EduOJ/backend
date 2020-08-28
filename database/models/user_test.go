@@ -56,22 +56,22 @@ func TestCan(t *testing.T) {
 	base.DB.Create(&classB)
 	dummy := "test_class"
 	teacher := Role{
-		Name:   "teacher",
+		Name:   "testCanTeacher",
 		Target: &dummy,
 	}
 	assistant := Role{
-		Name:   "assistant",
+		Name:   "testCanAssistant",
 		Target: &dummy,
 	}
 	admin := Role{
-		Name:   "admin",
+		Name:   "testCanAdmin",
 		Target: &dummy,
 	}
 	globalRole := Role{
-		Name: "global_role",
+		Name: "testCanGlobalRole",
 	}
 	globalAdmin := Role{
-		Name: "global_admin",
+		Name: "testCanGlobalAdmin",
 	}
 	base.DB.Create(&teacher)
 	base.DB.Create(&assistant)
@@ -106,30 +106,30 @@ func TestCan(t *testing.T) {
 	testUser1.GrantRole(globalAdmin)
 	t.Run("scoped", func(t *testing.T) {
 		t.Run("normal", func(t *testing.T) {
-			assert := assert.New(t)
-			assert.True(testUser0.Can("permission_teacher", classA))
-			assert.False(testUser0.Can("permission_teacher", classB))
-			assert.True(testUser0.Can("permission_both", classA))
-			assert.True(testUser0.Can("permission_both", classB))
-			assert.False(testUser0.Can("permission_both"))
-			assert.True(testUser1.Can("permission_teacher", classB))
-			assert.True(testUser1.Can("permission_both", classB))
+			thisAssert := assert.New(t)
+			thisAssert.True(testUser0.Can("permission_teacher", classA))
+			thisAssert.False(testUser0.Can("permission_teacher", classB))
+			thisAssert.True(testUser0.Can("permission_both", classA))
+			thisAssert.True(testUser0.Can("permission_both", classB))
+			thisAssert.False(testUser0.Can("permission_both"))
+			thisAssert.True(testUser1.Can("permission_teacher", classB))
+			thisAssert.True(testUser1.Can("permission_both", classB))
 		})
 		t.Run("admin", func(t *testing.T) {
-			assert := assert.New(t)
-			assert.False(testUser1.Can("all", classA))
-			assert.True(testUser1.Can("all", classB))
-			assert.True(testUser1.Can("permission_teacher", classB))
-			assert.True(testUser1.Can("permission_both", classB))
-			assert.True(testUser1.Can("permission_non_existing", classB))
+			thisAssert := assert.New(t)
+			thisAssert.False(testUser1.Can("all", classA))
+			thisAssert.True(testUser1.Can("all", classB))
+			thisAssert.True(testUser1.Can("permission_teacher", classB))
+			thisAssert.True(testUser1.Can("permission_both", classB))
+			thisAssert.True(testUser1.Can("permission_non_existing", classB))
 		})
 	})
 	t.Run("global", func(t *testing.T) {
-		assert := assert.New(t)
-		assert.True(testUser0.Can("global_permission"))
-		assert.False(testUser0.Can("non_existing_permission"))
-		assert.True(testUser1.Can("global_permission"))
-		assert.True(testUser1.Can("non_existing_permission"))
+		thisAssert := assert.New(t)
+		thisAssert.True(testUser0.Can("global_permission"))
+		thisAssert.False(testUser0.Can("non_existing_permission"))
+		thisAssert.True(testUser1.Can("global_permission"))
+		thisAssert.True(testUser1.Can("non_existing_permission"))
 	})
 	assert.Panics(t, func() {
 		testUser0.Can("xxx", classA, classB)
