@@ -39,7 +39,7 @@ func TestGetUser(t *testing.T) {
 		t.Parallel()
 		user := models.User{
 			Username: "test_get_user_4",
-			Nickname: "test_get_user_4_rand_str",
+			Nickname: "test_get_user_4_nick",
 			Email:    "test_get_user_4@mail.com",
 			Password: utils.HashPassword("test_get_user_4_password"),
 		}
@@ -59,7 +59,7 @@ func TestGetUser(t *testing.T) {
 	t.Run("getUserSuccessWithUsername", func(t *testing.T) {
 		user := models.User{
 			Username: "test_get_user_5",
-			Nickname: "test_get_user_5_rand_str",
+			Nickname: "test_get_user_5_nick",
 			Email:    "test_get_user_5@mail.com",
 			Password: utils.HashPassword("test_get_user_5_password"),
 		}
@@ -86,7 +86,7 @@ func TestGetUserMe(t *testing.T) {
 		t.Parallel()
 		user := models.User{
 			Username: "test_get_me_1",
-			Nickname: "test_get_me_1_rand_str",
+			Nickname: "test_get_me_1_nick",
 			Email:    "test_get_me_1@mail.com",
 			Password: utils.HashPassword("test_get_me_1_password"),
 			Roles:    []models.UserHasRole{},
@@ -116,7 +116,7 @@ func TestGetUserMe(t *testing.T) {
 		adminRole.AddPermission("all")
 		user := models.User{
 			Username: "test_get_me_2",
-			Nickname: "test_get_me_2_rand_str",
+			Nickname: "test_get_me_2_nick",
 			Email:    "test_get_me_2@mail.com",
 			Password: utils.HashPassword("test_get_me_2_password"),
 			Roles:    []models.UserHasRole{},
@@ -576,7 +576,7 @@ func TestUpdateUserMe(t *testing.T) {
 		t.Parallel()
 		user := models.User{
 			Username: "test_update_me_1",
-			Nickname: "test_update_me_1_rand_str",
+			Nickname: "test_update_me_1_nick",
 			Email:    "test_update_me_1@mail.com",
 			Password: utils.HashPassword("test_update_me_1_password"),
 		}
@@ -615,13 +615,13 @@ func TestUpdateUserMe(t *testing.T) {
 		t.Parallel()
 		user2 := models.User{
 			Username: "test_update_me_2",
-			Nickname: "test_update_me_2_rand_str",
+			Nickname: "test_update_me_2_nick",
 			Email:    "test_update_me_2@mail.com",
 			Password: utils.HashPassword("test_update_me_2_password"),
 		}
 		user3 := models.User{
 			Username: "test_update_me_3",
-			Nickname: "test_update_me_3_rand_str",
+			Nickname: "test_update_me_3_nick",
 			Email:    "test_update_me_3@mail.com",
 			Password: utils.HashPassword("test_update_me_3_password"),
 		}
@@ -633,7 +633,7 @@ func TestUpdateUserMe(t *testing.T) {
 			t.Parallel()
 			user := models.User{
 				Username: "test_update_me_4",
-				Nickname: "test_update_me_4_rand_str",
+				Nickname: "test_update_me_4_nick",
 				Email:    "test_update_me_4@mail.com",
 				Password: utils.HashPassword("test_update_me_4_password"),
 			}
@@ -661,7 +661,7 @@ func TestUpdateUserMe(t *testing.T) {
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 				Username: "test_update_me_2",
-				Nickname: "test_update_me_2_rand_str",
+				Nickname: "test_update_me_2_nick",
 				Email:    "test_update_me_3@mail.com",
 			}, applyUser(user2)))
 			mustJsonDecode(httpResp, &resp)
@@ -673,7 +673,7 @@ func TestUpdateUserMe(t *testing.T) {
 			resp := response.Response{}
 			httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 				Username: "test_update_me_3",
-				Nickname: "test_update_me_2_rand_str",
+				Nickname: "test_update_me_2_nick",
 				Email:    "test_update_me_2@mail.com",
 			}, applyUser(user2)))
 			mustJsonDecode(httpResp, &resp)
@@ -715,7 +715,7 @@ func TestChangePassword(t *testing.T) {
 		t.Parallel()
 		user := models.User{
 			Username: "test_change_passwd_1",
-			Nickname: "test_change_passwd_1_rand_str",
+			Nickname: "test_change_passwd_1_nick",
 			Email:    "test_change_passwd_1@mail.com",
 			Password: utils.HashPassword("test_change_passwd_old_passwd"),
 		}
@@ -763,7 +763,7 @@ func TestChangePassword(t *testing.T) {
 		t.Parallel()
 		user := models.User{
 			Username: "test_change_passwd_2",
-			Nickname: "test_change_passwd_2_rand_str",
+			Nickname: "test_change_passwd_2_nick",
 			Email:    "test_change_passwd_2@mail.com",
 			Password: utils.HashPassword("test_change_passwd_old_passwd"),
 		}

@@ -164,7 +164,7 @@ func TestAdminUpdateUser(t *testing.T) {
 	t.Parallel()
 	user1 := models.User{
 		Username: "test_update_user_1",
-		Nickname: "test_update_user_1_rand_str",
+		Nickname: "test_update_user_1_nick",
 		Email:    "test_update_user_1@mail.com",
 		Password: utils.HashPassword("test_update_user_1_password"),
 	}
@@ -462,7 +462,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		},
 	}
 
-	runFailTests(t, failTests, "testAdminDeleteUser")
+	runFailTests(t, failTests, "AdminDeleteUser")
 
 	successTests := []struct {
 		name string
@@ -554,7 +554,7 @@ func TestAdminGetUser(t *testing.T) {
 		},
 	}
 
-	runFailTests(t, failTests, "testAdminGetUser")
+	runFailTests(t, failTests, "AdminGetUser")
 
 	classA := testClass{ID: 1}
 	dummy := "test_class"
@@ -759,7 +759,7 @@ func TestAdminGetUsers(t *testing.T) {
 		},
 	}
 
-	runFailTests(t, failTests, "testAdminGetUsers")
+	runFailTests(t, failTests, "AdminGetUsers")
 
 	successTests := []struct {
 		name     string
@@ -767,7 +767,7 @@ func TestAdminGetUsers(t *testing.T) {
 		respData respData
 	}{
 		{
-			name: "testAdminGetUsersAll",
+			name: "All",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users",
 			},
@@ -786,7 +786,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersNonExist",
+			name: "NonExist",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users_non_exist",
 			},
@@ -795,7 +795,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersSearchUsernameSingle",
+			name: "SearchUsernameSingle",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users_2",
 			},
@@ -811,7 +811,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersSearchNicknameSingle",
+			name: "SearchNicknameSingle",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users_3_nick",
 			},
@@ -827,7 +827,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersSearchEmailSingle",
+			name: "SearchEmailSingle",
 			req: request.AdminGetUsersRequest{
 				Search: "4_test_admin_get_users@e.com",
 			},
@@ -843,7 +843,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersSearchUsernameMultiple",
+			name: "SearchUsernameMultiple",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users_0",
 			},
@@ -860,7 +860,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersSearchNicknameMultiple",
+			name: "SearchNicknameMultiple",
 			req: request.AdminGetUsersRequest{
 				Search: "0_test_admin_get_users_",
 			},
@@ -877,7 +877,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersSearchEmailMultiple",
+			name: "SearchEmailMultiple",
 			req: request.AdminGetUsersRequest{
 				Search: "_test_admin_get_users@e.com",
 			},
@@ -895,7 +895,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersLimit",
+			name: "Limit",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users",
 				Limit:  2,
@@ -916,7 +916,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersOffset",
+			name: "Offset",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users",
 				Limit:  2,
@@ -937,7 +937,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersLimitAndOffsetNext",
+			name: "LimitAndOffsetNext",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users",
 				Limit:  2,
@@ -959,7 +959,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersLimitAndOffsetPrev",
+			name: "LimitAndOffsetPrev",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users",
 				Limit:  2,
@@ -981,7 +981,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersLimitAndOffsetPrevNext",
+			name: "LimitAndOffsetPrevNext",
 			req: request.AdminGetUsersRequest{
 				Search: "test_admin_get_users",
 				Limit:  1,
@@ -1005,7 +1005,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersOrderByIdDESC",
+			name: "OrderByIdDESC",
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "id.DESC",
@@ -1025,7 +1025,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersOrderByUsernameASC",
+			name: "OrderByUsernameASC",
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "username.ASC",
@@ -1045,7 +1045,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersOrderByNicknameDESC",
+			name: "OrderByNicknameDESC",
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "nickname.DESC",
@@ -1065,7 +1065,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersOrderByNicknameDESCWithLimitAndOffset",
+			name: "OrderByNicknameDESCWithLimitAndOffset",
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "nickname.DESC",
@@ -1090,7 +1090,7 @@ func TestAdminGetUsers(t *testing.T) {
 			},
 		},
 		{
-			name: "testAdminGetUsersDefaultLimit",
+			name: "DefaultLimit",
 			req: request.AdminGetUsersRequest{
 				Search: "test_DL_admin_get_users_",
 			},
@@ -1111,7 +1111,7 @@ func TestAdminGetUsers(t *testing.T) {
 	t.Run("testAdminGetUsersSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
-			t.Run(test.name, func(t *testing.T) {
+			t.Run("testAdminGetUsers"+test.name, func(t *testing.T) {
 				test := test
 				t.Parallel()
 				httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", test.req, applyAdminUser))
