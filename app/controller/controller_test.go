@@ -93,8 +93,8 @@ func runFailTests(t *testing.T, tests []failTest, groupName string) {
 	t.Run("test"+groupName+"Fail", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range tests {
+			test := test
 			t.Run("test"+groupName+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				httpResp := makeResp(makeReq(t, test.method, test.path, test.req, test.reqOptions...))
 				resp := response.Response{}

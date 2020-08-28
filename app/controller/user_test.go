@@ -103,8 +103,8 @@ func TestGetUser(t *testing.T) {
 	t.Run("testGetUserSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testGetUser"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.role.ID != 0 {
@@ -586,8 +586,8 @@ func TestGetUsers(t *testing.T) {
 	t.Run("testGetUsersSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testGetUsers"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, applyNormalUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -647,8 +647,8 @@ func TestGetUserMe(t *testing.T) {
 	t.Run("testGetMeSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testGetMe"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.role.ID != 0 {
@@ -830,8 +830,8 @@ func TestUpdateUserMe(t *testing.T) {
 	t.Run("testUpdateMeSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
+			test := test
 			t.Run("testUpdateMe"+test.name, func(t *testing.T) {
-				test := test
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.role.ID != 0 {
