@@ -14,13 +14,15 @@ import (
 	"testing"
 )
 
+// TODO: fix these
+
 func TestGetUser(t *testing.T) {
 	t.Parallel()
 
 	t.Run("getUserNonExistId", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, normalUserOption))
+		httpResp := makeResp(makeReq(t, "GET", "/api/user/-1", request.GetUserRequest{}, applyNormalUser))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -28,7 +30,7 @@ func TestGetUser(t *testing.T) {
 	t.Run("getUserNonExistUsername", func(t *testing.T) {
 		t.Parallel()
 		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, normalUserOption))
+		httpResp := makeResp(makeReq(t, "GET", "/api/user/test_get_non_existing_user", request.GetUserRequest{}, applyNormalUser))
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
@@ -42,7 +44,7 @@ func TestGetUser(t *testing.T) {
 			Password: utils.HashPassword("test_get_user_4_password"),
 		}
 		base.DB.Create(&user)
-		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/user/%d", user.ID), request.GetUserRequest{}, normalUserOption))
+		resp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/user/%d", user.ID), request.GetUserRequest{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.GetUserResponse{
 			Message: "SUCCESS",
@@ -63,7 +65,7 @@ func TestGetUser(t *testing.T) {
 		}
 		base.DB.Create(&user)
 		t.Parallel()
-		resp := makeResp(makeReq(t, "GET", "/api/user/test_get_user_5", request.GetUserRequest{}, normalUserOption))
+		resp := makeResp(makeReq(t, "GET", "/api/user/test_get_user_5", request.GetUserRequest{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.GetUserResponse{
 			Message: "SUCCESS",
@@ -90,14 +92,7 @@ func TestGetUserMe(t *testing.T) {
 			Roles:    []models.UserHasRole{},
 		}
 		base.DB.Create(&user)
-		token := models.Token{
-			Token: utils.RandStr(32),
-			User:  user,
-		}
-		base.DB.Create(&token)
-		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, applyUser(user)))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.GetUserResponse{
 			Message: "SUCCESS",
@@ -114,7 +109,7 @@ func TestGetUserMe(t *testing.T) {
 		classA := testClass{ID: 1}
 		dummy := "test_class"
 		adminRole := models.Role{
-			Name:   "admin",
+			Name:   "testGetUserAdmin",
 			Target: &dummy,
 		}
 		base.DB.Create(&adminRole)
@@ -128,14 +123,7 @@ func TestGetUserMe(t *testing.T) {
 		}
 		base.DB.Create(&user)
 		user.GrantRole(adminRole, classA)
-		token := models.Token{
-			Token: utils.RandStr(32),
-			User:  user,
-		}
-		base.DB.Create(&token)
-		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		resp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetUserRequest{}, applyUser(user)))
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		jsonEQ(t, response.GetUserResponse{
 			Message: "SUCCESS",
@@ -490,7 +478,7 @@ func TestGetUsers(t *testing.T) {
 			t.Run(test.name, func(t *testing.T) {
 				test := test
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, normalUserOption))
+				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, applyNormalUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
@@ -507,7 +495,7 @@ func TestGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search:  "test_get_users",
 			OrderBy: "wrongOrderByPara",
-		}, normalUserOption))
+		}, applyNormalUser))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -522,7 +510,7 @@ func TestGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search:  "test_get_users",
 			OrderBy: "nonExistingColumn.ASC",
-		}, normalUserOption))
+		}, applyNormalUser))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -537,7 +525,7 @@ func TestGetUsers(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search:  "test_get_users",
 			OrderBy: "id.NonExistingOrder",
-		}, normalUserOption))
+		}, applyNormalUser))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -562,7 +550,7 @@ func TestGetUsers(t *testing.T) {
 		}
 		httpResp := makeResp(makeReq(t, "GET", "/api/users", request.GetUsersRequest{
 			Search: "test_DL_get_users_",
-		}, normalUserOption))
+		}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -593,18 +581,11 @@ func TestUpdateUserMe(t *testing.T) {
 			Password: utils.HashPassword("test_update_me_1_password"),
 		}
 		base.DB.Create(&user)
-		token := models.Token{
-			Token: utils.RandStr(32),
-			User:  user,
-		}
-		base.DB.Create(&token)
 		httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 			Username: "",
 			Nickname: "",
 			Email:    "",
-		}, headerOption{
-			"Authorization": {token.Token},
-		}))
+		}, applyUser(user)))
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
@@ -648,11 +629,6 @@ func TestUpdateUserMe(t *testing.T) {
 		base.DB.Create(&user3)
 		user2.LoadRoles()
 		user3.LoadRoles()
-		user2Token := models.Token{
-			Token: utils.RandStr(32),
-			User:  user2,
-		}
-		base.DB.Create(&user2Token)
 		t.Run("testUpdateUserMeSuccess", func(t *testing.T) {
 			t.Parallel()
 			user := models.User{
@@ -663,18 +639,11 @@ func TestUpdateUserMe(t *testing.T) {
 			}
 			base.DB.Create(&user)
 			user.LoadRoles()
-			token := models.Token{
-				Token: utils.RandStr(32),
-				User:  user,
-			}
-			base.DB.Create(&token)
 			respResponse := makeResp(makeReq(t, "PUT", "/api/user/me", request.UpdateMeRequest{
 				Username: "test_update_me_success_0",
 				Nickname: "test_update_me_success_0",
 				Email:    "test_update_me_success_0@e.com",
-			}, headerOption{
-				"Authorization": {token.Token},
-			}))
+			}, applyUser(user)))
 			assert.Equal(t, http.StatusOK, respResponse.StatusCode)
 			resp := response.UpdateMeResponse{}
 			respBytes, err := ioutil.ReadAll(respResponse.Body)
@@ -694,9 +663,7 @@ func TestUpdateUserMe(t *testing.T) {
 				Username: "test_update_me_2",
 				Nickname: "test_update_me_2_rand_str",
 				Email:    "test_update_me_3@mail.com",
-			}, headerOption{
-				"Authorization": {user2Token.Token},
-			}))
+			}, applyUser(user2)))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("CONFLICT_EMAIL", nil), resp)
@@ -708,9 +675,7 @@ func TestUpdateUserMe(t *testing.T) {
 				Username: "test_update_me_3",
 				Nickname: "test_update_me_2_rand_str",
 				Email:    "test_update_me_2@mail.com",
-			}, headerOption{
-				"Authorization": {user2Token.Token},
-			}))
+			}, applyUser(user2)))
 			mustJsonDecode(httpResp, &resp)
 			assert.Equal(t, http.StatusConflict, httpResp.StatusCode)
 			assert.Equal(t, response.ErrorResp("CONFLICT_USERNAME", nil), resp)
@@ -726,7 +691,7 @@ func TestChangePassword(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
 			OldPassword: "",
 			NewPassword: "",
-		}, normalUserOption))
+		}, applyNormalUser))
 		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
 		jsonEQ(t, response.Response{
 			Message: "VALIDATION_ERROR",

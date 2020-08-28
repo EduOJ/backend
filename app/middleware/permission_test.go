@@ -48,7 +48,7 @@ func TestHasPermission(t *testing.T) {
 	classB := testClass{ID: 2}
 	dummy := "test_class"
 	adminRole := models.Role{
-		Name:   "admin",
+		Name:   "testHasRoleAdmin",
 		Target: &dummy,
 	}
 	permRole := models.Role{
@@ -56,10 +56,10 @@ func TestHasPermission(t *testing.T) {
 		Target: &dummy,
 	}
 	globalAdminRole := models.Role{
-		Name: "globalAdmin",
+		Name: "testHasRoleGlobalAdmin",
 	}
 	globalPermRole := models.Role{
-		Name: "globalTestRole",
+		Name: "testHasRoleGlobalTestRole",
 	}
 	base.DB.Create(&adminRole)
 	base.DB.Create(&permRole)

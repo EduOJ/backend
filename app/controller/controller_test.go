@@ -3,8 +3,10 @@ package controller_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app"
+	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
@@ -21,12 +23,12 @@ import (
 	"testing"
 )
 
-var adminUserOption headerOption
-var normalUserOption headerOption
+var applyAdminUser headerOption
+var applyNormalUser headerOption
 
 func initGeneralTestingUsers() {
 	adminRole := models.Role{
-		Name:   "globalAdmin",
+		Name:   "testUsersGlobalAdmin",
 		Target: nil,
 	}
 	base.DB.Create(&adminRole)
@@ -46,17 +48,23 @@ func initGeneralTestingUsers() {
 	base.DB.Create(&adminUser)
 	base.DB.Create(&normalUser)
 	adminUser.GrantRole(adminRole)
-	adminUserOption = headerOption{
-		"SetUserForTest": {strconv.Itoa(int(adminUser.ID))},
+	applyAdminUser = headerOption{
+		"Set-User-For-Test": {fmt.Sprintf("%d", adminUser.ID)},
 	}
-	normalUserOption = headerOption{
-		"SetUserForTest": {strconv.Itoa(int(normalUser.ID))},
+	applyNormalUser = headerOption{
+		"Set-User-For-Test": {fmt.Sprintf("%d", normalUser.ID)},
+	}
+}
+
+func applyUser(user models.User) headerOption {
+	return headerOption{
+		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 	}
 }
 
 func setUserForTest(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userIdString := c.Request().Header.Get("SetUserForTest")
+		userIdString := c.Request().Header.Get("Set-User-For-Test")
 		if userIdString == "" {
 			return next(c)
 		}
@@ -69,6 +77,33 @@ func setUserForTest(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set("user", user)
 		return next(c)
 	}
+}
+
+type failTest struct {
+	name       string
+	method     string
+	path       string
+	req        interface{}
+	reqOptions []reqOption
+	statusCode int
+	resp       response.Response
+}
+
+func runFailTests(t *testing.T, tests []failTest, groupName string) {
+	t.Run("test"+groupName+"Fail", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range tests {
+			t.Run("test"+groupName+test.name, func(t *testing.T) {
+				test := test
+				t.Parallel()
+				httpResp := makeResp(makeReq(t, test.method, test.path, test.req, test.reqOptions...))
+				resp := response.Response{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, test.statusCode, httpResp.StatusCode)
+				assert.Equal(t, test.resp, resp)
+			})
+		}
+	})
 }
 
 func jsonEQ(t *testing.T, expected, actual interface{}) {
