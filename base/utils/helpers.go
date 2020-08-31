@@ -50,7 +50,7 @@ func FindUser(id string) (*models.User, error) {
 			if err == gorm.ErrRecordNotFound {
 				return nil, err
 			} else {
-				panic(errors.Wrap(err, "could not query username"))
+				panic(errors.Wrap(err, "could not query user"))
 			}
 		}
 	}
