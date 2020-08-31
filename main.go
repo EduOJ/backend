@@ -21,5 +21,7 @@ func main() {
 		doMigrate()
 	case "clean", "clean-up", "clean-db":
 		clean()
+	case "edit_permission", "edit_perm", "ep":
+		editPermission()
 	}
 }
