@@ -158,7 +158,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
-		//add UpdateAt column
+		// add UpdateAt column
 		{
 			ID: "add_updated_at_column_to_tokens",
 			Migrate: func(tx *gorm.DB) error {
@@ -171,7 +171,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Table("tokens").DropColumn("updated_at").Error
 			},
 		},
-		//add RememberMe column
+		// add RememberMe column
 		{
 			ID: "add_remember_me_column_to_tokens",
 			Migrate: func(tx *gorm.DB) error {
@@ -182,6 +182,73 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Table("tokens").DropColumn("remember_me").Error
+			},
+		},
+		// add default admin roles
+		{
+			ID: "add_default_admin_role",
+			Migrate: func(tx *gorm.DB) (err error) {
+
+				type Permission struct {
+					ID     uint   `gorm:"primary_key" json:"id"`
+					RoleID uint   `json:"role_id"`
+					Name   string `json:"name"`
+				}
+
+				type Role struct {
+					ID          uint    `gorm:"primary_key" json:"id"`
+					Name        string  `json:"name"`
+					Target      *string `json:"target"`
+					Permissions []Permission
+				}
+
+				admin := Role{
+					Name:   "admin",
+					Target: nil,
+				}
+				err = tx.Create(&admin).Error
+				if err != nil {
+					return
+				}
+				perm := Permission{
+					RoleID: admin.ID,
+					Name:   "all",
+				}
+				err = tx.Model(&admin).Association("Permissions").Append(perm).Error
+				if err != nil {
+					return
+				}
+				return
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+
+				type Permission struct {
+					ID     uint   `gorm:"primary_key" json:"id"`
+					RoleID uint   `json:"role_id"`
+					Name   string `json:"name"`
+				}
+
+				type Role struct {
+					ID          uint    `gorm:"primary_key" json:"id"`
+					Name        string  `json:"name"`
+					Target      *string `json:"target"`
+					Permissions []Permission
+				}
+
+				var admin Role
+				err = tx.Where("name = ? ", "admin").First(&admin).Error
+				if err != nil {
+					return
+				}
+				err = tx.Delete(Permission{}, "role_id = ?", admin.ID).Error
+				if err != nil {
+					return
+				}
+				err = tx.Delete(&admin).Error
+				if err != nil {
+					return
+				}
+				return
 			},
 		},
 	})
