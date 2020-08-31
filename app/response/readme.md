@@ -15,6 +15,11 @@ Common return codes.
 | AUTH_SESSION_EXPIRED |   session超时    |
 |   AUTH_NEED_TOKEN    |   未提供token    |
 
+# Permission
+
+|            code            |         结果          |
+|:--------------------------:|:--------------------:|
+|     PERMISSION_DENIED      |        没有权限        |
 
 ## Auth
 
@@ -48,6 +53,7 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |     CONFLICT_EMAIL     |        邮箱重复        |
 |    CONFLICT_USERNAME   |       用户名重复       |
+|   PERMISSION_DENIED    |        没有权限        |
 
 #### AdminUpdateUser
 
@@ -56,24 +62,28 @@ Common return codes.
 |        NOT_FOUND        |     无法找到指定user   |
 |     CONFLICT_EMAIL     |        邮箱重复        |
 |    CONFLICT_USERNAME   |       用户名重复       |
+|    PERMISSION_DENIED   |        没有权限        |
 
 #### AdminDeleteUser
 
 |           code          |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到指定user   |
+|    PERMISSION_DENIED    |       没有权限        |
 
 #### AdminGetUser
 
 |           code          |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到指定user   |
+|    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminGetUsers
 
 |           code          |         结果         |
 |:-----------------------:|:-------------------:|
 |      INVALID_ORDER      |     无效的排序设置     |
+|    PERMISSION_DENIED    |        没有权限       |
 
 
 ## User
