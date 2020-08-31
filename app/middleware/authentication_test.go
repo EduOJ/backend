@@ -79,6 +79,12 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 		resp        response.Response
 	}{
 		{
+			name:        "testNon-existingToken",
+			tokenString: "Non-existingToken",
+			statusCode:  http.StatusUnauthorized,
+			resp:        response.ErrorResp("AUTH_TOKEN_NOT_FOUND", nil),
+		},
+		{
 			name:        "testExpiredToken",
 			tokenString: expiredToken.Token,
 			statusCode:  http.StatusRequestTimeout,
@@ -115,13 +121,6 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 		{
 			name:        "testEmptyToken",
 			tokenString: "",
-			user:        models.User{},
-			statusCode:  http.StatusOK,
-			resp:        httpSuccessResponse,
-		},
-		{
-			name:        "testNon-existingToken",
-			tokenString: "Non-existingToken",
 			user:        models.User{},
 			statusCode:  http.StatusOK,
 			resp:        httpSuccessResponse,
