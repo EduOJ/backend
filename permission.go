@@ -26,7 +26,7 @@ func (t *testClass) TypeName() string {
 	return t.name
 }
 
-func editPermission() {
+func permission() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Error(err)
@@ -48,15 +48,15 @@ func editPermission() {
 				log.Fatal(errors.Wrap(err, "Error reading editing permission command"))
 			}
 			args = strings.Split(input[:len(input)-1], " ")
-			quit = doEditPermission(args)
+			quit = doPermission(args)
 		}
 	} else {
-		doEditPermission(args[1:])
+		doPermission(args[1:])
 	}
 
 }
 
-func doEditPermission(args []string) (end bool) {
+func doPermission(args []string) (end bool) {
 	var err error
 	var operation string
 	switch args[0] {
@@ -65,15 +65,17 @@ func doEditPermission(args []string) (end bool) {
 Edit Permission
 
 Usage:
-  Single execution: $ EduOJ (edit-permission|edit-perm|ep) (operation) <args>...
+  Single execution: $ EduOJ (permission|perm) (operation) <args>...
 
-  Enter interactive mode: $ EduOJ (edit-permission|edit-perm|ep)
+  Enter interactive mode: $ EduOJ (permission|perm)
   Command format in interactive mode:  (operation) <args>...
 
 operations:
   (help|h)
+  (list-roles|lr) [<role_id|role_name>]
   (create-role|cr) <name> [<target>]
   (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
+  (delete-role|dr) <role_id|role_name>
   (add-permission|ap) <role_id|role_name> <permission>
   (quit|q)
 
@@ -81,7 +83,7 @@ Note:
   When the search value matches the name and ID at the same time, the system
   always selects the object that matches the ID.`)
 	case "create-role", "cr":
-		// edit_permission (create-role|cr) <name> [<target>]
+		// (create-role|cr) <name> [<target>]
 		operation = "Creating role"
 		err = validateArgumentsCount(len(args), 2, 3)
 		if err != nil {
@@ -94,8 +96,38 @@ Note:
 			r.Target = &args[2]
 		}
 		err = base.DB.Create(&r).Error
+	case "list-roles", "lr":
+		// (list-roles|lr) [<role_id|role_name>]
+		operation = "Listing roles"
+		err = validateArgumentsCount(len(args), 1, 2)
+		result := "\n"
+		if len(args) == 1 {
+			var roles []models.Role
+			err = base.DB.Set("gorm:auto_preload", true).Find(&roles).Error
+			if err != nil {
+				break
+			}
+			result += "\033[1mroles\033[0m\n"
+			for i, role := range roles {
+				if i < len(roles)-1 {
+					result += "├─"
+				} else {
+					result += "└─"
+				}
+				result += listPermissions(role, "│ ")
+			}
+		} else {
+			var role *models.Role
+			role, err = findRole(args[1])
+			if err != nil {
+				break
+			}
+			result += listPermissions(*role, "")
+		}
+
+		log.Info(result)
 	case "grant-role", "gr":
-		// edit_permission (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
+		// (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
 		operation = "Granting role"
 		err = validateArgumentsCount(len(args), 3, 4)
 		if err != nil {
@@ -127,8 +159,25 @@ Note:
 			user.GrantRole(*role, &target)
 
 		}
+	case "delete-role", "dr":
+		// (delete-role|dr) <role_id|role_name>
+		operation = "Deleting role"
+		err = validateArgumentsCount(len(args), 2, 2)
+		var role *models.Role
+		role, err := findRole(args[1])
+		if err != nil {
+			break
+		}
+		err = base.DB.Delete(&models.Permission{}, "role_id = ?", role.ID).Error
+		if err != nil {
+			break
+		}
+		err = base.DB.Delete(&role).Error
+		if err != nil {
+			break
+		}
 	case "add-permission", "ap":
-		// edit_permission (add-permission|ap) <role_id|role_name> <permission>
+		// (add-permission|ap) <role_id|role_name> <permission>
 		operation = "Adding permission"
 		err = validateArgumentsCount(len(args), 3, 3)
 		if err != nil {
@@ -159,9 +208,9 @@ Note:
 
 func findRole(id string) (*models.Role, error) {
 	role := models.Role{}
-	err := base.DB.Where("id = ?", id).First(&role).Error
+	err := base.DB.Set("gorm:auto_preload", true).Where("id = ?", id).First(&role).Error
 	if err != nil {
-		err = base.DB.Where("name = ?", id).First(&role).Error
+		err = base.DB.Set("gorm:auto_preload", true).Where("name = ?", id).First(&role).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, errors.New("role record not found")
@@ -178,6 +227,23 @@ func validateArgumentsCount(count int, min int, max int) (err error) {
 		err = errors.New("Too few command line parameters")
 	} else if count > max {
 		err = errors.New("Too many command line parameters")
+	}
+	return
+}
+
+func listPermissions(role models.Role, prefix string) (result string) {
+	result += fmt.Sprintf("\033[1m%s\033[0m[\u001B[35m%d\u001B[0m]", role.Name, role.ID)
+	if role.Target != nil {
+		result += fmt.Sprintf("(\u001B[33m%s\u001B[0m)", *role.Target)
+	}
+	result += "\n"
+	for i, perm := range role.Permissions {
+		if i < len(role.Permissions)-1 {
+			result += prefix + "├─"
+		} else {
+			result += prefix + "└─"
+		}
+		result += fmt.Sprintf("\u001B[1m%s\u001B[0m[\u001B[35m%d\u001B[0m]\n", perm.Name, perm.ID)
 	}
 	return
 }
