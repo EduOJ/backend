@@ -14,6 +14,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"os"
 )
@@ -153,4 +154,59 @@ func initGorm(toMigrate ...bool) {
 
 	// Cause we need to wait until all logs are wrote to the db
 	// So we dont close db connection here.
+}
+
+func initStorage() {
+	log.Debug("Starting storage client.")
+	endpointN, err := config.Get("storage.endpoint")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not read storage endpoint"))
+	}
+	endpoint, ok := endpointN.Value().(string)
+	if !ok {
+		log.Fatal(errors.Wrap(err, "could not read storage endpoint"))
+	}
+	accessKeyIDN, err := config.Get("storage.access_key_id")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not read storage access key id"))
+	}
+	accessKeyID, ok := accessKeyIDN.Value().(string)
+	if !ok {
+		log.Fatal(errors.Wrap(err, "could not read storage access key id"))
+	}
+	accessKeySecretN, err := config.Get("storage.access_key_secret")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not read storage access key secret"))
+	}
+	accessKeySecret, ok := accessKeySecretN.Value().(string)
+	if !ok {
+		log.Fatal(errors.Wrap(err, "could not read storage access key secret"))
+	}
+	sslN, err := config.Get("storage.ssl")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not read storage ssl"))
+	}
+	ssl, ok := sslN.Value().(bool)
+	if !ok {
+		log.Fatal(errors.Wrap(err, "could not read storage ssl"))
+	}
+	regionN, err := config.Get("storage.region")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not read storage region"))
+	}
+	region, ok := regionN.Value().(string)
+	if !ok {
+		log.Fatal(errors.Wrap(err, "could not read storage region"))
+	}
+	base.Storage, err = minio.NewWithRegion(endpoint, accessKeyID, accessKeySecret, ssl, region)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
+		panic(err)
+	}
+	_, err = base.Storage.ListBuckets()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
+		panic(err)
+	}
+	log.Debug("Storage client initialized.")
 }

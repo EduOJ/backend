@@ -13,6 +13,7 @@ func serve() {
 	initGorm()
 	initLog()
 	initRedis()
+	initStorage()
 	startEcho()
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGHUP,
