@@ -2,13 +2,14 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"github.com/fatih/color"
 	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"github.com/xlab/treeprint"
 	"os"
 	"strconv"
 	"strings"
@@ -44,7 +45,12 @@ func permission() {
 		quit := false
 		log.Debug(`Entering interactive mode, enter "help" for help.`)
 		for !quit {
-			fmt.Print("\033[1mEdit Permission> \033[0m")
+			_, err := color.New(color.Bold).Print("EduOJ Permission> ")
+			if err != nil {
+				log.Error(errors.Wrap(err, "fail to print"))
+				log.Fatal("Editing permission failed.")
+				return
+			}
 			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			if err != nil {
 				log.Fatal(errors.Wrap(err, "Error reading command"))
@@ -102,21 +108,15 @@ Note:
 		// (list-roles|lr) [<role_id|role_name>]
 		operation = "Listing roles"
 		err = validateArgumentsCount(len(args), 1, 2)
-		result := "\n"
+		tree := treeprint.New()
 		if len(args) == 1 {
 			var roles []models.Role
 			err = base.DB.Set("gorm:auto_preload", true).Find(&roles).Error
 			if err != nil {
 				break
 			}
-			result += "\033[1mroles\033[0m\n"
-			for i, role := range roles {
-				if i < len(roles)-1 {
-					result += "├─"
-				} else {
-					result += "└─"
-				}
-				result += listPermissions(role, "│ ")
+			for _, role := range roles {
+				listRole(tree, &role)
 			}
 		} else {
 			var role *models.Role
@@ -124,10 +124,10 @@ Note:
 			if err != nil {
 				break
 			}
-			result += listPermissions(*role, "")
+			listRole(tree, role)
 		}
 
-		log.Info(result)
+		log.Info("\n" + tree.String())
 	case "grant-role", "gr":
 		// (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
 		operation = "Granting role"
@@ -232,19 +232,15 @@ func validateArgumentsCount(count int, min int, max int) (err error) {
 	return
 }
 
-func listPermissions(role models.Role, prefix string) (result string) {
-	result += fmt.Sprintf("\033[1m%s\033[0m[\u001B[35m%d\u001B[0m]", role.Name, role.ID)
+func listRole(root treeprint.Tree, role *models.Role) {
+	roleString := role.Name
 	if role.Target != nil {
-		result += fmt.Sprintf("(\u001B[33m%s\u001B[0m)", *role.Target)
+		roleString += "(" + color.YellowString(*role.Target) + ")"
 	}
-	result += "\n"
-	for i, perm := range role.Permissions {
-		if i < len(role.Permissions)-1 {
-			result += prefix + "├─"
-		} else {
-			result += prefix + "└─"
-		}
-		result += fmt.Sprintf("\u001B[1m%s\u001B[0m[\u001B[35m%d\u001B[0m]\n", perm.Name, perm.ID)
+	roleNode := root.AddMetaBranch(color.MagentaString("%d", role.ID), roleString)
+
+	for _, perm := range role.Permissions {
+		roleNode.AddMetaNode(color.MagentaString("%d", perm.ID), perm.Name)
 	}
 	return
 }

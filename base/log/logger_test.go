@@ -137,19 +137,19 @@ func TestLogNotReady(t *testing.T) {
 		output := capturer.CaptureOutput(func() {
 			level.logFunction("sample log output")
 		})
-		txt := fmt.Sprintf("[%s] ▶ %s\u001B[0m %s\n",
+		txt := fmt.Sprintf("[%s] ▶ %s %s\n",
 			"github.com/kami-zh/go-capturer.(*Capturer).capture:55",
 			level.Level.String(),
 			"sample log output")
-		assert.Equal(t, txt, output[15:])
+		assert.Equal(t, txt, output[10:])
 		output = capturer.CaptureOutput(func() {
 			level.logFFunction("sample log output")
 		})
-		txt = fmt.Sprintf("[%s] ▶ %s\u001B[0m %s\n",
+		txt = fmt.Sprintf("[%s] ▶ %s %s\n",
 			"github.com/kami-zh/go-capturer.(*Capturer).capture:55",
 			level.Level.String(),
 			"sample log output")
-		assert.Equal(t, txt, output[15:])
+		assert.Equal(t, txt, output[10:])
 	}
 }
 
