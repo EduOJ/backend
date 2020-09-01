@@ -14,15 +14,17 @@ import (
 	"strings"
 )
 
-type testClass struct {
+// For role granting.
+// Implements database/models/HasRole interface.
+type dummyHasRole struct {
 	ID   uint
 	name string
 }
 
-func (t *testClass) GetID() uint {
+func (t *dummyHasRole) GetID() uint {
 	return t.ID
 }
-func (t *testClass) TypeName() string {
+func (t *dummyHasRole) TypeName() string {
 	return t.name
 }
 
@@ -40,12 +42,13 @@ func permission() {
 
 	if len(args) == 1 {
 		quit := false
-		log.Debug("Entered interactive mode, enter \"help\" to get usage help")
+		log.Debug(`Entering interactive mode, enter "help" for help.`)
 		for !quit {
 			fmt.Print("\033[1mEdit Permission> \033[0m")
 			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			if err != nil {
-				log.Fatal(errors.Wrap(err, "Error reading editing permission command"))
+				log.Fatal(errors.Wrap(err, "Error reading command"))
+				continue
 			}
 			args = strings.Split(input[:len(input)-1], " ")
 			quit = doPermission(args)
@@ -53,7 +56,6 @@ func permission() {
 	} else {
 		doPermission(args[1:])
 	}
-
 }
 
 func doPermission(args []string) (end bool) {
@@ -65,12 +67,12 @@ func doPermission(args []string) (end bool) {
 Edit Permission
 
 Usage:
-  Single execution: $ EduOJ (permission|perm) (operation) <args>...
+  One-line execution: $ EduOJ (permission|perm) (command) <args>...
 
   Enter interactive mode: $ EduOJ (permission|perm)
-  Command format in interactive mode:  (operation) <args>...
+  Command format in interactive mode:  (command) <args>...
 
-operations:
+commands:
   (help|h)
   (list-roles|lr) [<role_id|role_name>]
   (create-role|cr) <name> [<target>]
@@ -152,12 +154,11 @@ Note:
 			if err != nil {
 				break
 			}
-			target := testClass{
+			target := dummyHasRole{
 				ID:   uint(targetId),
 				name: *role.Target,
 			}
 			user.GrantRole(*role, &target)
-
 		}
 	case "delete-role", "dr":
 		// (delete-role|dr) <role_id|role_name>
