@@ -44,9 +44,9 @@ func GetMigration() *gormigrate.Gormigrate {
 			Migrate: func(tx *gorm.DB) error {
 				type User struct {
 					ID       uint   `gorm:"primary_key" json:"id"`
-					Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5"`
-					Nickname string `gorm:"index:nickname" json:"nickname"`
-					Email    string `gorm:"unique_index" json:"email"`
+					Username string `gorm:"unique_index;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index:nickname;size:30" json:"nickname"`
+					Email    string `gorm:"unique_index;size:50" json:"email"`
 					Password string `json:"-"`
 
 					CreatedAt time.Time  `json:"created_at"`
@@ -65,7 +65,7 @@ func GetMigration() *gormigrate.Gormigrate {
 			Migrate: func(tx *gorm.DB) error {
 				type Token struct {
 					ID        uint   `gorm:"primary_key" json:"id"`
-					Token     string `gorm:"unique_index" json:"token"`
+					Token     string `gorm:"unique_index;size:32" json:"token"`
 					UserID    uint
 					CreatedAt time.Time `json:"created_at"`
 				}
@@ -87,8 +87,8 @@ func GetMigration() *gormigrate.Gormigrate {
 			ID: "create_configs_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Config struct {
-					ID        uint `gorm:"primary_key"`
-					Key       string
+					ID        uint    `gorm:"primary_key"`
+					Key       string  `gorm:"size:255"`
 					Value     *string `gorm:"default:''"` // 可能是空字符串, 因此得是指针
 					CreatedAt time.Time
 					UpdatedAt time.Time
@@ -113,14 +113,14 @@ func GetMigration() *gormigrate.Gormigrate {
 
 				type Role struct {
 					ID     uint    `gorm:"primary_key" json:"id"`
-					Name   string  `json:"name"`
-					Target *string `json:"target"`
+					Name   string  `json:"name" gorm:"size:255"`
+					Target *string `json:"target" gorm:"size:255"`
 				}
 
 				type Permission struct {
 					ID     uint   `gorm:"primary_key" json:"id"`
 					RoleID uint   `json:"role_id"`
-					Name   string `json:"name"`
+					Name   string `json:"name" gorm:"size:255"`
 				}
 				err = tx.AutoMigrate(&UserHasRole{}, &Role{}, &Permission{}).Error
 				if err != nil {
@@ -211,13 +211,13 @@ func GetMigration() *gormigrate.Gormigrate {
 				type Permission struct {
 					ID     uint   `gorm:"primary_key" json:"id"`
 					RoleID uint   `json:"role_id"`
-					Name   string `json:"name"`
+					Name   string `json:"name" gorm:"size:255"`
 				}
 
 				type Role struct {
 					ID          uint    `gorm:"primary_key" json:"id"`
-					Name        string  `json:"name"`
-					Target      *string `json:"target"`
+					Name        string  `json:"name" gorm:"size:255"`
+					Target      *string `json:"target" gorm:"size:255"`
 					Permissions []Permission
 				}
 
@@ -244,13 +244,13 @@ func GetMigration() *gormigrate.Gormigrate {
 				type Permission struct {
 					ID     uint   `gorm:"primary_key" json:"id"`
 					RoleID uint   `json:"role_id"`
-					Name   string `json:"name"`
+					Name   string `json:"name" gorm:"size:255"`
 				}
 
 				type Role struct {
 					ID          uint    `gorm:"primary_key" json:"id"`
-					Name        string  `json:"name"`
-					Target      *string `json:"target"`
+					Name        string  `json:"name" gorm:"size:255"`
+					Target      *string `json:"target" gorm:"size:255"`
 					Permissions []Permission
 				}
 
