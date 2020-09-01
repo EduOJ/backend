@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/fatih/color"
 	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
@@ -10,9 +11,12 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"github.com/xlab/treeprint"
+	"io"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 // For role granting.
@@ -33,7 +37,6 @@ func permission() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Error(err)
-			log.Fatal("Editing permission failed.")
 		}
 	}()
 
@@ -41,19 +44,31 @@ func permission() {
 	initGorm()
 	initLog()
 
+	reader := bufio.NewReaderSize(os.Stdin, 0)
 	if len(args) == 1 {
 		quit := false
 		log.Debug(`Entering interactive mode, enter "help" for help.`)
+		s := make(chan os.Signal, 1)
+		signal.Notify(s, syscall.SIGHUP,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+			syscall.SIGQUIT)
+		go func() {
+			<-s
+			os.Exit(0)
+		}()
 		for !quit {
 			_, err := color.New(color.Bold).Print("EduOJ Permission> ")
 			if err != nil {
 				log.Error(errors.Wrap(err, "fail to print"))
-				log.Fatal("Editing permission failed.")
 				return
 			}
-			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			input, err := reader.ReadString('\n')
+			if err == io.EOF {
+				return
+			}
 			if err != nil {
-				log.Fatal(errors.Wrap(err, "Error reading command"))
+				log.Error(errors.Wrap(err, "Error reading command"))
 				continue
 			}
 			args = strings.Split(input[:len(input)-1], " ")
@@ -66,11 +81,9 @@ func permission() {
 
 func doPermission(args []string) (end bool) {
 	var err error
-	var operation string
 	switch args[0] {
 	case "help", "h":
-		log.Info(`
-Edit Permission
+		fmt.Println(`EduOJ Permission
 
 Usage:
   One-line execution: $ EduOJ (permission|perm) (command) <args>...
@@ -92,9 +105,9 @@ Note:
   always selects the object that matches the ID.`)
 	case "create-role", "cr":
 		// (create-role|cr) <name> [<target>]
-		operation = "Creating role"
 		err = validateArgumentsCount(len(args), 2, 3)
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		r := models.Role{
@@ -106,13 +119,14 @@ Note:
 		err = base.DB.Create(&r).Error
 	case "list-roles", "lr":
 		// (list-roles|lr) [<role_id|role_name>]
-		operation = "Listing roles"
 		err = validateArgumentsCount(len(args), 1, 2)
 		tree := treeprint.New()
+		tree.SetValue("Roles")
 		if len(args) == 1 {
 			var roles []models.Role
 			err = base.DB.Set("gorm:auto_preload", true).Find(&roles).Error
 			if err != nil {
+				log.Error(err)
 				break
 			}
 			for _, role := range roles {
@@ -122,28 +136,30 @@ Note:
 			var role *models.Role
 			role, err = findRole(args[1])
 			if err != nil {
+				log.Error(err)
 				break
 			}
 			listRole(tree, role)
 		}
-
-		log.Info("\n" + tree.String())
+		fmt.Println(tree.String())
 	case "grant-role", "gr":
 		// (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
-		operation = "Granting role"
 		err = validateArgumentsCount(len(args), 3, 4)
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		var user *models.User
 		user, err = utils.FindUser(args[1])
 		if err != nil {
 			err = errors.Wrap(err, "find user")
+			log.Error(err)
 			break
 		}
 		var role *models.Role
 		role, err = findRole(args[2])
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		if len(args) == 3 {
@@ -152,6 +168,7 @@ Note:
 			var targetId uint64
 			targetId, err = strconv.ParseUint(args[3], 10, 32)
 			if err != nil {
+				log.Error(err)
 				break
 			}
 			target := dummyHasRole{
@@ -162,47 +179,41 @@ Note:
 		}
 	case "delete-role", "dr":
 		// (delete-role|dr) <role_id|role_name>
-		operation = "Deleting role"
 		err = validateArgumentsCount(len(args), 2, 2)
 		var role *models.Role
 		role, err := findRole(args[1])
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		err = base.DB.Delete(&models.Permission{}, "role_id = ?", role.ID).Error
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		err = base.DB.Delete(&role).Error
 		if err != nil {
+			log.Error(err)
 			break
 		}
 	case "add-permission", "ap":
 		// (add-permission|ap) <role_id|role_name> <permission>
-		operation = "Adding permission"
 		err = validateArgumentsCount(len(args), 3, 3)
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		var role *models.Role
 		role, err = findRole(args[1])
 		if err != nil {
+			log.Error(err)
 			break
 		}
 		role.AddPermission(args[2])
 	case "quit", "q":
-		log.Debug("Exited editing permission mode.")
 		return true
 	default:
 		log.Debug("Unknown operation \"" + args[0] + "\".")
-	}
-	if operation != "" {
-		if err == nil {
-			log.Fatal(operation + " succeed!")
-		} else {
-			log.Error(err)
-			log.Fatal(operation + " failed.")
-		}
 	}
 	return false
 }
@@ -237,10 +248,10 @@ func listRole(root treeprint.Tree, role *models.Role) {
 	if role.Target != nil {
 		roleString += "(" + color.YellowString(*role.Target) + ")"
 	}
-	roleNode := root.AddMetaBranch(color.MagentaString("%d", role.ID), roleString)
+	roleNode := root.AddBranch(roleString + "[" + color.MagentaString("%d", role.ID) + "]")
 
 	for _, perm := range role.Permissions {
-		roleNode.AddMetaNode(color.MagentaString("%d", perm.ID), perm.Name)
+		roleNode.AddNode(color.GreenString(perm.Name) + "[" + color.MagentaString("%d", perm.ID) + "]")
 	}
 	return
 }
