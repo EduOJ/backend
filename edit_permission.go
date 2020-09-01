@@ -14,6 +14,18 @@ import (
 	"strings"
 )
 
+type testClass struct {
+	ID   uint
+	name string
+}
+
+func (t *testClass) GetID() uint {
+	return t.ID
+}
+func (t *testClass) TypeName() string {
+	return t.name
+}
+
 func editPermission() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -28,7 +40,7 @@ func editPermission() {
 
 	if len(args) == 1 {
 		quit := false
-		log.Debug("Entered editing permission mode, enter \"help\" to get usage help")
+		log.Debug("Entered interactive mode, enter \"help\" to get usage help")
 		for !quit {
 			fmt.Print("\033[1mEdit Permission> \033[0m")
 			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
@@ -53,28 +65,23 @@ func doEditPermission(args []string) (end bool) {
 Edit Permission
 
 Usage:
-  The EP(Edit Permission) command can be executed as a single command in EP mode,
-  or as program parameters of EduOJ.
+  Single execution: $ EduOJ (edit-permission|edit-perm|ep) (operation) <args>...
 
-  EP command:     (edit_permission|edit_perm|ep) (operation) <args>...
-
-  Enter EP mode: 
-    $ go run (path) (edit_permission|edit_perm|ep)
-  Edit permission with out entering EP mode: 
-    $ go run (path) (edit_permission|edit_perm|ep) (operation) <args>...
+  Enter interactive mode: $ EduOJ (edit-permission|edit-perm|ep)
+  Command format in interactive mode:  (operation) <args>...
 
 operations:
-  edit_permission (help|h)
-  edit_permission (createRole|cr) <name> [<target>]
-  edit_permission (grantRole|gr) <user_id|username> <role_id|role_name> [<target_id>]
-  edit_permission (addPermission|ap) <role_id|role_name> <permission>
-  edit_permission (quit|q)
+  (help|h)
+  (create-role|cr) <name> [<target>]
+  (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
+  (add-permission|ap) <role_id|role_name> <permission>
+  (quit|q)
 
 Note:
   When the search value matches the name and ID at the same time, the system
   always selects the object that matches the ID.`)
-	case "createRole", "cr":
-		// edit_permission (createRole|cr) <name> [<target>]
+	case "create-role", "cr":
+		// edit_permission (create-role|cr) <name> [<target>]
 		operation = "Creating role"
 		err = validateArgumentsCount(len(args), 2, 3)
 		if err != nil {
@@ -87,8 +94,8 @@ Note:
 			r.Target = &args[2]
 		}
 		err = base.DB.Create(&r).Error
-	case "grantRole", "gr":
-		// edit_permission (grantRole|gr) <user_id|username> <role_id|role_name> [<target_id>]
+	case "grant-role", "gr":
+		// edit_permission (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
 		operation = "Granting role"
 		err = validateArgumentsCount(len(args), 3, 4)
 		if err != nil {
@@ -108,21 +115,20 @@ Note:
 		if len(args) == 3 {
 			user.GrantRole(*role)
 		} else {
-			target := struct{}{}
 			var targetId uint64
-			targetId, err = strconv.ParseUint(args[3], 10, 64)
+			targetId, err = strconv.ParseUint(args[3], 10, 32)
 			if err != nil {
 				break
 			}
-			err = base.DB.Table(*role.Target).First(&target, targetId).Error
-			if err != nil {
-				break
+			target := testClass{
+				ID:   uint(targetId),
+				name: *role.Target,
 			}
-			log.Debug(target)
-			//user.GrantRole(*role,target)
+			user.GrantRole(*role, &target)
+
 		}
-	case "addPermission", "ap":
-		// edit_permission (addPermission|ap) <role_id|role_name> <permission>
+	case "add-permission", "ap":
+		// edit_permission (add-permission|ap) <role_id|role_name> <permission>
 		operation = "Adding permission"
 		err = validateArgumentsCount(len(args), 3, 3)
 		if err != nil {
