@@ -11,6 +11,7 @@ require (
 	github.com/go-redis/redis/v8 v8.0.0-beta.6
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jinzhu/gorm v1.9.15
+	github.com/johannesboyne/gofakes3 v0.0.0-20200716060623-6b2b4cb092cc
 	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/labstack/gommon v0.3.0
