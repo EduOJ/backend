@@ -1,14 +1,18 @@
 database:
   dialect: postgres
   uri: host=myhost port=myport user=gorm dbname=gorm password=mypassword
+storage:
+  endpoint: 127.0.0.1:9000
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
+  ssl: false
+  region: us-east-1
 redis:
   host: 127.0.0.1
   port: 6379
 log:
   - name: console
     level: debug
-  - name: database
-    level: error
 debug: false
 server:
   port: 8080
