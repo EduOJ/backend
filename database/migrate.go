@@ -46,7 +46,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					ID       uint   `gorm:"primary_key" json:"id"`
 					Username string `gorm:"unique_index;size:30" json:"username" validate:"required,max=30,min=5"`
 					Nickname string `gorm:"index:nickname;size:30" json:"nickname"`
-					Email    string `gorm:"unique_index;size:50" json:"email"`
+					Email    string `gorm:"unique_index;size:320" json:"email"`
 					Password string `json:"-"`
 
 					CreatedAt time.Time  `json:"created_at"`
