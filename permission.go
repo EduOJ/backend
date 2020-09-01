@@ -37,6 +37,7 @@ func permission() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Error(err)
+			log.Fatal("Editing permission failed.")
 		}
 	}()
 
@@ -61,9 +62,15 @@ func permission() {
 			_, err := color.New(color.Bold).Print("EduOJ Permission> ")
 			if err != nil {
 				log.Error(errors.Wrap(err, "fail to print"))
+				log.Fatal("Editing permission failed.")
 				return
 			}
-			input, err := reader.ReadString('\n')
+			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			if err != nil {
+				log.Error(errors.Wrap(err, "fail to print"))
+				return
+			}
+			input, err = reader.ReadString('\n')
 			if err == io.EOF {
 				return
 			}
@@ -142,6 +149,8 @@ Note:
 			listRole(tree, role)
 		}
 		fmt.Println(tree.String())
+
+		log.Info("\n" + tree.String())
 	case "grant-role", "gr":
 		// (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
 		err = validateArgumentsCount(len(args), 3, 4)
