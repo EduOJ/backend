@@ -2,6 +2,8 @@ package log
 
 import (
 	"fmt"
+	"github.com/fatih/color"
+
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
@@ -28,39 +30,24 @@ type databaseWriter struct {
 // Calling log listeners.
 type eventWriter struct{}
 
-const (
-	colorBlack = iota + 30
-	colorRed
-	colorGreen
-	colorYellow
-	colorBlue
-	colorMagenta
-	colorCyan
-	colorWhite
-)
-
 var (
-	colors = []string{
-		FATAL:   colorSeq(colorMagenta),
-		ERROR:   colorSeq(colorRed),
-		WARNING: colorSeq(colorYellow),
-		INFO:    colorSeq(colorGreen),
-		DEBUG:   colorSeq(colorCyan),
+	colors = []func(format string, a ...interface{}) string{
+		FATAL:   color.MagentaString,
+		ERROR:   color.RedString,
+		WARNING: color.YellowString,
+		INFO:    color.GreenString,
+		DEBUG:   color.CyanString,
 	}
 )
 
-func colorSeq(color int) string {
-	return fmt.Sprintf("\033[%dm", color)
-}
-
 func (w *consoleWriter) log(l Log) {
 	if l.Level >= w.Level {
-		fmt.Printf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
-			colors[l.Level],
+		fmt.Print(colors[l.Level]("[%s][%s] ▶ %s ",
 			l.Time.Format("15:04:05"),
 			l.Caller,
-			l.Level.String(),
-			l.Message)
+			l.Level.String()),
+			l.Message,
+			"\n")
 	}
 }
 

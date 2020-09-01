@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"github.com/kami-zh/go-capturer"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
@@ -45,12 +44,7 @@ func TestConsoleWriter(t *testing.T) {
 				Caller:  "main.main.func",
 			})
 		})
-		txt := fmt.Sprintf("%s[%s][%s] ▶ %s\u001B[0m %s\n",
-			colors[level.Level],
-			ti.Format("15:04:05"),
-			"main.main.func",
-			level.Level.String(),
-			"sample log output")
+		txt := colors[level.Level]("[%s][%s] ▶ %s ", ti.Format("15:04:05"), "main.main.func", level.Level.String()) + "sample log output\n"
 		assert.Equal(t, txt, out)
 	}
 }
