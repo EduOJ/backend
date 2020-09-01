@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/johannesboyne/gofakes3"
+	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -13,6 +15,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -208,5 +211,17 @@ server:
 	app.Register(base.Echo)
 	base.Echo.Use(setUserForTest)
 	initGeneralTestingUsers()
+	// fake s3
+	faker := gofakes3.New(s3mem.New()) // in-memory s3 server.
+	ts := httptest.NewServer(faker.Server())
+	defer ts.Close()
+	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "", "", false, "us-east-1")
+	if err != nil {
+		panic(err)
+	}
+	_, err = base.Storage.ListBuckets()
+	if err != nil {
+		panic(err)
+	}
 	os.Exit(m.Run())
 }
