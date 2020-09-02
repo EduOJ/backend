@@ -5,29 +5,15 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/controller"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
-	"github.com/leoleoasd/EduOJBackend/base/config"
-	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"net/http"
 )
 
 func Register(e *echo.Echo) {
+	utils.InitOrigin()
 	e.Use(middleware.Recover)
-	var origins []string
-	if n, err := config.Get("server.origin"); err == nil {
-		for _, v := range n.(*config.SliceNode).S {
-			if vv, ok := v.Value().(string); ok {
-				origins = append(origins, vv)
-			} else {
-				log.Fatal("Illegal origin name" + v.String())
-				panic("Illegal origin name" + v.String())
-			}
-		}
-	} else {
-		log.Fatal("Illegal origin config", err)
-		panic("Illegal origin config")
-	}
 	e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
-		AllowOrigins: origins,
+		AllowOrigins: utils.Origins,
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 
@@ -58,7 +44,7 @@ func Register(e *echo.Echo) {
 
 	api.POST("/user/change_password", controller.ChangePassword, middleware.Logged).Name = "user.changePassword"
 
-	api.GET("/image/:id", controller.Todo).Name = "image.getImage"
+	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.create"
 	// TODO: routes.
 }
