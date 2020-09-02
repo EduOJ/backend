@@ -88,10 +88,35 @@ Common return codes.
 ### Problem
 
 #### AdminCreateProblem
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|      CONFLICT_NAME      |       名称重复         |
+|    PERMISSION_DENIED    |        没有权限       |
+
 #### AdminGetProblem
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到指定problem  |
+|    PERMISSION_DENIED    |        没有权限       |
+
 #### AdminGetProblems
+|           code          |         结果         |
+|:-----------------------:|:-------------------:|
+|      INVALID_ORDER      |     无效的排序设置     |
+|    PERMISSION_DENIED    |        没有权限       |
+
 #### AdminUpdateProblem
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到指定problem  |
+|      CONFLICT_NAME      |       名称重复         |
+|    PERMISSION_DENIED    |       没有权限         |
+
 #### AdminDeleteProblem
+|           code          |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到指定problem  |
+|    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminCreateTestCase
 #### AdminGetTestCase
