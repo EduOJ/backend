@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -27,9 +28,9 @@ func GetUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*response.UserProfile `json:"user"`
+			*resource.UserProfile `json:"user"`
 		}{
-			response.GetUserProfile(user),
+			resource.GetUserProfile(user),
 		},
 	})
 }
@@ -47,9 +48,9 @@ func GetMe(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*response.UserProfileForMe `json:"user"`
+			*resource.UserProfileForMe `json:"user"`
 		}{
-			response.GetUserProfileForMe(&user),
+			resource.GetUserProfileForMe(&user),
 		},
 	})
 }
@@ -127,14 +128,14 @@ func GetUsers(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Users  []response.UserProfile `json:"users"`
+			Users  []resource.UserProfile `json:"users"`
 			Total  int                    `json:"total"`
 			Count  int                    `json:"count"`
 			Offset int                    `json:"offset"`
 			Prev   *string                `json:"prev"`
 			Next   *string                `json:"next"`
 		}{
-			response.GetUserProfileSlice(users),
+			resource.GetUserProfileSlice(users),
 			total,
 			len(users),
 			req.Offset,
@@ -174,9 +175,9 @@ func UpdateMe(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*response.UserProfileForMe `json:"user"`
+			*resource.UserProfileForMe `json:"user"`
 		}{
-			response.GetUserProfileForMe(&user),
+			resource.GetUserProfileForMe(&user),
 		},
 	})
 }

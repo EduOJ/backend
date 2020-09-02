@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -42,10 +43,10 @@ func Login(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			User  response.UserProfileForMe `json:"user"`
+			User  resource.UserProfileForMe `json:"user"`
 			Token string                    `json:"token"`
 		}{
-			User:  *response.GetUserProfileForMe(&user),
+			User:  *resource.GetUserProfileForMe(&user),
 			Token: token.Token,
 		},
 	})
@@ -83,10 +84,10 @@ func Register(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			User  response.UserProfileForMe `json:"user"`
+			User  resource.UserProfileForMe `json:"user"`
 			Token string                    `json:"token"`
 		}{
-			User:  *response.GetUserProfileForMe(&user),
+			User:  *resource.GetUserProfileForMe(&user),
 			Token: token.Token,
 		},
 	})
