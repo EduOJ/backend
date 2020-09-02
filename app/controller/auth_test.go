@@ -3,6 +3,7 @@ package controller_test
 import (
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -189,7 +190,7 @@ func TestLogin(t *testing.T) {
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, "SUCCESS", resp.Message)
 				assert.Nil(t, resp.Error)
-				jsonEQ(t, response.GetUserProfileForMe(&test.user), resp.Data.User)
+				jsonEQ(t, resource.GetUserProfileForMe(&test.user), resp.Data.User)
 				token := models.Token{}
 				assert.Nil(t, base.DB.Preload("User").Where("token = ?", resp.Data.Token).First(&token).Error)
 				token.User.LoadRoles()
@@ -308,7 +309,7 @@ func TestRegister(t *testing.T) {
 		databaseUser := models.User{}
 		assert.Nil(t, base.DB.Where("email = ?", "test_register_3@mail.com").First(&databaseUser).Error)
 		// resp == database
-		jsonEQ(t, resp.Data.User, response.GetUserProfileForMe(&databaseUser))
+		jsonEQ(t, resp.Data.User, resource.GetUserProfileForMe(&databaseUser))
 		token := models.Token{}
 		assert.Nil(t, base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error)
 		// token == database
