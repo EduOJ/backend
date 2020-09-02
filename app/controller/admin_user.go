@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -42,9 +43,9 @@ func AdminCreateUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*response.UserProfileForAdmin `json:"user"`
+			*resource.UserProfileForAdmin `json:"user"`
 		}{
-			response.GetUserProfileForAdmin(&user),
+			resource.GetUserProfileForAdmin(&user),
 		},
 	})
 }
@@ -82,9 +83,9 @@ func AdminUpdateUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*response.UserProfileForAdmin `json:"user"`
+			*resource.UserProfileForAdmin `json:"user"`
 		}{
-			response.GetUserProfileForAdmin(user),
+			resource.GetUserProfileForAdmin(user),
 		},
 	})
 }
@@ -119,9 +120,9 @@ func AdminGetUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*response.UserProfileForAdmin `json:"user"`
+			*resource.UserProfileForAdmin `json:"user"`
 		}{
-			response.GetUserProfileForAdmin(user),
+			resource.GetUserProfileForAdmin(user),
 		},
 	})
 }
@@ -198,14 +199,14 @@ func AdminGetUsers(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Users  []response.UserProfile `json:"users"`
+			Users  []resource.UserProfile `json:"users"`
 			Total  int                    `json:"total"`
 			Count  int                    `json:"count"`
 			Offset int                    `json:"offset"`
 			Prev   *string                `json:"prev"`
 			Next   *string                `json:"next"`
 		}{
-			response.GetUserProfileSlice(users),
+			resource.GetUserProfileSlice(users),
 			total,
 			len(users),
 			req.Offset,

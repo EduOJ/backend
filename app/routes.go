@@ -46,5 +46,24 @@ func Register(e *echo.Echo) {
 
 	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.create"
+
+	admin.POST("/problem", controller.Todo, middleware.HasPermission("create_problem"))
+	admin.GET("/problem/:id", controller.Todo, middleware.HasPermission("get_problem", "problem"))
+	admin.GET("/problems", controller.Todo, middleware.HasPermission("get_problems"))
+	admin.PUT("/problem/:id", controller.Todo, middleware.HasPermission("update_problem", "problem"))
+	admin.DELETE("/problem/:id", controller.Todo, middleware.HasPermission("delete_problem", "problem"))
+
+	api.GET("/problem/:id", controller.Todo)
+	api.GET("/problems", controller.Todo)
+
+	admin.POST("/test_case", controller.Todo, middleware.HasPermission("create_test_case"))
+	admin.GET("/test_case/:id", controller.Todo, middleware.HasPermission("get_test_case", "test_case"))
+	admin.GET("/test_cases", controller.Todo, middleware.HasPermission("get_test_cases"))
+	admin.PUT("/test_case/:id", controller.Todo, middleware.HasPermission("update_test_case", "test_case"))
+	admin.DELETE("/test_case/:id", controller.Todo, middleware.HasPermission("delete_test_case", "test_case"))
+
+	api.GET("/test_case/:id", controller.Todo)
+	api.GET("/test_cases", controller.Todo)
+
 	// TODO: routes.
 }

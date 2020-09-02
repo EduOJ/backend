@@ -85,6 +85,19 @@ Common return codes.
 |      INVALID_ORDER      |     无效的排序设置     |
 |    PERMISSION_DENIED    |        没有权限       |
 
+### Problem
+
+#### AdminCreateProblem
+#### AdminGetProblem
+#### AdminGetProblems
+#### AdminUpdateProblem
+#### AdminDeleteProblem
+
+#### AdminCreateTestCase
+#### AdminGetTestCase
+#### AdminGetTestCases
+#### AdminUpdateTestCase
+#### AdminDeleteTestCase
 
 ## User
 
@@ -115,6 +128,13 @@ Common return codes.
 |:--------------------:|:--------------------:|
 |    WRONG_PASSWORD    |       密码错误        |
 
+## Problem
+
+### GetProblem
+### GetProblems
+
+### GetTestCase
+### GetTestCases
 ## Image
 ### CreateImage
 |     code     |  结果   |
