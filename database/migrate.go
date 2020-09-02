@@ -184,6 +184,25 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Table("tokens").DropColumn("remember_me").Error
 			},
 		},
+		// add images table
+		{
+			ID: "create_images_table",
+			Migrate: func(tx *gorm.DB) error {
+				type Image struct {
+					ID        uint      `gorm:"primary_key" json:"id"`
+					Filename  string    `gorm:"filename,size:2048,unique_index"`
+					FilePath  string    `gorm:"filepath,size:2048"`
+					UserID    uint      `gorm:"index"`
+					CreatedAt time.Time `json:"created_at"`
+					UpdatedAt time.Time `json:"updated_at"`
+				}
+
+				return tx.AutoMigrate(&Image{}).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.DropTable("images").Error
+			},
+		},
 		// add default admin roles
 		{
 			ID: "add_default_admin_role",
@@ -255,14 +274,6 @@ func GetMigration() *gormigrate.Gormigrate {
 }
 
 func Migrate() {
-	/*
-		err := base.DB.AutoMigrate(
-			&models.Log{}, &models.User{}, &models.Token{}, &models.Config{}, &models.UserHasRole{}, &models.Role{}, &models.Permission{}).Error
-		if err != nil {
-			fmt.Print(err)
-			panic(err)
-		}
-	*/
 	m := GetMigration()
 	if err := m.Migrate(); err != nil {
 		fmt.Printf("Could not migrate: %v", err)

@@ -114,3 +114,9 @@ Common return codes.
 |         code         |         结果          |
 |:--------------------:|:--------------------:|
 |    WRONG_PASSWORD    |       密码错误        |
+
+## Image
+### CreateImage
+|     code     |  结果   |
+|:------------:|:------:|
+| ILLEGAL_TYPE | 类型非法 |

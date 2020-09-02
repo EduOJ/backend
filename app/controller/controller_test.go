@@ -12,6 +12,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -216,6 +217,9 @@ server:
 	ts := httptest.NewServer(faker.Server())
 	defer ts.Close()
 	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "", "", false, "us-east-1")
+
+	log.Disable()
+
 	if err != nil {
 		panic(err)
 	}

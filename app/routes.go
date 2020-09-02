@@ -36,22 +36,29 @@ func Register(e *echo.Echo) {
 	auth := api.Group("/auth", middleware.Auth)
 	auth.POST("/login", controller.Login).Name = "auth.login"
 	auth.POST("/register", controller.Register).Name = "auth.register"
-	auth.GET("/email_registered", controller.EmailRegistered)
+	auth.GET("/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
 
 	admin := api.Group("/admin", middleware.Logged)
 	// TODO: add HasPermission
-	admin.POST("/user", controller.AdminCreateUser, middleware.HasPermission("create_user"))
-	admin.PUT("/user/:id", controller.AdminUpdateUser, middleware.HasPermission("update_user"))
-	admin.DELETE("/user/:id", controller.AdminDeleteUser, middleware.HasPermission("delete_user"))
-	admin.GET("/user/:id", controller.AdminGetUser, middleware.HasPermission("get_user"))
-	admin.GET("/users", controller.AdminGetUsers, middleware.HasPermission("get_users"))
+	admin.POST("/user",
+		controller.AdminCreateUser, middleware.HasPermission("create_user")).Name = "admin.user.createUser"
+	admin.PUT("/user/:id",
+		controller.AdminUpdateUser, middleware.HasPermission("update_user")).Name = "admin.user.updateUser"
+	admin.DELETE("/user/:id",
+		controller.AdminDeleteUser, middleware.HasPermission("delete_user")).Name = "admin.user.deleteUser"
+	admin.GET("/user/:id",
+		controller.AdminGetUser, middleware.HasPermission("get_user")).Name = "admin.user.getUser"
+	admin.GET("/users",
+		controller.AdminGetUsers, middleware.HasPermission("get_users")).Name = "admin.getUsers"
 
-	api.GET("/user/me", controller.GetMe, middleware.Logged)
-	api.PUT("/user/me", controller.UpdateMe, middleware.Logged)
-	api.GET("/user/:id", controller.GetUser)
-	api.GET("/users", controller.GetUsers)
+	api.GET("/user/me", controller.GetMe, middleware.Logged).Name = "user.getMe"
+	api.PUT("/user/me", controller.UpdateMe, middleware.Logged).Name = "user.updateMe"
+	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
+	api.GET("/users", controller.GetUsers).Name = "user.getUsers"
 
-	api.POST("/user/change_password", controller.ChangePassword, middleware.Logged)
+	api.POST("/user/change_password", controller.ChangePassword, middleware.Logged).Name = "user.changePassword"
 
+	api.GET("/image/:id", controller.Todo).Name = "image.getImage"
+	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.create"
 	// TODO: routes.
 }
