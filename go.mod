@@ -3,7 +3,8 @@ module github.com/leoleoasd/EduOJBackend
 go 1.14
 
 require (
-	github.com/fatih/color v1.9.0
+	github.com/gabriel-vasile/mimetype v1.1.1
+	github.com/go-ini/ini v1.60.2 // indirect
 	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
