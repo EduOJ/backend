@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
@@ -12,8 +11,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"net/http"
-	"net/url"
-	"strings"
 )
 
 func AdminCreateProblem(c echo.Context) error {
@@ -77,69 +74,21 @@ func AdminGetProblems(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-	var problems []models.Problem
-	var total int
 
-	query := base.DB.Model(&models.Problem{})
-	if req.OrderBy != "" {
-		order := strings.SplitN(req.OrderBy, ".", 2)
-		if len(order) != 2 {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
+	query, err := utils.Sorter(base.DB.Model(&models.Problem{}), req.OrderBy)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
 		}
-		if !utils.Contain(order[0], []string{"id", "name"}) {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
-		}
-		if !utils.Contain(order[1], []string{"ASC", "DESC"}) {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
-		}
-		query = query.Order(strings.Join(order, " "))
+		panic(err)
 	}
+
 	if req.Search != "" {
 		query = query.Where("id like ? or name like ?", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
-	if req.Limit == 0 {
-		req.Limit = 20 // Default limit
-	}
-	err := query.Limit(req.Limit).Offset(req.Offset).Find(&problems).Error
-	if err != nil {
-		panic(errors.Wrap(err, "could not query problems"))
-	}
-	err = query.Count(&total).Error
-	if err != nil {
-		panic(errors.Wrap(err, "could not query count of problems"))
-	}
 
-	var nextUrlStr *string
-	var prevUrlStr *string
-
-	if req.Offset-req.Limit >= 0 {
-		prevURL := c.Request().URL
-		q, err := url.ParseQuery(prevURL.RawQuery)
-		if err != nil {
-			panic(errors.Wrap(err, "could not parse query for url"))
-		}
-		q.Set("offset", fmt.Sprint(req.Offset-req.Limit))
-		q.Set("limit", fmt.Sprint(req.Limit))
-		prevURL.RawQuery = q.Encode()
-		temp := prevURL.String()
-		prevUrlStr = &temp
-	} else {
-		prevUrlStr = nil
-	}
-	if req.Offset+len(problems) < total {
-		nextURL := c.Request().URL
-		q, err := url.ParseQuery(nextURL.RawQuery)
-		if err != nil {
-			panic(errors.Wrap(err, "could not parse query for url"))
-		}
-		q.Set("offset", fmt.Sprint(req.Offset+req.Limit))
-		q.Set("limit", fmt.Sprint(req.Limit))
-		nextURL.RawQuery = q.Encode()
-		temp := nextURL.String()
-		nextUrlStr = &temp
-	} else {
-		nextUrlStr = nil
-	}
+	var problems []models.Problem
+	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &problems)
 	return c.JSON(http.StatusOK, response.AdminGetProblemsResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -151,12 +100,12 @@ func AdminGetProblems(c echo.Context) error {
 			Prev     *string                           `json:"prev"`
 			Next     *string                           `json:"next"`
 		}{
-			resource.GetProblemProfileForAdminSlice(problems),
-			total,
-			len(problems),
-			req.Offset,
-			prevUrlStr,
-			nextUrlStr,
+			Problems: resource.GetProblemProfileForAdminSlice(problems),
+			Total:    total,
+			Count:    len(problems),
+			Offset:   req.Offset,
+			Prev:     prevUrl,
+			Next:     nextUrl,
 		},
 	})
 }
@@ -175,8 +124,16 @@ func AdminUpdateProblem(c echo.Context) error {
 	problem.Name = req.Name
 	problem.Description = req.Description
 	problem.AttachmentFileName = req.AttachmentFileName
-	problem.Public = *req.Public
-	problem.Privacy = *req.Privacy
+	if req.Public != nil {
+		problem.Public = *req.Public
+	} else {
+		problem.Public = false
+	}
+	if req.Privacy != nil {
+		problem.Privacy = *req.Privacy
+	} else {
+		problem.Public = true
+	}
 	problem.MemoryLimit = req.MemoryLimit
 	problem.TimeLimit = req.TimeLimit
 	problem.LanguageAllowed = req.LanguageAllowed
