@@ -14,15 +14,25 @@ import (
 )
 
 var FieldTranslations = map[string]string{
-	"Username":        "用户名",
-	"Nickname":        "昵称",
-	"UsernameOrEmail": "用户名",
-	"Email":           "邮箱",
-	"Password":        "密码",
-	"Search":          "搜索内容",
-	"Limit":           "单页个数",
-	"Offset":          "起始编号",
-	"OrderBy":         "排序方式",
+	"Username":           "用户名",
+	"Nickname":           "昵称",
+	"UsernameOrEmail":    "用户名",
+	"Email":              "邮箱",
+	"Password":           "密码",
+	"Search":             "搜索内容",
+	"Limit":              "单页个数",
+	"Offset":             "起始编号",
+	"OrderBy":            "排序方式",
+	"Name":               "名称",
+	"Description":        "介绍",
+	"AttachmentFileName": "附件名称",
+	"Public":             "是否公开",
+	"Privacy":            "是否可见细节",
+	"MemoryLimit":        "内存限制",
+	"TimeLimit":          "运行时间限制",
+	"LanguageAllowed":    "可用语言",
+	"CompileEnvironment": "编译环境",
+	"CompareScriptID":    "比较脚本编号",
 }
 
 // RegisterDefaultTranslations registers a set of default translations
