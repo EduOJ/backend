@@ -11,9 +11,18 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"net/http"
+	"sync"
 )
 
+var initCreator sync.Once
+var problemCreator models.Role
+
+func initCreatorRole() {
+	utils.PanicIfDBError(base.DB.Where("name = ? and target = ?", "creator", "problem").First(&problemCreator), "could not get problem creator role")
+}
+
 func AdminCreateProblem(c echo.Context) error {
+	initCreator.Do(initCreatorRole)
 	req := request.AdminCreateProblemRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
@@ -39,6 +48,11 @@ func AdminCreateProblem(c echo.Context) error {
 		CompareScriptID:    req.CompareScriptID,
 	}
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
+	var user models.User
+	if user, ok = c.Get("user").(models.User); !ok {
+		panic("could not get user to grant role problem creator")
+	}
+	user.GrantRole(problemCreator, problem)
 	return c.JSON(http.StatusCreated, response.AdminCreateProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -111,6 +125,7 @@ func AdminGetProblems(c echo.Context) error {
 }
 
 func AdminUpdateProblem(c echo.Context) error {
+	initCreator.Do(initCreatorRole)
 	req := request.AdminUpdateProblemRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
@@ -152,12 +167,14 @@ func AdminUpdateProblem(c echo.Context) error {
 }
 
 func AdminDeleteProblem(c echo.Context) error {
+	initCreator.Do(initCreatorRole)
 	problem, err := findProblem(c.Param("id"))
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
+	utils.PanicIfDBError(base.DB.Delete(&models.UserHasRole{}, "role_id = ? and target_id = ?", problemCreator.ID, problem.ID), "could not delete problem")
 	utils.PanicIfDBError(base.DB.Delete(&problem), "could not delete problem")
 	return c.JSON(http.StatusNoContent, response.Response{
 		Message: "SUCCESS",
