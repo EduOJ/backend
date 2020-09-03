@@ -1,17 +1,17 @@
 package request
 
 type AdminCreateProblemRequest struct {
-	Name               string `sql:"index" json:"name" validate:"required,max=255"`
-	Description        string `json:"description"`
-	AttachmentFileName string `json:"attachment_file_name" validate:"required,max=255"`
-	Public             *bool  `json:"public"`
-	Privacy            *bool  `json:"privacy"`
+	Name               string `json:"name" form:"name" query:"name" validate:"required,max=255"`
+	Description        string `json:"description" form:"description" query:"description"`
+	AttachmentFileName string `json:"attachment_file_name" form:"attachment_file_name" query:"attachment_file_name" validate:"required,max=255"`
+	Public             *bool  `json:"public" form:"public" query:"public"`
+	Privacy            *bool  `json:"privacy" form:"privacy" query:"privacy"`
 
-	MemoryLimit        uint   `json:"memory_limit"`                                 // Byte
-	TimeLimit          uint   `json:"time_limit"`                                   // ms
-	LanguageAllowed    string `json:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment" validate:"max=255"`       // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id"`
+	MemoryLimit        uint   `json:"memory_limit" form:"memory_limit" query:"memory_limit"`                                         // Byte
+	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit"`                                               // ms
+	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
+	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
+	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id"`
 }
 
 type AdminGetProblemRequest struct {
@@ -28,28 +28,28 @@ type AdminGetProblemsRequest struct {
 }
 
 type AdminUpdateProblemRequest struct {
-	Name               string `sql:"index" json:"name" validate:"required,max=255"`
-	Description        string `json:"description"`
-	AttachmentFileName string `json:"attachment_file_name" validate:"required,max=255"`
-	Public             *bool  `json:"public"`
-	Privacy            *bool  `json:"privacy"`
+	Name               string `json:"name" form:"name" query:"name" validate:"required,max=255"`
+	Description        string `json:"description" form:"description" query:"description"`
+	AttachmentFileName string `json:"attachment_file_name" form:"attachment_file_name" query:"attachment_file_name" validate:"required,max=255"`
+	Public             *bool  `json:"public" form:"public" query:"public"`
+	Privacy            *bool  `json:"privacy" form:"privacy" query:"privacy"`
 
-	MemoryLimit        uint   `json:"memory_limit"`                                 // Byte
-	TimeLimit          uint   `json:"time_limit"`                                   // ms
-	LanguageAllowed    string `json:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment" validate:"max=255"`       // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id"`
+	MemoryLimit        uint   `json:"memory_limit" form:"memory_limit" query:"memory_limit"`                                         // Byte
+	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit"`                                               // ms
+	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
+	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
+	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id"`
 }
 
 type AdminDeleteProblemRequest struct {
 }
 
 type AdminCreateTestCase struct {
-	ProblemID uint `sql:"index" json:"problem_id" validate:"required"`
-	Score     uint `json:"score"` // 0 for 平均分配
+	ProblemID uint `json:"problem_id" form:"problem_id" query:"problem_id" validate:"required"`
+	Score     uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
-	InputFileName  string `json:"input_file_name" validate:"required,max=255"`
-	OutputFileName string `json:"output_file_name" validate:"required,max=255"`
+	InputFileName  string `json:"input_file_name" form:"input_file_name" query:"input_file_name" validate:"required,max=255"`
+	OutputFileName string `json:"output_file_name" form:"output_file_name" query:"output_file_name" validate:"required,max=255"`
 }
 
 type AdminGetTestCase struct {
@@ -66,11 +66,11 @@ type AdminGetTestCases struct {
 }
 
 type AdminUpdateTestCase struct {
-	ProblemID uint `sql:"index" json:"problem_id" validate:"required"`
-	Score     uint `json:"score"` // 0 for 平均分配
+	ProblemID uint `json:"problem_id" form:"problem_id" query:"problem_id" validate:"required"`
+	Score     uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
-	InputFileName  string `json:"input_file_name" validate:"required,max=255"`
-	OutputFileName string `json:"output_file_name" validate:"required,max=255"`
+	InputFileName  string `json:"input_file_name" form:"input_file_name" query:"input_file_name" validate:"required,max=255"`
+	OutputFileName string `json:"output_file_name" form:"output_file_name" query:"output_file_name" validate:"required,max=255"`
 }
 
 type AdminDeleteTestCase struct {

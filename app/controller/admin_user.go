@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
@@ -10,10 +9,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/pkg/errors"
 	"net/http"
-	"net/url"
-	"strings"
 )
 
 func AdminCreateUser(c echo.Context) error {
@@ -132,68 +128,25 @@ func AdminGetUsers(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-	var users []models.User
-	var total int
 
-	query := base.DB.Model(&models.User{})
-	if req.OrderBy != "" {
-		order := strings.SplitN(req.OrderBy, ".", 2)
-		if len(order) != 2 {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
+	query, err := utils.Sorter(base.DB.Model(&models.User{}), req.OrderBy)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
 		}
-		if !utils.Contain(order[0], []string{"username", "id", "nickname"}) {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
-		}
-		if !utils.Contain(order[1], []string{"ASC", "DESC"}) {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
-		}
-		query = query.Order(strings.Join(order, " "))
+		panic(err)
 	}
+
 	if req.Search != "" {
 		query = query.Where("id like ? or username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
-	if req.Limit == 0 {
-		req.Limit = 20 // Default limit
-	}
-	err := query.Limit(req.Limit).Offset(req.Offset).Find(&users).Error
+	var users []models.User
+	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &users)
 	if err != nil {
-		panic(errors.Wrap(err, "could not query users"))
-	}
-	err = query.Count(&total).Error
-	if err != nil {
-		panic(errors.Wrap(err, "could not query count of users"))
-	}
-
-	var nextUrlStr *string
-	var prevUrlStr *string
-
-	if req.Offset-req.Limit >= 0 {
-		prevURL := c.Request().URL
-		q, err := url.ParseQuery(prevURL.RawQuery)
-		if err != nil {
-			panic(errors.Wrap(err, "could not parse query for url"))
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
 		}
-		q.Set("offset", fmt.Sprint(req.Offset-req.Limit))
-		q.Set("limit", fmt.Sprint(req.Limit))
-		prevURL.RawQuery = q.Encode()
-		temp := prevURL.String()
-		prevUrlStr = &temp
-	} else {
-		prevUrlStr = nil
-	}
-	if req.Offset+len(users) < total {
-		nextURL := c.Request().URL
-		q, err := url.ParseQuery(nextURL.RawQuery)
-		if err != nil {
-			panic(errors.Wrap(err, "could not parse query for url"))
-		}
-		q.Set("offset", fmt.Sprint(req.Offset+req.Limit))
-		q.Set("limit", fmt.Sprint(req.Limit))
-		nextURL.RawQuery = q.Encode()
-		temp := nextURL.String()
-		nextUrlStr = &temp
-	} else {
-		nextUrlStr = nil
+		panic(err)
 	}
 	return c.JSON(http.StatusOK, response.AdminGetUsersResponse{
 		Message: "SUCCESS",
@@ -210,8 +163,8 @@ func AdminGetUsers(c echo.Context) error {
 			total,
 			len(users),
 			req.Offset,
-			prevUrlStr,
-			nextUrlStr,
+			prevUrl,
+			nextUrl,
 		},
 	})
 }
