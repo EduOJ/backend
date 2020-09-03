@@ -90,7 +90,6 @@ Common return codes.
 #### AdminCreateProblem
 |           code          |         结果          |
 |:-----------------------:|:--------------------:|
-|      CONFLICT_NAME      |       名称重复         |
 |    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminGetProblem
@@ -109,7 +108,6 @@ Common return codes.
 |           code          |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |   无法找到指定problem  |
-|      CONFLICT_NAME      |       名称重复         |
 |    PERMISSION_DENIED    |       没有权限         |
 
 #### AdminDeleteProblem
