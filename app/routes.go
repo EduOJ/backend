@@ -47,11 +47,11 @@ func Register(e *echo.Echo) {
 	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.create"
 
-	admin.POST("/problem", controller.Todo, middleware.HasPermission("create_problem"))
-	admin.GET("/problem/:id", controller.Todo, middleware.HasPermission("get_problem", "problem"))
-	admin.GET("/problems", controller.Todo, middleware.HasPermission("get_problems"))
-	admin.PUT("/problem/:id", controller.Todo, middleware.HasPermission("update_problem", "problem"))
-	admin.DELETE("/problem/:id", controller.Todo, middleware.HasPermission("delete_problem", "problem"))
+	admin.POST("/problem", controller.AdminCreateProblem, middleware.HasPermission("create_problem"))
+	admin.GET("/problem/:id", controller.AdminGetProblem, middleware.HasPermission("get_problem", "problem"))
+	admin.GET("/problems", controller.AdminGetProblems, middleware.HasPermission("get_problems"))
+	admin.PUT("/problem/:id", controller.AdminUpdateProblem, middleware.HasPermission("update_problem", "problem"))
+	admin.DELETE("/problem/:id", controller.AdminDeleteProblem, middleware.HasPermission("delete_problem", "problem"))
 
 	api.GET("/problem/:id", controller.Todo)
 	api.GET("/problems", controller.Todo)
