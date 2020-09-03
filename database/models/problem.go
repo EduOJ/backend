@@ -36,3 +36,11 @@ type Problem struct {
 	UpdatedAt time.Time  `json:"-"`
 	DeletedAt *time.Time `json:"deleted_at"`
 }
+
+func (p Problem) GetID() uint {
+	return p.ID
+}
+
+func (p Problem) TypeName() string {
+	return "problem"
+}

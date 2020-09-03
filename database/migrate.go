@@ -203,7 +203,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.DropTable("images").Error
 			},
 		},
-		// add default admin roles
+		// add default admin role
 		{
 			ID: "add_default_admin_role",
 			Migrate: func(tx *gorm.DB) (err error) {
@@ -255,7 +255,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				}
 
 				var admin Role
-				err = tx.Where("name = ? ", "admin").First(&admin).Error
+				err = tx.Where("name = ? ", "admin").First(&admin).Error // TODO: and target == nil ?
 				if err != nil {
 					return
 				}
@@ -327,6 +327,74 @@ func GetMigration() *gormigrate.Gormigrate {
 					return
 				}
 				err = tx.DropTable("problems").Error
+				if err != nil {
+					return
+				}
+				return
+			},
+		},
+		{
+			// add default problem role
+			ID: "add_default_problem_role",
+			Migrate: func(tx *gorm.DB) (err error) {
+
+				type Permission struct {
+					ID     uint   `gorm:"primary_key" json:"id"`
+					RoleID uint   `json:"role_id"`
+					Name   string `json:"name" gorm:"size:255"`
+				}
+
+				type Role struct {
+					ID          uint    `gorm:"primary_key" json:"id"`
+					Name        string  `json:"name" gorm:"size:255"`
+					Target      *string `json:"target" gorm:"size:255"`
+					Permissions []Permission
+				}
+
+				problemString := "problem"
+				problemCreator := Role{
+					Name:   "creator",
+					Target: &problemString,
+				}
+				err = tx.Create(&problemCreator).Error
+				if err != nil {
+					return
+				}
+				problemPerm := Permission{
+					RoleID: problemCreator.ID,
+					Name:   "all",
+				}
+				err = tx.Model(&problemCreator).Association("Permissions").Append(problemPerm).Error
+				if err != nil {
+					return
+				}
+				return
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+
+				type Permission struct {
+					ID     uint   `gorm:"primary_key" json:"id"`
+					RoleID uint   `json:"role_id"`
+					Name   string `json:"name" gorm:"size:255"`
+				}
+
+				type Role struct {
+					ID          uint    `gorm:"primary_key" json:"id"`
+					Name        string  `json:"name" gorm:"size:255"`
+					Target      *string `json:"target" gorm:"size:255"`
+					Permissions []Permission
+				}
+
+				var problemCreator Role
+				err = tx.Where("name = ? and target = ? ", "creator", "problem").First(&problemCreator).Error
+				if err != nil {
+					return
+				}
+				err = tx.Delete(Permission{}, "role_id = ?", problemCreator.ID).Error
+				if err != nil {
+					return
+				}
+				err = tx.Delete(&problemCreator).Error
 				if err != nil {
 					return
 				}
