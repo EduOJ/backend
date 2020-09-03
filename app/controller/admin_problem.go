@@ -22,11 +22,6 @@ func AdminCreateProblem(c echo.Context) error {
 	if !ok {
 		return err
 	}
-	count := 0
-	utils.PanicIfDBError(base.DB.Model(&models.Problem{}).Where("name = ?", req.Name).Count(&count), "could not query problem count")
-	if count != 0 {
-		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_NAME", nil))
-	}
 	var public, privacy bool
 	if req.Public == nil {
 		public = false
@@ -176,11 +171,6 @@ func AdminUpdateProblem(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
-	}
-	count := 0
-	utils.PanicIfDBError(base.DB.Model(&models.Problem{}).Where("name = ?", req.Name).Count(&count), "could not query problem count")
-	if count > 1 || (count == 1 && problem.Name != req.Name) {
-		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_NAME", nil))
 	}
 	problem.Name = req.Name
 	problem.Description = req.Description
