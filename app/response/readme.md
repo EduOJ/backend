@@ -117,10 +117,9 @@ Common return codes.
 |    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminCreateTestCase
-#### AdminGetTestCase
-#### AdminGetTestCases
 #### AdminUpdateTestCase
 #### AdminDeleteTestCase
+#### AdminDeleteTestCases
 
 ## User
 
@@ -156,8 +155,6 @@ Common return codes.
 ### GetProblem
 ### GetProblems
 
-### GetTestCase
-### GetTestCases
 ## Image
 ### CreateImage
 |     code     |  结果   |
