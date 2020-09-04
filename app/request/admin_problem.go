@@ -45,33 +45,18 @@ type AdminDeleteProblemRequest struct {
 }
 
 type AdminCreateTestCase struct {
-	ProblemID uint `json:"problem_id" form:"problem_id" query:"problem_id" validate:"required"`
-	Score     uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
+	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
 	InputFileName  string `json:"input_file_name" form:"input_file_name" query:"input_file_name" validate:"required,max=255"`
 	OutputFileName string `json:"output_file_name" form:"output_file_name" query:"output_file_name" validate:"required,max=255"`
-}
-
-type AdminGetTestCase struct {
-}
-
-type AdminGetTestCases struct {
-	Search string `json:"search" form:"search" query:"search"`
-
-	Limit  int `json:"limit" form:"limit" query:"limit" validate:"max=100,min=0"`
-	Offset int `json:"offset" form:"offset" query:"offset" validate:"min=0"`
-
-	// OrderBy example: score.DESC
-	OrderBy string `json:"order_by" form:"order_by" query:"order_by"`
 }
 
 type AdminUpdateTestCase struct {
-	ProblemID uint `json:"problem_id" form:"problem_id" query:"problem_id" validate:"required"`
-	Score     uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
-
-	InputFileName  string `json:"input_file_name" form:"input_file_name" query:"input_file_name" validate:"required,max=255"`
-	OutputFileName string `json:"output_file_name" form:"output_file_name" query:"output_file_name" validate:"required,max=255"`
+	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 }
 
 type AdminDeleteTestCase struct {
+}
+
+type AdminDeleteTestCases struct {
 }
