@@ -28,21 +28,20 @@ type UserProfileForMe struct {
 }
 
 type RoleProfile struct {
-	Name        string  `json:"name"`
-	Target      *string `json:"target"`
-	Permissions []PermissionProfile
-	TargetID    uint `json:"target_id"`
+	ID          uint                `json:"id"`
+	Name        string              `json:"name"`
+	Target      *string             `json:"target"`
+	Permissions []PermissionProfile `json:"permissions"`
+	TargetID    uint                `json:"target_id"`
 }
 
 type PermissionProfile struct {
-	ID     uint   `gorm:"primary_key" json:"id"`
-	RoleID uint   `json:"role_id"`
-	Name   string `json:"name"`
+	ID   uint   `gorm:"primary_key" json:"id"`
+	Name string `json:"name"`
 }
 
 func (p *PermissionProfile) Convert(perm *models.Permission) {
 	p.ID = perm.ID
-	p.RoleID = perm.RoleID
 	p.Name = perm.Name
 }
 
@@ -133,3 +132,5 @@ func GetUserProfileSlice(users []models.User) (profiles []UserProfile) {
 	}
 	return
 }
+
+// TODO: test
