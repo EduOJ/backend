@@ -505,7 +505,7 @@ func TestAdminDeleteUser(t *testing.T) {
 				httpResp := makeResp(makeReq(t, "DELETE", test.path, request.AdminDeleteUserRequest{}, applyAdminUser))
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
-				assert.Equal(t, http.StatusNoContent, httpResp.StatusCode)
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				assert.Equal(t, response.Response{
 					Message: "SUCCESS",
 					Error:   nil,
@@ -572,7 +572,7 @@ func TestAdminGetUser(t *testing.T) {
 		path       string
 		req        request.AdminGetUserRequest
 		user       models.User
-		role       models.Role
+		roleName   *string
 		roleTarget models.HasRole
 	}{
 		{
@@ -585,7 +585,7 @@ func TestAdminGetUser(t *testing.T) {
 				Email:    "test_admin_get_user_1@e.com",
 				Password: utils.HashPassword("test_admin_get_user_1_pwd"),
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -598,7 +598,7 @@ func TestAdminGetUser(t *testing.T) {
 				Email:    "test_admin_get_user_2@e.com",
 				Password: utils.HashPassword("test_admin_get_user_2_pwd"),
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -611,7 +611,7 @@ func TestAdminGetUser(t *testing.T) {
 				Email:    "test_admin_get_user_3@e.com",
 				Password: utils.HashPassword("test_admin_get_user_3_pwd"),
 			},
-			role:       testRole,
+			roleName:   &testRole.Name,
 			roleTarget: classA,
 		},
 	}
@@ -623,11 +623,10 @@ func TestAdminGetUser(t *testing.T) {
 			t.Run("testAdminGetUser"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
-				if test.role.ID != 0 {
-					test.user.GrantRole(test.role, test.roleTarget)
-				} else {
-					test.user.LoadRoles()
+				if test.roleName != nil {
+					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
+				test.user.LoadRoles()
 				if test.path == "id" {
 					test.path = fmt.Sprintf("/api/admin/user/%d", test.user.ID)
 				}

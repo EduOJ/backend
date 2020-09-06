@@ -104,7 +104,7 @@ func TestLogin(t *testing.T) {
 		name       string
 		user       models.User
 		req        request.LoginRequest
-		role       models.Role
+		roleName   *string
 		roleTarget models.HasRole
 	}{
 		{
@@ -120,7 +120,7 @@ func TestLogin(t *testing.T) {
 				Password:        "test_login_1_pwd",
 				RememberMe:      false,
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -136,7 +136,7 @@ func TestLogin(t *testing.T) {
 				Password:        "test_login_2_pwd",
 				RememberMe:      false,
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -152,7 +152,7 @@ func TestLogin(t *testing.T) {
 				Password:        "test_login_3_pwd",
 				RememberMe:      true,
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -168,7 +168,7 @@ func TestLogin(t *testing.T) {
 				Password:        "test_login_4_pwd",
 				RememberMe:      false,
 			},
-			role:       adminRole,
+			roleName:   &adminRole.Name,
 			roleTarget: classA,
 		},
 	}
@@ -180,11 +180,10 @@ func TestLogin(t *testing.T) {
 			t.Run("testLogin"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
-				if test.role.ID != 0 {
-					test.user.GrantRole(test.role, test.roleTarget)
-				} else {
-					test.user.LoadRoles()
+				if test.roleName != nil {
+					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
+				test.user.LoadRoles()
 				httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", test.req))
 				resp := response.LoginResponse{}
 				mustJsonDecode(httpResp, &resp)

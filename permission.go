@@ -65,18 +65,13 @@ func permission() {
 				log.Fatal("Editing permission failed.")
 				return
 			}
-			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			input, err := reader.ReadString('\n')
 			if err != nil {
 				log.Error(errors.Wrap(err, "fail to print"))
 				return
 			}
-			input, err = reader.ReadString('\n')
 			if err == io.EOF {
 				return
-			}
-			if err != nil {
-				log.Error(errors.Wrap(err, "Error reading command"))
-				continue
 			}
 			args = strings.Split(input[:len(input)-1], " ")
 			quit = doPermission(args)
@@ -172,7 +167,7 @@ Note:
 			break
 		}
 		if len(args) == 3 {
-			user.GrantRole(*role)
+			user.GrantRole(role.Name)
 		} else {
 			var targetId uint64
 			targetId, err = strconv.ParseUint(args[3], 10, 32)
@@ -184,7 +179,7 @@ Note:
 				ID:   uint(targetId),
 				name: *role.Target,
 			}
-			user.GrantRole(*role, &target)
+			user.GrantRole(role.Name, &target)
 		}
 	case "delete-role", "dr":
 		// (delete-role|dr) <role_id|role_name>
