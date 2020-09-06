@@ -94,7 +94,7 @@ func AdminDeleteUser(c echo.Context) error {
 		panic(err)
 	}
 	utils.PanicIfDBError(base.DB.Delete(&user), "could not delete user")
-	return c.JSON(http.StatusNoContent, response.Response{
+	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,

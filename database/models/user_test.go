@@ -32,7 +32,7 @@ func TestUser_GrantRole(t *testing.T) {
 		Name: "ttt",
 	}
 	base.DB.Create(&r)
-	u.GrantRole(r)
+	u.GrantRole(r.Name)
 	assert.Equal(t, r, u.Roles[0].Role)
 	{
 		dummy := "test_class"
@@ -42,7 +42,7 @@ func TestUser_GrantRole(t *testing.T) {
 		}
 	}
 	base.DB.Create(&r)
-	u.GrantRole(r, TestClass{ID: 2})
+	u.GrantRole(r.Name, TestClass{ID: 2})
 	assert.Equal(t, r, u.Roles[1].Role)
 	assert.Equal(t, uint(2), u.Roles[1].TargetID)
 }
@@ -99,11 +99,11 @@ func TestCan(t *testing.T) {
 	}
 	base.DB.Create(&testUser0)
 	base.DB.Create(&testUser1)
-	testUser0.GrantRole(teacher, classA)
-	testUser0.GrantRole(assistant, classB)
-	testUser1.GrantRole(admin, classB)
-	testUser0.GrantRole(globalRole)
-	testUser1.GrantRole(globalAdmin)
+	testUser0.GrantRole(teacher.Name, classA)
+	testUser0.GrantRole(assistant.Name, classB)
+	testUser1.GrantRole(admin.Name, classB)
+	testUser0.GrantRole(globalRole.Name)
+	testUser1.GrantRole(globalAdmin.Name)
 	t.Run("scoped", func(t *testing.T) {
 		t.Run("normal", func(t *testing.T) {
 			thisAssert := assert.New(t)

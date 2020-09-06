@@ -105,10 +105,10 @@ func TestHasPermission(t *testing.T) {
 	base.DB.Create(&testHasPermUserWithAllClassAPerms)
 	base.DB.Create(&testHasPermUserWithPerm)
 	base.DB.Create(&testHasPermAdministrator)
-	testHasPermUserWithClassAPerm.GrantRole(permRole, classA)
-	testHasPermUserWithAllClassAPerms.GrantRole(adminRole, classA)
-	testHasPermUserWithPerm.GrantRole(globalPermRole)
-	testHasPermAdministrator.GrantRole(globalAdminRole)
+	testHasPermUserWithClassAPerm.GrantRole(permRole.Name, classA)
+	testHasPermUserWithAllClassAPerms.GrantRole(adminRole.Name, classA)
+	testHasPermUserWithPerm.GrantRole(globalPermRole.Name)
+	testHasPermAdministrator.GrantRole(globalAdminRole.Name)
 
 	users := []models.User{
 		testHasPermUserWithoutPerms,
