@@ -57,7 +57,7 @@ func AdminCreateProblem(c echo.Context) error {
 }
 
 func AdminGetProblem(c echo.Context) error {
-	problem, err := findProblem(c.Param("id"))
+	problem, err := findProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -121,7 +121,7 @@ func AdminUpdateProblem(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-	problem, err := findProblem(c.Param("id"))
+	problem, err := findProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -158,7 +158,7 @@ func AdminUpdateProblem(c echo.Context) error {
 }
 
 func AdminDeleteProblem(c echo.Context) error {
-	problem, err := findProblem(c.Param("id"))
+	problem, err := findProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -180,11 +180,15 @@ func AdminDeleteProblem(c echo.Context) error {
 	})
 }
 
-func findProblem(id string) (*models.Problem, error) {
+func findProblem(id string, publicOnly bool) (*models.Problem, error) {
 	problem := models.Problem{}
-	err := base.DB.Where("id = ?", id).First(&problem).Error
+	query := base.DB
+	if publicOnly {
+		query = query.Model(&models.Problem{}).Where("public = ?", true)
+	}
+	err := query.Where("id = ?", id).First(&problem).Error
 	if err != nil {
-		err = base.DB.Where("name = ?", id).First(&problem).Error
+		err = query.Where("name = ?", id).First(&problem).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, err
