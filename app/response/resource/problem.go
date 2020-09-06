@@ -130,6 +130,13 @@ func GetProblemProfileForAdminSlice(problems []models.Problem) (profiles []Probl
 	}
 	return
 }
+func GetProblemProfileSlice(problems []models.Problem) (profiles []ProblemProfile) {
+	profiles = make([]ProblemProfile, len(problems))
+	for i, problem := range problems {
+		profiles[i].Convert(&problem)
+	}
+	return
+}
 
 func GetProblemProfile(problem *models.Problem) *ProblemProfile {
 	p := ProblemProfile{}

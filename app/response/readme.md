@@ -53,7 +53,6 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |     CONFLICT_EMAIL     |        邮箱重复        |
 |    CONFLICT_USERNAME   |       用户名重复       |
-|   PERMISSION_DENIED    |        没有权限        |
 
 #### AdminUpdateUser
 
@@ -62,59 +61,47 @@ Common return codes.
 |        NOT_FOUND        |     无法找到指定user   |
 |     CONFLICT_EMAIL     |        邮箱重复        |
 |    CONFLICT_USERNAME   |       用户名重复       |
-|    PERMISSION_DENIED   |        没有权限        |
 
 #### AdminDeleteUser
 
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到指定user   |
-|    PERMISSION_DENIED    |       没有权限        |
 
 #### AdminGetUser
 
 |         message        |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到指定user   |
-|    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminGetUsers
 
 |         message         |         结果         |
 |:-----------------------:|:-------------------:|
 |      INVALID_ORDER      |     无效的排序设置     |
-|    PERMISSION_DENIED    |        没有权限       |
 
 ### Problem
 
 #### AdminCreateProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminGetProblem
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |   无法找到指定problem  |
-|    PERMISSION_DENIED    |        没有权限       |
-
 #### AdminGetProblems
 |         message         |         结果         |
 |:-----------------------:|:-------------------:|
 |      INVALID_ORDER      |     无效的排序设置     |
-|    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminUpdateProblem
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |   无法找到指定problem  |
-|    PERMISSION_DENIED    |       没有权限         |
 
 #### AdminDeleteProblem
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |   无法找到指定problem  |
-|    PERMISSION_DENIED    |        没有权限       |
 
 #### AdminCreateTestCase
 #### AdminUpdateTestCase
@@ -153,7 +140,14 @@ Common return codes.
 ## Problem
 
 ### GetProblem
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到指定problem  |
+
 ### GetProblems
+|         message         |         结果         |
+|:-----------------------:|:-------------------:|
+|      INVALID_ORDER      |     无效的排序设置     |
 
 ## Image
 ### CreateImage

@@ -47,19 +47,30 @@ func Register(e *echo.Echo) {
 	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.create"
 
-	admin.POST("/problem", controller.AdminCreateProblem, middleware.HasPermission("create_problem")).Name = "admin.problem.createProblem"
-	admin.GET("/problem/:id", controller.AdminGetProblem, middleware.HasPermission("get_problem", "problem")).Name = "admin.problem.getProblem"
-	admin.GET("/problems", controller.AdminGetProblems, middleware.HasPermission("get_problems")).Name = "admin.problem.getProblems"
-	admin.PUT("/problem/:id", controller.AdminUpdateProblem, middleware.HasPermission("update_problem", "problem")).Name = "admin.problem.updateProblem"
-	admin.DELETE("/problem/:id", controller.AdminDeleteProblem, middleware.HasPermission("delete_problem", "problem")).Name = "admin.problem.deleteProblem"
+	admin.POST("/problem",
+		controller.AdminCreateProblem, middleware.HasPermission("create_problem")).Name = "admin.problem.createProblem"
+	admin.GET("/problem/:id",
+		controller.AdminGetProblem, middleware.HasPermission("get_problem", "problem")).Name = "admin.problem.getProblem"
+	admin.GET("/problems",
+		controller.AdminGetProblems, middleware.HasPermission("get_problems")).Name = "admin.problem.getProblems"
+	admin.PUT("/problem/:id",
+		controller.AdminUpdateProblem, middleware.HasPermission("update_problem", "problem")).Name = "admin.problem.updateProblem"
+	admin.DELETE("/problem/:id",
+		controller.AdminDeleteProblem, middleware.HasPermission("delete_problem", "problem")).Name = "admin.problem.deleteProblem"
 
-	api.GET("/problem/:id", controller.Todo).Name = "problem.getProblem"
-	api.GET("/problems", controller.Todo).Name = "problem.getProblems"
+	api.GET("/problem/:id",
+		controller.GetProblem).Name = "problem.getProblem"
+	api.GET("/problems",
+		controller.GetProblems).Name = "problem.getProblems"
 
-	admin.POST("/problem/:id/test_case", controller.Todo, middleware.HasPermission("create_test_case", "problem")).Name = "admin.problem.createTestCase"
-	admin.PUT("/problem/:id/test_case/:test_case_id", controller.Todo, middleware.HasPermission("update_test_case", "problem")).Name = "admin.problem.updateTestCase"
-	admin.DELETE("/problem/:id/test_case/:test_case_id", controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCase"
-	admin.DELETE("/problem/:id/test_cases", controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCases"
+	admin.POST("/problem/:id/test_case",
+		controller.Todo, middleware.HasPermission("create_test_case", "problem")).Name = "admin.problem.createTestCase"
+	admin.PUT("/problem/:id/test_case/:test_case_id",
+		controller.Todo, middleware.HasPermission("update_test_case", "problem")).Name = "admin.problem.updateTestCase"
+	admin.DELETE("/problem/:id/test_case/:test_case_id",
+		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCase"
+	admin.DELETE("/problem/:id/test_cases",
+		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCases"
 
 	// TODO: routes.
 }
