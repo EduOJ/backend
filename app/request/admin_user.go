@@ -5,7 +5,7 @@ type AdminCreateUserRequest struct {
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 	Password string `json:"password" form:"password" query:"password" validate:"required,max=30,min=5"`
-	//TODO: add to class
+	// TODO: add to class
 }
 
 type AdminUpdateUserRequest struct {
@@ -13,7 +13,7 @@ type AdminUpdateUserRequest struct {
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 	Password string `json:"password" form:"password" query:"password" validate:"omitempty,required,max=30,min=5"`
-	//TODO: add to class
+	// TODO: add to class
 }
 
 type AdminDeleteUserRequest struct {

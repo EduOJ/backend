@@ -57,7 +57,7 @@ func TestGetUser(t *testing.T) {
 		path       string
 		req        request.GetUserRequest
 		user       models.User
-		role       models.Role
+		roleName   *string
 		roleTarget models.HasRole
 	}{
 		{
@@ -70,7 +70,7 @@ func TestGetUser(t *testing.T) {
 				Email:    "test_get_user_1@mail.com",
 				Password: utils.HashPassword("test_get_user_1_pwd"),
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -83,7 +83,7 @@ func TestGetUser(t *testing.T) {
 				Email:    "test_get_user_2@mail.com",
 				Password: utils.HashPassword("test_get_user_2_pwd"),
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -96,7 +96,7 @@ func TestGetUser(t *testing.T) {
 				Email:    "test_get_user_3@mail.com",
 				Password: utils.HashPassword("test_get_user_3_pwd"),
 			},
-			role:       testRole,
+			roleName:   &testRole.Name,
 			roleTarget: classA,
 		},
 	}
@@ -108,8 +108,8 @@ func TestGetUser(t *testing.T) {
 			t.Run("testGetUser"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
-				if test.role.ID != 0 {
-					test.user.GrantRole(test.role, test.roleTarget)
+				if test.roleName != nil {
+					test.user.GrantRole(*test.roleName, test.roleTarget)
 				} else {
 					test.user.LoadRoles()
 				}
@@ -618,7 +618,7 @@ func TestGetUserMe(t *testing.T) {
 	successTests := []struct {
 		name       string
 		user       models.User
-		role       models.Role
+		roleName   *string
 		roleTarget models.HasRole
 	}{
 		{
@@ -629,7 +629,7 @@ func TestGetUserMe(t *testing.T) {
 				Email:    "test_get_me_4@mail.com",
 				Password: utils.HashPassword("test_get_me_4_password"),
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -640,7 +640,7 @@ func TestGetUserMe(t *testing.T) {
 				Email:    "test_get_me_5@mail.com",
 				Password: utils.HashPassword("test_get_me_5_password"),
 			},
-			role:       testRole,
+			roleName:   &testRole.Name,
 			roleTarget: classA,
 		},
 	}
@@ -652,11 +652,10 @@ func TestGetUserMe(t *testing.T) {
 			t.Run("testGetMe"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
-				if test.role.ID != 0 {
-					test.user.GrantRole(test.role, test.roleTarget)
-				} else {
-					test.user.LoadRoles()
+				if test.roleName != nil {
+					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
+				test.user.LoadRoles()
 				httpResp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetMeRequest{}, applyUser(test.user)))
 				resp := response.GetMeResponse{}
 				mustJsonDecode(httpResp, &resp)
@@ -791,7 +790,7 @@ func TestUpdateUserMe(t *testing.T) {
 		name       string
 		user       models.User
 		req        request.UpdateMeRequest
-		role       models.Role
+		roleName   *string
 		roleTarget models.HasRole
 	}{
 		{
@@ -807,7 +806,7 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname: "test_update_me_success_4",
 				Email:    "test_update_me_success_4@e.com",
 			},
-			role:       models.Role{},
+			roleName:   nil,
 			roleTarget: nil,
 		},
 		{
@@ -823,7 +822,7 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname: "test_update_me_success_5",
 				Email:    "test_update_me_success_5@e.com",
 			},
-			role:       testRole,
+			roleName:   &testRole.Name,
 			roleTarget: classA,
 		},
 	}
@@ -835,11 +834,10 @@ func TestUpdateUserMe(t *testing.T) {
 			t.Run("testUpdateMe"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
-				if test.role.ID != 0 {
-					test.user.GrantRole(test.role, test.roleTarget)
-				} else {
-					test.user.LoadRoles()
+				if test.roleName != nil {
+					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
+				test.user.LoadRoles()
 				httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", test.req, applyUser(test.user)))
 				resp := response.UpdateMeResponse{}
 				mustJsonDecode(httpResp, &resp)

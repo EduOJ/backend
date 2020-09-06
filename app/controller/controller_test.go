@@ -51,7 +51,7 @@ func initGeneralTestingUsers() {
 	}
 	base.DB.Create(&adminUser)
 	base.DB.Create(&normalUser)
-	adminUser.GrantRole(adminRole)
+	adminUser.GrantRole(adminRole.Name)
 	applyAdminUser = headerOption{
 		"Set-User-For-Test": {fmt.Sprintf("%d", adminUser.ID)},
 	}

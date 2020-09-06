@@ -8,7 +8,7 @@ import (
 )
 
 func testConfig() {
-	//TODO: test config using config.Get
+	// TODO: test config using config.Get
 	readConfig()
 	initGorm(false)
 	initLog()

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/pkg/errors"
 	"time"
@@ -19,26 +20,79 @@ type User struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"-"`
 	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
-	//TODO: bio
+	// TODO: bio
 }
 
-func (u *User) GrantRole(role Role, target ...HasRole) {
+func (u *User) GrantRole(name string, target ...HasRole) {
+	role := getRole(name, target...)
 	if len(target) == 0 {
-		err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
+		if err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
 			Role: role,
-		}).Error
-		if err != nil {
+		}).Error; err != nil {
 			panic(err)
 		}
 	} else {
-		err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
+		if err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
 			Role:     role,
 			TargetID: target[0].GetID(),
-		}).Error
-		if err != nil {
+		}).Error; err != nil {
 			panic(err)
 		}
 	}
+}
+
+func (u *User) DeleteRole(name string, target ...HasRole) {
+	role := getRole(name, target...)
+	userHasRole := UserHasRole{}
+	if len(target) == 0 {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, 0).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+			return
+		} else if err != nil {
+			panic(err)
+		}
+	} else {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, target[0].GetID()).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+			return
+		} else if err != nil {
+			panic(err)
+		}
+	}
+	if err := base.DB.Delete(&userHasRole).Error; err != nil {
+		panic(err)
+	}
+}
+
+func (u *User) HasRole(name string, target ...HasRole) bool {
+	role := getRole(name, target...)
+	userHasRole := UserHasRole{}
+	if len(target) == 0 {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, 0).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+			return false
+		} else if err != nil {
+			panic(err)
+		}
+	} else {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, target[0].GetID()).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+			return false
+		} else if err != nil {
+			panic(err)
+		}
+	}
+	return true
+}
+
+func getRole(name string, target ...HasRole) Role {
+	role := Role{}
+	if len(target) == 0 {
+		if err := base.DB.Where("name = ? and target is null", name).FirstOrCreate(&role).Error; err != nil {
+			panic(err)
+		}
+	} else {
+		if err := base.DB.Where("name = ? and target = ?", name, target[0].TypeName()).FirstOrCreate(&role).Error; err != nil {
+			panic(err)
+		}
+	}
+	return role
 }
 
 func (u *User) LoadRoles() {
