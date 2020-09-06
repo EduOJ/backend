@@ -453,7 +453,7 @@ func TestAdminGetProblem(t *testing.T) {
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
 				user := createUserForTest(t, "admin_get_problem", i)
 				user.GrantRole("creator", test.problem)
-				httpResp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d", test.problem.ID), request.AdminDeleteUserRequest{}, headerOption{
+				httpResp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d", test.problem.ID), request.AdminGetUserRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
 				resp := response.AdminGetProblemResponse{}

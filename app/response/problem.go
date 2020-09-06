@@ -24,24 +24,3 @@ type GetProblemsResponse struct {
 		Next     *string                   `json:"next"`
 	} `json:"data"`
 }
-
-type GetTestCase struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-		*resource.TestCaseProfile `json:"test_case"`
-	} `json:"data"`
-}
-
-type GetTestCasesResponse struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-		TestCases []resource.TestCaseProfile `json:"test_cases"`
-		Total     int                        `json:"total"`
-		Count     int                        `json:"count"`
-		Offset    int                        `json:"offset"`
-		Prev      *string                    `json:"prev"`
-		Next      *string                    `json:"next"`
-	} `json:"data"`
-}
