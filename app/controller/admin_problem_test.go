@@ -35,7 +35,6 @@ func TestAdminCreateProblem(t *testing.T) {
 			req: request.AdminCreateProblemRequest{
 				Name:               "",
 				Description:        "",
-				AttachmentFileName: "",
 				Public:             nil,
 				Privacy:            nil,
 				MemoryLimit:        0,
@@ -58,11 +57,6 @@ func TestAdminCreateProblem(t *testing.T) {
 					"field":       "Description",
 					"reason":      "required",
 					"translation": "介绍为必填字段",
-				},
-				map[string]interface{}{
-					"field":       "AttachmentFileName",
-					"reason":      "required",
-					"translation": "附件名称为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "MemoryLimit",
@@ -117,13 +111,13 @@ func TestAdminCreateProblem(t *testing.T) {
 		assert.Nil(t, base.DB.Create(&user).Error)
 		user.GrantRole("admin")
 		req := request.AdminCreateProblemRequest{
-			Name:               "test_admin_create_problem_1",
-			Description:        "test_admin_create_problem_1_desc",
-			AttachmentFileName: "test_admin_create_problem_1_attachment_file_name",
-			MemoryLimit:        4294967296,
-			TimeLimit:          1000,
-			LanguageAllowed:    "test_admin_create_problem_1_language_allowed",
-			CompareScriptID:    1,
+			Name:        "test_admin_create_problem_1",
+			Description: "test_admin_create_problem_1_desc",
+			//AttachmentFileName: "test_admin_create_problem_1_attachment_file_name",
+			MemoryLimit:     4294967296,
+			TimeLimit:       1000,
+			LanguageAllowed: "test_admin_create_problem_1_language_allowed",
+			CompareScriptID: 1,
 		}
 		httpResp := makeResp(makeReq(t, "POST", "/api/admin/problem", req, headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
