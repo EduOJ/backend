@@ -23,14 +23,18 @@ func AdminCreateProblem(c echo.Context) error {
 	var public, privacy bool
 	if req.Public == nil {
 		public = false
+	} else {
+		public = *req.Public
 	}
 	if req.Privacy == nil {
 		privacy = true
+	} else {
+		privacy = *req.Privacy
 	}
 	problem := models.Problem{
-		Name:               req.Name,
-		Description:        req.Description,
-		AttachmentFileName: req.AttachmentFileName,
+		Name:        req.Name,
+		Description: req.Description,
+		//AttachmentFileName: req.AttachmentFileName,
 		Public:             public,
 		Privacy:            privacy,
 		MemoryLimit:        req.MemoryLimit,

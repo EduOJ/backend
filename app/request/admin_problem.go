@@ -5,9 +5,9 @@ type AdminCreateProblemRequest struct {
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 
 	// TODO: change this into file
-	AttachmentFileName string `json:"attachment_file_name" form:"attachment_file_name" query:"attachment_file_name" validate:"required,max=255"`
-	Public             *bool  `json:"public" form:"public" query:"public"`
-	Privacy            *bool  `json:"privacy" form:"privacy" query:"privacy"`
+	// AttachmentFileName string `json:"attachment_file_name" form:"attachment_file_name" query:"attachment_file_name" validate:"required,max=255"`
+	Public  *bool `json:"public" form:"public" query:"public"`
+	Privacy *bool `json:"privacy" form:"privacy" query:"privacy"`
 
 	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
 	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
