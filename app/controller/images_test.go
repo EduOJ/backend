@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
@@ -46,17 +45,7 @@ func TestGetImage(t *testing.T) {
 		}
 		utils.PanicIfDBError(base.DB.Save(&illegalTypeModel), "could not save image")
 
-		found, err := base.Storage.BucketExists("images")
-		if err != nil {
-			panic(errors.Wrap(err, "could not query if bucket exists"))
-		}
-		if !found {
-			err = base.Storage.MakeBucket("images", config.MustGet("storage.region", "us-east-1").String())
-			if err != nil {
-				panic(errors.Wrap(err, "could not query if bucket exists"))
-			}
-		}
-		_, err = base.Storage.PutObject("images", "test_image_path", &imageBuffer, int64(imageBuffer.Len()), minio.PutObjectOptions{
+		_, err := base.Storage.PutObject("images", "test_image_path", &imageBuffer, int64(imageBuffer.Len()), minio.PutObjectOptions{
 			ContentType: "image/png",
 		})
 		if err != nil {
