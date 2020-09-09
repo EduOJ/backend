@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -97,16 +96,6 @@ func CreateImage(c echo.Context) error {
 		panic(errors.Wrap(err, "could not seek to file start"))
 	}
 
-	found, err := base.Storage.BucketExists("images")
-	if err != nil {
-		panic(errors.Wrap(err, "could not query if bucket exists"))
-	}
-	if !found {
-		err = base.Storage.MakeBucket("images", config.MustGet("storage.region", "us-east-1").String())
-		if err != nil {
-			panic(errors.Wrap(err, "could not create bucket"))
-		}
-	}
 	_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "images", fileIndex, src, file.Size, minio.PutObjectOptions{
 		ContentType: mime.String(),
 	})

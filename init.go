@@ -12,6 +12,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/minio/minio-go"
@@ -208,5 +209,6 @@ func initStorage() {
 		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
 		panic(err)
 	}
+	utils.MustCreateBuckets("images", "problems")
 	log.Debug("Storage client initialized.")
 }
