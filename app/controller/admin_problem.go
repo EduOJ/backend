@@ -8,7 +8,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
@@ -56,17 +55,6 @@ func AdminCreateProblem(c echo.Context) error {
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
 
 	if file != nil {
-		err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
-		found, err := base.Storage.BucketExists("problems")
-		if err != nil {
-			panic(errors.Wrap(err, "could not query if bucket exists"))
-		}
-		if !found {
-			err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
-			if err != nil {
-				panic(errors.Wrap(err, "could not query if bucket exists"))
-			}
-		}
 		src, err := file.Open()
 		if err != nil {
 			panic(err)
@@ -181,17 +169,6 @@ func AdminUpdateProblem(c echo.Context) error {
 	}
 	if file != nil {
 		problem.AttachmentFileName = file.Filename
-		err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
-		found, err := base.Storage.BucketExists("problems")
-		if err != nil {
-			panic(errors.Wrap(err, "could not query if bucket exists"))
-		}
-		if !found {
-			err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
-			if err != nil {
-				panic(errors.Wrap(err, "could not query if bucket exists"))
-			}
-		}
 		src, err := file.Open()
 		if err != nil {
 			panic(err)
