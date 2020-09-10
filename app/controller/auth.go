@@ -43,10 +43,10 @@ func Login(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			User  resource.UserProfileForMe `json:"user"`
-			Token string                    `json:"token"`
+			User  resource.UserProfileForAdmin `json:"user"`
+			Token string                       `json:"token"`
 		}{
-			User:  *resource.GetUserProfileForMe(&user),
+			User:  *resource.GetUserProfileForAdmin(&user),
 			Token: token.Token,
 		},
 	})
@@ -84,10 +84,10 @@ func Register(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			User  resource.UserProfileForMe `json:"user"`
-			Token string                    `json:"token"`
+			User  resource.UserProfileForAdmin `json:"user"`
+			Token string                       `json:"token"`
 		}{
-			User:  *resource.GetUserProfileForMe(&user),
+			User:  *resource.GetUserProfileForAdmin(&user),
 			Token: token.Token,
 		},
 	})

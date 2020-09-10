@@ -1,6 +1,9 @@
 package resource
 
-import "github.com/leoleoasd/EduOJBackend/database/models"
+import (
+	"github.com/leoleoasd/EduOJBackend/database/models"
+	"strings"
+)
 
 type TestCaseProfileForAdmin struct {
 	ID uint `json:"id"`
@@ -27,11 +30,11 @@ type ProblemProfileForAdmin struct {
 	Public             bool   `json:"public"`
 	Privacy            bool   `json:"privacy"`
 
-	MemoryLimit        uint64 `json:"memory_limit"`        // Byte
-	TimeLimit          uint   `json:"time_limit"`          // ms
-	LanguageAllowed    string `json:"language_allowed"`    // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment"` // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id"`
+	MemoryLimit        uint64   `json:"memory_limit"` // Byte
+	TimeLimit          uint     `json:"time_limit"`   // ms
+	LanguageAllowed    []string `json:"language_allowed"`
+	CompileEnvironment string   `json:"compile_environment"` // E.g.  O2=false
+	CompareScriptID    uint     `json:"compare_script_id"`
 
 	TestCases []TestCaseProfileForAdmin `json:"test_cases"`
 }
@@ -41,14 +44,11 @@ type ProblemProfile struct {
 	Name               string `sql:"index" json:"name"`
 	Description        string `json:"description"`
 	AttachmentFileName string `json:"attachment_file_name"`
-	Public             bool   `json:"public"`
-	Privacy            bool   `json:"privacy"`
 
-	MemoryLimit        uint64 `json:"memory_limit"`        // Byte
-	TimeLimit          uint   `json:"time_limit"`          // ms
-	LanguageAllowed    string `json:"language_allowed"`    // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment"` // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id"`
+	MemoryLimit     uint64   `json:"memory_limit"` // Byte
+	TimeLimit       uint     `json:"time_limit"`   // ms
+	LanguageAllowed []string `json:"language_allowed"`
+	CompareScriptID uint     `json:"compare_script_id"`
 
 	TestCases []TestCaseProfile `json:"test_cases"`
 }
@@ -88,7 +88,7 @@ func (p *ProblemProfileForAdmin) Convert(problem *models.Problem) {
 	p.Privacy = problem.Privacy
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
-	p.LanguageAllowed = problem.LanguageAllowed
+	p.LanguageAllowed = strings.Split(problem.LanguageAllowed, ",")
 	p.CompileEnvironment = problem.CompileEnvironment
 	p.CompareScriptID = problem.CompareScriptID
 
@@ -103,12 +103,9 @@ func (p *ProblemProfile) Convert(problem *models.Problem) {
 	p.Name = problem.Name
 	p.Description = problem.Description
 	p.AttachmentFileName = problem.AttachmentFileName
-	p.Public = problem.Public
-	p.Privacy = problem.Privacy
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
-	p.LanguageAllowed = problem.LanguageAllowed
-	p.CompileEnvironment = problem.CompileEnvironment
+	p.LanguageAllowed = strings.Split(problem.LanguageAllowed, ",")
 	p.CompareScriptID = problem.CompareScriptID
 
 	p.TestCases = make([]TestCaseProfile, len(problem.TestCases))

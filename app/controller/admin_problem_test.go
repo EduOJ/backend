@@ -15,17 +15,6 @@ import (
 	"testing"
 )
 
-func createUserForTest(t *testing.T, name string, index int) (user models.User) {
-	user = models.User{
-		Username: fmt.Sprintf("test_%s_user_%d", name, index),
-		Nickname: fmt.Sprintf("test_%s_user_%d_nick", name, index),
-		Email:    fmt.Sprintf("test_%s_user_%d@e.e", name, index),
-		Password: utils.HashPassword(fmt.Sprintf("test_%s_user_%d_pwd", name, index)),
-	}
-	assert.Nil(t, base.DB.Create(&user).Error)
-	return
-}
-
 func TestAdminCreateProblem(t *testing.T) {
 	t.Parallel()
 	FailTests := []failTest{
@@ -58,6 +47,16 @@ func TestAdminCreateProblem(t *testing.T) {
 					"field":       "Description",
 					"reason":      "required",
 					"translation": "介绍为必填字段",
+				},
+				map[string]interface{}{
+					"field":       "Public",
+					"reason":      "required",
+					"translation": "是否公开为必填字段",
+				},
+				map[string]interface{}{
+					"field":       "Privacy",
+					"reason":      "required",
+					"translation": "是否可见细节为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "MemoryLimit",
@@ -101,24 +100,22 @@ func TestAdminCreateProblem(t *testing.T) {
 	// TODO: specific public and privacy
 	// TODO: with test case
 
+	boolTrue := true
+	boolFalse := false
+
 	t.Run("testAdminCreateProblemSuccess", func(t *testing.T) {
 		t.Parallel()
-		user := models.User{
-			Username: "test_admin_create_problem_user_1",
-			Nickname: "test_admin_create_problem_user_1_nick",
-			Email:    "test_admin_create_problem_user_1@e.e",
-			Password: utils.HashPassword("test_admin_create_problem_user_1"),
-		}
-		assert.Nil(t, base.DB.Create(&user).Error)
+		user := createUserForTest(t, "admin_create_problem", 1)
 		user.GrantRole("admin")
 		req := request.AdminCreateProblemRequest{
-			Name:        "test_admin_create_problem_1",
-			Description: "test_admin_create_problem_1_desc",
-			//AttachmentFileName: "test_admin_create_problem_1_attachment_file_name",
+			Name:            "test_admin_create_problem_1",
+			Description:     "test_admin_create_problem_1_desc",
 			MemoryLimit:     4294967296,
 			TimeLimit:       1000,
 			LanguageAllowed: "test_admin_create_problem_1_language_allowed",
 			CompareScriptID: 1,
+			Public:          &boolFalse,
+			Privacy:         &boolTrue,
 		}
 		httpReq := makeReq(t, "POST", "/api/admin/problem", req, headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
@@ -130,6 +127,11 @@ func TestAdminCreateProblem(t *testing.T) {
 		assert.Nil(t, base.DB.Where("name = ?", req.Name).First(&databaseProblem).Error)
 		// request == database
 		assert.Equal(t, req.Name, databaseProblem.Name)
+		assert.Equal(t, req.Description, databaseProblem.Description)
+		assert.Equal(t, req.MemoryLimit, databaseProblem.MemoryLimit)
+		assert.Equal(t, req.TimeLimit, databaseProblem.TimeLimit)
+		assert.Equal(t, req.LanguageAllowed, databaseProblem.LanguageAllowed)
+		assert.Equal(t, req.CompareScriptID, databaseProblem.CompareScriptID)
 		assert.False(t, databaseProblem.Public)
 		assert.True(t, databaseProblem.Privacy)
 		// response == database
@@ -200,6 +202,16 @@ func TestAdminUpdateProblem(t *testing.T) {
 					"translation": "介绍为必填字段",
 				},
 				map[string]interface{}{
+					"field":       "Public",
+					"reason":      "required",
+					"translation": "是否公开为必填字段",
+				},
+				map[string]interface{}{
+					"field":       "Privacy",
+					"reason":      "required",
+					"translation": "是否可见细节为必填字段",
+				},
+				map[string]interface{}{
 					"field":       "MemoryLimit",
 					"reason":      "required",
 					"translation": "内存限制为必填字段",
@@ -264,38 +276,6 @@ func TestAdminUpdateProblem(t *testing.T) {
 		req             request.AdminUpdateProblemRequest
 	}{
 		{
-			name: "WithDefaultPublicAndPrivacy",
-			path: "id",
-			originalProblem: models.Problem{
-				Name:            "test_admin_update_problem_2",
-				Description:     "test_admin_update_problem_2_desc",
-				LanguageAllowed: "test_admin_update_problem_2_language_allowed",
-				Public:          true,
-				Privacy:         false,
-				MemoryLimit:     1024,
-				TimeLimit:       1000,
-				CompareScriptID: 1,
-			},
-			expectedProblem: models.Problem{
-				Name:            "test_admin_update_problem_20",
-				Description:     "test_admin_update_problem_20_desc",
-				LanguageAllowed: "test_admin_update_problem_20_language_allowed",
-				Public:          false,
-				Privacy:         true,
-				MemoryLimit:     2048,
-				TimeLimit:       2000,
-				CompareScriptID: 2,
-			},
-			req: request.AdminUpdateProblemRequest{
-				Name:            "test_admin_update_problem_20",
-				Description:     "test_admin_update_problem_20_desc",
-				LanguageAllowed: "test_admin_update_problem_20_language_allowed",
-				MemoryLimit:     2048,
-				TimeLimit:       2000,
-				CompareScriptID: 2,
-			},
-		},
-		{
 			name: "WithSpecifiedPublicAndPrivacy",
 			path: "id",
 			originalProblem: models.Problem{
@@ -348,6 +328,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 				}))
 				databaseProblem := models.Problem{}
 				assert.Nil(t, base.DB.First(&databaseProblem, test.originalProblem.ID).Error)
+				// ignore other fields
 				test.expectedProblem.ID = databaseProblem.ID
 				test.expectedProblem.CreatedAt = databaseProblem.CreatedAt
 				test.expectedProblem.UpdatedAt = databaseProblem.UpdatedAt
