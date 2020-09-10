@@ -4,8 +4,8 @@ type AdminCreateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 	// attachment_file
-	Public  *bool `json:"public" form:"public" query:"public"`
-	Privacy *bool `json:"privacy" form:"privacy" query:"privacy"`
+	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
+	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
 	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
 	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
@@ -31,8 +31,8 @@ type AdminUpdateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 	// attachment_file
-	Public  *bool `json:"public" form:"public" query:"public"`
-	Privacy *bool `json:"privacy" form:"privacy" query:"privacy"`
+	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
+	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
 	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
 	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms

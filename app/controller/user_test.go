@@ -873,12 +873,12 @@ func TestChangePassword(t *testing.T) {
 				{
 					"field":       "OldPassword",
 					"reason":      "required",
-					"translation": "为必填字段",
+					"translation": "旧密码为必填字段",
 				},
 				{
 					"field":       "NewPassword",
 					"reason":      "required",
-					"translation": "为必填字段",
+					"translation": "新密码为必填字段",
 				},
 			},
 			Data: nil,

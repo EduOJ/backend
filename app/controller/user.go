@@ -48,9 +48,9 @@ func GetMe(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForMe `json:"user"`
+			*resource.UserProfileForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForMe(&user),
+			resource.GetUserProfileForAdmin(&user),
 		},
 	})
 }
@@ -175,9 +175,9 @@ func UpdateMe(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForMe `json:"user"`
+			*resource.UserProfileForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForMe(&user),
+			resource.GetUserProfileForAdmin(&user),
 		},
 	})
 }

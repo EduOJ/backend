@@ -11,20 +11,16 @@ import (
 	"time"
 )
 
-func getUrlStringPointer(rawUrl string, paras map[string]string) *string {
-	thisURL, err := url.ParseRequestURI(rawUrl)
-	if err != nil {
-		panic(err)
-	}
-	q, err := url.ParseQuery(thisURL.RawQuery)
+func getUrlStringPointer(rawUrl url.URL, paras map[string]string) *string {
+	q, err := url.ParseQuery(rawUrl.RawQuery)
 	if err != nil {
 		panic(err)
 	}
 	for key := range paras {
 		q.Add(key, paras[key])
 	}
-	thisURL.RawQuery = q.Encode()
-	str := thisURL.String()
+	rawUrl.RawQuery = q.Encode()
+	str := rawUrl.String()
 	return &str
 }
 
@@ -129,7 +125,7 @@ func TestPaginator(t *testing.T) {
 			output:  testObjects[:20],
 			total:   25,
 			prevUrl: nil,
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "20",
 				"offset": "20",
 			}),
@@ -143,7 +139,7 @@ func TestPaginator(t *testing.T) {
 			output:  testObjects[:1],
 			total:   25,
 			prevUrl: nil,
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "1",
 				"offset": "1",
 			}),
@@ -156,11 +152,11 @@ func TestPaginator(t *testing.T) {
 			query:  getQuery(t, "test_paginator_object_"),
 			output: testObjects[12:13],
 			total:  25,
-			prevUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			prevUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "1",
 				"offset": "11",
 			}),
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "1",
 				"offset": "13",
 			}),
@@ -173,7 +169,7 @@ func TestPaginator(t *testing.T) {
 			query:  getQuery(t, "test_paginator_object_"),
 			output: testObjects[24:],
 			total:  25,
-			prevUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			prevUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "1",
 				"offset": "23",
 			}),
@@ -188,7 +184,7 @@ func TestPaginator(t *testing.T) {
 			output:  testObjects[:5],
 			total:   25,
 			prevUrl: nil,
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "5",
 			}),
@@ -202,7 +198,7 @@ func TestPaginator(t *testing.T) {
 			output:  testObjects[3:8],
 			total:   25,
 			prevUrl: nil,
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "8",
 			}),
@@ -215,11 +211,11 @@ func TestPaginator(t *testing.T) {
 			query:  getQuery(t, "test_paginator_object_"),
 			output: testObjects[10:15],
 			total:  25,
-			prevUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			prevUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "5",
 			}),
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "15",
 			}),
@@ -232,11 +228,11 @@ func TestPaginator(t *testing.T) {
 			query:  getQuery(t, "test_paginator_object_"),
 			output: testObjects[18:23],
 			total:  25,
-			prevUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			prevUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "13",
 			}),
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "23",
 			}),
@@ -249,7 +245,7 @@ func TestPaginator(t *testing.T) {
 			query:  getQuery(t, "test_paginator_object_"),
 			output: testObjects[20:25],
 			total:  25,
-			prevUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			prevUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "5",
 				"offset": "15",
 			}),
@@ -264,7 +260,7 @@ func TestPaginator(t *testing.T) {
 			output:  testObjects[3:23],
 			total:   25,
 			prevUrl: nil,
-			nextUrl: getUrlStringPointer(requestURL.String(), map[string]string{
+			nextUrl: getUrlStringPointer(*requestURL, map[string]string{
 				"limit":  "20",
 				"offset": "23",
 			}),
