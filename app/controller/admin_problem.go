@@ -65,7 +65,7 @@ func AdminCreateProblem(c echo.Context) error {
 				panic(errors.Wrap(err, "could not close file reader"))
 			}
 		}()
-		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/AttachmentFile", problem.ID), src, file.Size, minio.PutObjectOptions{})
+		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID), src, file.Size, minio.PutObjectOptions{})
 		if err != nil {
 			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
 		}
@@ -155,9 +155,10 @@ func AdminUpdateProblem(c echo.Context) error {
 		return err
 	}
 	problem, err := findProblem(c.Param("id"), false)
-	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-	} else if err != nil {
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
 		panic(err)
 	}
 	problem.Name = req.Name
@@ -179,7 +180,7 @@ func AdminUpdateProblem(c echo.Context) error {
 				panic(errors.Wrap(err, "could not close file reader"))
 			}
 		}()
-		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/AttachmentFile", problem.ID), src, file.Size, minio.PutObjectOptions{})
+		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID), src, file.Size, minio.PutObjectOptions{})
 		if err != nil {
 			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
 		}
@@ -223,7 +224,9 @@ func AdminDeleteProblem(c echo.Context) error {
 	}
 
 	var roles []models.Role
-	utils.PanicIfDBError(base.DB.Where("target = ?", "problem").Find(&roles), "could not find roles")
+	if err := base.DB.Where("target = ?", "problem").Find(&roles).Error; err != gorm.ErrRecordNotFound && err != nil {
+		panic(errors.Wrap(err, "could not find roles"))
+	}
 	roleIds := make([]uint, len(roles))
 	for i, role := range roles {
 		roleIds[i] = role.ID
@@ -239,6 +242,7 @@ func AdminDeleteProblem(c echo.Context) error {
 
 func findProblem(id string, publicOnly bool) (*models.Problem, error) {
 	problem := models.Problem{}
+	// TODO: load test case
 	query := base.DB
 	if publicOnly {
 		query = query.Model(&models.Problem{}).Where("public = ?", true)

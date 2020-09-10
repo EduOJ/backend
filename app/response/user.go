@@ -29,7 +29,7 @@ type GetMeResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.UserProfileForMe `json:"user"`
+		*resource.UserProfileForAdmin `json:"user"`
 	} `json:"data"`
 }
 
@@ -37,6 +37,6 @@ type UpdateMeResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.UserProfileForMe `json:"user"`
+		*resource.UserProfileForAdmin `json:"user"`
 	} `json:"data"`
 }

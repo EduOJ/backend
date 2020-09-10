@@ -33,6 +33,8 @@ var FieldTranslations = map[string]string{
 	"LanguageAllowed":    "可用语言",
 	"CompileEnvironment": "编译环境",
 	"CompareScriptID":    "比较脚本编号",
+	"OldPassword":        "旧密码",
+	"NewPassword":        "新密码",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

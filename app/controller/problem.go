@@ -88,7 +88,7 @@ func GetProblemAttachmentFile(c echo.Context) error {
 	if problem.AttachmentFileName == "" {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
-	object, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/AttachmentFile", problem.ID), minio.GetObjectOptions{})
+	object, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/attachment", problem.ID), minio.GetObjectOptions{})
 	if err != nil {
 		panic(err)
 	}
