@@ -37,7 +37,7 @@ func permission() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Error(err)
-			log.Fatal("Editing permission failed.")
+			log.Fatal("Edit permission failed.")
 		}
 	}()
 
@@ -62,7 +62,7 @@ func permission() {
 			_, err := color.New(color.Bold).Print("EduOJ Permission> ")
 			if err != nil {
 				log.Error(errors.Wrap(err, "fail to print"))
-				log.Fatal("Editing permission failed.")
+				log.Fatal("Edit permission failed.")
 				return
 			}
 			input, err := reader.ReadString('\n')

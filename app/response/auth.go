@@ -8,8 +8,8 @@ type RegisterResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		User  resource.UserProfileForMe `json:"user"`
-		Token string                    `json:"token"`
+		User  resource.UserProfileForAdmin `json:"user"`
+		Token string                       `json:"token"`
 	} `json:"data"`
 }
 
@@ -17,7 +17,7 @@ type LoginResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		User  resource.UserProfileForMe `json:"user"`
-		Token string                    `json:"token"`
+		User  resource.UserProfileForAdmin `json:"user"`
+		Token string                       `json:"token"`
 	} `json:"data"`
 }
