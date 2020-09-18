@@ -96,9 +96,14 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	if err != nil {
 		panic(err)
 	}
-	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
+	contentType := "application/octet-stream"
+	if strings.HasSuffix(problem.AttachmentFileName, ".pdf") {
+		contentType = "application/pdf"
+		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, problem.AttachmentFileName))
+	} else {
+		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, problem.AttachmentFileName))
+	}
 	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, problem.AttachmentFileName))
 
-	return c.Stream(http.StatusOK, "", object)
+	return c.Stream(http.StatusOK, contentType, object)
 } // TODO: add test for this
