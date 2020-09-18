@@ -11,7 +11,6 @@ import (
 	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
-	"io"
 	"mime/multipart"
 	"net/http"
 )
@@ -45,6 +44,7 @@ func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
 }
 
 func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
+	// TODO: use reader
 	src, err := object.Open()
 	if err != nil {
 		panic(err)
@@ -63,10 +63,6 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 
 func MustGetObject(bucket string, path string) *minio.Object {
 	object, err := base.Storage.GetObject(bucket, path, minio.GetObjectOptions{})
-	if err != nil {
-		panic(err)
-	}
-	_, err = object.Seek(0, io.SeekStart)
 	if err != nil {
 		panic(err)
 	}
