@@ -104,6 +104,11 @@ Common return codes.
 |        NOT_FOUND        |   无法找到指定problem  |
 
 #### AdminCreateTestCase
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|      WRONG_PROBLEM      |     错误的problem     |
+|        LACK_FILE        |        缺少文件       |
+
 #### AdminUpdateTestCase
 #### AdminDeleteTestCase
 #### AdminDeleteTestCases
