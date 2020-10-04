@@ -978,7 +978,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 
 	runFailTests(t, failTests, "AdminGetTestCaseOutputFile")
 
-	testCase := createTestCaseForTest(t, problem, 51,
+	testCase := createTestCaseForTest(t, problem, 52,
 		nil,
 		newFileContent("", "test_admin_get_test_case_output_file_success.out", "b3V0cHV0IHRleHQ"),
 	)
@@ -991,4 +991,176 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 	respBytes, err := ioutil.ReadAll(httpResp.Body)
 	assert.Nil(t, err)
 	assert.Equal(t, "output text", string(respBytes))
+}
+
+func TestAdminUpdateTestCase(t *testing.T) {
+	problem, user := createProblemForTest(t, "admin_update_test_case", 0)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingProblem",
+			method: "PUT",
+			path:   "/api/admin/problem/-1/test_case/1",
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 61,
+			},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "NonExistingTestCase",
+			method: "PUT",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1", problem.ID),
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 62,
+			},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusNotFound,
+			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+				"Err":  map[string]interface{}{},
+				"Func": "ParseUint",
+				"Num":  "-1",
+			}),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "PUT",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1", problem.ID),
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 63,
+			},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "AdminUpdateTestCase")
+
+	successTests := []struct {
+		name               string
+		originalScore      uint
+		updatedScore       uint
+		originalInputFile  *fileContent
+		originalOutputFile *fileContent
+		updatedInputFile   *fileContent
+		updatedOutputFile  *fileContent
+		expectedTestCase   models.TestCase
+	}{
+		{
+			name:               "SuccessWithoutUpdatingFile",
+			originalScore:      64,
+			updatedScore:       65,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_1.in", "aW5wdXQgdGV4dA"),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_1.out", "b3V0cHV0IHRleHQ"),
+			updatedInputFile:   nil,
+			updatedOutputFile:  nil,
+			expectedTestCase: models.TestCase{
+				ProblemID:      problem.ID,
+				Score:          65,
+				InputFileName:  "test_update_test_case_1.in",
+				OutputFileName: "test_update_test_case_1.out",
+			},
+		},
+		{
+			name:               "SuccessWithUpdatingInputFile",
+			originalScore:      66,
+			updatedScore:       67,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_2.in", "aW5wdXQgdGV4dA"),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_2.out", "b3V0cHV0IHRleHQ"),
+			updatedInputFile:   newFileContent("input_file", "test_update_test_case_20.in", "bmV3IGlucHV0IHRleHQ"),
+			updatedOutputFile:  nil,
+			expectedTestCase: models.TestCase{
+				ProblemID:      problem.ID,
+				Score:          67,
+				InputFileName:  "test_update_test_case_20.in",
+				OutputFileName: "test_update_test_case_2.out",
+			},
+		},
+		{
+			name:               "SuccessWithUpdatingOutputFile",
+			originalScore:      68,
+			updatedScore:       69,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_3.in", "aW5wdXQgdGV4dA"),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_3.out", "b3V0cHV0IHRleHQ"),
+			updatedInputFile:   nil,
+			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_30.out", "bmV3IG91dHB1dCB0ZXh0"),
+			expectedTestCase: models.TestCase{
+				ProblemID:      problem.ID,
+				Score:          69,
+				InputFileName:  "test_update_test_case_3.in",
+				OutputFileName: "test_update_test_case_30.out",
+			},
+		},
+		{
+			name:               "SuccessWithUpdatingBothFile",
+			originalScore:      70,
+			updatedScore:       71,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_4.in", "aW5wdXQgdGV4dA"),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_4.out", "b3V0cHV0IHRleHQ"),
+			updatedInputFile:   newFileContent("input_file", "test_update_test_case_40.in", "bmV3IGlucHV0IHRleHQ"),
+			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_40.out", "bmV3IG91dHB1dCB0ZXh0"),
+			expectedTestCase: models.TestCase{
+				ProblemID:      problem.ID,
+				Score:          71,
+				InputFileName:  "test_update_test_case_40.in",
+				OutputFileName: "test_update_test_case_40.out",
+			},
+		},
+	}
+
+	t.Run("testAdminUpdateTestCaseSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			test := test
+			t.Run("testAdminUpdateTestCase"+test.name, func(t *testing.T) {
+				t.Parallel()
+				testCase := createTestCaseForTest(t, problem, test.originalScore, test.originalInputFile, test.originalOutputFile)
+				var reqContentSlice []reqContent
+				if test.updatedInputFile != nil {
+					reqContentSlice = append(reqContentSlice, test.updatedInputFile)
+				}
+				if test.updatedOutputFile != nil {
+					reqContentSlice = append(reqContentSlice, test.updatedOutputFile)
+				}
+				req := makeReq(t, "PUT", fmt.Sprintf("/api/admin/problem/%d/test_case/%d", problem.ID, testCase.ID), addFieldContentSlice(
+					reqContentSlice, map[string]string{
+						"score": fmt.Sprintf("%d", test.updatedScore),
+					}), headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				})
+				httpResp := makeResp(req)
+				databaseTestCase := models.TestCase{}
+				base.DB.First(&databaseTestCase, testCase.ID)
+				assert.Equal(t, test.expectedTestCase.ProblemID, databaseTestCase.ProblemID)
+				assert.Equal(t, test.expectedTestCase.Score, databaseTestCase.Score)
+				assert.Equal(t, test.expectedTestCase.InputFileName, databaseTestCase.InputFileName)
+				assert.Equal(t, test.expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
+				// TODO: check file
+				resp := response.AdminUpdateTestCaseResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, response.AdminUpdateTestCaseResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						*resource.TestCaseForAdmin `json:"test_case"`
+					}{
+						resource.GetTestCaseForAdmin(&databaseTestCase),
+					},
+				}, resp)
+			})
+		}
+	})
+
 }

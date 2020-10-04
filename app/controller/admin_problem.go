@@ -13,7 +13,6 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -296,20 +295,11 @@ func AdminCreateTestCase(c echo.Context) error {
 }
 
 func AdminGetTestCaseInputFile(c echo.Context) error {
-	problem, err := utils.FindProblem(c.Param("id"), true)
-	if err == gorm.ErrRecordNotFound {
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
-	} else if err != nil {
-		panic(err)
-	}
-	testCaseId, err := strconv.ParseUint(c.Param("test_case_id"), 10, 64)
-	if err != nil || testCaseId <= 0 {
+	} else if testCase == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
-	}
-	testCase := models.TestCase{}
-	err = base.DB.First(&testCase, testCaseId).Error
-	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
@@ -320,20 +310,11 @@ func AdminGetTestCaseInputFile(c echo.Context) error {
 }
 
 func AdminGetTestCaseOutputFile(c echo.Context) error {
-	problem, err := utils.FindProblem(c.Param("id"), true)
-	if err == gorm.ErrRecordNotFound {
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
-	} else if err != nil {
-		panic(err)
-	}
-	testCaseId, err := strconv.ParseUint(c.Param("test_case_id"), 10, 64)
-	if err != nil {
+	} else if testCase == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
-	}
-	testCase := models.TestCase{}
-	err = base.DB.First(&testCase, testCaseId).Error
-	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
@@ -341,4 +322,55 @@ func AdminGetTestCaseOutputFile(c echo.Context) error {
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.OutputFileName))
 
 	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)))
+}
+
+func AdminUpdateTestCase(c echo.Context) error {
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	if problem == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+	} else if testCase == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+	}
+
+	req := request.AdminUpdateTestCaseRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+	inputFile, err := c.FormFile("input_file")
+	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+		panic(errors.Wrap(err, "could not read input file"))
+	}
+	outputFile, err := c.FormFile("output_file")
+	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+		panic(errors.Wrap(err, "could not read output file"))
+	}
+
+	if inputFile != nil {
+		if err := base.Storage.RemoveObject("problems", testCase.InputFileName); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+		utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.Filename))
+		testCase.InputFileName = inputFile.Filename
+	}
+	if outputFile != nil {
+		if err := base.Storage.RemoveObject("problems", testCase.OutputFileName); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+		utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.Filename))
+		testCase.OutputFileName = outputFile.Filename
+	}
+
+	testCase.Score = req.Score
+	utils.PanicIfDBError(base.DB.Save(&testCase), "could not update testCase")
+
+	return c.JSON(http.StatusOK, response.AdminUpdateTestCaseResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.TestCaseForAdmin `json:"test_case"`
+		}{
+			resource.GetTestCaseForAdmin(testCase),
+		},
+	})
 }
