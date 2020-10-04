@@ -110,6 +110,12 @@ Common return codes.
 |        LACK_FILE        |        缺少文件       |
 
 #### AdminUpdateTestCase
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
+
 #### AdminDeleteTestCase
 #### AdminDeleteTestCases
 
