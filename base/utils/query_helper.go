@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -136,4 +137,21 @@ func FindProblem(id string, publicOnly bool) (*models.Problem, error) {
 		}
 	}
 	return &problem, nil
+}
+
+func FindTestCase(problemId string, testCaseIdStr string, publicOnly bool) (*models.TestCase, *models.Problem, error) {
+	// TODO: a better way to query?
+	problem, err := FindProblem(problemId, publicOnly)
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil, err
+	} else if err != nil {
+		panic(err)
+	}
+	testCaseId, err := strconv.ParseUint(testCaseIdStr, 10, 64)
+	if err != nil {
+		return nil, problem, err
+	}
+	testCase := models.TestCase{}
+	err = base.DB.Where("problem_id = ? ", problem.ID).First(&testCase, testCaseId).Error
+	return &testCase, problem, err
 }
