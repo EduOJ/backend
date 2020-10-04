@@ -56,6 +56,7 @@ func GetMe(c echo.Context) error {
 }
 
 func GetUsers(c echo.Context) error {
+	// TODO: refactor to use utils.Sorter and utils.Paginator.
 	req := new(request.GetUsersRequest)
 	if err, ok := utils.BindAndValidate(req, c); !ok {
 		return err
@@ -69,7 +70,7 @@ func GetUsers(c echo.Context) error {
 		if len(order) != 2 {
 			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
 		}
-		if !utils.Contain(order[0], []string{"username", "id", "nickname"}) {
+		if !utils.Contain(order[0], []string{"username", "id", "nickname", "email"}) {
 			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
 		}
 		if !utils.Contain(order[1], []string{"ASC", "DESC"}) {
