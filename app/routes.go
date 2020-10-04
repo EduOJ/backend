@@ -69,7 +69,7 @@ func Register(e *echo.Echo) {
 	admin.POST("/problem/:id/test_case",
 		controller.AdminCreateTestCase, middleware.HasPermission("create_test_case", "problem")).Name = "admin.problem.createTestCase"
 	admin.PUT("/problem/:id/test_case/:test_case_id",
-		controller.Todo, middleware.HasPermission("update_test_case", "problem")).Name = "admin.problem.updateTestCase"
+		controller.AdminUpdateTestCase, middleware.HasPermission("update_test_case", "problem")).Name = "admin.problem.updateTestCase"
 	admin.DELETE("/problem/:id/test_case/:test_case_id",
 		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCase"
 	admin.DELETE("/problem/:id/test_cases",
