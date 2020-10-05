@@ -347,14 +347,14 @@ func AdminUpdateTestCase(c echo.Context) error {
 	}
 
 	if inputFile != nil {
-		if err := base.Storage.RemoveObject("problems", testCase.InputFileName); err != nil {
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
 			panic(errors.Wrap(err, "could not remove object"))
 		}
 		utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.Filename))
 		testCase.InputFileName = inputFile.Filename
 	}
 	if outputFile != nil {
-		if err := base.Storage.RemoveObject("problems", testCase.OutputFileName); err != nil {
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
 			panic(errors.Wrap(err, "could not remove object"))
 		}
 		utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.Filename))

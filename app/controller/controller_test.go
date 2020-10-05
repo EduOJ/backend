@@ -223,7 +223,9 @@ func (c *fileContent) add(w *multipart.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	_, err = io.Copy(fw, c.reader)
+	b, err := ioutil.ReadAll(c.reader)
+	_, err = io.Copy(fw, bytes.NewReader(b))
+	c.reader = bytes.NewReader(b)
 	return
 }
 
