@@ -731,8 +731,8 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 	if inputFile != nil {
 		utils.MustCreateBucket("problems")
 		inputBytes, err := ioutil.ReadAll(inputFile.reader)
-
 		assert.Nil(t, err)
+		inputFile.reader = bytes.NewReader(inputBytes)
 		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.fileName), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		inputFileName = inputFile.fileName
@@ -741,6 +741,7 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 		utils.MustCreateBucket("problems")
 		outputBytes, err := ioutil.ReadAll(outputFile.reader)
 		assert.Nil(t, err)
+		outputFile.reader = bytes.NewReader(outputBytes)
 		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.fileName), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		outputFileName = outputFile.fileName
@@ -1147,7 +1148,59 @@ func TestAdminUpdateTestCase(t *testing.T) {
 				assert.Equal(t, test.expectedTestCase.Score, databaseTestCase.Score)
 				assert.Equal(t, test.expectedTestCase.InputFileName, databaseTestCase.InputFileName)
 				assert.Equal(t, test.expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
-				// TODO: check file
+
+				var expectedInputContent []byte
+				if test.updatedInputFile == nil || test.originalInputFile.fileName == test.updatedInputFile.fileName {
+					var err error
+					if test.updatedInputFile == nil {
+						expectedInputContent, err = ioutil.ReadAll(test.originalInputFile.reader)
+					} else {
+						expectedInputContent, err = ioutil.ReadAll(test.updatedInputFile.reader)
+					}
+					assert.Nil(t, err)
+				} else {
+					originalInputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, test.originalInputFile.fileName), minio.GetObjectOptions{})
+					assert.Nil(t, err)
+					originalInputContent, err := ioutil.ReadAll(originalInputObject)
+					assert.Equal(t, []byte{}, originalInputContent)
+					assert.NotNil(t, err)
+					assert.Equal(t, "The specified key does not exist.", err.Error())
+					expectedInputContent, err = ioutil.ReadAll(test.updatedInputFile.reader)
+					assert.Nil(t, err)
+				}
+				storageInputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, databaseTestCase.InputFileName), minio.GetObjectOptions{})
+				assert.Nil(t, err)
+				storageInputContent, err := ioutil.ReadAll(storageInputObject)
+				assert.Nil(t, err)
+				assert.Equal(t, expectedInputContent, storageInputContent)
+
+				var expectedOutputContent []byte
+				if test.updatedOutputFile == nil || test.originalOutputFile.fileName == test.updatedOutputFile.fileName {
+					var err error
+					if test.updatedOutputFile == nil {
+						expectedOutputContent, err = ioutil.ReadAll(test.originalOutputFile.reader)
+					} else {
+						expectedOutputContent, err = ioutil.ReadAll(test.updatedOutputFile.reader)
+					}
+					assert.Nil(t, err)
+				} else {
+					originalOutputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, test.originalOutputFile.fileName), minio.GetObjectOptions{})
+					assert.Nil(t, err)
+					originalOutputContent, err := ioutil.ReadAll(originalOutputObject)
+					assert.Equal(t, []byte{}, originalOutputContent)
+					assert.NotNil(t, err)
+					if err != nil {
+						assert.Equal(t, "The specified key does not exist.", err.Error())
+					}
+					expectedOutputContent, err = ioutil.ReadAll(test.updatedOutputFile.reader)
+					assert.Nil(t, err)
+				}
+				storageOutputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, databaseTestCase.OutputFileName), minio.GetObjectOptions{})
+				assert.Nil(t, err)
+				storageOutputContent, err := ioutil.ReadAll(storageOutputObject)
+				assert.Nil(t, err)
+				assert.Equal(t, expectedOutputContent, storageOutputContent)
+
 				resp := response.AdminUpdateTestCaseResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, response.AdminUpdateTestCaseResponse{
