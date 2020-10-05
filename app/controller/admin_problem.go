@@ -124,7 +124,7 @@ func AdminGetProblems(c echo.Context) error {
 	}
 
 	if req.Search != "" {
-		query = query.Where("id like ? or name like ?", "%"+req.Search+"%", "%"+req.Search+"%")
+		query = query.Where("name like ?", "%"+req.Search+"%")
 	}
 
 	var problems []models.Problem

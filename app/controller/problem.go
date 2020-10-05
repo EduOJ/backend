@@ -54,7 +54,7 @@ func GetProblems(c echo.Context) error {
 	query = query.Where("public = ?", true)
 
 	if req.Search != "" {
-		query = query.Where("id like ? or name like ?", "%"+req.Search+"%", "%"+req.Search+"%")
+		query = query.Where("name like ?", "%"+req.Search+"%")
 	}
 
 	var problems []models.Problem
