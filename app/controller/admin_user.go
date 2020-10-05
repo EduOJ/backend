@@ -138,7 +138,7 @@ func AdminGetUsers(c echo.Context) error {
 	}
 
 	if req.Search != "" {
-		query = query.Where("id like ? or username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
+		query = query.Where("username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
 	var users []models.User
 	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &users)

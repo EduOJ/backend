@@ -79,7 +79,7 @@ func GetUsers(c echo.Context) error {
 		query = query.Order(strings.Join(order, " "))
 	}
 	if req.Search != "" {
-		query = query.Where("id like ? or username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
+		query = query.Where("username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
 	if req.Limit == 0 {
 		req.Limit = 20 // Default limit
