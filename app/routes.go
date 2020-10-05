@@ -71,9 +71,9 @@ func Register(e *echo.Echo) {
 	admin.PUT("/problem/:id/test_case/:test_case_id",
 		controller.AdminUpdateTestCase, middleware.HasPermission("update_test_case", "problem")).Name = "admin.problem.updateTestCase"
 	admin.DELETE("/problem/:id/test_case/:test_case_id",
-		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCase"
+		controller.AdminDeleteTestCase, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCase"
 	admin.DELETE("/problem/:id/test_cases",
-		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCases"
+		controller.AdminDeleteTestCases, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCases"
 
 	admin.GET("/problem/:id/test_case/:test_case_id/input_file",
 		controller.AdminGetTestCaseInputFile, middleware.HasPermission("get_test_case_input_file", "problem")).Name = "admin.problem.getTestCaseInputFile"
