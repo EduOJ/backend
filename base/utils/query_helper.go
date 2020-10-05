@@ -120,7 +120,6 @@ func FindUser(id string) (*models.User, error) {
 
 func FindProblem(id string, publicOnly bool) (*models.Problem, error) {
 	problem := models.Problem{}
-	// TODO: load test case
 	query := base.DB
 	if publicOnly {
 		query = query.Model(&models.Problem{}).Where("public = ?", true)
@@ -136,11 +135,11 @@ func FindProblem(id string, publicOnly bool) (*models.Problem, error) {
 			}
 		}
 	}
+	problem.LoadTestCases() // TODO: query once ?
 	return &problem, nil
 }
 
 func FindTestCase(problemId string, testCaseIdStr string, publicOnly bool) (*models.TestCase, *models.Problem, error) {
-	// TODO: a better way to query?
 	problem, err := FindProblem(problemId, publicOnly)
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil, err
@@ -151,7 +150,10 @@ func FindTestCase(problemId string, testCaseIdStr string, publicOnly bool) (*mod
 	if err != nil {
 		return nil, problem, err
 	}
-	testCase := models.TestCase{}
-	err = base.DB.Where("problem_id = ? ", problem.ID).First(&testCase, testCaseId).Error
-	return &testCase, problem, err
+	for _, t := range problem.TestCases {
+		if uint64(t.ID) == testCaseId {
+			return &t, problem, err
+		}
+	}
+	return nil, problem, err
 }

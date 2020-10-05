@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"github.com/leoleoasd/EduOJBackend/base"
+	"time"
+)
 
 type TestCase struct {
 	ID uint `gorm:"primary_key" json:"id"`
@@ -50,4 +53,12 @@ func (p Problem) GetID() uint {
 
 func (p Problem) TypeName() string {
 	return "problem"
+}
+
+func (p *Problem) LoadTestCases() {
+	// TODO: add test for test cases in problem CRUD
+	err := base.DB.Set("gorm:auto_preload", true).Model(p).Related(&p.TestCases).Error
+	if err != nil {
+		panic(err)
+	}
 }
