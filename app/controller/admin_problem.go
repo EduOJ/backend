@@ -374,3 +374,55 @@ func AdminUpdateTestCase(c echo.Context) error {
 		},
 	})
 }
+
+func AdminDeleteTestCase(c echo.Context) error {
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	if problem == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+	} else if testCase == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+	}
+
+	if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
+		panic(errors.Wrap(err, "could not remove object"))
+	}
+	if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
+		panic(errors.Wrap(err, "could not remove object"))
+	}
+
+	utils.PanicIfDBError(base.DB.Delete(&testCase), "could not remove test case")
+
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
+
+func AdminDeleteTestCases(c echo.Context) error {
+	problem, err := utils.FindProblem(c.Param("id"), false)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
+	}
+
+	testCaseIds := make([]uint, len(problem.TestCases))
+
+	for i, testCase := range problem.TestCases {
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+		testCaseIds[i] = testCase.ID
+	}
+	utils.PanicIfDBError(base.DB.Delete(&models.TestCase{}, "id IN (?)", testCaseIds), "could not delete test cases")
+
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
