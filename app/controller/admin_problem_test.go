@@ -8,7 +8,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
@@ -17,6 +16,20 @@ import (
 	"net/http"
 	"testing"
 )
+
+func checkObject(t *testing.T, bucketName, objectName string) (content []byte, found bool) {
+	obj, err := base.Storage.GetObject(bucketName, objectName, minio.GetObjectOptions{})
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(obj)
+	if err != nil && err.Error() == "The specified key does not exist." {
+		assert.Equal(t, []byte{}, content)
+		found = false
+		return
+	}
+	assert.Nil(t, err)
+	found = true
+	return
+}
 
 func TestAdminCreateProblem(t *testing.T) {
 	t.Parallel()
@@ -100,56 +113,109 @@ func TestAdminCreateProblem(t *testing.T) {
 
 	runFailTests(t, FailTests, "AdminCreateProblem")
 
-	// TODO: specific public and privacy
-	// TODO: with test case
-
 	boolTrue := true
 	boolFalse := false
 
+	successTests := []struct {
+		name       string
+		req        request.AdminCreateProblemRequest
+		attachment *fileContent
+	}{
+		{
+			name: "SuccessWithoutAttachment",
+			req: request.AdminCreateProblemRequest{
+				Name:            "test_admin_create_problem_1",
+				Description:     "test_admin_create_problem_1_desc",
+				MemoryLimit:     4294967296,
+				TimeLimit:       1000,
+				LanguageAllowed: "test_admin_create_problem_1_language_allowed",
+				CompareScriptID: 1,
+				Public:          &boolFalse,
+				Privacy:         &boolTrue,
+			},
+			attachment: nil,
+		},
+		{
+			name: "SuccessWithAttachment",
+			req: request.AdminCreateProblemRequest{
+				Name:            "test_admin_create_problem_2",
+				Description:     "test_admin_create_problem_2_desc",
+				MemoryLimit:     4294967296,
+				TimeLimit:       1000,
+				LanguageAllowed: "test_admin_create_problem_2_language_allowed",
+				CompareScriptID: 2,
+				Public:          &boolTrue,
+				Privacy:         &boolFalse,
+			},
+			attachment: newFileContent("attachment_file", "test_admin_create_problem_attachment_file", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+		},
+	}
 	t.Run("testAdminCreateProblemSuccess", func(t *testing.T) {
 		t.Parallel()
-		user := createUserForTest(t, "admin_create_problem", 1)
-		user.GrantRole("admin")
-		req := request.AdminCreateProblemRequest{
-			Name:            "test_admin_create_problem_1",
-			Description:     "test_admin_create_problem_1_desc",
-			MemoryLimit:     4294967296,
-			TimeLimit:       1000,
-			LanguageAllowed: "test_admin_create_problem_1_language_allowed",
-			CompareScriptID: 1,
-			Public:          &boolFalse,
-			Privacy:         &boolTrue,
+		for i, test := range successTests {
+			i := i
+			test := test
+			t.Run("testAdminCreateProblem"+test.name, func(t *testing.T) {
+				user := createUserForTest(t, "admin_create_problem", i)
+				user.GrantRole("admin")
+				var data interface{}
+				if test.attachment != nil {
+					data = addFieldContentSlice([]reqContent{
+						test.attachment,
+					}, map[string]string{
+						"name":              test.req.Name,
+						"description":       test.req.Description,
+						"memory_limit":      fmt.Sprint(test.req.MemoryLimit),
+						"time_limit":        fmt.Sprint(test.req.TimeLimit),
+						"language_allowed":  test.req.LanguageAllowed,
+						"compare_script_id": fmt.Sprint(test.req.CompareScriptID),
+						"public":            fmt.Sprint(*test.req.Public),
+						"privacy":           fmt.Sprint(*test.req.Privacy),
+					})
+				} else {
+					data = test.req
+				}
+				httpReq := makeReq(t, "POST", "/api/admin/problem", data, headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				})
+				httpResp := makeResp(httpReq)
+				assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
+				databaseProblem := models.Problem{}
+				assert.Nil(t, base.DB.Where("name = ?", test.req.Name).First(&databaseProblem).Error)
+				// request == database
+				assert.Equal(t, test.req.Name, databaseProblem.Name)
+				assert.Equal(t, test.req.Description, databaseProblem.Description)
+				assert.Equal(t, test.req.MemoryLimit, databaseProblem.MemoryLimit)
+				assert.Equal(t, test.req.TimeLimit, databaseProblem.TimeLimit)
+				assert.Equal(t, test.req.LanguageAllowed, databaseProblem.LanguageAllowed)
+				assert.Equal(t, test.req.CompareScriptID, databaseProblem.CompareScriptID)
+				assert.Equal(t, *test.req.Public, databaseProblem.Public)
+				assert.Equal(t, *test.req.Privacy, databaseProblem.Privacy)
+				// response == database
+				resp := response.AdminCreateProblemResponse{}
+				mustJsonDecode(httpResp, &resp)
+				jsonEQ(t, response.AdminUpdateProblemResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						*resource.ProblemForAdmin `json:"problem"`
+					}{
+						resource.GetProblemForAdmin(&databaseProblem),
+					},
+				}, resp)
+				assert.True(t, user.HasRole("creator", databaseProblem))
+				if test.attachment != nil {
+					storageContent, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
+					assert.True(t, found)
+					expectedContent, err := ioutil.ReadAll(test.attachment.reader)
+					assert.Nil(t, err)
+					assert.Equal(t, expectedContent, storageContent)
+					assert.Equal(t, test.attachment.fileName, databaseProblem.AttachmentFileName)
+				} else {
+					assert.Equal(t, "", databaseProblem.AttachmentFileName)
+				}
+			})
 		}
-		httpReq := makeReq(t, "POST", "/api/admin/problem", req, headerOption{
-			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-		})
-		log.Debug(httpReq.Header.Get("Content-Type"))
-		httpResp := makeResp(httpReq)
-		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
-		databaseProblem := models.Problem{}
-		assert.Nil(t, base.DB.Where("name = ?", req.Name).First(&databaseProblem).Error)
-		// request == database
-		assert.Equal(t, req.Name, databaseProblem.Name)
-		assert.Equal(t, req.Description, databaseProblem.Description)
-		assert.Equal(t, req.MemoryLimit, databaseProblem.MemoryLimit)
-		assert.Equal(t, req.TimeLimit, databaseProblem.TimeLimit)
-		assert.Equal(t, req.LanguageAllowed, databaseProblem.LanguageAllowed)
-		assert.Equal(t, req.CompareScriptID, databaseProblem.CompareScriptID)
-		assert.False(t, databaseProblem.Public)
-		assert.True(t, databaseProblem.Privacy)
-		// response == database
-		resp := response.AdminCreateProblemResponse{}
-		mustJsonDecode(httpResp, &resp)
-		jsonEQ(t, response.AdminUpdateProblemResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.ProblemForAdmin `json:"problem"`
-			}{
-				resource.GetProblemForAdmin(&databaseProblem),
-			},
-		}, resp)
-		assert.True(t, user.HasRole("creator", databaseProblem))
 	})
 }
 
@@ -272,14 +338,16 @@ func TestAdminUpdateProblem(t *testing.T) {
 	boolFalse := false
 
 	successTests := []struct {
-		name            string
-		path            string
-		originalProblem models.Problem
-		expectedProblem models.Problem
-		req             request.AdminUpdateProblemRequest
+		name               string
+		path               string
+		originalProblem    models.Problem
+		expectedProblem    models.Problem
+		req                request.AdminUpdateProblemRequest
+		updatedAttachment  *fileContent
+		originalAttachment *fileContent
 	}{
 		{
-			name: "WithSpecifiedPublicAndPrivacy",
+			name: "WithoutAttachmentAndTestCase",
 			path: "id",
 			originalProblem: models.Problem{
 				Name:            "test_admin_update_problem_3",
@@ -311,6 +379,120 @@ func TestAdminUpdateProblem(t *testing.T) {
 				TimeLimit:       2000,
 				CompareScriptID: 2,
 			},
+			updatedAttachment: nil,
+		},
+		{
+			name: "WithAddingAttachment",
+			path: "id",
+			originalProblem: models.Problem{
+				Name:               "test_admin_update_problem_4",
+				Description:        "test_admin_update_problem_4_desc",
+				LanguageAllowed:    "test_admin_update_problem_4_language_allowed",
+				Public:             true,
+				Privacy:            true,
+				MemoryLimit:        1024,
+				TimeLimit:          1000,
+				CompareScriptID:    1,
+				AttachmentFileName: "",
+			},
+			expectedProblem: models.Problem{
+				Name:               "test_admin_update_problem_40",
+				Description:        "test_admin_update_problem_40_desc",
+				LanguageAllowed:    "test_admin_update_problem_40_language_allowed",
+				Public:             false,
+				Privacy:            false,
+				MemoryLimit:        2048,
+				TimeLimit:          2000,
+				CompareScriptID:    2,
+				AttachmentFileName: "test_admin_update_problem_attachment_40",
+			},
+			req: request.AdminUpdateProblemRequest{
+				Name:            "test_admin_update_problem_40",
+				Description:     "test_admin_update_problem_40_desc",
+				LanguageAllowed: "test_admin_update_problem_40_language_allowed",
+				Public:          &boolFalse,
+				Privacy:         &boolFalse,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
+			},
+			updatedAttachment: newFileContent("attachment_file", "test_admin_update_problem_attachment_40", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
+		},
+		{
+			name: "WithChangingAttachment",
+			path: "id",
+			originalProblem: models.Problem{
+				Name:               "test_admin_update_problem_5",
+				Description:        "test_admin_update_problem_5_desc",
+				LanguageAllowed:    "test_admin_update_problem_5_language_allowed",
+				Public:             true,
+				Privacy:            true,
+				MemoryLimit:        1024,
+				TimeLimit:          1000,
+				CompareScriptID:    1,
+				AttachmentFileName: "test_admin_update_problem_attachment_5",
+			},
+			expectedProblem: models.Problem{
+				Name:               "test_admin_update_problem_50",
+				Description:        "test_admin_update_problem_50_desc",
+				LanguageAllowed:    "test_admin_update_problem_50_language_allowed",
+				Public:             false,
+				Privacy:            false,
+				MemoryLimit:        2048,
+				TimeLimit:          2000,
+				CompareScriptID:    2,
+				AttachmentFileName: "test_admin_update_problem_attachment_50",
+			},
+			req: request.AdminUpdateProblemRequest{
+				Name:            "test_admin_update_problem_50",
+				Description:     "test_admin_update_problem_50_desc",
+				LanguageAllowed: "test_admin_update_problem_50_language_allowed",
+				Public:          &boolFalse,
+				Privacy:         &boolFalse,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
+			},
+			originalAttachment: newFileContent("attachment_file", "test_admin_update_problem_attachment_5", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			updatedAttachment:  newFileContent("attachment_file", "test_admin_update_problem_attachment_50", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
+		},
+		{
+			name: "WithoutChangingAttachment",
+			path: "id",
+			originalProblem: models.Problem{
+				Name:               "test_admin_update_problem_6",
+				Description:        "test_admin_update_problem_6_desc",
+				LanguageAllowed:    "test_admin_update_problem_6_language_allowed",
+				Public:             true,
+				Privacy:            true,
+				MemoryLimit:        1024,
+				TimeLimit:          1000,
+				CompareScriptID:    1,
+				AttachmentFileName: "test_admin_update_problem_attachment_6",
+			},
+			expectedProblem: models.Problem{
+				Name:               "test_admin_update_problem_60",
+				Description:        "test_admin_update_problem_60_desc",
+				LanguageAllowed:    "test_admin_update_problem_60_language_allowed",
+				Public:             false,
+				Privacy:            false,
+				MemoryLimit:        2048,
+				TimeLimit:          2000,
+				CompareScriptID:    2,
+				AttachmentFileName: "test_admin_update_problem_attachment_6",
+			},
+			req: request.AdminUpdateProblemRequest{
+				Name:            "test_admin_update_problem_60",
+				Description:     "test_admin_update_problem_60_desc",
+				LanguageAllowed: "test_admin_update_problem_60_language_allowed",
+				Public:          &boolFalse,
+				Privacy:         &boolFalse,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
+			},
+			originalAttachment: newFileContent("attachment_file", "test_admin_update_problem_attachment_6", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			updatedAttachment:  nil,
 		},
 		// TODO: with test case
 	}
@@ -323,10 +505,34 @@ func TestAdminUpdateProblem(t *testing.T) {
 			t.Run("testAdminUpdateProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.originalProblem).Error)
+				if test.originalAttachment != nil {
+					b, err := ioutil.ReadAll(test.originalAttachment.reader)
+					assert.Nil(t, err)
+					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), bytes.NewReader(b), int64(len(b)), minio.PutObjectOptions{})
+					assert.Nil(t, err)
+					test.originalAttachment.reader = bytes.NewReader(b)
+				}
 				path := fmt.Sprintf("/api/admin/problem/%d", test.originalProblem.ID)
 				user := createUserForTest(t, "admin_update_problem", i)
 				user.GrantRole("creator", test.originalProblem)
-				httpResp := makeResp(makeReq(t, "PUT", path, test.req, headerOption{
+				var data interface{}
+				if test.updatedAttachment != nil {
+					data = addFieldContentSlice([]reqContent{
+						test.updatedAttachment,
+					}, map[string]string{
+						"name":              test.req.Name,
+						"description":       test.req.Description,
+						"memory_limit":      fmt.Sprint(test.req.MemoryLimit),
+						"time_limit":        fmt.Sprint(test.req.TimeLimit),
+						"language_allowed":  test.req.LanguageAllowed,
+						"compare_script_id": fmt.Sprint(test.req.CompareScriptID),
+						"public":            fmt.Sprint(*test.req.Public),
+						"privacy":           fmt.Sprint(*test.req.Privacy),
+					})
+				} else {
+					data = test.req
+				}
+				httpResp := makeResp(makeReq(t, "PUT", path, data, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
 				databaseProblem := models.Problem{}
@@ -347,6 +553,19 @@ func TestAdminUpdateProblem(t *testing.T) {
 						resource.GetProblemForAdmin(&databaseProblem),
 					},
 				}, httpResp)
+				if test.updatedAttachment != nil || test.originalAttachment != nil {
+					storageContent, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
+					assert.True(t, found)
+					var err error
+					var expectedContent []byte
+					if test.updatedAttachment != nil {
+						expectedContent, err = ioutil.ReadAll(test.updatedAttachment.reader)
+					} else {
+						expectedContent, err = ioutil.ReadAll(test.originalAttachment.reader)
+					}
+					assert.Nil(t, err)
+					assert.Equal(t, expectedContent, storageContent)
+				}
 			})
 		}
 	})
@@ -383,16 +602,27 @@ func TestAdminDeleteProblem(t *testing.T) {
 	runFailTests(t, failTests, "AdminDeleteProblem")
 
 	successTests := []struct {
-		name    string
-		problem models.Problem
+		name               string
+		problem            models.Problem
+		originalAttachment *fileContent
 	}{
 		{
-			name: "success",
+			name: "SuccessWithoutAttachment",
 			problem: models.Problem{
 				Name:               "test_admin_delete_problem_1",
-				AttachmentFileName: "test_admin_delete_problem_1_attachment_file_name",
+				AttachmentFileName: "",
 				LanguageAllowed:    "test_admin_delete_problem_1_language_allowed",
 			},
+			originalAttachment: nil,
+		},
+		{
+			name: "SuccessWithAttachment",
+			problem: models.Problem{
+				Name:               "test_admin_delete_problem_2",
+				AttachmentFileName: "test_admin_delete_problem_attachment_2",
+				LanguageAllowed:    "test_admin_delete_problem_2_language_allowed",
+			},
+			originalAttachment: newFileContent("attachment_file", "test_admin_delete_problem_attachment_2", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
 		},
 		// TODO: with test case
 	}
@@ -405,6 +635,13 @@ func TestAdminDeleteProblem(t *testing.T) {
 			t.Run("testAdminDeleteProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
+				if test.originalAttachment != nil {
+					b, err := ioutil.ReadAll(test.originalAttachment.reader)
+					assert.Nil(t, err)
+					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.problem.ID), bytes.NewReader(b), int64(len(b)), minio.PutObjectOptions{})
+					assert.Nil(t, err)
+					test.originalAttachment.reader = bytes.NewReader(b)
+				}
 				user := createUserForTest(t, "admin_delete_problem", i)
 				user.GrantRole("creator", test.problem)
 				httpResp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d", test.problem.ID), request.AdminDeleteUserRequest{}, headerOption{
@@ -420,6 +657,10 @@ func TestAdminDeleteProblem(t *testing.T) {
 				}, resp)
 				assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.Problem{}, test.problem.ID).Error)
 				assert.False(t, user.HasRole("creator", test.problem))
+				if test.originalAttachment != nil {
+					_, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", test.problem.ID))
+					assert.False(t, found)
+				}
 			})
 		}
 	})
@@ -1150,8 +1391,8 @@ func TestAdminUpdateTestCase(t *testing.T) {
 				assert.Equal(t, test.expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
 
 				var expectedInputContent []byte
+				var err error
 				if test.updatedInputFile == nil || test.originalInputFile.fileName == test.updatedInputFile.fileName {
-					var err error
 					if test.updatedInputFile == nil {
 						expectedInputContent, err = ioutil.ReadAll(test.originalInputFile.reader)
 					} else {
@@ -1159,24 +1400,17 @@ func TestAdminUpdateTestCase(t *testing.T) {
 					}
 					assert.Nil(t, err)
 				} else {
-					originalInputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, test.originalInputFile.fileName), minio.GetObjectOptions{})
-					assert.Nil(t, err)
-					originalInputContent, err := ioutil.ReadAll(originalInputObject)
-					assert.Equal(t, []byte{}, originalInputContent)
-					assert.NotNil(t, err)
-					assert.Equal(t, "The specified key does not exist.", err.Error())
+					_, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", problem.ID, test.originalInputFile.fileName))
+					assert.False(t, found)
 					expectedInputContent, err = ioutil.ReadAll(test.updatedInputFile.reader)
 					assert.Nil(t, err)
 				}
-				storageInputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, databaseTestCase.InputFileName), minio.GetObjectOptions{})
-				assert.Nil(t, err)
-				storageInputContent, err := ioutil.ReadAll(storageInputObject)
-				assert.Nil(t, err)
+				storageInputContent, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", problem.ID, databaseTestCase.InputFileName))
+				assert.True(t, found)
 				assert.Equal(t, expectedInputContent, storageInputContent)
 
 				var expectedOutputContent []byte
 				if test.updatedOutputFile == nil || test.originalOutputFile.fileName == test.updatedOutputFile.fileName {
-					var err error
 					if test.updatedOutputFile == nil {
 						expectedOutputContent, err = ioutil.ReadAll(test.originalOutputFile.reader)
 					} else {
@@ -1184,21 +1418,13 @@ func TestAdminUpdateTestCase(t *testing.T) {
 					}
 					assert.Nil(t, err)
 				} else {
-					originalOutputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, test.originalOutputFile.fileName), minio.GetObjectOptions{})
-					assert.Nil(t, err)
-					originalOutputContent, err := ioutil.ReadAll(originalOutputObject)
-					assert.Equal(t, []byte{}, originalOutputContent)
-					assert.NotNil(t, err)
-					if err != nil {
-						assert.Equal(t, "The specified key does not exist.", err.Error())
-					}
+					_, found := checkObject(t, "problems", fmt.Sprintf("%d/output/%s", problem.ID, test.originalOutputFile.fileName))
+					assert.False(t, found)
 					expectedOutputContent, err = ioutil.ReadAll(test.updatedOutputFile.reader)
 					assert.Nil(t, err)
 				}
-				storageOutputObject, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, databaseTestCase.OutputFileName), minio.GetObjectOptions{})
-				assert.Nil(t, err)
-				storageOutputContent, err := ioutil.ReadAll(storageOutputObject)
-				assert.Nil(t, err)
+				storageOutputContent, found := checkObject(t, "problems", fmt.Sprintf("%d/output/%s", problem.ID, databaseTestCase.OutputFileName))
+				assert.True(t, found)
 				assert.Equal(t, expectedOutputContent, storageOutputContent)
 
 				resp := response.AdminUpdateTestCaseResponse{}

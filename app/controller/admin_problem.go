@@ -56,21 +56,8 @@ func AdminCreateProblem(c echo.Context) error {
 	}
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
 
-	if file != nil { // TODO: use MustPutObject
-		src, err := file.Open()
-		if err != nil {
-			panic(err)
-		}
-		defer func() {
-			err := src.Close()
-			if err != nil {
-				panic(errors.Wrap(err, "could not close file reader"))
-			}
-		}()
-		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID), src, file.Size, minio.PutObjectOptions{})
-		if err != nil {
-			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
-		}
+	if file != nil {
+		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))
 	}
 
 	var user models.User
@@ -89,8 +76,6 @@ func AdminCreateProblem(c echo.Context) error {
 	})
 }
 
-// TODO: add test for file operation
-
 func AdminGetProblem(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
@@ -98,7 +83,7 @@ func AdminGetProblem(c echo.Context) error {
 	} else if err != nil {
 		panic(err)
 	}
-	// TODO: load test cases
+
 	return c.JSON(http.StatusOK, response.AdminGetProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -216,8 +201,6 @@ func AdminUpdateProblem(c echo.Context) error {
 	})
 }
 
-// TODO: add test for file operation
-
 func AdminDeleteProblem(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
@@ -226,10 +209,30 @@ func AdminDeleteProblem(c echo.Context) error {
 		panic(err)
 	}
 
+	if problem.AttachmentFileName != "" {
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/attachment", problem.ID)); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+	}
+
+	testCaseIds := make([]uint, len(problem.TestCases))
+
+	for i, testCase := range problem.TestCases {
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
+			panic(errors.Wrap(err, "could not remove object"))
+		}
+		testCaseIds[i] = testCase.ID
+	}
+	utils.PanicIfDBError(base.DB.Delete(&models.TestCase{}, "id IN (?)", testCaseIds), "could not delete test cases")
+
 	var roles []models.Role
 	if err := base.DB.Where("target = ?", "problem").Find(&roles).Error; err != gorm.ErrRecordNotFound && err != nil {
 		panic(errors.Wrap(err, "could not find roles"))
 	}
+
 	roleIds := make([]uint, len(roles))
 	for i, role := range roles {
 		roleIds[i] = role.ID
@@ -283,7 +286,6 @@ func AdminCreateTestCase(c echo.Context) error {
 
 	utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.Filename))
 	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.Filename))
-	// TODO: add perm
 
 	return c.JSON(http.StatusCreated, response.AdminCreateTestCaseResponse{
 		Message: "SUCCESS",
