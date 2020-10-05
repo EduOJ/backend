@@ -1215,5 +1215,140 @@ func TestAdminUpdateTestCase(t *testing.T) {
 			})
 		}
 	})
+}
 
+func TestAdminDeleteTestCase(t *testing.T) {
+	problem, user := createProblemForTest(t, "admin_delete_test_case", 0)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingProblem",
+			method: "DELETE",
+			path:   "/api/admin/problem/-1/test_case/1",
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 61,
+			},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "NonExistingTestCase",
+			method: "DELETE",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1", problem.ID),
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 62,
+			},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusNotFound,
+			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+				"Err":  map[string]interface{}{},
+				"Func": "ParseUint",
+				"Num":  "-1",
+			}),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "DELETE",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1", problem.ID),
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 63,
+			},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "AdminDeleteTestCase")
+
+	t.Run("testAdminDeleteTestCaseSuccess", func(t *testing.T) {
+		testCase := createTestCaseForTest(t, problem, 72,
+			newFileContent("input_file", "test_delete_test_case_0.in", "aW5wdXQgdGV4dA"),
+			newFileContent("output_file", "test_delete_test_case_0.out", "b3V0cHV0IHRleHQ"),
+		)
+
+		req := makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d/test_case/%d", problem.ID, testCase.ID), request.AdminDeleteTestCaseRequest{}, headerOption{
+			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+		})
+		httpResp := makeResp(req)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.Equal(t, response.Response{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+		databaseTestcase := models.TestCase{}
+		err := base.DB.First(&databaseTestcase, testCase.ID).Error
+		assert.Equal(t, gorm.ErrRecordNotFound, err)
+	})
+}
+
+func TestAdminDeleteTestCases(t *testing.T) {
+	problem, user := createProblemForTest(t, "admin_delete_test_cases", 0)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingProblem",
+			method: "DELETE",
+			path:   "/api/admin/problem/-1/test_cases",
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 61,
+			},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "DELETE",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_cases", problem.ID),
+			req: request.AdminUpdateTestCaseRequest{
+				Score: 63,
+			},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "AdminDeleteTestCases")
+
+	t.Run("testAdminDeleteTestCasesSuccess", func(t *testing.T) {
+		var i uint
+		testCases := make([]models.TestCase, 5)
+		for i = 0; i < 5; i++ {
+			testCases[i] = createTestCaseForTest(t, problem, 73+i,
+				newFileContent("input_file", fmt.Sprintf("test_delete_test_cases_%d.in", i), "aW5wdXQgdGV4dA"),
+				newFileContent("output_file", fmt.Sprintf("test_delete_test_cases_%d.out", i), "b3V0cHV0IHRleHQ"),
+			)
+		}
+		req := makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d/test_cases", problem.ID), request.AdminDeleteTestCasesRequest{}, headerOption{
+			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+		})
+		httpResp := makeResp(req)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		var databaseTestCases []models.TestCase
+		assert.Nil(t, base.DB.Find(&databaseTestCases, "problem_id = ?", problem.ID).Error)
+		assert.Equal(t, []models.TestCase{}, databaseTestCases)
+	})
 }

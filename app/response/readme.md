@@ -117,7 +117,15 @@ Common return codes.
 
 
 #### AdminDeleteTestCase
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
 #### AdminDeleteTestCases
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
 
 #### AdminGetTestCaseInputFile
 |         message         |         结果          |
