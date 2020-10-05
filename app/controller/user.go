@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -79,7 +80,11 @@ func GetUsers(c echo.Context) error {
 		query = query.Order(strings.Join(order, " "))
 	}
 	if req.Search != "" {
-		query = query.Where("username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
+		if id, err := strconv.ParseUint(req.Search, 64, 10); err == nil {
+			query = query.Where("id = ? or username like ? or email like ? or nickname like ?", id, "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
+		} else {
+			query = query.Where("username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
+		}
 	}
 	if req.Limit == 0 {
 		req.Limit = 20 // Default limit

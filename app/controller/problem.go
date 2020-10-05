@@ -13,6 +13,7 @@ import (
 	"github.com/minio/minio-go"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -54,7 +55,11 @@ func GetProblems(c echo.Context) error {
 	query = query.Where("public = ?", true)
 
 	if req.Search != "" {
-		query = query.Where("name like ?", "%"+req.Search+"%")
+		if id, err := strconv.ParseUint(req.Search, 64, 10); err == nil {
+			query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
+		} else {
+			query = query.Where("name like ?", "%"+req.Search+"%")
+		}
 	}
 
 	var problems []models.Problem
