@@ -125,11 +125,8 @@ func AdminGetProblems(c echo.Context) error {
 	}
 
 	if req.Search != "" {
-		if id, err := strconv.ParseUint(req.Search, 64, 10); err == nil {
-			query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
-		} else {
-			query = query.Where("name like ?", "%"+req.Search+"%")
-		}
+		id, _ := strconv.ParseUint(req.Search, 10, 64)
+		query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
 	}
 
 	var problems []models.Problem
