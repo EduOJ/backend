@@ -139,11 +139,8 @@ func AdminGetUsers(c echo.Context) error {
 	}
 
 	if req.Search != "" {
-		if id, err := strconv.ParseUint(req.Search, 64, 10); err == nil {
-			query = query.Where("id = ? or username like ? or email like ? or nickname like ?", id, "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
-		} else {
-			query = query.Where("username like ? or email like ? or nickname like ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
-		}
+		id, _ := strconv.ParseUint(req.Search, 10, 64)
+		query = query.Where("id = ? or username like ? or email like ? or nickname like ?", id, "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
 	var users []models.User
 	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &users)
