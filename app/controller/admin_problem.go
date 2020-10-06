@@ -82,9 +82,9 @@ func AdminCreateProblem(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.ProblemProfileForAdmin `json:"problem"`
+			*resource.ProblemForAdmin `json:"problem"`
 		}{
-			resource.GetProblemProfileForAdmin(&problem),
+			resource.GetProblemForAdmin(&problem),
 		},
 	})
 }
@@ -103,9 +103,9 @@ func AdminGetProblem(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.ProblemProfileForAdmin `json:"problem"`
+			*resource.ProblemForAdmin `json:"problem"`
 		}{
-			resource.GetProblemProfileForAdmin(problem),
+			resource.GetProblemForAdmin(problem),
 		},
 	})
 }
@@ -134,14 +134,14 @@ func AdminGetProblems(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Problems []resource.ProblemProfileForAdmin `json:"problems"`
-			Total    int                               `json:"total"`
-			Count    int                               `json:"count"`
-			Offset   int                               `json:"offset"`
-			Prev     *string                           `json:"prev"`
-			Next     *string                           `json:"next"`
+			Problems []resource.ProblemForAdmin `json:"problems"`
+			Total    int                        `json:"total"`
+			Count    int                        `json:"count"`
+			Offset   int                        `json:"offset"`
+			Prev     *string                    `json:"prev"`
+			Next     *string                    `json:"next"`
 		}{
-			Problems: resource.GetProblemProfileForAdminSlice(problems),
+			Problems: resource.GetProblemForAdminSlice(problems),
 			Total:    total,
 			Count:    len(problems),
 			Offset:   req.Offset,
@@ -208,9 +208,9 @@ func AdminUpdateProblem(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.ProblemProfileForAdmin `json:"problem"`
+			*resource.ProblemForAdmin `json:"problem"`
 		}{
-			resource.GetProblemProfileForAdmin(problem),
+			resource.GetProblemForAdmin(problem),
 		},
 	})
 }
@@ -288,9 +288,9 @@ func AdminCreateTestCase(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.TestCaseProfileForAdmin `json:"test_case"`
+			*resource.TestCaseForAdmin `json:"test_case"`
 		}{
-			resource.GetTestCaseProfileForAdmin(&testCase),
+			resource.GetTestCaseForAdmin(&testCase),
 		},
 	})
 }

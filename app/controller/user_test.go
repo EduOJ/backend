@@ -127,9 +127,9 @@ func TestGetUser(t *testing.T) {
 					Message: "SUCCESS",
 					Error:   nil,
 					Data: struct {
-						*resource.UserProfile `json:"user"`
+						*resource.User `json:"user"`
 					}{
-						resource.GetUserProfile(&test.user),
+						resource.GetUser(&test.user),
 					},
 				}, httpResp)
 			})
@@ -180,12 +180,12 @@ func TestGetUsers(t *testing.T) {
 	}
 
 	type respData struct {
-		Users  []resource.UserProfile `json:"users"`
-		Total  int                    `json:"total"`
-		Count  int                    `json:"count"`
-		Offset int                    `json:"offset"`
-		Prev   *string                `json:"prev"`
-		Next   *string                `json:"next"`
+		Users  []resource.User `json:"users"`
+		Total  int             `json:"total"`
+		Count  int             `json:"count"`
+		Offset int             `json:"offset"`
+		Prev   *string         `json:"prev"`
+		Next   *string         `json:"next"`
 	}
 
 	baseUrl := "/api/users"
@@ -248,11 +248,11 @@ func TestGetUsers(t *testing.T) {
 				Search: "test_get_users",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user2),
-					*resource.GetUserProfile(&user3),
-					*resource.GetUserProfile(&user4),
+				Users: []resource.User{
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user2),
+					*resource.GetUser(&user3),
+					*resource.GetUser(&user4),
 				},
 				Total:  4,
 				Count:  4,
@@ -267,7 +267,7 @@ func TestGetUsers(t *testing.T) {
 				Search: "test_get_users_non_exist",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{},
+				Users: []resource.User{},
 			},
 		},
 		{
@@ -276,8 +276,8 @@ func TestGetUsers(t *testing.T) {
 				Search: "test_get_users_2",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user2),
+				Users: []resource.User{
+					*resource.GetUser(&user2),
 				},
 				Total:  1,
 				Count:  1,
@@ -292,8 +292,8 @@ func TestGetUsers(t *testing.T) {
 				Search: "test_get_users_3_nick",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user3),
+				Users: []resource.User{
+					*resource.GetUser(&user3),
 				},
 				Total:  1,
 				Count:  1,
@@ -308,8 +308,8 @@ func TestGetUsers(t *testing.T) {
 				Search: "4_test_get_users@e.com",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user4),
+				Users: []resource.User{
+					*resource.GetUser(&user4),
 				},
 				Total:  1,
 				Count:  1,
@@ -324,9 +324,9 @@ func TestGetUsers(t *testing.T) {
 				Search: "test_get_users_0",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user3),
+				Users: []resource.User{
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user3),
 				},
 				Total:  2,
 				Count:  2,
@@ -341,9 +341,9 @@ func TestGetUsers(t *testing.T) {
 				Search: "0_test_get_users_",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user2),
-					*resource.GetUserProfile(&user3),
+				Users: []resource.User{
+					*resource.GetUser(&user2),
+					*resource.GetUser(&user3),
 				},
 				Total:  2,
 				Count:  2,
@@ -358,10 +358,10 @@ func TestGetUsers(t *testing.T) {
 				Search: "_test_get_users@e.com",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user2),
-					*resource.GetUserProfile(&user4),
+				Users: []resource.User{
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user2),
+					*resource.GetUser(&user4),
 				},
 				Total:  3,
 				Count:  3,
@@ -377,9 +377,9 @@ func TestGetUsers(t *testing.T) {
 				Limit:  2,
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user2),
+				Users: []resource.User{
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user2),
 				},
 				Total:  4,
 				Count:  2,
@@ -398,9 +398,9 @@ func TestGetUsers(t *testing.T) {
 				Limit:  2,
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user2),
+				Users: []resource.User{
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user2),
 				},
 				Total:  4,
 				Count:  2,
@@ -420,9 +420,9 @@ func TestGetUsers(t *testing.T) {
 				Offset: 1,
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user2),
-					*resource.GetUserProfile(&user3),
+				Users: []resource.User{
+					*resource.GetUser(&user2),
+					*resource.GetUser(&user3),
 				},
 				Total:  4,
 				Count:  2,
@@ -442,9 +442,9 @@ func TestGetUsers(t *testing.T) {
 				Offset: 2,
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user3),
-					*resource.GetUserProfile(&user4),
+				Users: []resource.User{
+					*resource.GetUser(&user3),
+					*resource.GetUser(&user4),
 				},
 				Total:  4,
 				Count:  2,
@@ -464,8 +464,8 @@ func TestGetUsers(t *testing.T) {
 				Offset: 2,
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user3),
+				Users: []resource.User{
+					*resource.GetUser(&user3),
 				},
 				Total:  4,
 				Count:  1,
@@ -487,11 +487,11 @@ func TestGetUsers(t *testing.T) {
 				OrderBy: "id.DESC",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user4),
-					*resource.GetUserProfile(&user3),
-					*resource.GetUserProfile(&user2),
-					*resource.GetUserProfile(&user1),
+				Users: []resource.User{
+					*resource.GetUser(&user4),
+					*resource.GetUser(&user3),
+					*resource.GetUser(&user2),
+					*resource.GetUser(&user1),
 				},
 				Total:  4,
 				Count:  4,
@@ -507,11 +507,11 @@ func TestGetUsers(t *testing.T) {
 				OrderBy: "username.ASC",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user3),
-					*resource.GetUserProfile(&user2),
-					*resource.GetUserProfile(&user4),
+				Users: []resource.User{
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user3),
+					*resource.GetUser(&user2),
+					*resource.GetUser(&user4),
 				},
 				Total:  4,
 				Count:  4,
@@ -527,11 +527,11 @@ func TestGetUsers(t *testing.T) {
 				OrderBy: "nickname.DESC",
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user3),
-					*resource.GetUserProfile(&user1),
-					*resource.GetUserProfile(&user4),
-					*resource.GetUserProfile(&user2),
+				Users: []resource.User{
+					*resource.GetUser(&user3),
+					*resource.GetUser(&user1),
+					*resource.GetUser(&user4),
+					*resource.GetUser(&user2),
 				},
 				Total:  4,
 				Count:  4,
@@ -549,8 +549,8 @@ func TestGetUsers(t *testing.T) {
 				Offset:  2,
 			},
 			respData: respData{
-				Users: []resource.UserProfile{
-					*resource.GetUserProfile(&user4),
+				Users: []resource.User{
+					*resource.GetUser(&user4),
 				},
 				Total:  4,
 				Count:  1,
@@ -571,7 +571,7 @@ func TestGetUsers(t *testing.T) {
 				Search: "test_DL_get_users_",
 			},
 			respData: respData{
-				Users:  resource.GetUserProfileSlice(DLUsers[:20]),
+				Users:  resource.GetUserSlice(DLUsers[:20]),
 				Total:  25,
 				Count:  20,
 				Offset: 0,
@@ -662,7 +662,7 @@ func TestGetUserMe(t *testing.T) {
 				assert.Equal(t, test.user.Username, resp.Data.Username)
 				assert.Equal(t, test.user.Nickname, resp.Data.Nickname)
 				assert.Equal(t, test.user.Email, resp.Data.Email)
-				assert.Equal(t, resource.GetRoleProfileSlice(test.user.Roles), resp.Data.Roles)
+				assert.Equal(t, resource.GetRoleSlice(test.user.Roles), resp.Data.Roles)
 				databaseUser := models.User{}
 				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
 				databaseUser.LoadRoles()
@@ -844,7 +844,7 @@ func TestUpdateUserMe(t *testing.T) {
 				assert.Equal(t, test.req.Username, resp.Data.Username)
 				assert.Equal(t, test.req.Nickname, resp.Data.Nickname)
 				assert.Equal(t, test.req.Email, resp.Data.Email)
-				assert.Equal(t, resource.GetRoleProfileSlice(test.user.Roles), resp.Data.Roles)
+				assert.Equal(t, resource.GetRoleSlice(test.user.Roles), resp.Data.Roles)
 				databaseUser := models.User{}
 				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
 				databaseUser.LoadRoles()

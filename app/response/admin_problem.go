@@ -8,7 +8,7 @@ type AdminCreateProblemResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.ProblemProfileForAdmin `json:"problem"`
+		*resource.ProblemForAdmin `json:"problem"`
 	} `json:"data"`
 }
 
@@ -16,7 +16,7 @@ type AdminGetProblemResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.ProblemProfileForAdmin `json:"problem"`
+		*resource.ProblemForAdmin `json:"problem"`
 	} `json:"data"`
 }
 
@@ -24,12 +24,12 @@ type AdminGetProblemsResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		Problems []resource.ProblemProfileForAdmin `json:"problems"`
-		Total    int                               `json:"total"`
-		Count    int                               `json:"count"`
-		Offset   int                               `json:"offset"`
-		Prev     *string                           `json:"prev"`
-		Next     *string                           `json:"next"`
+		Problems []resource.ProblemForAdmin `json:"problems"`
+		Total    int                        `json:"total"`
+		Count    int                        `json:"count"`
+		Offset   int                        `json:"offset"`
+		Prev     *string                    `json:"prev"`
+		Next     *string                    `json:"next"`
 	} `json:"data"`
 }
 
@@ -37,7 +37,7 @@ type AdminUpdateProblemResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.ProblemProfileForAdmin `json:"problem"`
+		*resource.ProblemForAdmin `json:"problem"`
 	} `json:"data"`
 }
 
@@ -45,7 +45,7 @@ type AdminCreateTestCaseResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.TestCaseProfileForAdmin `json:"test_case"`
+		*resource.TestCaseForAdmin `json:"test_case"`
 	} `json:"data"`
 }
 
@@ -53,6 +53,6 @@ type AdminUpdateTestCaseResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.TestCaseProfileForAdmin `json:"test_case"`
+		*resource.TestCaseForAdmin `json:"test_case"`
 	} `json:"data"`
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type TestCaseProfileForAdmin struct {
+type TestCaseForAdmin struct {
 	ID uint `json:"id"`
 
 	ProblemID uint `sql:"index" json:"problem_id"`
@@ -15,14 +15,14 @@ type TestCaseProfileForAdmin struct {
 	OutputFileName string `json:"output_file_name"`
 }
 
-type TestCaseProfile struct {
+type TestCase struct {
 	ID uint `json:"id"`
 
 	ProblemID uint `sql:"index" json:"problem_id"`
 	Score     uint `json:"score"` // 0 for 平均分配
 }
 
-type ProblemProfileForAdmin struct {
+type ProblemForAdmin struct {
 	ID                 uint   `json:"id"`
 	Name               string `sql:"index" json:"name"`
 	Description        string `json:"description"`
@@ -36,10 +36,10 @@ type ProblemProfileForAdmin struct {
 	CompileEnvironment string   `json:"compile_environment"` // E.g.  O2=false
 	CompareScriptID    uint     `json:"compare_script_id"`
 
-	TestCases []TestCaseProfileForAdmin `json:"test_cases"`
+	TestCases []TestCaseForAdmin `json:"test_cases"`
 }
 
-type ProblemProfile struct {
+type Problem struct {
 	ID                 uint   `json:"id"`
 	Name               string `sql:"index" json:"name"`
 	Description        string `json:"description"`
@@ -50,10 +50,10 @@ type ProblemProfile struct {
 	LanguageAllowed []string `json:"language_allowed"`
 	CompareScriptID uint     `json:"compare_script_id"`
 
-	TestCases []TestCaseProfile `json:"test_cases"`
+	TestCases []TestCase `json:"test_cases"`
 }
 
-func (t *TestCaseProfileForAdmin) Convert(testCase *models.TestCase) {
+func (t *TestCaseForAdmin) Convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
 	t.Score = testCase.Score
@@ -61,25 +61,25 @@ func (t *TestCaseProfileForAdmin) Convert(testCase *models.TestCase) {
 	t.OutputFileName = testCase.OutputFileName
 }
 
-func (t *TestCaseProfile) Convert(testCase *models.TestCase) {
+func (t *TestCase) Convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
 	t.Score = testCase.Score
 }
 
-func GetTestCaseProfileForAdmin(testCase *models.TestCase) *TestCaseProfileForAdmin {
-	t := TestCaseProfileForAdmin{}
+func GetTestCaseForAdmin(testCase *models.TestCase) *TestCaseForAdmin {
+	t := TestCaseForAdmin{}
 	t.Convert(testCase)
 	return &t
 }
 
-func GetTestCaseProfile(testCase *models.TestCase) *TestCaseProfile {
-	t := TestCaseProfile{}
+func GetTestCase(testCase *models.TestCase) *TestCase {
+	t := TestCase{}
 	t.Convert(testCase)
 	return &t
 }
 
-func (p *ProblemProfileForAdmin) Convert(problem *models.Problem) {
+func (p *ProblemForAdmin) Convert(problem *models.Problem) {
 	p.ID = problem.ID
 	p.Name = problem.Name
 	p.Description = problem.Description
@@ -92,13 +92,13 @@ func (p *ProblemProfileForAdmin) Convert(problem *models.Problem) {
 	p.CompileEnvironment = problem.CompileEnvironment
 	p.CompareScriptID = problem.CompareScriptID
 
-	p.TestCases = make([]TestCaseProfileForAdmin, len(problem.TestCases))
+	p.TestCases = make([]TestCaseForAdmin, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
 		p.TestCases[i].Convert(&testCase)
 	}
 }
 
-func (p *ProblemProfile) Convert(problem *models.Problem) {
+func (p *Problem) Convert(problem *models.Problem) {
 	p.ID = problem.ID
 	p.Name = problem.Name
 	p.Description = problem.Description
@@ -108,35 +108,35 @@ func (p *ProblemProfile) Convert(problem *models.Problem) {
 	p.LanguageAllowed = strings.Split(problem.LanguageAllowed, ",")
 	p.CompareScriptID = problem.CompareScriptID
 
-	p.TestCases = make([]TestCaseProfile, len(problem.TestCases))
+	p.TestCases = make([]TestCase, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
 		p.TestCases[i].Convert(&testCase)
 	}
 }
 
-func GetProblemProfileForAdmin(problem *models.Problem) *ProblemProfileForAdmin {
-	p := ProblemProfileForAdmin{}
+func GetProblemForAdmin(problem *models.Problem) *ProblemForAdmin {
+	p := ProblemForAdmin{}
 	p.Convert(problem)
 	return &p
 }
 
-func GetProblemProfileForAdminSlice(problems []models.Problem) (profiles []ProblemProfileForAdmin) {
-	profiles = make([]ProblemProfileForAdmin, len(problems))
+func GetProblemForAdminSlice(problems []models.Problem) (profiles []ProblemForAdmin) {
+	profiles = make([]ProblemForAdmin, len(problems))
 	for i, problem := range problems {
 		profiles[i].Convert(&problem)
 	}
 	return
 }
-func GetProblemProfileSlice(problems []models.Problem) (profiles []ProblemProfile) {
-	profiles = make([]ProblemProfile, len(problems))
+func GetProblemSlice(problems []models.Problem) (profiles []Problem) {
+	profiles = make([]Problem, len(problems))
 	for i, problem := range problems {
 		profiles[i].Convert(&problem)
 	}
 	return
 }
 
-func GetProblemProfile(problem *models.Problem) *ProblemProfile {
-	p := ProblemProfile{}
+func GetProblem(problem *models.Problem) *Problem {
+	p := Problem{}
 	p.Convert(problem)
 	return &p
 }

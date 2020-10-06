@@ -39,9 +39,9 @@ func AdminCreateUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForAdmin `json:"user"`
+			*resource.UserForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForAdmin(&user),
+			resource.GetUserForAdmin(&user),
 		},
 	})
 }
@@ -79,9 +79,9 @@ func AdminUpdateUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForAdmin `json:"user"`
+			*resource.UserForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForAdmin(user),
+			resource.GetUserForAdmin(user),
 		},
 	})
 }
@@ -116,9 +116,9 @@ func AdminGetUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForAdmin `json:"user"`
+			*resource.UserForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForAdmin(user),
+			resource.GetUserForAdmin(user),
 		},
 	})
 }
@@ -152,14 +152,14 @@ func AdminGetUsers(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Users  []resource.UserProfile `json:"users"`
-			Total  int                    `json:"total"`
-			Count  int                    `json:"count"`
-			Offset int                    `json:"offset"`
-			Prev   *string                `json:"prev"`
-			Next   *string                `json:"next"`
+			Users  []resource.User `json:"users"`
+			Total  int             `json:"total"`
+			Count  int             `json:"count"`
+			Offset int             `json:"offset"`
+			Prev   *string         `json:"prev"`
+			Next   *string         `json:"next"`
 		}{
-			resource.GetUserProfileSlice(users),
+			resource.GetUserSlice(users),
 			total,
 			len(users),
 			req.Offset,
