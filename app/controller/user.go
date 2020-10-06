@@ -28,9 +28,9 @@ func GetUser(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfile `json:"user"`
+			*resource.User `json:"user"`
 		}{
-			resource.GetUserProfile(user),
+			resource.GetUser(user),
 		},
 	})
 }
@@ -48,9 +48,9 @@ func GetMe(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForAdmin `json:"user"`
+			*resource.UserForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForAdmin(&user),
+			resource.GetUserForAdmin(&user),
 		},
 	})
 }
@@ -128,14 +128,14 @@ func GetUsers(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Users  []resource.UserProfile `json:"users"`
-			Total  int                    `json:"total"`
-			Count  int                    `json:"count"`
-			Offset int                    `json:"offset"`
-			Prev   *string                `json:"prev"`
-			Next   *string                `json:"next"`
+			Users  []resource.User `json:"users"`
+			Total  int             `json:"total"`
+			Count  int             `json:"count"`
+			Offset int             `json:"offset"`
+			Prev   *string         `json:"prev"`
+			Next   *string         `json:"next"`
 		}{
-			resource.GetUserProfileSlice(users),
+			resource.GetUserSlice(users),
 			total,
 			len(users),
 			req.Offset,
@@ -175,9 +175,9 @@ func UpdateMe(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.UserProfileForAdmin `json:"user"`
+			*resource.UserForAdmin `json:"user"`
 		}{
-			resource.GetUserProfileForAdmin(&user),
+			resource.GetUserForAdmin(&user),
 		},
 	})
 }
