@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/app/request"
@@ -10,7 +11,9 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/minio/minio-go"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"net/http"
 	"testing"
 )
@@ -701,4 +704,291 @@ func TestAdminGetProblems(t *testing.T) {
 			})
 		}
 	})
+}
+
+func createProblemForTest(t *testing.T, name string, index int) (problem models.Problem, user models.User) {
+	problem = models.Problem{
+		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, index),
+		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, index),
+		AttachmentFileName: "",
+		Public:             true,
+		Privacy:            false,
+		MemoryLimit:        1024,
+		TimeLimit:          1000,
+		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d", name, index),
+		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, index),
+		CompareScriptID:    1,
+	}
+	assert.Nil(t, base.DB.Create(&problem).Error)
+	user = createUserForTest(t, name, index)
+	user.GrantRole("creator", problem)
+	return
+}
+
+func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inputFile, outputFile *fileContent) (testCase models.TestCase) {
+	var inputFileName, outputFileName string
+
+	if inputFile != nil {
+		utils.MustCreateBucket("problems")
+		inputBytes, err := ioutil.ReadAll(inputFile.reader)
+
+		assert.Nil(t, err)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.fileName), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		inputFileName = inputFile.fileName
+	}
+	if outputFile != nil {
+		utils.MustCreateBucket("problems")
+		outputBytes, err := ioutil.ReadAll(outputFile.reader)
+		assert.Nil(t, err)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.fileName), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		outputFileName = outputFile.fileName
+	}
+
+	testCase = models.TestCase{
+		Score:          score,
+		InputFileName:  inputFileName,
+		OutputFileName: outputFileName,
+	}
+	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error)
+	return
+}
+
+func TestAdminCreateTestCase(t *testing.T) {
+	problem, user := createProblemForTest(t, "admin_create_test_case", 0)
+
+	failTests := []failTest{
+		{
+			name:   "LackInputFile",
+			method: "POST",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			req: addFieldContentSlice([]reqContent{
+				newFileContent("output_file", "test_admin_create_test_case_lack_input_file.out", "b3V0cHV0IHRleHQ"),
+			}, map[string]string{
+				"score": "41",
+			}),
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("LACK_FILE", nil),
+		},
+		{
+			name:   "LackOutputFile",
+			method: "POST",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			req: addFieldContentSlice([]reqContent{
+				newFileContent("input_file", "test_admin_create_test_case_lack_output_file.in", "b3V0cHV0IHRleHQ"),
+			}, map[string]string{
+				"score": "42",
+			}),
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("LACK_FILE", nil),
+		},
+		{
+			name:   "LackBothFile",
+			method: "POST",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			req: addFieldContentSlice([]reqContent{}, map[string]string{
+				"score": "43",
+			}),
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("LACK_FILE", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "POST",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			req: addFieldContentSlice([]reqContent{
+				newFileContent("input_file", "test_admin_create_test_case_permission_denied.in", "b3V0cHV0IHRleHQ"),
+				newFileContent("output_file", "test_admin_create_test_case_permission_denied.out", "b3V0cHV0IHRleHQ"),
+			}, map[string]string{
+				"score": "44",
+			}),
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "AdminCreateTestCase")
+
+	t.Run("testAdminCreateTestCaseSuccess", func(t *testing.T) {
+		req := makeReq(t, "POST", fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID), addFieldContentSlice([]reqContent{
+			newFileContent("input_file", "test_admin_create_test_case_success.in", "aW5wdXQgdGV4dA"),
+			newFileContent("output_file", "test_admin_create_test_case_success.out", "b3V0cHV0IHRleHQ"),
+		}, map[string]string{
+			"score": "20",
+		}), headerOption{
+			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+		})
+		//req.Header.Set("Set-User-For-Test", fmt.Sprintf("%d", user.ID))
+		httpResp := makeResp(req)
+		expectedTestCase := models.TestCase{
+			ProblemID:      problem.ID,
+			Score:          20,
+			InputFileName:  "test_admin_create_test_case_success.in",
+			OutputFileName: "test_admin_create_test_case_success.out",
+		}
+		databaseTestCase := models.TestCase{}
+		assert.Nil(t, base.DB.Where("problem_id = ? and score = ?", problem.ID, 20).First(&databaseTestCase).Error)
+		assert.Equal(t, expectedTestCase.ProblemID, databaseTestCase.ProblemID)
+		assert.Equal(t, expectedTestCase.InputFileName, databaseTestCase.InputFileName)
+		assert.Equal(t, expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
+		assert.Equal(t, expectedTestCase.Score, databaseTestCase.Score)
+		resp := response.AdminCreateTestCaseResponse{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
+		assert.Equal(t, response.AdminCreateTestCaseResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.TestCaseProfileForAdmin `json:"test_case"`
+			}{
+				resource.GetTestCaseProfileForAdmin(&databaseTestCase),
+			},
+		}, resp)
+	})
+}
+
+func TestAdminGetTestCaseInputFile(t *testing.T) {
+	problem, user := createProblemForTest(t, "admin_get_test_case_input_file", 0)
+	failTests := []failTest{
+		{
+			name:   "NonExistingProblem",
+			method: "GET",
+			path:   "/api/admin/problem/-1/test_case/1/input_file",
+			req:    request.AdminGetTestCaseInputFileRequest{},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "NonExistingTestCase",
+			method: "GET",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1/input_file", problem.ID),
+			req:    request.AdminGetTestCaseInputFileRequest{},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusNotFound,
+			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+				"Err":  map[string]interface{}{},
+				"Func": "ParseUint",
+				"Num":  "-1",
+			}),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1/input_file", problem.ID),
+			req:    request.AdminGetTestCaseInputFileRequest{},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "AdminGetTestCaseInputFile")
+
+	testCase := createTestCaseForTest(t, problem, 51,
+		newFileContent("", "test_admin_get_test_case_input_file_success.in", "aW5wdXQgdGV4dA"),
+		//newFileContent("","test_admin_get_test_case_input_file_success.out","b3V0cHV0IHRleHQ"),
+		nil,
+	)
+
+	req := makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d/test_case/%d/input_file", problem.ID, testCase.ID), request.AdminGetTestCaseInputFileRequest{}, headerOption{
+		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+	})
+	httpResp := makeResp(req)
+
+	respBytes, err := ioutil.ReadAll(httpResp.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "input text", string(respBytes))
+}
+
+func TestAdminGetTestCaseOutputFile(t *testing.T) {
+	problem, user := createProblemForTest(t, "admin_get_test_case_output_file", 0)
+	failTests := []failTest{
+		{
+			name:   "NonExistingProblem",
+			method: "GET",
+			path:   "/api/admin/problem/-1/test_case/1/output_file",
+			req:    request.AdminGetTestCaseOutputFileRequest{},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "NonExistingTestCase",
+			method: "GET",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1/output_file", problem.ID),
+			req:    request.AdminGetTestCaseOutputFileRequest{},
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusNotFound,
+			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+				"Err":  map[string]interface{}{},
+				"Func": "ParseUint",
+				"Num":  "-1",
+			}),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1/output_file", problem.ID),
+			req:    request.AdminGetTestCaseOutputFileRequest{},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "AdminGetTestCaseOutputFile")
+
+	testCase := createTestCaseForTest(t, problem, 51,
+		nil,
+		newFileContent("", "test_admin_get_test_case_output_file_success.out", "b3V0cHV0IHRleHQ"),
+	)
+
+	req := makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d/test_case/%d/output_file", problem.ID, testCase.ID), request.AdminGetTestCaseOutputFileRequest{}, headerOption{
+		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+	})
+	httpResp := makeResp(req)
+
+	respBytes, err := ioutil.ReadAll(httpResp.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "output text", string(respBytes))
 }

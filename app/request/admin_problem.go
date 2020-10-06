@@ -3,7 +3,7 @@ package request
 type AdminCreateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
-	// attachment_file
+	// attachment_file(optional)
 	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
@@ -30,7 +30,7 @@ type AdminGetProblemsRequest struct {
 type AdminUpdateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
-	// attachment_file
+	// attachment_file(optional)
 	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
@@ -44,20 +44,28 @@ type AdminUpdateProblemRequest struct {
 type AdminDeleteProblemRequest struct {
 }
 
-type AdminCreateTestCase struct {
+type AdminCreateTestCaseRequest struct {
 	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
-	// TODO: replace to file blob.
-	InputFileName  string `json:"input_file_name" form:"input_file_name" query:"input_file_name" validate:"required,max=255"`
-	OutputFileName string `json:"output_file_name" form:"output_file_name" query:"output_file_name" validate:"required,max=255"`
+	// input_file(required)
+	// output_file(required)
 }
 
-type AdminUpdateTestCase struct {
+type AdminGetTestCaseInputFileRequest struct {
+}
+
+type AdminGetTestCaseOutputFileRequest struct {
+}
+
+type AdminUpdateTestCaseRequest struct {
 	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
+
+	// input_file(optional)
+	// output_file(optional)
 }
 
-type AdminDeleteTestCase struct {
+type AdminDeleteTestCaseRequest struct {
 }
 
-type AdminDeleteTestCases struct {
+type AdminDeleteTestCasesRequest struct {
 }

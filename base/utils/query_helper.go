@@ -116,3 +116,24 @@ func FindUser(id string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func FindProblem(id string, publicOnly bool) (*models.Problem, error) {
+	problem := models.Problem{}
+	// TODO: load test case
+	query := base.DB
+	if publicOnly {
+		query = query.Model(&models.Problem{}).Where("public = ?", true)
+	}
+	err := query.Where("id = ?", id).First(&problem).Error
+	if err != nil {
+		err = query.Where("name = ?", id).First(&problem).Error
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, err
+			} else {
+				panic(errors.Wrap(err, "could not query problem"))
+			}
+		}
+	}
+	return &problem, nil
+}
