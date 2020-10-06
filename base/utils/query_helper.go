@@ -75,7 +75,7 @@ func Paginator(query *gorm.DB, limit, offset int, requestURL *url.URL, output in
 	return
 }
 
-func Sorter(query *gorm.DB, orderBy string) (*gorm.DB, error) {
+func Sorter(query *gorm.DB, orderBy string, columns ...string) (*gorm.DB, error) {
 	if orderBy != "" {
 		order := strings.SplitN(orderBy, ".", 2)
 		if len(order) != 2 {
@@ -84,7 +84,7 @@ func Sorter(query *gorm.DB, orderBy string) (*gorm.DB, error) {
 				Message: "INVALID_ORDER",
 			}
 		}
-		if !Contain(order[0], []string{"username", "id", "nickname"}) {
+		if !Contain(order[0], columns) {
 			return nil, HttpError{
 				Code:    http.StatusBadRequest,
 				Message: "INVALID_ORDER",

@@ -81,7 +81,7 @@ func AdminGetProblems(c echo.Context) error {
 		return err
 	}
 
-	query, err := utils.Sorter(base.DB.Model(&models.Problem{}), req.OrderBy)
+	query, err := utils.Sorter(base.DB.Model(&models.Problem{}), req.OrderBy, "id")
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {
 			return herr.Response(c)
