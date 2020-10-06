@@ -129,7 +129,7 @@ func AdminGetUsers(c echo.Context) error {
 		return err
 	}
 
-	query, err := utils.Sorter(base.DB.Model(&models.User{}), req.OrderBy)
+	query, err := utils.Sorter(base.DB.Model(&models.User{}), req.OrderBy, "id", "username", "nickname")
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {
 			return herr.Response(c)

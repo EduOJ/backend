@@ -47,6 +47,7 @@ type AdminDeleteProblemRequest struct {
 type AdminCreateTestCase struct {
 	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
+	// TODO: replace to file blob.
 	InputFileName  string `json:"input_file_name" form:"input_file_name" query:"input_file_name" validate:"required,max=255"`
 	OutputFileName string `json:"output_file_name" form:"output_file_name" query:"output_file_name" validate:"required,max=255"`
 }

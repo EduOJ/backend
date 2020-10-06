@@ -43,7 +43,8 @@ func CleanUpExpiredTokens() error {
 		var tokens []models.Token
 		var tokenIds []uint
 		storedTokenCount := 0
-		err = base.DB.Preload("User").Where("user_id = ?", user.ID).Order("updated_at desc").Find(&tokens).Error
+		err = base.DB.Where("user_id = ?", user.ID).Order("updated_at desc").Find(&tokens).Error
+		// TODO: select updated_at > xxx limit 5;  delete not in
 		if err != nil {
 			return errors.Wrap(err, "could not find tokens")
 		}
