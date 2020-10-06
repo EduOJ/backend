@@ -66,13 +66,18 @@ func Register(e *echo.Echo) {
 	api.GET("/problem/:id/attachment_file", controller.GetProblemAttachmentFile).Name = "problem.getProblemAttachmentFile"
 
 	admin.POST("/problem/:id/test_case",
-		controller.Todo, middleware.HasPermission("create_test_case", "problem")).Name = "admin.problem.createTestCase"
+		controller.AdminCreateTestCase, middleware.HasPermission("create_test_case", "problem")).Name = "admin.problem.createTestCase"
 	admin.PUT("/problem/:id/test_case/:test_case_id",
 		controller.Todo, middleware.HasPermission("update_test_case", "problem")).Name = "admin.problem.updateTestCase"
 	admin.DELETE("/problem/:id/test_case/:test_case_id",
 		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCase"
 	admin.DELETE("/problem/:id/test_cases",
 		controller.Todo, middleware.HasPermission("delete_test_case", "problem")).Name = "admin.problem.deleteTestCases"
+
+	admin.GET("/problem/:id/test_case/:test_case_id/input_file",
+		controller.AdminGetTestCaseInputFile, middleware.HasPermission("get_test_case_input_file", "problem")).Name = "admin.problem.getTestCaseInputFile"
+	admin.GET("/problem/:id/test_case/:test_case_id/output_file",
+		controller.AdminGetTestCaseOutputFile, middleware.HasPermission("get_test_case_output_file", "problem")).Name = "admin.problem.getTestCaseOutputFile"
 
 	// TODO: routes.
 }
