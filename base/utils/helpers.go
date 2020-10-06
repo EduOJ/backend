@@ -1,13 +1,18 @@
 package utils
 
 import (
+	"context"
 	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
+	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
+	"io"
+	"mime/multipart"
 	"net/http"
 )
 
@@ -37,4 +42,33 @@ func BindAndValidate(req interface{}, c echo.Context) (err error, ok bool) {
 		return response.InternalErrorResp(c), false
 	}
 	return nil, true
+}
+
+func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
+	src, err := object.Open()
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		err := src.Close()
+		if err != nil {
+			panic(errors.Wrap(err, "could not close file reader"))
+		}
+	}()
+	_, err = base.Storage.PutObjectWithContext(ctx, bucket, path, src, object.Size, minio.PutObjectOptions{})
+	if err != nil {
+		panic(errors.Wrap(err, "could write file to s3 storage."))
+	}
+}
+
+func MustGetObject(bucket string, path string) *minio.Object {
+	object, err := base.Storage.GetObject(bucket, path, minio.GetObjectOptions{})
+	if err != nil {
+		panic(err)
+	}
+	_, err = object.Seek(0, io.SeekStart)
+	if err != nil {
+		panic(err)
+	}
+	return object
 }

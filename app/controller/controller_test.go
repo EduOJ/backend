@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/johannesboyne/gofakes3"
@@ -20,11 +21,14 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -101,7 +105,9 @@ func runFailTests(t *testing.T, tests []failTest, groupName string) {
 			test := test
 			t.Run("test"+groupName+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, test.method, test.path, test.req, test.reqOptions...))
+				var req *http.Request
+				req = makeReq(t, test.method, test.path, test.req, test.reqOptions...)
+				httpResp := makeResp(req)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, test.statusCode, httpResp.StatusCode)
@@ -188,11 +194,76 @@ func (q queryOption) make(r *http.Request) {
 	}
 }
 
+type reqContent interface {
+	add(r *multipart.Writer) error
+}
+
+type fieldContent struct {
+	key   string
+	value string
+}
+
+type fileContent struct {
+	key      string
+	fileName string
+	reader   io.Reader
+}
+
+func (c *fieldContent) add(w *multipart.Writer) (err error) {
+	tw, err := w.CreateFormField(c.key)
+	if err != nil {
+		return
+	}
+	_, err = tw.Write([]byte(c.value))
+	return
+}
+
+func (c *fileContent) add(w *multipart.Writer) (err error) {
+	fw, err := w.CreateFormFile(c.key, c.fileName)
+	if err != nil {
+		return
+	}
+	_, err = io.Copy(fw, c.reader)
+	return
+}
+
+func addFieldContentSlice(c []reqContent, fields map[string]string) []reqContent {
+	fieldContents := make([]reqContent, 0, len(fields))
+	for key, value := range fields {
+		fieldContents = append(fieldContents, &fieldContent{
+			key:   key,
+			value: value,
+		})
+	}
+	return append(c, fieldContents...)
+}
+
+func newFileContent(key, fileName, base64Data string) *fileContent {
+	return &fileContent{
+		key:      key,
+		fileName: fileName,
+		reader:   base64.NewDecoder(base64.RawStdEncoding, strings.NewReader(base64Data)),
+	}
+}
+
 func makeReq(t *testing.T, method string, path string, data interface{}, options ...reqOption) *http.Request {
-	j, err := json.Marshal(data)
-	assert.Equal(t, nil, err)
-	req := httptest.NewRequest(method, path, bytes.NewReader(j))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	var req *http.Request
+	if content, ok := data.([]reqContent); ok {
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		for _, c := range content {
+			assert.Nil(t, c.add(w))
+		}
+		err := w.Close()
+		assert.Nil(t, err)
+		req = httptest.NewRequest(method, path, &b)
+		req.Header.Set("Content-Type", w.FormDataContentType())
+	} else {
+		j, err := json.Marshal(data)
+		assert.Nil(t, err)
+		req = httptest.NewRequest(method, path, bytes.NewReader(j))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	}
 	for _, option := range options {
 		option.make(req)
 	}

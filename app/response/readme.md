@@ -108,6 +108,18 @@ Common return codes.
 #### AdminDeleteTestCase
 #### AdminDeleteTestCases
 
+#### AdminGetTestCaseInputFile
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
+#### AdminGetTestCaseOutputFile
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
 ## User
 
 ### GetMe
