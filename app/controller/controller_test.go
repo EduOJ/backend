@@ -244,7 +244,7 @@ func newFileContent(key, fileName, base64Data string) *fileContent {
 	return &fileContent{
 		key:      key,
 		fileName: fileName,
-		reader:   base64.NewDecoder(base64.RawStdEncoding, strings.NewReader(base64Data)),
+		reader:   base64.NewDecoder(base64.StdEncoding, strings.NewReader(base64Data)),
 	}
 }
 

@@ -24,7 +24,7 @@ Here are the permissions and their descriptions.
 |         Name        |                        Description                       |
 |:-------------------:|:--------------------------------------------------------:|
 |      (user CRUD)    |                                                          |
-|      creat_user     |              the permission to create users              |
+|      create_user    |              the permission to create users              |
 |      update_user    |              the permission to update users              |
 |      delete_user    |              the permission to delete users              |
 |       get_user      |    the permission to get all the information of a user   |
