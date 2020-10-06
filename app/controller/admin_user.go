@@ -71,7 +71,7 @@ func AdminUpdateUser(c echo.Context) error {
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
-	if req.Password != "" && req.Password != "123456" {
+	if req.Password != "" {
 		hashed := utils.HashPassword(req.Password)
 		user.Password = hashed
 	}

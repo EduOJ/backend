@@ -368,28 +368,6 @@ func TestAdminUpdateUser(t *testing.T) {
 				Password: "",
 			},
 		},
-		{
-			name: "WithoutChangingPassword123456",
-			path: "id",
-			originalUser: models.User{
-				Username: "test_update_user_5",
-				Nickname: "test_update_user_5_nick",
-				Email:    "test_update_user_5@mail.com",
-				Password: utils.HashPassword("test_update_user_5_pwd"),
-			},
-			expectedUser: models.User{
-				Username: "test_update_user_50",
-				Nickname: "test_update_user_50_nick",
-				Email:    "test_update_user_50@mail.com",
-				Password: "test_update_user_5_pwd",
-			},
-			req: request.AdminUpdateUserRequest{
-				Username: "test_update_user_50",
-				Nickname: "test_update_user_50_nick",
-				Email:    "test_update_user_50@mail.com",
-				Password: "123456",
-			},
-		},
 	}
 
 	t.Run("testAdminUpdateUserSuccess", func(t *testing.T) {
