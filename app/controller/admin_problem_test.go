@@ -345,6 +345,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 		req                request.AdminUpdateProblemRequest
 		updatedAttachment  *fileContent
 		originalAttachment *fileContent
+		testCases          []models.TestCase
 	}{
 		{
 			name: "WithoutAttachmentAndTestCase",
@@ -380,6 +381,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 				CompareScriptID: 2,
 			},
 			updatedAttachment: nil,
+			testCases:         nil,
 		},
 		{
 			name: "WithAddingAttachment",
@@ -417,6 +419,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 				CompareScriptID: 2,
 			},
 			updatedAttachment: newFileContent("attachment_file", "test_admin_update_problem_attachment_40", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
+			testCases:         nil,
 		},
 		{
 			name: "WithChangingAttachment",
@@ -455,6 +458,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 			},
 			originalAttachment: newFileContent("attachment_file", "test_admin_update_problem_attachment_5", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
 			updatedAttachment:  newFileContent("attachment_file", "test_admin_update_problem_attachment_50", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
+			testCases:          nil,
 		},
 		{
 			name: "WithoutChangingAttachment",
@@ -493,8 +497,55 @@ func TestAdminUpdateProblem(t *testing.T) {
 			},
 			originalAttachment: newFileContent("attachment_file", "test_admin_update_problem_attachment_6", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
 			updatedAttachment:  nil,
+			testCases:          nil,
 		},
-		// TODO: with test case
+		{
+			name: "WithTestCase",
+			path: "id",
+			originalProblem: models.Problem{
+				Name:            "test_admin_update_problem_7",
+				Description:     "test_admin_update_problem_7_desc",
+				LanguageAllowed: "test_admin_update_problem_7_language_allowed",
+				Public:          false,
+				Privacy:         true,
+				MemoryLimit:     1024,
+				TimeLimit:       1000,
+				CompareScriptID: 1,
+			},
+			expectedProblem: models.Problem{
+				Name:            "test_admin_update_problem_70",
+				Description:     "test_admin_update_problem_70_desc",
+				LanguageAllowed: "test_admin_update_problem_70_language_allowed",
+				Public:          true,
+				Privacy:         false,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
+			},
+			req: request.AdminUpdateProblemRequest{
+				Name:            "test_admin_update_problem_70",
+				Description:     "test_admin_update_problem_70_desc",
+				LanguageAllowed: "test_admin_update_problem_70_language_allowed",
+				Public:          &boolTrue,
+				Privacy:         &boolFalse,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
+			},
+			updatedAttachment: nil,
+			testCases: []models.TestCase{
+				{
+					Score:          103,
+					InputFileName:  "test_admin_update_problem_7_test_case_1_input_file_name",
+					OutputFileName: "test_admin_update_problem_7_test_case_1_output_file_name",
+				},
+				{
+					Score:          104,
+					InputFileName:  "test_admin_update_problem_7_test_case_2_input_file_name",
+					OutputFileName: "test_admin_update_problem_7_test_case_2_output_file_name",
+				},
+			},
+		},
 	}
 
 	t.Run("testAdminUpdateProblemSuccess", func(t *testing.T) {
@@ -505,6 +556,9 @@ func TestAdminUpdateProblem(t *testing.T) {
 			t.Run("testAdminUpdateProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.originalProblem).Error)
+				for j := range test.testCases {
+					assert.Nil(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]).Error)
+				}
 				if test.originalAttachment != nil {
 					b, err := ioutil.ReadAll(test.originalAttachment.reader)
 					assert.Nil(t, err)
@@ -543,6 +597,12 @@ func TestAdminUpdateProblem(t *testing.T) {
 				test.expectedProblem.UpdatedAt = databaseProblem.UpdatedAt
 				test.expectedProblem.DeletedAt = databaseProblem.DeletedAt
 				assert.Equal(t, test.expectedProblem, databaseProblem)
+				assert.Nil(t, base.DB.Set("gorm:auto_preload", true).Model(databaseProblem).Related(&databaseProblem.TestCases).Error)
+				if test.testCases != nil {
+					jsonEQ(t, test.testCases, databaseProblem.TestCases)
+				} else {
+					assert.Equal(t, []models.TestCase{}, databaseProblem.TestCases)
+				}
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				jsonEQ(t, response.AdminUpdateProblemResponse{
 					Message: "SUCCESS",
@@ -605,15 +665,21 @@ func TestAdminDeleteProblem(t *testing.T) {
 		name               string
 		problem            models.Problem
 		originalAttachment *fileContent
+		testCases          []struct {
+			testcase   models.TestCase
+			inputFile  *fileContent
+			outputFile *fileContent
+		}
 	}{
 		{
-			name: "SuccessWithoutAttachment",
+			name: "SuccessWithoutAttachmentAndTestCases",
 			problem: models.Problem{
 				Name:               "test_admin_delete_problem_1",
 				AttachmentFileName: "",
 				LanguageAllowed:    "test_admin_delete_problem_1_language_allowed",
 			},
 			originalAttachment: nil,
+			testCases:          nil,
 		},
 		{
 			name: "SuccessWithAttachment",
@@ -623,8 +689,74 @@ func TestAdminDeleteProblem(t *testing.T) {
 				LanguageAllowed:    "test_admin_delete_problem_2_language_allowed",
 			},
 			originalAttachment: newFileContent("attachment_file", "test_admin_delete_problem_attachment_2", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			testCases:          nil,
 		},
-		// TODO: with test case
+		{
+			name: "SuccessWithTestCases",
+			problem: models.Problem{
+				Name:               "test_admin_delete_problem_3",
+				AttachmentFileName: "",
+				LanguageAllowed:    "test_admin_delete_problem_3_language_allowed",
+			},
+			originalAttachment: nil,
+			testCases: []struct {
+				testcase   models.TestCase
+				inputFile  *fileContent
+				outputFile *fileContent
+			}{
+				{
+					testcase: models.TestCase{
+						Score:          105,
+						InputFileName:  "test_admin_delete_problem_3_test_case_1_input_file_name",
+						OutputFileName: "test_admin_delete_problem_3_test_case_1_output_file_name",
+					},
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_3_test_case_1.in", "aW5wdXQgdGV4dA"),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_3_test_case_1.out", "b3V0cHV0IHRleHQ"),
+				},
+				{
+					testcase: models.TestCase{
+						Score:          106,
+						InputFileName:  "test_admin_delete_problem_3_test_case_2_input_file_name",
+						OutputFileName: "test_admin_delete_problem_3_test_case_2_output_file_name",
+					},
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_3_test_case_2.in", "aW5wdXQgdGV4dA"),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_3_test_case_2.out", "b3V0cHV0IHRleHQ"),
+				},
+			},
+		},
+		{
+			name: "SuccessWithAttachmentAndTestCases",
+			problem: models.Problem{
+				Name:               "test_admin_delete_problem_4",
+				AttachmentFileName: "test_admin_delete_problem_attachment_4",
+				LanguageAllowed:    "test_admin_delete_problem_4_language_allowed",
+			},
+			originalAttachment: newFileContent("attachment_file", "test_admin_delete_problem_attachment_4", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			testCases: []struct {
+				testcase   models.TestCase
+				inputFile  *fileContent
+				outputFile *fileContent
+			}{
+				{
+					testcase: models.TestCase{
+						Score:          105,
+						InputFileName:  "test_admin_delete_problem_4_test_case_1_input_file_name",
+						OutputFileName: "test_admin_delete_problem_4_test_case_1_output_file_name",
+					},
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_4_test_case_1.in", "aW5wdXQgdGV4dA"),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_4_test_case_1.out", "b3V0cHV0IHRleHQ"),
+				},
+				{
+					testcase: models.TestCase{
+						Score:          106,
+						InputFileName:  "test_admin_delete_problem_4_test_case_2_input_file_name",
+						OutputFileName: "test_admin_delete_problem_4_test_case_2_output_file_name",
+					},
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_4_test_case_2.in", "aW5wdXQgdGV4dA"),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_4_test_case_2.out", "b3V0cHV0IHRleHQ"),
+				},
+			},
+		},
 	}
 
 	t.Run("testAdminDeleteProblemSuccess", func(t *testing.T) {
@@ -635,6 +767,13 @@ func TestAdminDeleteProblem(t *testing.T) {
 			t.Run("testAdminDeleteProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
+				for j := range test.testCases {
+					createTestCaseForTest(t, test.problem, test.testCases[j].testcase.Score, test.testCases[j].inputFile, test.testCases[j].outputFile)
+					content, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", test.problem.ID, test.testCases[j].inputFile.fileName))
+					fmt.Println(content, found)
+					content, found = checkObject(t, "problems", fmt.Sprintf("%d/output/%s", test.problem.ID, test.testCases[j].outputFile.fileName))
+					fmt.Println(content, found)
+				}
 				if test.originalAttachment != nil {
 					b, err := ioutil.ReadAll(test.originalAttachment.reader)
 					assert.Nil(t, err)
@@ -659,6 +798,13 @@ func TestAdminDeleteProblem(t *testing.T) {
 				assert.False(t, user.HasRole("creator", test.problem))
 				if test.originalAttachment != nil {
 					_, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", test.problem.ID))
+					assert.False(t, found)
+				}
+				for j := range test.testCases {
+					assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.TestCase{}, test.testCases[j].testcase.ID).Error)
+					_, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", test.problem.ID, test.testCases[j].inputFile.fileName))
+					assert.False(t, found)
+					_, found = checkObject(t, "problems", fmt.Sprintf("%d/output/%s", test.problem.ID, test.testCases[j].outputFile.fileName))
 					assert.False(t, found)
 				}
 			})
@@ -697,15 +843,14 @@ func TestAdminGetProblem(t *testing.T) {
 	runFailTests(t, failTests, "AdminGetProblem")
 
 	successTests := []struct {
-		name       string
-		path       string
-		req        request.AdminGetProblemRequest
-		problem    models.Problem
-		role       models.Role
-		roleTarget models.HasRole
+		name      string
+		path      string
+		req       request.AdminGetProblemRequest
+		problem   models.Problem
+		testCases []models.TestCase
 	}{
 		{
-			name: "WithId",
+			name: "WithoutTestCases",
 			path: "id",
 			req:  request.AdminGetProblemRequest{},
 			problem: models.Problem{
@@ -713,13 +858,33 @@ func TestAdminGetProblem(t *testing.T) {
 				AttachmentFileName: "test_admin_get_problem_1_attachment_file_name",
 				LanguageAllowed:    "test_admin_get_problem_1_language_allowed",
 			},
-			role:       models.Role{},
-			roleTarget: nil,
+			testCases: nil,
 		},
-		// TODO: with test case
+		{
+			name: "WithTestCases",
+			path: "id",
+			req:  request.AdminGetProblemRequest{},
+			problem: models.Problem{
+				Name:               "test_admin_get_problem_2",
+				AttachmentFileName: "test_admin_get_problem_2_attachment_file_name",
+				LanguageAllowed:    "test_admin_get_problem_2_language_allowed",
+			},
+			testCases: []models.TestCase{
+				{
+					Score:          101,
+					InputFileName:  "test_admin_get_problem_2_test_case_1_input_file_name",
+					OutputFileName: "test_admin_get_problem_2_test_case_1_output_file_name",
+				},
+				{
+					Score:          102,
+					InputFileName:  "test_admin_get_problem_2_test_case_2_input_file_name",
+					OutputFileName: "test_admin_get_problem_2_test_case_2_output_file_name",
+				},
+			},
+		},
 	}
 
-	t.Run("testAdminGetUserSuccess", func(t *testing.T) {
+	t.Run("testAdminGetProblemSuccess", func(t *testing.T) {
 		t.Parallel()
 		for i, test := range successTests {
 			i := i
@@ -727,6 +892,9 @@ func TestAdminGetProblem(t *testing.T) {
 			t.Run("testAdminGetProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
+				for j := range test.testCases {
+					assert.Nil(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]).Error)
+				}
 				user := createUserForTest(t, "admin_get_problem", i)
 				user.GrantRole("creator", test.problem)
 				httpResp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d", test.problem.ID), request.AdminGetUserRequest{}, headerOption{
@@ -1023,7 +1191,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_admin_create_test_case_lack_output_file.in", "b3V0cHV0IHRleHQ"),
+				newFileContent("input_file", "test_admin_create_test_case_lack_output_file.in", "aW5wdXQgdGV4dA"),
 			}, map[string]string{
 				"score": "42",
 			}),
@@ -1055,7 +1223,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_admin_create_test_case_permission_denied.in", "b3V0cHV0IHRleHQ"),
+				newFileContent("input_file", "test_admin_create_test_case_permission_denied.in", "aW5wdXQgdGV4dA"),
 				newFileContent("output_file", "test_admin_create_test_case_permission_denied.out", "b3V0cHV0IHRleHQ"),
 			}, map[string]string{
 				"score": "44",
