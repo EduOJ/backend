@@ -23,20 +23,7 @@ Here are the permissions and their descriptions.
 
 |         Name        |                        Description                       |
 |:-------------------:|:--------------------------------------------------------:|
-|      (user CRUD)    |                                                          |
-|      create_user    |              the permission to create users              |
-|      update_user    |              the permission to update users              |
-|      delete_user    |              the permission to delete users              |
-|       get_user      |    the permission to get all the information of a user   |
-|      get_users      |               the permission to get users                |
-|    (problem CRUD)   |                                                          |
-|    creat_problem    |            the permission to create problems             |
-|     get_problem     |  the permission to get all the information of a problem  |
-|    get_problems     |             the permission to get problems               |
-|    update_problem   |            the permission to update problems             |
-|    delete_problem   |            the permission to delete problems             |
-|   creat_test_case   |           the permission to create test cases            |
-|    get_test_case    | the permission to get all the information of a test case |
-|   get_test_cases    |            the permission to get test cases              |
-|   update_test_case  |           the permission to update test cases            |
-|   delete_test_case  |           the permission to delete test cases            |
+|       read_user     |              the permission to read users                |
+|      manage_user    |              the permission to manage users              |
+|    read_problem     |            the permission to read problems               |
+|   manage_problem    |            the permission to manage problems             |
