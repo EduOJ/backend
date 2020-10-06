@@ -16,6 +16,13 @@ type TestCase struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
+type ProblemTag struct {
+	ID        uint `gorm:"primary_key" json:"id"`
+	ProblemID uint `gorm:"index"`
+	Name      string
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Problem struct {
 	ID                 uint   `gorm:"primary_key" json:"id"`
 	Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
