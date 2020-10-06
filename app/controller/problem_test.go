@@ -93,9 +93,9 @@ func TestGetProblem(t *testing.T) {
 					Message: "SUCCESS",
 					Error:   nil,
 					Data: struct {
-						*resource.ProblemProfile `json:"problem"`
+						*resource.Problem `json:"problem"`
 					}{
-						resource.GetProblemProfile(&test.problem),
+						resource.GetProblem(&test.problem),
 					},
 				}, resp)
 			})
@@ -135,12 +135,12 @@ func TestGetProblems(t *testing.T) {
 	assert.Nil(t, base.DB.Create(&problem4).Error)
 
 	type respData struct {
-		Problems []resource.ProblemProfile `json:"problems"`
-		Total    int                       `json:"total"`
-		Count    int                       `json:"count"`
-		Offset   int                       `json:"offset"`
-		Prev     *string                   `json:"prev"`
-		Next     *string                   `json:"next"`
+		Problems []resource.Problem `json:"problems"`
+		Total    int                `json:"total"`
+		Count    int                `json:"count"`
+		Offset   int                `json:"offset"`
+		Prev     *string            `json:"prev"`
+		Next     *string            `json:"next"`
 	}
 
 	requestUrl := "/api/problems"
@@ -178,10 +178,10 @@ func TestGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfile{
-					*resource.GetProblemProfile(&problem1),
-					*resource.GetProblemProfile(&problem2),
-					*resource.GetProblemProfile(&problem3),
+				Problems: []resource.Problem{
+					*resource.GetProblem(&problem1),
+					*resource.GetProblem(&problem2),
+					*resource.GetProblem(&problem3),
 				},
 				Total:  3,
 				Count:  3,
@@ -199,7 +199,7 @@ func TestGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfile{},
+				Problems: []resource.Problem{},
 				Total:    0,
 				Count:    0,
 				Offset:   0,
@@ -216,8 +216,8 @@ func TestGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfile{
-					*resource.GetProblemProfile(&problem2),
+				Problems: []resource.Problem{
+					*resource.GetProblem(&problem2),
 				},
 				Total:  1,
 				Count:  1,
@@ -235,10 +235,10 @@ func TestGetProblems(t *testing.T) {
 				OrderBy: "id.DESC",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfile{
-					*resource.GetProblemProfile(&problem3),
-					*resource.GetProblemProfile(&problem2),
-					*resource.GetProblemProfile(&problem1),
+				Problems: []resource.Problem{
+					*resource.GetProblem(&problem3),
+					*resource.GetProblem(&problem2),
+					*resource.GetProblem(&problem1),
 				},
 				Total:  3,
 				Count:  3,
@@ -256,9 +256,9 @@ func TestGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfile{
-					*resource.GetProblemProfile(&problem1),
-					*resource.GetProblemProfile(&problem2),
+				Problems: []resource.Problem{
+					*resource.GetProblem(&problem1),
+					*resource.GetProblem(&problem2),
 				},
 				Total:  3,
 				Count:  2,
