@@ -144,9 +144,9 @@ func TestAdminCreateProblem(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.ProblemProfileForAdmin `json:"problem"`
+				*resource.ProblemForAdmin `json:"problem"`
 			}{
-				resource.GetProblemProfileForAdmin(&databaseProblem),
+				resource.GetProblemForAdmin(&databaseProblem),
 			},
 		}, resp)
 		assert.True(t, user.HasRole("creator", databaseProblem))
@@ -342,9 +342,9 @@ func TestAdminUpdateProblem(t *testing.T) {
 					Message: "SUCCESS",
 					Error:   nil,
 					Data: struct {
-						*resource.ProblemProfileForAdmin `json:"problem"`
+						*resource.ProblemForAdmin `json:"problem"`
 					}{
-						resource.GetProblemProfileForAdmin(&databaseProblem),
+						resource.GetProblemForAdmin(&databaseProblem),
 					},
 				}, httpResp)
 			})
@@ -498,9 +498,9 @@ func TestAdminGetProblem(t *testing.T) {
 					Message: "SUCCESS",
 					Error:   nil,
 					Data: struct {
-						*resource.ProblemProfileForAdmin `json:"problem"`
+						*resource.ProblemForAdmin `json:"problem"`
 					}{
-						resource.GetProblemProfileForAdmin(&test.problem),
+						resource.GetProblemForAdmin(&test.problem),
 					},
 				}, resp)
 			})
@@ -536,12 +536,12 @@ func TestAdminGetProblems(t *testing.T) {
 	assert.Nil(t, base.DB.Create(&problem4).Error)
 
 	type respData struct {
-		Problems []resource.ProblemProfileForAdmin `json:"problems"`
-		Total    int                               `json:"total"`
-		Count    int                               `json:"count"`
-		Offset   int                               `json:"offset"`
-		Prev     *string                           `json:"prev"`
-		Next     *string                           `json:"next"`
+		Problems []resource.ProblemForAdmin `json:"problems"`
+		Total    int                        `json:"total"`
+		Count    int                        `json:"count"`
+		Offset   int                        `json:"offset"`
+		Prev     *string                    `json:"prev"`
+		Next     *string                    `json:"next"`
 	}
 
 	requestUrl := "/api/admin/problems"
@@ -590,11 +590,11 @@ func TestAdminGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfileForAdmin{
-					*resource.GetProblemProfileForAdmin(&problem1),
-					*resource.GetProblemProfileForAdmin(&problem2),
-					*resource.GetProblemProfileForAdmin(&problem3),
-					*resource.GetProblemProfileForAdmin(&problem4),
+				Problems: []resource.ProblemForAdmin{
+					*resource.GetProblemForAdmin(&problem1),
+					*resource.GetProblemForAdmin(&problem2),
+					*resource.GetProblemForAdmin(&problem3),
+					*resource.GetProblemForAdmin(&problem4),
 				},
 				Total:  4,
 				Count:  4,
@@ -612,7 +612,7 @@ func TestAdminGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfileForAdmin{},
+				Problems: []resource.ProblemForAdmin{},
 				Total:    0,
 				Count:    0,
 				Offset:   0,
@@ -629,8 +629,8 @@ func TestAdminGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfileForAdmin{
-					*resource.GetProblemProfileForAdmin(&problem2),
+				Problems: []resource.ProblemForAdmin{
+					*resource.GetProblemForAdmin(&problem2),
 				},
 				Total:  1,
 				Count:  1,
@@ -648,11 +648,11 @@ func TestAdminGetProblems(t *testing.T) {
 				OrderBy: "id.DESC",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfileForAdmin{
-					*resource.GetProblemProfileForAdmin(&problem4),
-					*resource.GetProblemProfileForAdmin(&problem3),
-					*resource.GetProblemProfileForAdmin(&problem2),
-					*resource.GetProblemProfileForAdmin(&problem1),
+				Problems: []resource.ProblemForAdmin{
+					*resource.GetProblemForAdmin(&problem4),
+					*resource.GetProblemForAdmin(&problem3),
+					*resource.GetProblemForAdmin(&problem2),
+					*resource.GetProblemForAdmin(&problem1),
 				},
 				Total:  4,
 				Count:  4,
@@ -670,9 +670,9 @@ func TestAdminGetProblems(t *testing.T) {
 				OrderBy: "",
 			},
 			respData: respData{
-				Problems: []resource.ProblemProfileForAdmin{
-					*resource.GetProblemProfileForAdmin(&problem2),
-					*resource.GetProblemProfileForAdmin(&problem3),
+				Problems: []resource.ProblemForAdmin{
+					*resource.GetProblemForAdmin(&problem2),
+					*resource.GetProblemForAdmin(&problem3),
 				},
 				Total:  4,
 				Count:  2,
@@ -858,9 +858,9 @@ func TestAdminCreateTestCase(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.TestCaseProfileForAdmin `json:"test_case"`
+				*resource.TestCaseForAdmin `json:"test_case"`
 			}{
-				resource.GetTestCaseProfileForAdmin(&databaseTestCase),
+				resource.GetTestCaseForAdmin(&databaseTestCase),
 			},
 		}, resp)
 	})

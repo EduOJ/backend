@@ -17,6 +17,7 @@ import (
 )
 
 func GetProblem(c echo.Context) error {
+	// TODO: check for admins and merge this with adminGetProblems.
 	problem, err := utils.FindProblem(c.Param("id"), true)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -28,9 +29,9 @@ func GetProblem(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.ProblemProfile `json:"problem"`
+			*resource.Problem `json:"problem"`
 		}{
-			resource.GetProblemProfile(problem),
+			resource.GetProblem(problem),
 		},
 	})
 }
@@ -49,6 +50,7 @@ func GetProblems(c echo.Context) error {
 		panic(err)
 	}
 
+	// TODO: check for admins and merge this with adminGetProblems.
 	query = query.Where("public = ?", true)
 
 	if req.Search != "" {
@@ -61,14 +63,14 @@ func GetProblems(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Problems []resource.ProblemProfile `json:"problems"`
-			Total    int                       `json:"total"`
-			Count    int                       `json:"count"`
-			Offset   int                       `json:"offset"`
-			Prev     *string                   `json:"prev"`
-			Next     *string                   `json:"next"`
+			Problems []resource.Problem `json:"problems"`
+			Total    int                `json:"total"`
+			Count    int                `json:"count"`
+			Offset   int                `json:"offset"`
+			Prev     *string            `json:"prev"`
+			Next     *string            `json:"next"`
 		}{
-			Problems: resource.GetProblemProfileSlice(problems),
+			Problems: resource.GetProblemSlice(problems),
 			Total:    total,
 			Count:    len(problems),
 			Offset:   req.Offset,
@@ -79,6 +81,7 @@ func GetProblems(c echo.Context) error {
 }
 
 func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
+	// TODO: check for admins
 	problem, err := utils.FindProblem(c.Param("id"), true)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_PROBLEM", nil))

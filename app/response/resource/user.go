@@ -2,23 +2,23 @@ package resource
 
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
-type UserProfile struct {
+type User struct {
 	ID       uint   `gorm:"primary_key" json:"id"`
 	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 }
 
-type UserProfileForAdmin struct {
+type UserForAdmin struct {
 	ID       uint   `gorm:"primary_key" json:"id"`
 	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 
-	Roles []RoleProfile `json:"roles"`
+	Roles []Role `json:"roles"`
 }
 
-func (p *UserProfile) Convert(user *models.User) {
+func (p *User) Convert(user *models.User) {
 	if user == nil {
 		return
 	}
@@ -28,7 +28,7 @@ func (p *UserProfile) Convert(user *models.User) {
 	p.Email = user.Email
 }
 
-func (p *UserProfileForAdmin) Convert(user *models.User) {
+func (p *UserForAdmin) Convert(user *models.User) {
 	if user == nil {
 		return
 	}
@@ -36,25 +36,25 @@ func (p *UserProfileForAdmin) Convert(user *models.User) {
 	p.Username = user.Username
 	p.Nickname = user.Nickname
 	p.Email = user.Email
-	p.Roles = GetRoleProfileSlice(user.Roles)
+	p.Roles = GetRoleSlice(user.Roles)
 }
 
-func GetUserProfile(user *models.User) *UserProfile {
-	p := UserProfile{}
+func GetUser(user *models.User) *User {
+	p := User{}
 	p.Convert(user)
 	return &p
 }
 
-func GetUserProfileForAdmin(user *models.User) *UserProfileForAdmin {
-	p := UserProfileForAdmin{}
+func GetUserForAdmin(user *models.User) *UserForAdmin {
+	p := UserForAdmin{}
 	p.Convert(user)
 	return &p
 }
 
-func GetUserProfileSlice(users []models.User) (profiles []UserProfile) {
-	profiles = make([]UserProfile, len(users))
+func GetUserSlice(users []models.User) (profiles []User) {
+	profiles = make([]User, len(users))
 	for i, user := range users {
-		profiles[i] = *GetUserProfile(&user)
+		profiles[i] = *GetUser(&user)
 	}
 	return
 }
