@@ -3,9 +3,7 @@ package request
 type AdminCreateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
-
-	// TODO: change this into file
-	// AttachmentFileName string `json:"attachment_file_name" form:"attachment_file_name" query:"attachment_file_name" validate:"required,max=255"`
+	// attachment_file
 	Public  *bool `json:"public" form:"public" query:"public"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy"`
 
@@ -30,17 +28,17 @@ type AdminGetProblemsRequest struct {
 }
 
 type AdminUpdateProblemRequest struct {
-	Name               string `json:"name" form:"name" query:"name" validate:"required,max=255"`
-	Description        string `json:"description" form:"description" query:"description"`
-	AttachmentFileName string `json:"attachment_file_name" form:"attachment_file_name" query:"attachment_file_name" validate:"required,max=255"`
-	Public             *bool  `json:"public" form:"public" query:"public"`
-	Privacy            *bool  `json:"privacy" form:"privacy" query:"privacy"`
+	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
+	Description string `json:"description" form:"description" query:"description" validate:"required"`
+	// attachment_file
+	Public  *bool `json:"public" form:"public" query:"public"`
+	Privacy *bool `json:"privacy" form:"privacy" query:"privacy"`
 
-	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit"`                                         // Byte
-	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit"`                                               // ms
+	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
+	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
 	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
 	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id"`
+	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
 }
 
 type AdminDeleteProblemRequest struct {

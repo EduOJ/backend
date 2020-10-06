@@ -1,19 +1,26 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"net/http"
 )
 
 func AdminCreateProblem(c echo.Context) error {
+	file, err := c.FormFile("attachment_file")
+	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+		panic(errors.Wrap(err, "could not read file"))
+	}
 
 	req := request.AdminCreateProblemRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
@@ -31,10 +38,10 @@ func AdminCreateProblem(c echo.Context) error {
 	} else {
 		privacy = *req.Privacy
 	}
+
 	problem := models.Problem{
-		Name:        req.Name,
-		Description: req.Description,
-		//AttachmentFileName: req.AttachmentFileName,
+		Name:               req.Name,
+		Description:        req.Description,
 		Public:             public,
 		Privacy:            privacy,
 		MemoryLimit:        req.MemoryLimit,
@@ -43,7 +50,39 @@ func AdminCreateProblem(c echo.Context) error {
 		CompileEnvironment: req.CompileEnvironment,
 		CompareScriptID:    req.CompareScriptID,
 	}
+	if file != nil {
+		problem.AttachmentFileName = file.Filename
+	}
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
+
+	if file != nil {
+		err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
+		found, err := base.Storage.BucketExists("problems")
+		if err != nil {
+			panic(errors.Wrap(err, "could not query if bucket exists"))
+		}
+		if !found {
+			err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
+			if err != nil {
+				panic(errors.Wrap(err, "could not query if bucket exists"))
+			}
+		}
+		src, err := file.Open()
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			err := src.Close()
+			if err != nil {
+				panic(errors.Wrap(err, "could not close file reader"))
+			}
+		}()
+		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/AttachmentFile", problem.ID), src, file.Size, minio.PutObjectOptions{})
+		if err != nil {
+			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
+		}
+	}
+
 	var user models.User
 	if user, ok = c.Get("user").(models.User); !ok {
 		panic("could not get user to grant role problem creator")
@@ -59,6 +98,8 @@ func AdminCreateProblem(c echo.Context) error {
 		},
 	})
 }
+
+// TODO: add test for file operation
 
 func AdminGetProblem(c echo.Context) error {
 	problem, err := findProblem(c.Param("id"), false)
@@ -133,7 +174,40 @@ func AdminUpdateProblem(c echo.Context) error {
 	}
 	problem.Name = req.Name
 	problem.Description = req.Description
-	problem.AttachmentFileName = req.AttachmentFileName
+
+	file, err := c.FormFile("attachment_file")
+	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+		panic(errors.Wrap(err, "could not read file"))
+	}
+	if file != nil {
+		problem.AttachmentFileName = file.Filename
+		err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
+		found, err := base.Storage.BucketExists("problems")
+		if err != nil {
+			panic(errors.Wrap(err, "could not query if bucket exists"))
+		}
+		if !found {
+			err = base.Storage.MakeBucket("problems", config.MustGet("storage.region", "us-east-1").String())
+			if err != nil {
+				panic(errors.Wrap(err, "could not query if bucket exists"))
+			}
+		}
+		src, err := file.Open()
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			err := src.Close()
+			if err != nil {
+				panic(errors.Wrap(err, "could not close file reader"))
+			}
+		}()
+		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/AttachmentFile", problem.ID), src, file.Size, minio.PutObjectOptions{})
+		if err != nil {
+			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
+		}
+	}
+
 	if req.Public != nil {
 		problem.Public = *req.Public
 	} else {
@@ -160,6 +234,8 @@ func AdminUpdateProblem(c echo.Context) error {
 		},
 	})
 }
+
+// TODO: add test for file operation
 
 func AdminDeleteProblem(c echo.Context) error {
 	problem, err := findProblem(c.Param("id"), false)
