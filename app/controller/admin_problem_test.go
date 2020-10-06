@@ -7,6 +7,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
@@ -119,9 +120,11 @@ func TestAdminCreateProblem(t *testing.T) {
 			LanguageAllowed: "test_admin_create_problem_1_language_allowed",
 			CompareScriptID: 1,
 		}
-		httpResp := makeResp(makeReq(t, "POST", "/api/admin/problem", req, headerOption{
+		httpReq := makeReq(t, "POST", "/api/admin/problem", req, headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-		}))
+		})
+		log.Debug(httpReq.Header.Get("Content-Type"))
+		httpResp := makeResp(httpReq)
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 		databaseProblem := models.Problem{}
 		assert.Nil(t, base.DB.Where("name = ?", req.Name).First(&databaseProblem).Error)
@@ -171,7 +174,6 @@ func TestAdminUpdateProblem(t *testing.T) {
 			req: request.AdminUpdateProblemRequest{
 				Name:               "",
 				Description:        "",
-				AttachmentFileName: "",
 				Public:             nil,
 				Privacy:            nil,
 				MemoryLimit:        0,
@@ -193,14 +195,29 @@ func TestAdminUpdateProblem(t *testing.T) {
 					"translation": "名称为必填字段",
 				},
 				map[string]interface{}{
-					"field":       "AttachmentFileName",
+					"field":       "Description",
 					"reason":      "required",
-					"translation": "附件名称为必填字段",
+					"translation": "介绍为必填字段",
+				},
+				map[string]interface{}{
+					"field":       "MemoryLimit",
+					"reason":      "required",
+					"translation": "内存限制为必填字段",
+				},
+				map[string]interface{}{
+					"field":       "TimeLimit",
+					"reason":      "required",
+					"translation": "运行时间限制为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "LanguageAllowed",
 					"reason":      "required",
 					"translation": "可用语言为必填字段",
+				},
+				map[string]interface{}{
+					"field":       "CompareScriptID",
+					"reason":      "required",
+					"translation": "比较脚本编号为必填字段",
 				},
 			}),
 		},
@@ -209,9 +226,8 @@ func TestAdminUpdateProblem(t *testing.T) {
 			method: "PUT",
 			path:   "/api/admin/problem/-1",
 			req: request.AdminUpdateProblemRequest{
-				Name:               "test_admin_update_problem_non_exist",
-				AttachmentFileName: "test_admin_update_problem_non_exist_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_non_exist_language_allowed",
+				Name:            "test_admin_update_problem_non_exist",
+				LanguageAllowed: "test_admin_update_problem_non_exist_language_allowed",
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -224,9 +240,8 @@ func TestAdminUpdateProblem(t *testing.T) {
 			method: "PUT",
 			path:   fmt.Sprintf("/api/admin/problem/%d", problem1.ID),
 			req: request.AdminUpdateProblemRequest{
-				Name:               "test_admin_update_problem_prem",
-				AttachmentFileName: "test_admin_update_problem_perm_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_perm_language_allowed",
+				Name:            "test_admin_update_problem_prem",
+				LanguageAllowed: "test_admin_update_problem_perm_language_allowed",
 			},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -252,48 +267,66 @@ func TestAdminUpdateProblem(t *testing.T) {
 			name: "WithDefaultPublicAndPrivacy",
 			path: "id",
 			originalProblem: models.Problem{
-				Name:               "test_admin_update_problem_2",
-				AttachmentFileName: "test_admin_update_problem_2_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_2_language_allowed",
-				Public:             true,
-				Privacy:            false,
+				Name:            "test_admin_update_problem_2",
+				Description:     "test_admin_update_problem_2_desc",
+				LanguageAllowed: "test_admin_update_problem_2_language_allowed",
+				Public:          true,
+				Privacy:         false,
+				MemoryLimit:     1024,
+				TimeLimit:       1000,
+				CompareScriptID: 1,
 			},
 			expectedProblem: models.Problem{
-				Name:               "test_admin_update_problem_20",
-				AttachmentFileName: "test_admin_update_problem_20_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_20_language_allowed",
-				Public:             false,
-				Privacy:            true,
+				Name:            "test_admin_update_problem_20",
+				Description:     "test_admin_update_problem_20_desc",
+				LanguageAllowed: "test_admin_update_problem_20_language_allowed",
+				Public:          false,
+				Privacy:         true,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
 			},
 			req: request.AdminUpdateProblemRequest{
-				Name:               "test_admin_update_problem_20",
-				AttachmentFileName: "test_admin_update_problem_20_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_20_language_allowed",
+				Name:            "test_admin_update_problem_20",
+				Description:     "test_admin_update_problem_20_desc",
+				LanguageAllowed: "test_admin_update_problem_20_language_allowed",
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
 			},
 		},
 		{
 			name: "WithSpecifiedPublicAndPrivacy",
 			path: "id",
 			originalProblem: models.Problem{
-				Name:               "test_admin_update_problem_3",
-				AttachmentFileName: "test_admin_update_problem_3_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_3_language_allowed",
-				Public:             false,
-				Privacy:            true,
+				Name:            "test_admin_update_problem_3",
+				Description:     "test_admin_update_problem_3_desc",
+				LanguageAllowed: "test_admin_update_problem_3_language_allowed",
+				Public:          false,
+				Privacy:         true,
+				MemoryLimit:     1024,
+				TimeLimit:       1000,
+				CompareScriptID: 1,
 			},
 			expectedProblem: models.Problem{
-				Name:               "test_admin_update_problem_30",
-				AttachmentFileName: "test_admin_update_problem_30_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_30_language_allowed",
-				Public:             true,
-				Privacy:            false,
+				Name:            "test_admin_update_problem_30",
+				Description:     "test_admin_update_problem_30_desc",
+				LanguageAllowed: "test_admin_update_problem_30_language_allowed",
+				Public:          true,
+				Privacy:         false,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
 			},
 			req: request.AdminUpdateProblemRequest{
-				Name:               "test_admin_update_problem_30",
-				AttachmentFileName: "test_admin_update_problem_30_attachment_file_name",
-				LanguageAllowed:    "test_admin_update_problem_30_language_allowed",
-				Public:             &boolTrue,
-				Privacy:            &boolFalse,
+				Name:            "test_admin_update_problem_30",
+				Description:     "test_admin_update_problem_30_desc",
+				LanguageAllowed: "test_admin_update_problem_30_language_allowed",
+				Public:          &boolTrue,
+				Privacy:         &boolFalse,
+				MemoryLimit:     2048,
+				TimeLimit:       2000,
+				CompareScriptID: 2,
 			},
 		},
 		// TODO: with test case

@@ -149,6 +149,12 @@ Common return codes.
 |:-----------------------:|:-------------------:|
 |      INVALID_ORDER      |     无效的排序设置     |
 
+### GetProblemAttachmentFile
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|      WRONG_PROBLEM      |      错误的problem    |
+|        NOT_FOUND        |     无法找到指定附件    |
+
 ## Image
 ### CreateImage
 |     code     |  结果   |

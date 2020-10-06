@@ -104,7 +104,7 @@ func CreateImage(c echo.Context) error {
 	if !found {
 		err = base.Storage.MakeBucket("images", config.MustGet("storage.region", "us-east-1").String())
 		if err != nil {
-			panic(errors.Wrap(err, "could not query if bucket exists"))
+			panic(errors.Wrap(err, "could not create bucket"))
 		}
 	}
 	_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "images", fileIndex, src, file.Size, minio.PutObjectOptions{
