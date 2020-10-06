@@ -17,7 +17,7 @@ import (
 )
 
 func GetProblem(c echo.Context) error {
-	problem, err := findProblem(c.Param("id"), true)
+	problem, err := utils.FindProblem(c.Param("id"), true)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -78,8 +78,8 @@ func GetProblems(c echo.Context) error {
 	})
 }
 
-func GetProblemAttachmentFile(c echo.Context) error {
-	problem, err := findProblem(c.Param("id"), true)
+func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
+	problem, err := utils.FindProblem(c.Param("id"), true)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_PROBLEM", nil))
 	} else if err != nil {

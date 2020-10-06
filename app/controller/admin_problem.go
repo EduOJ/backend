@@ -13,6 +13,8 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 func AdminCreateProblem(c echo.Context) error {
@@ -54,7 +56,7 @@ func AdminCreateProblem(c echo.Context) error {
 	}
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
 
-	if file != nil {
+	if file != nil { // TODO: use MustPutObject
 		src, err := file.Open()
 		if err != nil {
 			panic(err)
@@ -90,7 +92,7 @@ func AdminCreateProblem(c echo.Context) error {
 // TODO: add test for file operation
 
 func AdminGetProblem(c echo.Context) error {
-	problem, err := findProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -154,7 +156,7 @@ func AdminUpdateProblem(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-	problem, err := findProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -168,7 +170,7 @@ func AdminUpdateProblem(c echo.Context) error {
 	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
 		panic(errors.Wrap(err, "could not read file"))
 	}
-	if file != nil {
+	if file != nil { // TODO: use MustPutObject
 		problem.AttachmentFileName = file.Filename
 		src, err := file.Open()
 		if err != nil {
@@ -216,7 +218,7 @@ func AdminUpdateProblem(c echo.Context) error {
 // TODO: add test for file operation
 
 func AdminDeleteProblem(c echo.Context) error {
-	problem, err := findProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -240,23 +242,103 @@ func AdminDeleteProblem(c echo.Context) error {
 	})
 }
 
-func findProblem(id string, publicOnly bool) (*models.Problem, error) {
-	problem := models.Problem{}
-	// TODO: load test case
-	query := base.DB
-	if publicOnly {
-		query = query.Model(&models.Problem{}).Where("public = ?", true)
-	}
-	err := query.Where("id = ?", id).First(&problem).Error
+func AdminCreateTestCase(c echo.Context) error {
+
+	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err != nil {
-		err = query.Where("name = ?", id).First(&problem).Error
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return nil, err
-			} else {
-				panic(errors.Wrap(err, "could not query problem"))
-			}
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_PROBLEM", nil))
 		}
+		panic(err)
 	}
-	return &problem, nil
+
+	inputFile, err := c.FormFile("input_file")
+	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+		panic(errors.Wrap(err, "could not read input file"))
+	}
+	outputFile, err := c.FormFile("output_file")
+	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+		panic(errors.Wrap(err, "could not read output file"))
+	}
+
+	if inputFile == nil || outputFile == nil {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("LACK_FILE", nil)) // TODO: code name ?
+	}
+
+	req := request.AdminCreateTestCaseRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+	testCase := models.TestCase{
+		Score:          req.Score,
+		InputFileName:  inputFile.Filename,
+		OutputFileName: outputFile.Filename,
+	}
+
+	if err := base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error; err != nil {
+		panic(errors.Wrap(err, "could not create test case"))
+	}
+
+	utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.Filename))
+	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.Filename))
+	// TODO: add perm
+
+	return c.JSON(http.StatusCreated, response.AdminCreateTestCaseResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.TestCaseProfileForAdmin `json:"test_case"`
+		}{
+			resource.GetTestCaseProfileForAdmin(&testCase),
+		},
+	})
+}
+
+func AdminGetTestCaseInputFile(c echo.Context) error {
+	problem, err := utils.FindProblem(c.Param("id"), true)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
+	}
+	testCaseId, err := strconv.ParseUint(c.Param("test_case_id"), 10, 64)
+	if err != nil || testCaseId <= 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+	}
+	testCase := models.TestCase{}
+	err = base.DB.First(&testCase, testCaseId).Error
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+
+	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
+	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.InputFileName))
+
+	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)))
+}
+
+func AdminGetTestCaseOutputFile(c echo.Context) error {
+	problem, err := utils.FindProblem(c.Param("id"), true)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
+	}
+	testCaseId, err := strconv.ParseUint(c.Param("test_case_id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+	}
+	testCase := models.TestCase{}
+	err = base.DB.First(&testCase, testCaseId).Error
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+
+	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
+	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.OutputFileName))
+
+	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)))
 }

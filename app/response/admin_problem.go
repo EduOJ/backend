@@ -41,7 +41,7 @@ type AdminUpdateProblemResponse struct {
 	} `json:"data"`
 }
 
-type AdminCreateTestCase struct {
+type AdminCreateTestCaseResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -49,7 +49,7 @@ type AdminCreateTestCase struct {
 	} `json:"data"`
 }
 
-type AdminUpdateTestCase struct {
+type AdminUpdateTestCaseResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
