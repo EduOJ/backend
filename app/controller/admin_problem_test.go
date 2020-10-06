@@ -62,7 +62,7 @@ func TestAdminCreateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "Description",
 					"reason":      "required",
-					"translation": "介绍为必填字段",
+					"translation": "题目描述为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "Public",
@@ -72,7 +72,7 @@ func TestAdminCreateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "Privacy",
 					"reason":      "required",
-					"translation": "是否可见细节为必填字段",
+					"translation": "是否可以看到详细评测结果为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "MemoryLimit",
@@ -156,6 +156,7 @@ func TestAdminCreateProblem(t *testing.T) {
 			i := i
 			test := test
 			t.Run("testAdminCreateProblem"+test.name, func(t *testing.T) {
+				t.Parallel()
 				user := createUserForTest(t, "admin_create_problem", i)
 				user.GrantRole("admin")
 				var data interface{}
@@ -268,7 +269,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "Description",
 					"reason":      "required",
-					"translation": "介绍为必填字段",
+					"translation": "题目描述为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "Public",
@@ -278,7 +279,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "Privacy",
 					"reason":      "required",
-					"translation": "是否可见细节为必填字段",
+					"translation": "是否可以看到详细评测结果为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "MemoryLimit",
@@ -535,12 +536,12 @@ func TestAdminUpdateProblem(t *testing.T) {
 			updatedAttachment: nil,
 			testCases: []models.TestCase{
 				{
-					Score:          103,
+					Score:          100,
 					InputFileName:  "test_admin_update_problem_7_test_case_1_input_file_name",
 					OutputFileName: "test_admin_update_problem_7_test_case_1_output_file_name",
 				},
 				{
-					Score:          104,
+					Score:          100,
 					InputFileName:  "test_admin_update_problem_7_test_case_2_input_file_name",
 					OutputFileName: "test_admin_update_problem_7_test_case_2_output_file_name",
 				},
@@ -706,21 +707,21 @@ func TestAdminDeleteProblem(t *testing.T) {
 			}{
 				{
 					testcase: models.TestCase{
-						Score:          105,
+						Score:          100,
 						InputFileName:  "test_admin_delete_problem_3_test_case_1_input_file_name",
 						OutputFileName: "test_admin_delete_problem_3_test_case_1_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_admin_delete_problem_3_test_case_1.in", "aW5wdXQgdGV4dA"),
-					outputFile: newFileContent("output_file", "test_admin_delete_problem_3_test_case_1.out", "b3V0cHV0IHRleHQ"),
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_3_test_case_1.in", "aW5wdXQgdGV4dAo="),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_3_test_case_1.out", "b3V0cHV0IHRleHQK"),
 				},
 				{
 					testcase: models.TestCase{
-						Score:          106,
+						Score:          100,
 						InputFileName:  "test_admin_delete_problem_3_test_case_2_input_file_name",
 						OutputFileName: "test_admin_delete_problem_3_test_case_2_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_admin_delete_problem_3_test_case_2.in", "aW5wdXQgdGV4dA"),
-					outputFile: newFileContent("output_file", "test_admin_delete_problem_3_test_case_2.out", "b3V0cHV0IHRleHQ"),
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_3_test_case_2.in", "aW5wdXQgdGV4dAo="),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_3_test_case_2.out", "b3V0cHV0IHRleHQK"),
 				},
 			},
 		},
@@ -739,21 +740,21 @@ func TestAdminDeleteProblem(t *testing.T) {
 			}{
 				{
 					testcase: models.TestCase{
-						Score:          105,
+						Score:          100,
 						InputFileName:  "test_admin_delete_problem_4_test_case_1_input_file_name",
 						OutputFileName: "test_admin_delete_problem_4_test_case_1_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_admin_delete_problem_4_test_case_1.in", "aW5wdXQgdGV4dA"),
-					outputFile: newFileContent("output_file", "test_admin_delete_problem_4_test_case_1.out", "b3V0cHV0IHRleHQ"),
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_4_test_case_1.in", "aW5wdXQgdGV4dAo="),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_4_test_case_1.out", "b3V0cHV0IHRleHQK"),
 				},
 				{
 					testcase: models.TestCase{
-						Score:          106,
+						Score:          100,
 						InputFileName:  "test_admin_delete_problem_4_test_case_2_input_file_name",
 						OutputFileName: "test_admin_delete_problem_4_test_case_2_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_admin_delete_problem_4_test_case_2.in", "aW5wdXQgdGV4dA"),
-					outputFile: newFileContent("output_file", "test_admin_delete_problem_4_test_case_2.out", "b3V0cHV0IHRleHQ"),
+					inputFile:  newFileContent("input_file", "test_admin_delete_problem_4_test_case_2.in", "aW5wdXQgdGV4dAo="),
+					outputFile: newFileContent("output_file", "test_admin_delete_problem_4_test_case_2.out", "b3V0cHV0IHRleHQK"),
 				},
 			},
 		},
@@ -769,10 +770,6 @@ func TestAdminDeleteProblem(t *testing.T) {
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
 				for j := range test.testCases {
 					createTestCaseForTest(t, test.problem, test.testCases[j].testcase.Score, test.testCases[j].inputFile, test.testCases[j].outputFile)
-					content, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", test.problem.ID, test.testCases[j].inputFile.fileName))
-					fmt.Println(content, found)
-					content, found = checkObject(t, "problems", fmt.Sprintf("%d/output/%s", test.problem.ID, test.testCases[j].outputFile.fileName))
-					fmt.Println(content, found)
 				}
 				if test.originalAttachment != nil {
 					b, err := ioutil.ReadAll(test.originalAttachment.reader)
@@ -871,12 +868,12 @@ func TestAdminGetProblem(t *testing.T) {
 			},
 			testCases: []models.TestCase{
 				{
-					Score:          101,
+					Score:          100,
 					InputFileName:  "test_admin_get_problem_2_test_case_1_input_file_name",
 					OutputFileName: "test_admin_get_problem_2_test_case_1_output_file_name",
 				},
 				{
-					Score:          102,
+					Score:          100,
 					InputFileName:  "test_admin_get_problem_2_test_case_2_input_file_name",
 					OutputFileName: "test_admin_get_problem_2_test_case_2_output_file_name",
 				},
@@ -1174,9 +1171,9 @@ func TestAdminCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("output_file", "test_admin_create_test_case_lack_input_file.out", "b3V0cHV0IHRleHQ"),
+				newFileContent("output_file", "test_admin_create_test_case_lack_input_file.out", "b3V0cHV0IHRleHQK"),
 			}, map[string]string{
-				"score": "41",
+				"score": "100",
 			}),
 			reqOptions: []reqOption{
 				headerOption{
@@ -1191,9 +1188,9 @@ func TestAdminCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_admin_create_test_case_lack_output_file.in", "aW5wdXQgdGV4dA"),
+				newFileContent("input_file", "test_admin_create_test_case_lack_output_file.in", "aW5wdXQgdGV4dAo="),
 			}, map[string]string{
-				"score": "42",
+				"score": "100",
 			}),
 			reqOptions: []reqOption{
 				headerOption{
@@ -1208,7 +1205,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
 			req: addFieldContentSlice([]reqContent{}, map[string]string{
-				"score": "43",
+				"score": "100",
 			}),
 			reqOptions: []reqOption{
 				headerOption{
@@ -1223,10 +1220,10 @@ func TestAdminCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_admin_create_test_case_permission_denied.in", "aW5wdXQgdGV4dA"),
-				newFileContent("output_file", "test_admin_create_test_case_permission_denied.out", "b3V0cHV0IHRleHQ"),
+				newFileContent("input_file", "test_admin_create_test_case_permission_denied.in", "aW5wdXQgdGV4dAo="),
+				newFileContent("output_file", "test_admin_create_test_case_permission_denied.out", "b3V0cHV0IHRleHQK"),
 			}, map[string]string{
-				"score": "44",
+				"score": "100",
 			}),
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1239,11 +1236,12 @@ func TestAdminCreateTestCase(t *testing.T) {
 	runFailTests(t, failTests, "AdminCreateTestCase")
 
 	t.Run("testAdminCreateTestCaseSuccess", func(t *testing.T) {
+		t.Parallel()
 		req := makeReq(t, "POST", fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID), addFieldContentSlice([]reqContent{
-			newFileContent("input_file", "test_admin_create_test_case_success.in", "aW5wdXQgdGV4dA"),
-			newFileContent("output_file", "test_admin_create_test_case_success.out", "b3V0cHV0IHRleHQ"),
+			newFileContent("input_file", "test_admin_create_test_case_success.in", "aW5wdXQgdGV4dAo="),
+			newFileContent("output_file", "test_admin_create_test_case_success.out", "b3V0cHV0IHRleHQK"),
 		}, map[string]string{
-			"score": "20",
+			"score": "100",
 		}), headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 		})
@@ -1251,12 +1249,12 @@ func TestAdminCreateTestCase(t *testing.T) {
 		httpResp := makeResp(req)
 		expectedTestCase := models.TestCase{
 			ProblemID:      problem.ID,
-			Score:          20,
+			Score:          100,
 			InputFileName:  "test_admin_create_test_case_success.in",
 			OutputFileName: "test_admin_create_test_case_success.out",
 		}
 		databaseTestCase := models.TestCase{}
-		assert.Nil(t, base.DB.Where("problem_id = ? and score = ?", problem.ID, 20).First(&databaseTestCase).Error)
+		assert.Nil(t, base.DB.Where("problem_id = ? and input_file_name = ?", problem.ID, "test_admin_create_test_case_success.in").First(&databaseTestCase).Error)
 		assert.Equal(t, expectedTestCase.ProblemID, databaseTestCase.ProblemID)
 		assert.Equal(t, expectedTestCase.InputFileName, databaseTestCase.InputFileName)
 		assert.Equal(t, expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
@@ -1325,8 +1323,8 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 	runFailTests(t, failTests, "AdminGetTestCaseInputFile")
 
 	testCase := createTestCaseForTest(t, problem, 51,
-		newFileContent("", "test_admin_get_test_case_input_file_success.in", "aW5wdXQgdGV4dA"),
-		//newFileContent("","test_admin_get_test_case_input_file_success.out","b3V0cHV0IHRleHQ"),
+		newFileContent("", "test_admin_get_test_case_input_file_success.in", "aW5wdXQgdGV4dAo="),
+		//newFileContent("","test_admin_get_test_case_input_file_success.out","b3V0cHV0IHRleHQK"),
 		nil,
 	)
 
@@ -1337,7 +1335,7 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 
 	respBytes, err := ioutil.ReadAll(httpResp.Body)
 	assert.Nil(t, err)
-	assert.Equal(t, "input text", string(respBytes))
+	assert.Equal(t, "input text\n", string(respBytes))
 }
 
 func TestAdminGetTestCaseOutputFile(t *testing.T) {
@@ -1390,7 +1388,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 
 	testCase := createTestCaseForTest(t, problem, 52,
 		nil,
-		newFileContent("", "test_admin_get_test_case_output_file_success.out", "b3V0cHV0IHRleHQ"),
+		newFileContent("", "test_admin_get_test_case_output_file_success.out", "b3V0cHV0IHRleHQK"),
 	)
 
 	req := makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d/test_case/%d/output_file", problem.ID, testCase.ID), request.AdminGetTestCaseOutputFileRequest{}, headerOption{
@@ -1400,7 +1398,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 
 	respBytes, err := ioutil.ReadAll(httpResp.Body)
 	assert.Nil(t, err)
-	assert.Equal(t, "output text", string(respBytes))
+	assert.Equal(t, "output text\n", string(respBytes))
 }
 
 func TestAdminUpdateTestCase(t *testing.T) {
@@ -1412,7 +1410,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 			method: "PUT",
 			path:   "/api/admin/problem/-1/test_case/1",
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 61,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1427,7 +1425,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 			method: "PUT",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1", problem.ID),
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 62,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1446,7 +1444,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 			method: "PUT",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1", problem.ID),
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 63,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1470,60 +1468,60 @@ func TestAdminUpdateTestCase(t *testing.T) {
 	}{
 		{
 			name:               "SuccessWithoutUpdatingFile",
-			originalScore:      64,
-			updatedScore:       65,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_1.in", "aW5wdXQgdGV4dA"),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_1.out", "b3V0cHV0IHRleHQ"),
+			originalScore:      0,
+			updatedScore:       100,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_1.in", "aW5wdXQgdGV4dAo="),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_1.out", "b3V0cHV0IHRleHQK"),
 			updatedInputFile:   nil,
 			updatedOutputFile:  nil,
 			expectedTestCase: models.TestCase{
 				ProblemID:      problem.ID,
-				Score:          65,
+				Score:          100,
 				InputFileName:  "test_update_test_case_1.in",
 				OutputFileName: "test_update_test_case_1.out",
 			},
 		},
 		{
 			name:               "SuccessWithUpdatingInputFile",
-			originalScore:      66,
-			updatedScore:       67,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_2.in", "aW5wdXQgdGV4dA"),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_2.out", "b3V0cHV0IHRleHQ"),
+			originalScore:      0,
+			updatedScore:       100,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_2.in", "aW5wdXQgdGV4dAo="),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_2.out", "b3V0cHV0IHRleHQK"),
 			updatedInputFile:   newFileContent("input_file", "test_update_test_case_20.in", "bmV3IGlucHV0IHRleHQ"),
 			updatedOutputFile:  nil,
 			expectedTestCase: models.TestCase{
 				ProblemID:      problem.ID,
-				Score:          67,
+				Score:          100,
 				InputFileName:  "test_update_test_case_20.in",
 				OutputFileName: "test_update_test_case_2.out",
 			},
 		},
 		{
 			name:               "SuccessWithUpdatingOutputFile",
-			originalScore:      68,
-			updatedScore:       69,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_3.in", "aW5wdXQgdGV4dA"),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_3.out", "b3V0cHV0IHRleHQ"),
+			originalScore:      0,
+			updatedScore:       100,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_3.in", "aW5wdXQgdGV4dAo="),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_3.out", "b3V0cHV0IHRleHQK"),
 			updatedInputFile:   nil,
 			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_30.out", "bmV3IG91dHB1dCB0ZXh0"),
 			expectedTestCase: models.TestCase{
 				ProblemID:      problem.ID,
-				Score:          69,
+				Score:          100,
 				InputFileName:  "test_update_test_case_3.in",
 				OutputFileName: "test_update_test_case_30.out",
 			},
 		},
 		{
 			name:               "SuccessWithUpdatingBothFile",
-			originalScore:      70,
-			updatedScore:       71,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_4.in", "aW5wdXQgdGV4dA"),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_4.out", "b3V0cHV0IHRleHQ"),
+			originalScore:      0,
+			updatedScore:       100,
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_4.in", "aW5wdXQgdGV4dAo="),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_4.out", "b3V0cHV0IHRleHQK"),
 			updatedInputFile:   newFileContent("input_file", "test_update_test_case_40.in", "bmV3IGlucHV0IHRleHQ"),
 			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_40.out", "bmV3IG91dHB1dCB0ZXh0"),
 			expectedTestCase: models.TestCase{
 				ProblemID:      problem.ID,
-				Score:          71,
+				Score:          100,
 				InputFileName:  "test_update_test_case_40.in",
 				OutputFileName: "test_update_test_case_40.out",
 			},
@@ -1620,7 +1618,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 			method: "DELETE",
 			path:   "/api/admin/problem/-1/test_case/1",
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 61,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1635,7 +1633,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 			method: "DELETE",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1", problem.ID),
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 62,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1654,7 +1652,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 			method: "DELETE",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1", problem.ID),
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 63,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1667,9 +1665,10 @@ func TestAdminDeleteTestCase(t *testing.T) {
 	runFailTests(t, failTests, "AdminDeleteTestCase")
 
 	t.Run("testAdminDeleteTestCaseSuccess", func(t *testing.T) {
+		t.Parallel()
 		testCase := createTestCaseForTest(t, problem, 72,
-			newFileContent("input_file", "test_delete_test_case_0.in", "aW5wdXQgdGV4dA"),
-			newFileContent("output_file", "test_delete_test_case_0.out", "b3V0cHV0IHRleHQ"),
+			newFileContent("input_file", "test_delete_test_case_0.in", "aW5wdXQgdGV4dAo="),
+			newFileContent("output_file", "test_delete_test_case_0.out", "b3V0cHV0IHRleHQK"),
 		)
 
 		req := makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d/test_case/%d", problem.ID, testCase.ID), request.AdminDeleteTestCaseRequest{}, headerOption{
@@ -1691,15 +1690,16 @@ func TestAdminDeleteTestCase(t *testing.T) {
 }
 
 func TestAdminDeleteTestCases(t *testing.T) {
+	t.Parallel()
 	problem, user := createProblemForTest(t, "admin_delete_test_cases", 0)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
 			method: "DELETE",
-			path:   "/api/admin/problem/-1/test_cases",
+			path:   base.Echo.Reverse("admin.problem.deleteTestCases", -1),
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 61,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1712,9 +1712,9 @@ func TestAdminDeleteTestCases(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "DELETE",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_cases", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.deleteTestCases", problem.ID),
 			req: request.AdminUpdateTestCaseRequest{
-				Score: 63,
+				Score: 100,
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1727,15 +1727,14 @@ func TestAdminDeleteTestCases(t *testing.T) {
 	runFailTests(t, failTests, "AdminDeleteTestCases")
 
 	t.Run("testAdminDeleteTestCasesSuccess", func(t *testing.T) {
-		var i uint
-		testCases := make([]models.TestCase, 5)
-		for i = 0; i < 5; i++ {
-			testCases[i] = createTestCaseForTest(t, problem, 73+i,
-				newFileContent("input_file", fmt.Sprintf("test_delete_test_cases_%d.in", i), "aW5wdXQgdGV4dA"),
-				newFileContent("output_file", fmt.Sprintf("test_delete_test_cases_%d.out", i), "b3V0cHV0IHRleHQ"),
+		t.Parallel()
+		for i := 0; i < 5; i++ {
+			createTestCaseForTest(t, problem, 0,
+				newFileContent("input_file", fmt.Sprintf("test_delete_test_cases_%d.in", i), "aW5wdXQgdGV4dAo="),
+				newFileContent("output_file", fmt.Sprintf("test_delete_test_cases_%d.out", i), "b3V0cHV0IHRleHQK"),
 			)
 		}
-		req := makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d/test_cases", problem.ID), request.AdminDeleteTestCasesRequest{}, headerOption{
+		req := makeReq(t, "DELETE", base.Echo.Reverse("admin.problem.deleteTestCases", problem.ID), request.AdminDeleteTestCasesRequest{}, headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 		})
 		httpResp := makeResp(req)
