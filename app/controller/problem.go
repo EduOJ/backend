@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
@@ -9,7 +10,10 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/minio/minio-go"
+	"io"
 	"net/http"
+	"strings"
 )
 
 func GetProblem(c echo.Context) error {
@@ -73,3 +77,28 @@ func GetProblems(c echo.Context) error {
 		},
 	})
 }
+
+func GetProblemAttachmentFile(c echo.Context) error {
+	problem, err := findProblem(c.Param("id"), true)
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_PROBLEM", nil))
+	} else if err != nil {
+		panic(err)
+	}
+	if problem.AttachmentFileName == "" {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+	object, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/AttachmentFile", problem.ID), minio.GetObjectOptions{})
+	if err != nil {
+		panic(err)
+	}
+	_, err = object.Seek(0, io.SeekStart)
+	if err != nil {
+		panic(err)
+	}
+	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
+	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, problem.AttachmentFileName))
+
+	return c.Stream(http.StatusOK, "", object)
+} // TODO: add test for this
