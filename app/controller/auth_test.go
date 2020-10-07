@@ -40,7 +40,7 @@ func TestLogin(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "POST",
-			path:   "/api/auth/login",
+			path:   base.Echo.Reverse("auth.login"),
 			req: request.LoginRequest{
 				UsernameOrEmail: "",
 				Password:        "",
@@ -67,7 +67,7 @@ func TestLogin(t *testing.T) {
 		{
 			name:   "NotFound",
 			method: "POST",
-			path:   "/api/auth/login",
+			path:   base.Echo.Reverse("auth.login"),
 			req: request.LoginRequest{
 				UsernameOrEmail: "test_login_1_not_found",
 				Password:        "test_login_password",
@@ -79,7 +79,7 @@ func TestLogin(t *testing.T) {
 		{
 			name:   "WrongPassword",
 			method: "POST",
-			path:   "/api/auth/login",
+			path:   base.Echo.Reverse("auth.login"),
 			req: request.LoginRequest{
 				UsernameOrEmail: "test_login_wrong_password",
 				Password:        "test_login_password_wrong",
@@ -184,7 +184,7 @@ func TestLogin(t *testing.T) {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
 				test.user.LoadRoles()
-				httpResp := makeResp(makeReq(t, "POST", "/api/auth/login", test.req))
+				httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("auth.login"), test.req))
 				resp := response.LoginResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, "SUCCESS", resp.Message)
@@ -214,7 +214,7 @@ func TestRegister(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "POST",
-			path:   "/api/auth/register",
+			path:   base.Echo.Reverse("auth.register"),
 			req: request.RegisterRequest{
 				Username: "",
 				Nickname: "",
@@ -253,7 +253,7 @@ func TestRegister(t *testing.T) {
 		{
 			name:   "ConflictUsername",
 			method: "POST",
-			path:   "/api/auth/register",
+			path:   base.Echo.Reverse("auth.register"),
 			req: request.RegisterRequest{
 				Username: "test_register_conflict",
 				Nickname: "test_register_1_nick",
@@ -267,7 +267,7 @@ func TestRegister(t *testing.T) {
 		{
 			name:   "ConflictEmail",
 			method: "POST",
-			path:   "/api/auth/register",
+			path:   base.Echo.Reverse("auth.register"),
 			req: request.RegisterRequest{
 				Username: "test_register_1",
 				Nickname: "test_register_1_nick",
@@ -290,7 +290,7 @@ func TestRegister(t *testing.T) {
 			Email:    "test_register_3@mail.com",
 			Password: "test_register_3_pwd",
 		}
-		httpResp := makeResp(makeReq(t, "POST", "/api/auth/register", request.RegisterRequest{
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("auth.register"), request.RegisterRequest{
 			Username: reqUser.Username,
 			Nickname: reqUser.Nickname,
 			Email:    reqUser.Email,
@@ -327,7 +327,7 @@ func TestEmailRegistered(t *testing.T) {
 	base.DB.Create(&user)
 	t.Run("testEmailRegisteredConflict", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", "/api/auth/email_registered", request.EmailRegistered{
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("auth.emailRegistered"), request.EmailRegistered{
 			Email: "test_email_registered@e.com",
 		}))
 		resp := response.Response{}
@@ -341,7 +341,7 @@ func TestEmailRegistered(t *testing.T) {
 	})
 	t.Run("testEmailRegisteredSuccess", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", "/api/auth/email_registered", request.EmailRegistered{
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("auth.emailRegistered"), request.EmailRegistered{
 			Email: "test_email_registered_0@e.com",
 		}))
 		resp := response.Response{}

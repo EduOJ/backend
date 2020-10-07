@@ -15,8 +15,8 @@ import (
 	"testing"
 )
 
-func getUrlStringPointer(rawUrl string, paras map[string]string) *string {
-	thisURL, err := url.ParseRequestURI(rawUrl)
+func getUrlStringPointer(name string, paras map[string]string) *string {
+	thisURL, err := url.ParseRequestURI(base.Echo.Reverse(name))
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func TestAdminCreateUser(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "POST",
-			path:   "/api/admin/user",
+			path:   base.Echo.Reverse("admin.user.createUser"),
 			req: request.AdminCreateUserRequest{
 				Username: "",
 				Nickname: "",
@@ -75,7 +75,7 @@ func TestAdminCreateUser(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "POST",
-			path:   "/api/admin/user",
+			path:   base.Echo.Reverse("admin.user.createUser"),
 			req: request.AdminCreateUserRequest{
 				Username: "test_create_user_perm",
 				Nickname: "test_create_user_perm",
@@ -91,7 +91,7 @@ func TestAdminCreateUser(t *testing.T) {
 		{
 			name:   "ConflictEmail",
 			method: "POST",
-			path:   "/api/admin/user",
+			path:   base.Echo.Reverse("admin.user.createUser"),
 			req: request.AdminCreateUserRequest{
 				Username: "test_create_user_1",
 				Nickname: "test_create_user_1_nick",
@@ -107,7 +107,7 @@ func TestAdminCreateUser(t *testing.T) {
 		{
 			name:   "ConflictUsername",
 			method: "POST",
-			path:   "/api/admin/user",
+			path:   base.Echo.Reverse("admin.user.createUser"),
 			req: request.AdminCreateUserRequest{
 				Username: "test_create_user_conflict",
 				Nickname: "test_create_user_1_nick",
@@ -139,7 +139,7 @@ func TestAdminCreateUser(t *testing.T) {
 			Email:    "test_create_user_success_0@mail.com",
 			Password: "test_create_user_success_0",
 		}
-		httpResp := makeResp(makeReq(t, "POST", "/api/admin/user", req, applyAdminUser))
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("admin.user.createUser"), req, applyAdminUser))
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 		databaseUser := models.User{}
 		assert.Nil(t, base.DB.Where("email = ?", req.Email).First(&databaseUser).Error)
@@ -182,7 +182,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/user/%d", user1.ID),
+			path:   base.Echo.Reverse("admin.user.updateUser", user1.ID),
 			req: request.AdminUpdateUserRequest{
 				Username: "",
 				Nickname: "",
@@ -214,7 +214,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "PUT",
-			path:   "/api/admin/user/-1",
+			path:   base.Echo.Reverse("admin.user.updateUser", -1),
 			req: request.AdminUpdateUserRequest{
 				Username: "test_update_user_non_exist_1",
 				Nickname: "test_update_user_non_exist_1_n",
@@ -230,7 +230,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		{
 			name:   "NonExistUsername",
 			method: "PUT",
-			path:   "/api/admin/user/test_put_non_existing_username",
+			path:   base.Echo.Reverse("admin.user.updateUser", "test_put_non_existing_username"),
 			req: request.AdminUpdateUserRequest{
 				Username: "test_update_user_non_exist_2",
 				Nickname: "test_update_user_non_exist_2_n",
@@ -246,7 +246,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		{
 			name:   "ConflictEmail",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/user/%d", user1.ID),
+			path:   base.Echo.Reverse("admin.user.updateUser", user1.ID),
 			req: request.AdminUpdateUserRequest{
 				Username: "test_update_user_1",
 				Nickname: "test_update_user_1_nick",
@@ -262,7 +262,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		{
 			name:   "ConflictUsername",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/user/%d", user1.ID),
+			path:   base.Echo.Reverse("admin.user.updateUser", user1.ID),
 			req: request.AdminUpdateUserRequest{
 				Username: "test_update_user_conflict",
 				Nickname: "test_update_user_1_nick",
@@ -278,7 +278,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/user/%d", user1.ID),
+			path:   base.Echo.Reverse("admin.user.updateUser", user1.ID),
 			req: request.AdminUpdateUserRequest{
 				Username: "test_update_user_perm",
 				Nickname: "test_update_user_perm_nick",
@@ -326,7 +326,7 @@ func TestAdminUpdateUser(t *testing.T) {
 		},
 		{
 			name: "WithUsername",
-			path: "/api/admin/user/test_update_user_3",
+			path: base.Echo.Reverse("admin.user.updateUser", "test_update_user_3"),
 			originalUser: models.User{
 				Username: "test_update_user_3",
 				Nickname: "test_update_user_3_nick",
@@ -378,7 +378,7 @@ func TestAdminUpdateUser(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.originalUser).Error)
 				if test.path == "id" {
-					test.path = fmt.Sprintf("/api/admin/user/%d", test.originalUser.ID)
+					test.path = base.Echo.Reverse("admin.user.updateUser", test.originalUser.ID)
 				}
 				httpResp := makeResp(makeReq(t, "PUT", test.path, test.req, applyAdminUser))
 				databaseUser := models.User{}
@@ -409,7 +409,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "DELETE",
-			path:   "/api/admin/user/-1",
+			path:   base.Echo.Reverse("admin.user.deleteUser", -1),
 			req:    request.AdminDeleteUserRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -420,7 +420,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		{
 			name:   "NonExistUsername",
 			method: "DELETE",
-			path:   "/api/admin/user/test_delete_non_existing_username",
+			path:   base.Echo.Reverse("admin.user.deleteUser", "test_delete_non_existing_username"),
 			req:    request.AdminDeleteUserRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -431,7 +431,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		{
 			name:   "NonExistPermissionDenied",
 			method: "DELETE",
-			path:   "/api/admin/user/-1",
+			path:   base.Echo.Reverse("admin.user.deleteUser", -1),
 			req:    request.AdminDeleteUserRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -460,7 +460,7 @@ func TestAdminDeleteUser(t *testing.T) {
 		},
 		{
 			name: "WithUsername",
-			path: "/api/admin/user/test_delete_user_2",
+			path: base.Echo.Reverse("admin.user.deleteUser", "test_delete_user_2"),
 			user: models.User{
 				Username: "test_delete_user_2",
 				Nickname: "test_delete_user_2_nick",
@@ -478,7 +478,7 @@ func TestAdminDeleteUser(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.user).Error)
 				if test.path == "id" {
-					test.path = fmt.Sprintf("/api/admin/user/%d", test.user.ID)
+					test.path = base.Echo.Reverse("admin.user.deleteUser", test.user.ID)
 				}
 				httpResp := makeResp(makeReq(t, "DELETE", test.path, request.AdminDeleteUserRequest{}, applyAdminUser))
 				resp := response.Response{}
@@ -502,7 +502,7 @@ func TestAdminGetUser(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "GET",
-			path:   "/api/admin/user/-1",
+			path:   base.Echo.Reverse("admin.user.getUser", -1),
 			req:    request.AdminGetUserRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -513,7 +513,7 @@ func TestAdminGetUser(t *testing.T) {
 		{
 			name:   "NonExistUsername",
 			method: "GET",
-			path:   "/api/admin/user/test_get_non_existing_user",
+			path:   base.Echo.Reverse("admin.user.getUser", "test_get_non_existing_user"),
 			req:    request.AdminGetUserRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -524,7 +524,7 @@ func TestAdminGetUser(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   "/api/admin/user/-1",
+			path:   base.Echo.Reverse("admin.user.getUser", -1),
 			req:    request.AdminGetUserRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -568,7 +568,7 @@ func TestAdminGetUser(t *testing.T) {
 		},
 		{
 			name: "WithUsername",
-			path: "/api/admin/user/test_admin_get_user_2",
+			path: base.Echo.Reverse("admin.user.getUser", "test_admin_get_user_2"),
 			req:  request.AdminGetUserRequest{},
 			user: models.User{
 				Username: "test_admin_get_user_2",
@@ -606,7 +606,7 @@ func TestAdminGetUser(t *testing.T) {
 				}
 				test.user.LoadRoles()
 				if test.path == "id" {
-					test.path = fmt.Sprintf("/api/admin/user/%d", test.user.ID)
+					test.path = base.Echo.Reverse("admin.user.getUser", test.user.ID)
 				}
 				httpResp := makeResp(makeReq(t, "GET", test.path, test.req, applyAdminUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -680,13 +680,11 @@ func TestAdminGetUsers(t *testing.T) {
 		Next   *string         `json:"next"`
 	}
 
-	baseUrl := "/api/admin/users"
-
 	failTests := []failTest{
 		{
 			name:   "WithWrongOrderByPara",
 			method: "GET",
-			path:   "/api/admin/users",
+			path:   base.Echo.Reverse("admin.user.getUsers"),
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "wrongOrderByPara",
@@ -700,7 +698,7 @@ func TestAdminGetUsers(t *testing.T) {
 		{
 			name:   "OrderByNonExistingColumn",
 			method: "GET",
-			path:   "/api/admin/users",
+			path:   base.Echo.Reverse("admin.user.getUsers"),
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "nonExistingColumn.ASC",
@@ -714,7 +712,7 @@ func TestAdminGetUsers(t *testing.T) {
 		{
 			name:   "OrderByNonExistingOrder",
 			method: "GET",
-			path:   "/api/admin/users",
+			path:   base.Echo.Reverse("admin.user.getUsers"),
 			req: request.AdminGetUsersRequest{
 				Search:  "test_admin_get_users",
 				OrderBy: "id.NonExistingOrder",
@@ -728,7 +726,7 @@ func TestAdminGetUsers(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   "/api/admin/users",
+			path:   base.Echo.Reverse("admin.user.getUsers"),
 			req:    request.AdminGetUsersRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -888,7 +886,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Count:  2,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "2",
 				}),
@@ -909,7 +907,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Count:  2,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "2",
 				}),
@@ -931,7 +929,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Count:  2,
 				Offset: 1,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "3",
 				}),
@@ -952,7 +950,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Total:  4,
 				Count:  2,
 				Offset: 2,
-				Prev: getUrlStringPointer(baseUrl, map[string]string{
+				Prev: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "0",
 				}),
@@ -973,11 +971,11 @@ func TestAdminGetUsers(t *testing.T) {
 				Total:  4,
 				Count:  1,
 				Offset: 2,
-				Prev: getUrlStringPointer(baseUrl, map[string]string{
+				Prev: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "1",
 				}),
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "3",
 				}),
@@ -1058,11 +1056,11 @@ func TestAdminGetUsers(t *testing.T) {
 				Total:  4,
 				Count:  1,
 				Offset: 2,
-				Prev: getUrlStringPointer(baseUrl, map[string]string{
+				Prev: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "1",
 				}),
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "3",
 				}),
@@ -1079,7 +1077,7 @@ func TestAdminGetUsers(t *testing.T) {
 				Count:  20,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("admin.user.getUsers", map[string]string{
 					"limit":  "20",
 					"offset": "20",
 				}),
@@ -1093,7 +1091,7 @@ func TestAdminGetUsers(t *testing.T) {
 			test := test
 			t.Run("testAdminGetUsers"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", "/api/admin/users", test.req, applyAdminUser))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("admin.user.getUsers"), test.req, applyAdminUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)

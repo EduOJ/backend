@@ -37,7 +37,7 @@ func TestAdminCreateProblem(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "POST",
-			path:   "/api/admin/problem",
+			path:   base.Echo.Reverse("admin.problem.createProblem"),
 			req: request.AdminCreateProblemRequest{
 				Name:               "",
 				Description:        "",
@@ -99,7 +99,7 @@ func TestAdminCreateProblem(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "POST",
-			path:   "/api/admin/problem",
+			path:   base.Echo.Reverse("admin.problem.createProblem"),
 			req: request.AdminCreateProblemRequest{
 				Name: "test_admin_create_problem_perm",
 			},
@@ -176,7 +176,7 @@ func TestAdminCreateProblem(t *testing.T) {
 				} else {
 					data = test.req
 				}
-				httpReq := makeReq(t, "POST", "/api/admin/problem", data, headerOption{
+				httpReq := makeReq(t, "POST", base.Echo.Reverse("admin.problem.createProblem"), data, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				})
 				httpResp := makeResp(httpReq)
@@ -242,7 +242,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/problem/%d", problem1.ID),
+			path:   base.Echo.Reverse("admin.problem.updateProblem", problem1.ID),
 			req: request.AdminUpdateProblemRequest{
 				Name:               "",
 				Description:        "",
@@ -306,7 +306,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "PUT",
-			path:   "/api/admin/problem/-1",
+			path:   base.Echo.Reverse("admin.problem.updateProblem", -1),
 			req: request.AdminUpdateProblemRequest{
 				Name:            "test_admin_update_problem_non_exist",
 				LanguageAllowed: "test_admin_update_problem_non_exist_language_allowed",
@@ -320,7 +320,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/problem/%d", problem1.ID),
+			path:   base.Echo.Reverse("admin.problem.updateProblem", problem1.ID),
 			req: request.AdminUpdateProblemRequest{
 				Name:            "test_admin_update_problem_prem",
 				LanguageAllowed: "test_admin_update_problem_perm_language_allowed",
@@ -567,7 +567,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 					assert.Nil(t, err)
 					test.originalAttachment.reader = bytes.NewReader(b)
 				}
-				path := fmt.Sprintf("/api/admin/problem/%d", test.originalProblem.ID)
+				path := base.Echo.Reverse("admin.problem.updateProblem", test.originalProblem.ID)
 				user := createUserForTest(t, "admin_update_problem", i)
 				user.GrantRole("creator", test.originalProblem)
 				var data interface{}
@@ -639,7 +639,7 @@ func TestAdminDeleteProblem(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "DELETE",
-			path:   "/api/admin/problem/-1",
+			path:   base.Echo.Reverse("admin.problem.deleteProblem", -1),
 			req:    request.AdminDeleteProblemRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -650,7 +650,7 @@ func TestAdminDeleteProblem(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "DELETE",
-			path:   "/api/admin/problem/-1",
+			path:   base.Echo.Reverse("admin.problem.deleteProblem", -1),
 			req:    request.AdminDeleteProblemRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -780,7 +780,7 @@ func TestAdminDeleteProblem(t *testing.T) {
 				}
 				user := createUserForTest(t, "admin_delete_problem", i)
 				user.GrantRole("creator", test.problem)
-				httpResp := makeResp(makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d", test.problem.ID), request.AdminDeleteUserRequest{}, headerOption{
+				httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("admin.problem.deleteProblem", test.problem.ID), request.AdminDeleteProblemRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
 				resp := response.Response{}
@@ -816,7 +816,7 @@ func TestAdminGetProblem(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "GET",
-			path:   "/api/admin/problem/-1",
+			path:   base.Echo.Reverse("admin.problem.getProblem", -1),
 			req:    request.AdminGetProblemRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -827,7 +827,7 @@ func TestAdminGetProblem(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   "/api/admin/problem/-1",
+			path:   base.Echo.Reverse("admin.problem.getProblem", -1),
 			req:    request.AdminGetProblemRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -894,7 +894,7 @@ func TestAdminGetProblem(t *testing.T) {
 				}
 				user := createUserForTest(t, "admin_get_problem", i)
 				user.GrantRole("creator", test.problem)
-				httpResp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d", test.problem.ID), request.AdminGetUserRequest{}, headerOption{
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("admin.problem.getProblem", test.problem.ID), request.AdminGetUserRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
 				resp := response.AdminGetProblemResponse{}
@@ -950,13 +950,11 @@ func TestAdminGetProblems(t *testing.T) {
 		Next     *string                    `json:"next"`
 	}
 
-	requestUrl := "/api/admin/problems"
-
 	failTests := []failTest{
 		{
 			name:   "NotAllowedColumn",
 			method: "GET",
-			path:   requestUrl,
+			path:   base.Echo.Reverse("admin.problem.getProblems"),
 			req: request.AdminGetProblemsRequest{
 				Search:  "test_admin_get_problems",
 				OrderBy: "name.ASC",
@@ -970,7 +968,7 @@ func TestAdminGetProblems(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   requestUrl,
+			path:   base.Echo.Reverse("admin.problem.getProblems"),
 			req:    request.AdminGetProblemsRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1084,7 +1082,7 @@ func TestAdminGetProblems(t *testing.T) {
 				Count:  2,
 				Offset: 1,
 				Prev:   nil,
-				Next: getUrlStringPointer(requestUrl, map[string]string{
+				Next: getUrlStringPointer("admin.problem.getProblems", map[string]string{
 					"limit":  "2",
 					"offset": "3",
 				}),
@@ -1098,7 +1096,7 @@ func TestAdminGetProblems(t *testing.T) {
 			test := test
 			t.Run("testAdminGetProblems"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", requestUrl, test.req, applyAdminUser))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("admin.problem.getProblems"), test.req, applyAdminUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
@@ -1169,7 +1167,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "POST",
-			path:   "/api/admin/problem/-1/test_case",
+			path:   base.Echo.Reverse("admin.problem.createTestCase", -1),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("input_file", "test_admin_create_test_case_non_existing_problem.in", "aW5wdXQgdGV4dAo="),
 				newFileContent("output_file", "test_admin_create_test_case_non_existing_problem.out", "b3V0cHV0IHRleHQK"),
@@ -1187,7 +1185,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 		{
 			name:   "LackInputFile",
 			method: "POST",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("output_file", "test_admin_create_test_case_lack_input_file.out", "b3V0cHV0IHRleHQK"),
 			}, map[string]string{
@@ -1204,7 +1202,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 		{
 			name:   "LackOutputFile",
 			method: "POST",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("input_file", "test_admin_create_test_case_lack_output_file.in", "aW5wdXQgdGV4dAo="),
 			}, map[string]string{
@@ -1221,7 +1219,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 		{
 			name:   "LackBothFile",
 			method: "POST",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{}, map[string]string{
 				"score": "100",
 			}),
@@ -1236,7 +1234,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "POST",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("input_file", "test_admin_create_test_case_permission_denied.in", "aW5wdXQgdGV4dAo="),
 				newFileContent("output_file", "test_admin_create_test_case_permission_denied.out", "b3V0cHV0IHRleHQK"),
@@ -1255,7 +1253,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 
 	t.Run("testAdminCreateTestCaseSuccess", func(t *testing.T) {
 		t.Parallel()
-		req := makeReq(t, "POST", fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID), addFieldContentSlice([]reqContent{
+		req := makeReq(t, "POST", base.Echo.Reverse("admin.problem.createTestCase", problem.ID), addFieldContentSlice([]reqContent{
 			newFileContent("input_file", "test_admin_create_test_case_success.in", "aW5wdXQgdGV4dAo="),
 			newFileContent("output_file", "test_admin_create_test_case_success.out", "b3V0cHV0IHRleHQK"),
 		}, map[string]string{
@@ -1298,7 +1296,7 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "GET",
-			path:   "/api/admin/problem/-1/test_case/1/input_file",
+			path:   base.Echo.Reverse("admin.problem.getTestCaseInputFile", -1, 1),
 			req:    request.AdminGetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1311,7 +1309,7 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 		{
 			name:   "NonExistingTestCase",
 			method: "GET",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1/input_file", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.getTestCaseInputFile", problem.ID, -1),
 			req:    request.AdminGetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1328,7 +1326,7 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1/input_file", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.getTestCaseInputFile", problem.ID, 1),
 			req:    request.AdminGetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1346,7 +1344,7 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 		nil,
 	)
 
-	req := makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d/test_case/%d/input_file", problem.ID, testCase.ID), request.AdminGetTestCaseInputFileRequest{}, headerOption{
+	req := makeReq(t, "GET", base.Echo.Reverse("admin.problem.getTestCaseInputFile", problem.ID, testCase.ID), request.AdminGetTestCaseInputFileRequest{}, headerOption{
 		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 	})
 	httpResp := makeResp(req)
@@ -1362,7 +1360,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "GET",
-			path:   "/api/admin/problem/-1/test_case/1/output_file",
+			path:   base.Echo.Reverse("admin.problem.getTestCaseOutputFile", -1, 1),
 			req:    request.AdminGetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1375,7 +1373,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 		{
 			name:   "NonExistingTestCase",
 			method: "GET",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1/output_file", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.getTestCaseOutputFile", problem.ID, -1),
 			req:    request.AdminGetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1392,7 +1390,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1/output_file", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.getTestCaseOutputFile", problem.ID, 1),
 			req:    request.AdminGetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1409,7 +1407,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 		newFileContent("", "test_admin_get_test_case_output_file_success.out", "b3V0cHV0IHRleHQK"),
 	)
 
-	req := makeReq(t, "GET", fmt.Sprintf("/api/admin/problem/%d/test_case/%d/output_file", problem.ID, testCase.ID), request.AdminGetTestCaseOutputFileRequest{}, headerOption{
+	req := makeReq(t, "GET", base.Echo.Reverse("admin.problem.getTestCaseOutputFile", problem.ID, testCase.ID), request.AdminGetTestCaseOutputFileRequest{}, headerOption{
 		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 	})
 	httpResp := makeResp(req)
@@ -1426,7 +1424,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "PUT",
-			path:   "/api/admin/problem/-1/test_case/1",
+			path:   base.Echo.Reverse("admin.problem.updateTestCase", -1, 1),
 			req: request.AdminUpdateTestCaseRequest{
 				Score: 100,
 			},
@@ -1441,7 +1439,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 		{
 			name:   "NonExistingTestCase",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.updateTestCase", problem.ID, -1),
 			req: request.AdminUpdateTestCaseRequest{
 				Score: 100,
 			},
@@ -1460,7 +1458,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "PUT",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.updateTestCase", problem.ID, 1),
 			req: request.AdminUpdateTestCaseRequest{
 				Score: 100,
 			},
@@ -1560,7 +1558,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 				if test.updatedOutputFile != nil {
 					reqContentSlice = append(reqContentSlice, test.updatedOutputFile)
 				}
-				req := makeReq(t, "PUT", fmt.Sprintf("/api/admin/problem/%d/test_case/%d", problem.ID, testCase.ID), addFieldContentSlice(
+				req := makeReq(t, "PUT", base.Echo.Reverse("admin.problem.updateTestCase", problem.ID, testCase.ID), addFieldContentSlice(
 					reqContentSlice, map[string]string{
 						"score": fmt.Sprintf("%d", test.updatedScore),
 					}), headerOption{
@@ -1634,7 +1632,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "DELETE",
-			path:   "/api/admin/problem/-1/test_case/1",
+			path:   base.Echo.Reverse("admin.problem.deleteTestCases", -1, 1),
 			req: request.AdminUpdateTestCaseRequest{
 				Score: 100,
 			},
@@ -1649,7 +1647,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 		{
 			name:   "NonExistingTestCase",
 			method: "DELETE",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/-1", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.deleteTestCase", problem.ID, -1),
 			req: request.AdminUpdateTestCaseRequest{
 				Score: 100,
 			},
@@ -1668,7 +1666,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "DELETE",
-			path:   fmt.Sprintf("/api/admin/problem/%d/test_case/1", problem.ID),
+			path:   base.Echo.Reverse("admin.problem.deleteTestCases", problem.ID, 1),
 			req: request.AdminUpdateTestCaseRequest{
 				Score: 100,
 			},
@@ -1689,7 +1687,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 			newFileContent("output_file", "test_delete_test_case_0.out", "b3V0cHV0IHRleHQK"),
 		)
 
-		req := makeReq(t, "DELETE", fmt.Sprintf("/api/admin/problem/%d/test_case/%d", problem.ID, testCase.ID), request.AdminDeleteTestCaseRequest{}, headerOption{
+		req := makeReq(t, "DELETE", base.Echo.Reverse("admin.problem.deleteTestCases", problem.ID, testCase.ID), request.AdminDeleteTestCaseRequest{}, headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 		})
 		httpResp := makeResp(req)
