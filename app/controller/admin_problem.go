@@ -251,7 +251,7 @@ func AdminCreateTestCase(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_PROBLEM", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 		}
 		panic(err)
 	}

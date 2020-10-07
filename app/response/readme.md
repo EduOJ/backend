@@ -45,6 +45,13 @@ Common return codes.
 
 ## Admin
 
+### Log
+
+#### AdminGetLogs
+
+|   message     |    结果     |
+|:-------------:|:----------:|
+| INVALID_LEVEL | 非法的level |
 ### User
 
 #### AdminCreateUser
@@ -106,7 +113,7 @@ Common return codes.
 #### AdminCreateTestCase
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|      WRONG_PROBLEM      |     错误的problem     |
+|    PROBLEM_NOT_FOUND    |     错误的problem     |
 |        LACK_FILE        |        缺少文件       |
 
 #### AdminUpdateTestCase
@@ -183,7 +190,7 @@ Common return codes.
 ### GetProblemAttachmentFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|      WRONG_PROBLEM      |      错误的problem    |
+|    PROBLEM_NOT_FOUND    |      错误的problem    |
 |        NOT_FOUND        |     无法找到指定附件    |
 
 ## Image

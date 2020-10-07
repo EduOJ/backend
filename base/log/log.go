@@ -40,7 +40,7 @@ func (l Level) String() string {
 	}
 }
 
-var stringToLevel = map[string]Level{
+var StringToLevel = map[string]Level{
 	"DEBUG":   DEBUG,
 	"INFO":    INFO,
 	"WARNING": WARNING,

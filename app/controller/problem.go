@@ -86,7 +86,7 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	// TODO: check for admins
 	problem, err := utils.FindProblem(c.Param("id"), true)
 	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_PROBLEM", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
