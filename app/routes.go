@@ -19,8 +19,6 @@ func Register(e *echo.Echo) {
 
 	api := e.Group("/api", middleware.Authentication)
 
-	// TODO: replace hard-coded path with echo.Reverse with route name.
-
 	auth := api.Group("/auth", middleware.Auth)
 	auth.POST("/login", controller.Login).Name = "auth.login"
 	auth.POST("/register", controller.Register).Name = "auth.register"
@@ -36,7 +34,7 @@ func Register(e *echo.Echo) {
 	admin.GET("/user/:id",
 		controller.AdminGetUser, middleware.HasPermission("read_user")).Name = "admin.user.getUser"
 	admin.GET("/users",
-		controller.AdminGetUsers, middleware.HasPermission("read_user")).Name = "admin.getUsers"
+		controller.AdminGetUsers, middleware.HasPermission("read_user")).Name = "admin.user.getUsers"
 
 	api.GET("/user/me", controller.GetMe, middleware.Logged).Name = "user.getMe"
 	api.PUT("/user/me", controller.UpdateMe, middleware.Logged).Name = "user.updateMe"
@@ -46,7 +44,7 @@ func Register(e *echo.Echo) {
 	api.POST("/user/change_password", controller.ChangePassword, middleware.Logged).Name = "user.changePassword"
 
 	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
-	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.create"
+	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.createImage"
 
 	admin.POST("/problem",
 		controller.AdminCreateProblem, middleware.HasPermission("manage_problem")).Name = "admin.problem.createProblem"
