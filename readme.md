@@ -21,9 +21,10 @@ All other tests should make it own database and clean it up after running.
 
 Here are the permissions and their descriptions.
 
-|         Name        |                        Description                       |
-|:-------------------:|:--------------------------------------------------------:|
-|       read_user     |              the permission to read users                |
-|      manage_user    |              the permission to manage users              |
-|    read_problem     |            the permission to read problems               |
-|   manage_problem    |            the permission to manage problems             |
+|      Name      |            Description            |
+|:--------------:|:---------------------------------:|
+|   read_user    |   the permission to read users    |
+|  manage_user   |  the permission to manage users   |
+|  read_problem  |  the permission to read problems  |
+| manage_problem | the permission to manage problems |
+|   read_logs    |            reda logs.             |
