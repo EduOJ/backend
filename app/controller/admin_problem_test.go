@@ -1167,6 +1167,24 @@ func TestAdminCreateTestCase(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingProblem",
+			method: "POST",
+			path:   "/api/admin/problem/-1/test_case",
+			req: addFieldContentSlice([]reqContent{
+				newFileContent("input_file", "test_admin_create_test_case_non_existing_problem.in", "aW5wdXQgdGV4dAo="),
+				newFileContent("output_file", "test_admin_create_test_case_non_existing_problem.out", "b3V0cHV0IHRleHQK"),
+			}, map[string]string{
+				"score": "100",
+			}),
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "LackInputFile",
 			method: "POST",
 			path:   fmt.Sprintf("/api/admin/problem/%d/test_case", problem.ID),

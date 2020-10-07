@@ -83,4 +83,7 @@ func Register(e *echo.Echo) {
 	admin.GET("/problem/:id/test_case/:test_case_id/output_file",
 		controller.AdminGetTestCaseOutputFile,
 		middleware.HasPermission("read_problem", "problem")).Name = "admin.problem.getTestCaseOutputFile"
+
+	admin.GET("/logs",
+		controller.AdminGetLogs, middleware.HasPermission("read_logs")).Name = "admin.getLogs"
 }
