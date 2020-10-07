@@ -20,7 +20,7 @@ func TestGetUser(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "GET",
-			path:   "/api/user/-1",
+			path:   base.Echo.Reverse("user.getUser", -1),
 			req:    request.GetUserRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -31,7 +31,7 @@ func TestGetUser(t *testing.T) {
 		{
 			name:   "NonExistUsername",
 			method: "GET",
-			path:   "/api/user/test_get_non_existing_user",
+			path:   base.Echo.Reverse("user.getUser", "test_get_non_existing_user"),
 			req:    request.GetUserRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -75,7 +75,7 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name: "WithUsername",
-			path: "/api/user/test_get_user_2",
+			path: base.Echo.Reverse("user.getUser", "test_get_user_2"),
 			req:  request.GetUserRequest{},
 			user: models.User{
 				Username: "test_get_user_2",
@@ -114,7 +114,7 @@ func TestGetUser(t *testing.T) {
 					test.user.LoadRoles()
 				}
 				if test.path == "id" {
-					test.path = fmt.Sprintf("/api/user/%d", test.user.ID)
+					test.path = base.Echo.Reverse("user.getUser", test.user.ID)
 				}
 				httpResp := makeResp(makeReq(t, "GET", test.path, test.req, applyNormalUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -188,13 +188,11 @@ func TestGetUsers(t *testing.T) {
 		Next   *string         `json:"next"`
 	}
 
-	baseUrl := "/api/users"
-
 	failTests := []failTest{
 		{
 			name:   "WithWrongOrderByPara",
 			method: "GET",
-			path:   "/api/users",
+			path:   base.Echo.Reverse("user.getUsers"),
 			req: request.GetUsersRequest{
 				Search:  "test_get_users",
 				OrderBy: "wrongOrderByPara",
@@ -208,7 +206,7 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:   "OrderByNonExistingColumn",
 			method: "GET",
-			path:   "/api/users",
+			path:   base.Echo.Reverse("user.getUsers"),
 			req: request.GetUsersRequest{
 				Search:  "test_get_users",
 				OrderBy: "nonExistingColumn.ASC",
@@ -222,7 +220,7 @@ func TestGetUsers(t *testing.T) {
 		{
 			name:   "OrderByNonExistingOrder",
 			method: "GET",
-			path:   "/api/users",
+			path:   base.Echo.Reverse("user.getUsers"),
 			req: request.GetUsersRequest{
 				Search:  "test_get_users",
 				OrderBy: "id.NonExistingOrder",
@@ -385,7 +383,7 @@ func TestGetUsers(t *testing.T) {
 				Count:  2,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "2",
 				}),
@@ -406,7 +404,7 @@ func TestGetUsers(t *testing.T) {
 				Count:  2,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "2",
 				}),
@@ -428,7 +426,7 @@ func TestGetUsers(t *testing.T) {
 				Count:  2,
 				Offset: 1,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "3",
 				}),
@@ -449,7 +447,7 @@ func TestGetUsers(t *testing.T) {
 				Total:  4,
 				Count:  2,
 				Offset: 2,
-				Prev: getUrlStringPointer(baseUrl, map[string]string{
+				Prev: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "2",
 					"offset": "0",
 				}),
@@ -470,11 +468,11 @@ func TestGetUsers(t *testing.T) {
 				Total:  4,
 				Count:  1,
 				Offset: 2,
-				Prev: getUrlStringPointer(baseUrl, map[string]string{
+				Prev: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "1",
 				}),
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "3",
 				}),
@@ -555,11 +553,11 @@ func TestGetUsers(t *testing.T) {
 				Total:  4,
 				Count:  1,
 				Offset: 2,
-				Prev: getUrlStringPointer(baseUrl, map[string]string{
+				Prev: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "1",
 				}),
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "1",
 					"offset": "3",
 				}),
@@ -576,7 +574,7 @@ func TestGetUsers(t *testing.T) {
 				Count:  20,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(baseUrl, map[string]string{
+				Next: getUrlStringPointer("user.getUsers", map[string]string{
 					"limit":  "20",
 					"offset": "20",
 				}),
@@ -590,7 +588,7 @@ func TestGetUsers(t *testing.T) {
 			test := test
 			t.Run("testGetUsers"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", "/api/users", test.req, applyNormalUser))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("user.getUsers"), test.req, applyNormalUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
@@ -656,7 +654,7 @@ func TestGetUserMe(t *testing.T) {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
 				test.user.LoadRoles()
-				httpResp := makeResp(makeReq(t, "GET", "/api/user/me", request.GetMeRequest{}, applyUser(test.user)))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("user.getMe"), request.GetMeRequest{}, applyUser(test.user)))
 				resp := response.GetMeResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, test.user.Username, resp.Data.Username)
@@ -711,7 +709,7 @@ func TestUpdateUserMe(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "PUT",
-			path:   "/api/user/me",
+			path:   base.Echo.Reverse("user.getMe"),
 			req: request.UpdateMeRequest{
 				Username: "",
 				Nickname: "",
@@ -746,7 +744,7 @@ func TestUpdateUserMe(t *testing.T) {
 		{
 			name:   "ConflictUsername",
 			method: "PUT",
-			path:   "/api/user/me",
+			path:   base.Echo.Reverse("user.getMe"),
 			req: request.UpdateMeRequest{
 				Username: "test_update_me_conflict",
 				Nickname: "test_update_me_2_nick",
@@ -761,7 +759,7 @@ func TestUpdateUserMe(t *testing.T) {
 		{
 			name:   "ConflictEmail",
 			method: "PUT",
-			path:   "/api/user/me",
+			path:   base.Echo.Reverse("user.getMe"),
 			req: request.UpdateMeRequest{
 				Username: "test_update_me_3",
 				Nickname: "test_update_me_3_nick",
@@ -838,7 +836,7 @@ func TestUpdateUserMe(t *testing.T) {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
 				test.user.LoadRoles()
-				httpResp := makeResp(makeReq(t, "PUT", "/api/user/me", test.req, applyUser(test.user)))
+				httpResp := makeResp(makeReq(t, "PUT", base.Echo.Reverse("user.getMe"), test.req, applyUser(test.user)))
 				resp := response.UpdateMeResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, test.req.Username, resp.Data.Username)
@@ -862,7 +860,7 @@ func TestChangePassword(t *testing.T) {
 
 	t.Run("testChangePasswordWithoutParams", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.changePassword"), request.ChangePasswordRequest{
 			OldPassword: "",
 			NewPassword: "",
 		}, applyNormalUser))
@@ -909,7 +907,7 @@ func TestChangePassword(t *testing.T) {
 		assert.Nil(t, base.DB.Create(&token1).Error)
 		assert.Nil(t, base.DB.Create(&token2).Error)
 		assert.Nil(t, base.DB.Create(&token3).Error)
-		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.changePassword"), request.ChangePasswordRequest{
 			OldPassword: "test_change_passwd_old_passwd",
 			NewPassword: "test_change_passwd_new_passwd",
 		}, headerOption{
@@ -947,7 +945,7 @@ func TestChangePassword(t *testing.T) {
 			User:  user,
 		}
 		assert.Nil(t, base.DB.Create(&mainToken).Error)
-		httpResp := makeResp(makeReq(t, "POST", "/api/user/change_password", request.ChangePasswordRequest{
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.changePassword"), request.ChangePasswordRequest{
 			OldPassword: "test_change_passwd_wrong",
 			NewPassword: "test_change_passwd_new_passwd",
 		}, headerOption{

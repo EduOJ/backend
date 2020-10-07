@@ -26,7 +26,7 @@ func TestGetProblem(t *testing.T) {
 		{
 			name:   "NonExistId",
 			method: "GET",
-			path:   "/api/problem/-1",
+			path:   base.Echo.Reverse("problem.getProblem", -1),
 			req:    request.GetProblemRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -37,7 +37,7 @@ func TestGetProblem(t *testing.T) {
 		{
 			name:   "Private",
 			method: "GET",
-			path:   fmt.Sprintf("/api/problem/%d", privateProblem.ID),
+			path:   base.Echo.Reverse("problem.getProblem", privateProblem.ID),
 			req:    request.GetProblemRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -83,7 +83,7 @@ func TestGetProblem(t *testing.T) {
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
 				user := createUserForTest(t, "get_problem", i)
 				user.GrantRole("creator", test.problem)
-				httpResp := makeResp(makeReq(t, "GET", fmt.Sprintf("/api/problem/%d", test.problem.ID), request.GetUserRequest{}, headerOption{
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblem", test.problem.ID), request.GetUserRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
 				resp := response.GetProblemResponse{}
@@ -143,13 +143,11 @@ func TestGetProblems(t *testing.T) {
 		Next     *string            `json:"next"`
 	}
 
-	requestUrl := "/api/problems"
-
 	failTests := []failTest{
 		{
 			name:   "NotAllowedColumn",
 			method: "GET",
-			path:   requestUrl,
+			path:   base.Echo.Reverse("problem.getProblems"),
 			req: request.GetProblemsRequest{
 				Search:  "test_get_problems",
 				OrderBy: "name.ASC",
@@ -264,7 +262,7 @@ func TestGetProblems(t *testing.T) {
 				Count:  2,
 				Offset: 0,
 				Prev:   nil,
-				Next: getUrlStringPointer(requestUrl, map[string]string{
+				Next: getUrlStringPointer("problem.getProblems", map[string]string{
 					"limit":  "2",
 					"offset": "2",
 				}),
@@ -278,7 +276,7 @@ func TestGetProblems(t *testing.T) {
 			test := test
 			t.Run("testGetProblems"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", requestUrl, test.req, applyNormalUser))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblems"), test.req, applyNormalUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
