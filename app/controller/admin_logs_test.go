@@ -165,7 +165,7 @@ func TestAdminGetLogs(t *testing.T) {
 					Count:  2,
 					Offset: 1,
 					Prev:   nil,
-					Next: getUrlStringPointer(base.Echo.Reverse("admin.getLogs"), map[string]string{
+					Next: getUrlStringPointer("admin.getLogs", map[string]string{
 						"limit":  "2",
 						"offset": "3",
 					}),
