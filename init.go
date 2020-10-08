@@ -209,6 +209,11 @@ func initStorage() {
 		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
 		panic(err)
 	}
-	utils.MustCreateBuckets("images", "problems")
+	if err := utils.CreateBucket("images"); err != nil {
+		panic(err)
+	}
+	if err := utils.CreateBucket("problems"); err != nil {
+		panic(err)
+	}
 	log.Debug("Storage client initialized.")
 }

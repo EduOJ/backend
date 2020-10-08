@@ -49,12 +49,7 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		err := src.Close()
-		if err != nil {
-			panic(errors.Wrap(err, "could not close file reader"))
-		}
-	}()
+	defer src.Close()
 	_, err = base.Storage.PutObjectWithContext(ctx, bucket, path, src, object.Size, minio.PutObjectOptions{})
 	if err != nil {
 		panic(errors.Wrap(err, "could write file to s3 storage."))
