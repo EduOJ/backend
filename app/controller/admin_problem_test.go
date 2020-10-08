@@ -12,22 +12,17 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
 )
 
-func checkObject(t *testing.T, bucketName, objectName string) (content []byte, found bool) {
+func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
 	obj, err := base.Storage.GetObject(bucketName, objectName, minio.GetObjectOptions{})
 	assert.Nil(t, err)
 	content, err = ioutil.ReadAll(obj)
-	if err != nil && err.Error() == "The specified key does not exist." {
-		assert.Equal(t, []byte{}, content)
-		found = false
-		return
-	}
 	assert.Nil(t, err)
-	found = true
 	return
 }
 
@@ -206,8 +201,7 @@ func TestAdminCreateProblem(t *testing.T) {
 				}, resp)
 				assert.True(t, user.HasRole("creator", databaseProblem))
 				if test.attachment != nil {
-					storageContent, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
-					assert.True(t, found)
+					storageContent := getObjectContent(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
 					expectedContent, err := ioutil.ReadAll(test.attachment.reader)
 					assert.Nil(t, err)
 					assert.Equal(t, expectedContent, storageContent)
@@ -615,8 +609,7 @@ func TestAdminUpdateProblem(t *testing.T) {
 					},
 				}, httpResp)
 				if test.updatedAttachment != nil || test.originalAttachment != nil {
-					storageContent, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
-					assert.True(t, found)
+					storageContent := getObjectContent(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
 					var err error
 					var expectedContent []byte
 					if test.updatedAttachment != nil {
@@ -793,16 +786,8 @@ func TestAdminDeleteProblem(t *testing.T) {
 				}, resp)
 				assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.Problem{}, test.problem.ID).Error)
 				assert.False(t, user.HasRole("creator", test.problem))
-				if test.originalAttachment != nil {
-					_, found := checkObject(t, "problems", fmt.Sprintf("%d/attachment", test.problem.ID))
-					assert.False(t, found)
-				}
 				for j := range test.testCases {
 					assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.TestCase{}, test.testCases[j].testcase.ID).Error)
-					_, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", test.problem.ID, test.testCases[j].inputFile.fileName))
-					assert.False(t, found)
-					_, found = checkObject(t, "problems", fmt.Sprintf("%d/output/%s", test.problem.ID, test.testCases[j].outputFile.fileName))
-					assert.False(t, found)
 				}
 			})
 		}
@@ -1133,21 +1118,9 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 	var inputFileName, outputFileName string
 
 	if inputFile != nil {
-		utils.MustCreateBucket("problems")
-		inputBytes, err := ioutil.ReadAll(inputFile.reader)
-		assert.Nil(t, err)
-		inputFile.reader = bytes.NewReader(inputBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.fileName), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
-		assert.Nil(t, err)
 		inputFileName = inputFile.fileName
 	}
 	if outputFile != nil {
-		utils.MustCreateBucket("problems")
-		outputBytes, err := ioutil.ReadAll(outputFile.reader)
-		assert.Nil(t, err)
-		outputFile.reader = bytes.NewReader(outputBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.fileName), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
-		assert.Nil(t, err)
 		outputFileName = outputFile.fileName
 	}
 
@@ -1157,6 +1130,22 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 		OutputFileName: outputFileName,
 	}
 	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error)
+
+	if inputFile != nil {
+		inputBytes, err := ioutil.ReadAll(inputFile.reader)
+		assert.Nil(t, err)
+		inputFile.reader = bytes.NewReader(inputBytes)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+	}
+	if outputFile != nil {
+		outputBytes, err := ioutil.ReadAll(outputFile.reader)
+		assert.Nil(t, err)
+		outputFile.reader = bytes.NewReader(outputBytes)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+	}
+
 	return
 }
 
@@ -1287,6 +1276,8 @@ func TestAdminCreateTestCase(t *testing.T) {
 				resource.GetTestCaseForAdmin(&databaseTestCase),
 			},
 		}, resp)
+		assert.Equal(t, "input text\n", string(getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID))))
+		assert.Equal(t, "output text\n", string(getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID))))
 	})
 }
 
@@ -1340,7 +1331,6 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 
 	testCase := createTestCaseForTest(t, problem, 51,
 		newFileContent("", "test_admin_get_test_case_input_file_success.in", "aW5wdXQgdGV4dAo="),
-		//newFileContent("","test_admin_get_test_case_input_file_success.out","b3V0cHV0IHRleHQK"),
 		nil,
 	)
 
@@ -1572,42 +1562,25 @@ func TestAdminUpdateTestCase(t *testing.T) {
 				assert.Equal(t, test.expectedTestCase.InputFileName, databaseTestCase.InputFileName)
 				assert.Equal(t, test.expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
 
-				var expectedInputContent []byte
-				var err error
-				if test.updatedInputFile == nil || test.originalInputFile.fileName == test.updatedInputFile.fileName {
-					if test.updatedInputFile == nil {
-						expectedInputContent, err = ioutil.ReadAll(test.originalInputFile.reader)
-					} else {
-						expectedInputContent, err = ioutil.ReadAll(test.updatedInputFile.reader)
-					}
-					assert.Nil(t, err)
+				var expectedInputFileReader io.Reader
+				if test.updatedInputFile != nil {
+					expectedInputFileReader = test.updatedInputFile.reader
 				} else {
-					_, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", problem.ID, test.originalInputFile.fileName))
-					assert.False(t, found)
-					expectedInputContent, err = ioutil.ReadAll(test.updatedInputFile.reader)
-					assert.Nil(t, err)
+					expectedInputFileReader = test.originalInputFile.reader
 				}
-				storageInputContent, found := checkObject(t, "problems", fmt.Sprintf("%d/input/%s", problem.ID, databaseTestCase.InputFileName))
-				assert.True(t, found)
-				assert.Equal(t, expectedInputContent, storageInputContent)
+				expectedInputContent, err := ioutil.ReadAll(expectedInputFileReader)
+				assert.Nil(t, err)
+				assert.Equal(t, expectedInputContent, getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID)))
 
-				var expectedOutputContent []byte
-				if test.updatedOutputFile == nil || test.originalOutputFile.fileName == test.updatedOutputFile.fileName {
-					if test.updatedOutputFile == nil {
-						expectedOutputContent, err = ioutil.ReadAll(test.originalOutputFile.reader)
-					} else {
-						expectedOutputContent, err = ioutil.ReadAll(test.updatedOutputFile.reader)
-					}
-					assert.Nil(t, err)
+				var expectedOutputFileReader io.Reader
+				if test.updatedOutputFile != nil {
+					expectedOutputFileReader = test.updatedOutputFile.reader
 				} else {
-					_, found := checkObject(t, "problems", fmt.Sprintf("%d/output/%s", problem.ID, test.originalOutputFile.fileName))
-					assert.False(t, found)
-					expectedOutputContent, err = ioutil.ReadAll(test.updatedOutputFile.reader)
-					assert.Nil(t, err)
+					expectedOutputFileReader = test.originalOutputFile.reader
 				}
-				storageOutputContent, found := checkObject(t, "problems", fmt.Sprintf("%d/output/%s", problem.ID, databaseTestCase.OutputFileName))
-				assert.True(t, found)
-				assert.Equal(t, expectedOutputContent, storageOutputContent)
+				expectedOutputContent, err := ioutil.ReadAll(expectedOutputFileReader)
+				assert.Nil(t, err)
+				assert.Equal(t, expectedOutputContent, getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID)))
 
 				resp := response.AdminUpdateTestCaseResponse{}
 				mustJsonDecode(httpResp, &resp)
