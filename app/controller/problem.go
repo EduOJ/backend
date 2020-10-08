@@ -38,18 +38,13 @@ func GetProblem(c echo.Context) error {
 }
 
 func GetProblems(c echo.Context) error {
+	// TODO: merge this with GetProblem.
 	req := request.GetProblemsRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
 
-	query, err := utils.Sorter(base.DB.Model(&models.Problem{}), req.OrderBy, "id")
-	if err != nil {
-		if herr, ok := err.(utils.HttpError); ok {
-			return herr.Response(c)
-		}
-		panic(err)
-	}
+	query := base.DB.Model(&models.Problem{}).Order("id ASC")
 
 	// TODO: check for admins and merge this with adminGetProblems.
 	query = query.Where("public = ?", true)
@@ -61,6 +56,12 @@ func GetProblems(c echo.Context) error {
 
 	var problems []models.Problem
 	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &problems)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
+		}
+		panic(err)
+	}
 	return c.JSON(http.StatusOK, response.GetProblemsResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -103,9 +104,11 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	}
 	contentType := "application/octet-stream"
 	if strings.HasSuffix(problem.AttachmentFileName, ".pdf") {
+		// If file is a pdf, render it in browser.
 		contentType = "application/pdf"
 		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, problem.AttachmentFileName))
 	} else {
+		// If not, download it as a file.
 		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, problem.AttachmentFileName))
 	}
 	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
