@@ -15,12 +15,13 @@ import (
 func TestGetProblem(t *testing.T) {
 	t.Parallel()
 
-	privateProblem := models.Problem{
-		Name:               "test_get_problem_private",
-		AttachmentFileName: "test_get_problem_private_attachment_file_name",
-		LanguageAllowed:    "test_get_problem_private_language_allowed",
+	// publicFalseProblem means a problem which "public" field is false
+	publicFalseProblem := models.Problem{
+		Name:               "test_get_problem_public_false",
+		AttachmentFileName: "test_get_problem_public_false_attachment_file_name",
+		LanguageAllowed:    "test_get_problem_public_false_language_allowed",
 	}
-	assert.Nil(t, base.DB.Create(&privateProblem).Error)
+	assert.Nil(t, base.DB.Create(&publicFalseProblem).Error)
 
 	failTests := []failTest{
 		{
@@ -35,9 +36,9 @@ func TestGetProblem(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
-			name:   "Private",
+			name:   "PublicFalse",
 			method: "GET",
-			path:   base.Echo.Reverse("problem.getProblem", privateProblem.ID),
+			path:   base.Echo.Reverse("problem.getProblem", publicFalseProblem.ID),
 			req:    request.GetProblemRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -73,15 +74,15 @@ func TestGetProblem(t *testing.T) {
 		// TODO: with test case
 	}
 
+	user := createUserForTest(t, "get_problem", 0)
+
 	t.Run("testGetUserSuccess", func(t *testing.T) {
 		t.Parallel()
-		for i, test := range successTests {
-			i := i
+		for _, test := range successTests {
 			test := test
 			t.Run("testGetProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
-				user := createUserForTest(t, "get_problem", i)
 				user.GrantRole("creator", test.problem)
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblem", test.problem.ID), request.GetUserRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},

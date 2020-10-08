@@ -208,21 +208,9 @@ func AdminDeleteProblem(c echo.Context) error {
 		panic(err)
 	}
 
-	if problem.AttachmentFileName != "" {
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/attachment", problem.ID)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
-	}
-
 	testCaseIds := make([]uint, len(problem.TestCases))
 
 	for i, testCase := range problem.TestCases {
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
 		testCaseIds[i] = testCase.ID
 	}
 	utils.PanicIfDBError(base.DB.Delete(&models.TestCase{}, "id IN (?)", testCaseIds), "could not delete test cases")
@@ -283,8 +271,8 @@ func AdminCreateTestCase(c echo.Context) error {
 		panic(errors.Wrap(err, "could not create test case"))
 	}
 
-	utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.Filename))
-	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.Filename))
+	utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 
 	return c.JSON(http.StatusCreated, response.AdminCreateTestCaseResponse{
 		Message: "SUCCESS",
@@ -309,7 +297,7 @@ func AdminGetTestCaseInputFile(c echo.Context) error {
 	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.InputFileName))
 
-	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)))
+	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID)))
 }
 
 func AdminGetTestCaseOutputFile(c echo.Context) error {
@@ -324,7 +312,7 @@ func AdminGetTestCaseOutputFile(c echo.Context) error {
 	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.OutputFileName))
 
-	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)))
+	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID)))
 }
 
 func AdminUpdateTestCase(c echo.Context) error {
@@ -350,17 +338,11 @@ func AdminUpdateTestCase(c echo.Context) error {
 	}
 
 	if inputFile != nil {
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
-		utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%s", problem.ID, inputFile.Filename))
+		utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
 		testCase.InputFileName = inputFile.Filename
 	}
 	if outputFile != nil {
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
-		utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%s", problem.ID, outputFile.Filename))
+		utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 		testCase.OutputFileName = outputFile.Filename
 	}
 
@@ -386,13 +368,6 @@ func AdminDeleteTestCase(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
 	}
 
-	if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
-		panic(errors.Wrap(err, "could not remove object"))
-	}
-	if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
-		panic(errors.Wrap(err, "could not remove object"))
-	}
-
 	utils.PanicIfDBError(base.DB.Delete(&testCase), "could not remove test case")
 
 	return c.JSON(http.StatusOK, response.Response{
@@ -413,12 +388,6 @@ func AdminDeleteTestCases(c echo.Context) error {
 	testCaseIds := make([]uint, len(problem.TestCases))
 
 	for i, testCase := range problem.TestCases {
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/input/%s", problem.ID, testCase.InputFileName)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
-		if err := base.Storage.RemoveObject("problems", fmt.Sprintf("%d/output/%s", problem.ID, testCase.OutputFileName)); err != nil {
-			panic(errors.Wrap(err, "could not remove object"))
-		}
 		testCaseIds[i] = testCase.ID
 	}
 	utils.PanicIfDBError(base.DB.Delete(&models.TestCase{}, "id IN (?)", testCaseIds), "could not delete test cases")
