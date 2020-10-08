@@ -309,7 +309,12 @@ server:
 	if err != nil {
 		panic(err)
 	}
-	utils.MustCreateBuckets("images", "problems")
+	if err := utils.CreateBucket("images"); err != nil {
+		panic(err)
+	}
+	if err := utils.CreateBucket("problems"); err != nil {
+		panic(err)
+	}
 
 	log.Disable()
 
