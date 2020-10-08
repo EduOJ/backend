@@ -56,15 +56,17 @@ func AdminCreateProblem(c echo.Context) error {
 	}
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
 
-	if file != nil {
-		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))
-	}
-
+	// Move this before "Must Put Object" to prevent creating a problem without "creator" if put object fails.
 	var user models.User
 	if user, ok = c.Get("user").(models.User); !ok {
 		panic("could not get user to grant role problem creator")
 	}
 	user.GrantRole("creator", problem)
+
+	if file != nil {
+		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))
+	}
+
 	return c.JSON(http.StatusCreated, response.AdminCreateProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -77,6 +79,7 @@ func AdminCreateProblem(c echo.Context) error {
 }
 
 func AdminGetProblem(c echo.Context) error {
+	// TODO: merge this with GetProblem.
 	problem, err := utils.FindProblem(c.Param("id"), false)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -96,6 +99,7 @@ func AdminGetProblem(c echo.Context) error {
 }
 
 func AdminGetProblems(c echo.Context) error {
+	// TODO: merge this with GetProblem.
 	req := request.AdminGetProblemsRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
@@ -162,12 +166,7 @@ func AdminUpdateProblem(c echo.Context) error {
 		if err != nil {
 			panic(err)
 		}
-		defer func() {
-			err := src.Close()
-			if err != nil {
-				panic(errors.Wrap(err, "could not close file reader"))
-			}
-		}()
+		defer src.Close()
 		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID), src, file.Size, minio.PutObjectOptions{})
 		if err != nil {
 			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
@@ -266,7 +265,7 @@ func AdminCreateTestCase(c echo.Context) error {
 	}
 
 	if inputFile == nil || outputFile == nil {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("LACK_FILE", nil)) // TODO: code name ?
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
 
 	req := request.AdminCreateTestCaseRequest{}

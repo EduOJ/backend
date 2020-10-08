@@ -114,7 +114,7 @@ Common return codes.
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |    PROBLEM_NOT_FOUND    |     错误的problem     |
-|        LACK_FILE        |        缺少文件       |
+|        INVALID_FILE        |        缺少文件       |
 
 #### AdminUpdateTestCase
 |         message         |         结果          |

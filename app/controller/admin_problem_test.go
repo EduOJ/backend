@@ -1197,7 +1197,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("LACK_FILE", nil),
+			resp:       response.ErrorResp("INVALID_FILE", nil),
 		},
 		{
 			name:   "LackOutputFile",
@@ -1214,7 +1214,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("LACK_FILE", nil),
+			resp:       response.ErrorResp("INVALID_FILE", nil),
 		},
 		{
 			name:   "LackBothFile",
@@ -1229,7 +1229,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("LACK_FILE", nil),
+			resp:       response.ErrorResp("INVALID_FILE", nil),
 		},
 		{
 			name:   "PermissionDenied",

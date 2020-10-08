@@ -143,25 +143,6 @@ func TestGetProblems(t *testing.T) {
 		Next     *string            `json:"next"`
 	}
 
-	failTests := []failTest{
-		{
-			name:   "NotAllowedColumn",
-			method: "GET",
-			path:   base.Echo.Reverse("problem.getProblems"),
-			req: request.GetProblemsRequest{
-				Search:  "test_get_problems",
-				OrderBy: "name.ASC",
-			},
-			reqOptions: []reqOption{
-				applyNormalUser,
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("INVALID_ORDER", nil),
-		},
-	}
-
-	runFailTests(t, failTests, "GetProblems")
-
 	successTests := []struct {
 		name     string
 		req      request.GetProblemsRequest
@@ -170,10 +151,9 @@ func TestGetProblems(t *testing.T) {
 		{
 			name: "All",
 			req: request.GetProblemsRequest{
-				Search:  "test_get_problems",
-				Limit:   0,
-				Offset:  0,
-				OrderBy: "",
+				Search: "test_get_problems",
+				Limit:  0,
+				Offset: 0,
 			},
 			respData: respData{
 				Problems: []resource.Problem{
@@ -191,10 +171,9 @@ func TestGetProblems(t *testing.T) {
 		{
 			name: "NonExist",
 			req: request.GetProblemsRequest{
-				Search:  "test_get_problems_non_exist",
-				Limit:   0,
-				Offset:  0,
-				OrderBy: "",
+				Search: "test_get_problems_non_exist",
+				Limit:  0,
+				Offset: 0,
 			},
 			respData: respData{
 				Problems: []resource.Problem{},
@@ -208,10 +187,9 @@ func TestGetProblems(t *testing.T) {
 		{
 			name: "Search",
 			req: request.GetProblemsRequest{
-				Search:  "test_get_problems_2",
-				Limit:   0,
-				Offset:  0,
-				OrderBy: "",
+				Search: "test_get_problems_2",
+				Limit:  0,
+				Offset: 0,
 			},
 			respData: respData{
 				Problems: []resource.Problem{
@@ -225,33 +203,11 @@ func TestGetProblems(t *testing.T) {
 			},
 		},
 		{
-			name: "Sort",
-			req: request.GetProblemsRequest{
-				Search:  "test_get_problems",
-				Limit:   0,
-				Offset:  0,
-				OrderBy: "id.DESC",
-			},
-			respData: respData{
-				Problems: []resource.Problem{
-					*resource.GetProblem(&problem3),
-					*resource.GetProblem(&problem2),
-					*resource.GetProblem(&problem1),
-				},
-				Total:  3,
-				Count:  3,
-				Offset: 0,
-				Prev:   nil,
-				Next:   nil,
-			},
-		},
-		{
 			name: "Paginator",
 			req: request.GetProblemsRequest{
-				Search:  "test_get_problems",
-				Limit:   2,
-				Offset:  0,
-				OrderBy: "",
+				Search: "test_get_problems",
+				Limit:  2,
+				Offset: 0,
 			},
 			respData: respData{
 				Problems: []resource.Problem{
