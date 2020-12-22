@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"strings"
 
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/event"
@@ -44,7 +45,7 @@ func (w *consoleWriter) log(l Log) {
 	if l.Level >= w.Level {
 		fmt.Print(colors[l.Level]("[%s][%s] ▶ %s ",
 			l.Time.Format("15:04:05"),
-			l.Caller,
+			strings.Replace(l.Caller, "github.com/leoleoasd/EduOJBackend/", "", -1),
 			l.Level.String()),
 			l.Message,
 			"\n")
