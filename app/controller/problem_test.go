@@ -8,6 +8,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"net/http"
 	"testing"
 )
@@ -245,4 +246,84 @@ func TestGetProblems(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestGetProblemAttachmentFile(t *testing.T) {
+	problemWithoutAttachmentFile := models.Problem{
+		Name:               "test_get_problem_attachment_file_0",
+		Description:        "test_get_problem_attachment_file_0_desc",
+		AttachmentFileName: "",
+		Public:             true,
+		Privacy:            false,
+		MemoryLimit:        1024,
+		TimeLimit:          1000,
+		LanguageAllowed:    "test_get_problem_attachment_file_0_language_allowed",
+		CompileEnvironment: "test_get_problem_attachment_file_0_compile_environment",
+		CompareScriptID:    1,
+	}
+
+	assert.Nil(t, base.DB.Create(&problemWithoutAttachmentFile).Error)
+	failTests := []failTest{
+		{
+			name:   "NonExistingProblem",
+			method: "GET",
+			path:   base.Echo.Reverse("problem.getProblemAttachmentFile", -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_NOT_FOUND", nil),
+		},
+		{
+			name:   "ProblemWithoutAttachmentFile",
+			method: "GET",
+			path:   base.Echo.Reverse("problem.getProblemAttachmentFile", problemWithoutAttachmentFile.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "GetProblemAttachmentFile")
+
+	successTests := []struct {
+		name                   string
+		file                   *fileContent
+		respContentDisposition string
+	}{
+		{
+			name:                   "PDFFile",
+			file:                   newFileContent("", "test_get_problem_attachment.pdf", "cGRmIGNvbnRlbnQK"),
+			respContentDisposition: `inline; filename="test_get_problem_attachment.pdf"`,
+		},
+		{
+			name:                   "NonPDFFile",
+			file:                   newFileContent("", "test_get_problem_attachment.txt", "dHh0IGNvbnRlbnQK"),
+			respContentDisposition: `attachment; filename="test_get_problem_attachment.txt"`,
+		},
+	}
+
+	t.Run("testGetProblemAttachmentFileSuccess", func(t *testing.T) {
+		t.Parallel()
+		for i, test := range successTests {
+			i := i
+			test := test
+			t.Run("testGetProblemAttachmentFile"+test.name, func(t *testing.T) {
+				t.Parallel()
+				problem, _ := createProblemForTest(t, "test_get_problem_attachment_file", i+1, test.file)
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblemAttachmentFile", problem.ID), nil, applyNormalUser))
+				assert.Equal(t, test.respContentDisposition, httpResp.Header.Get("Content-Disposition"))
+				assert.Equal(t, "public; max-age=31536000", httpResp.Header.Get("Cache-Control"))
+				respBytes, err := ioutil.ReadAll(httpResp.Body)
+				assert.Nil(t, err)
+				fileBytes, err := ioutil.ReadAll(test.file.reader)
+				assert.Equal(t, fileBytes, respBytes)
+			})
+		}
+	})
+
 }

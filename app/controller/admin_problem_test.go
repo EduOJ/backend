@@ -1095,7 +1095,7 @@ func TestAdminGetProblems(t *testing.T) {
 	})
 }
 
-func createProblemForTest(t *testing.T, name string, index int) (problem models.Problem, user models.User) {
+func createProblemForTest(t *testing.T, name string, index int, attachmentFile *fileContent) (problem models.Problem, user models.User) {
 	problem = models.Problem{
 		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, index),
 		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, index),
@@ -1108,9 +1108,19 @@ func createProblemForTest(t *testing.T, name string, index int) (problem models.
 		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, index),
 		CompareScriptID:    1,
 	}
+	if attachmentFile != nil {
+		problem.AttachmentFileName = attachmentFile.fileName
+	}
 	assert.Nil(t, base.DB.Create(&problem).Error)
 	user = createUserForTest(t, name, index)
 	user.GrantRole("creator", problem)
+	if attachmentFile != nil {
+		attachmentBytes, err := ioutil.ReadAll(attachmentFile.reader)
+		assert.Nil(t, err)
+		attachmentFile.reader = bytes.NewReader(attachmentBytes)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), bytes.NewReader(attachmentBytes), int64(len(attachmentBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+	}
 	return
 }
 
@@ -1150,7 +1160,7 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 }
 
 func TestAdminCreateTestCase(t *testing.T) {
-	problem, user := createProblemForTest(t, "admin_create_test_case", 0)
+	problem, user := createProblemForTest(t, "admin_create_test_case", 0, nil)
 
 	failTests := []failTest{
 		{
@@ -1282,7 +1292,7 @@ func TestAdminCreateTestCase(t *testing.T) {
 }
 
 func TestAdminGetTestCaseInputFile(t *testing.T) {
-	problem, user := createProblemForTest(t, "admin_get_test_case_input_file", 0)
+	problem, user := createProblemForTest(t, "admin_get_test_case_input_file", 0, nil)
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
@@ -1345,7 +1355,7 @@ func TestAdminGetTestCaseInputFile(t *testing.T) {
 }
 
 func TestAdminGetTestCaseOutputFile(t *testing.T) {
-	problem, user := createProblemForTest(t, "admin_get_test_case_output_file", 0)
+	problem, user := createProblemForTest(t, "admin_get_test_case_output_file", 0, nil)
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
@@ -1408,7 +1418,7 @@ func TestAdminGetTestCaseOutputFile(t *testing.T) {
 }
 
 func TestAdminUpdateTestCase(t *testing.T) {
-	problem, user := createProblemForTest(t, "admin_update_test_case", 0)
+	problem, user := createProblemForTest(t, "admin_update_test_case", 0, nil)
 
 	failTests := []failTest{
 		{
@@ -1599,7 +1609,7 @@ func TestAdminUpdateTestCase(t *testing.T) {
 }
 
 func TestAdminDeleteTestCase(t *testing.T) {
-	problem, user := createProblemForTest(t, "admin_delete_test_case", 0)
+	problem, user := createProblemForTest(t, "admin_delete_test_case", 0, nil)
 
 	failTests := []failTest{
 		{
@@ -1680,7 +1690,7 @@ func TestAdminDeleteTestCase(t *testing.T) {
 
 func TestAdminDeleteTestCases(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "admin_delete_test_cases", 0)
+	problem, user := createProblemForTest(t, "admin_delete_test_cases", 0, nil)
 
 	failTests := []failTest{
 		{
