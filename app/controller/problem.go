@@ -10,8 +10,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -94,14 +92,7 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	if problem.AttachmentFileName == "" {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
-	object, err := base.Storage.GetObject("problems", fmt.Sprintf("%d/attachment", problem.ID), minio.GetObjectOptions{})
-	if err != nil {
-		panic(err)
-	}
-	_, err = object.Seek(0, io.SeekStart)
-	if err != nil {
-		panic(err)
-	}
+	object := utils.MustGetObject("problems", fmt.Sprintf("%d/attachment", problem.ID))
 	contentType := "application/octet-stream"
 	if strings.HasSuffix(problem.AttachmentFileName, ".pdf") {
 		// If file is a pdf, render it in browser.
@@ -114,4 +105,4 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
 
 	return c.Stream(http.StatusOK, contentType, object)
-} // TODO: add test for this
+}

@@ -145,7 +145,6 @@ Note:
 		}
 		fmt.Println(tree.String())
 
-		log.Info("\n" + tree.String())
 	case "grant-role", "gr":
 		// (grant-role|gr) <user_id|username> <role_id|role_name> [<target_id>]
 		err = validateArgumentsCount(len(args), 3, 4)
