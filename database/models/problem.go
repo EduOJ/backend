@@ -26,6 +26,7 @@ type ProblemTag struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+//TODO: add tag system
 type Problem struct {
 	ID                 uint   `gorm:"primary_key" json:"id"`
 	Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
