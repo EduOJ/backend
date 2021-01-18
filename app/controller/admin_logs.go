@@ -28,7 +28,7 @@ func AdminGetLogs(c echo.Context) error {
 			if err != nil {
 				return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LEVEL", nil))
 			}
-			if l < 0 || l > 4 {
+			if l < 0 || l > 4 { // TODO: replace hard-coded level
 				return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LEVEL", nil))
 			}
 			levels = append(levels, int(l))
