@@ -32,7 +32,7 @@ var FieldTranslations = map[string]string{
 	"TimeLimit":          "运行时间限制",
 	"LanguageAllowed":    "可用语言",
 	"CompileEnvironment": "编译环境",
-	"CompareScriptID":    "比较脚本编号",
+	"CompareScriptID":    "评测脚本",
 	"OldPassword":        "旧密码",
 	"NewPassword":        "新密码",
 }
