@@ -15,8 +15,8 @@ import (
 	"testing"
 )
 
-func getUrlStringPointer(name string, paras map[string]string) *string {
-	thisURL, err := url.ParseRequestURI(base.Echo.Reverse(name))
+func getUrlStringPointer(name string, paras map[string]string, urlParas ...interface{}) *string {
+	thisURL, err := url.ParseRequestURI(base.Echo.Reverse(name, urlParas))
 	if err != nil {
 		panic(err)
 	}

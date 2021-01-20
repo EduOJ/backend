@@ -16,14 +16,29 @@ import (
 )
 
 func GetProblem(c echo.Context) error {
-	// TODO: check for admins and merge this with adminGetProblems.
-	problem, err := utils.FindProblem(c.Param("id"), true)
+	var user models.User
+	var ok bool
+	if user, ok = c.Get("user").(models.User); !ok {
+		panic("could not convert my user into type models.User")
+	}
+	problem, err := utils.FindProblem(c.Param("id"), &user)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
 	// TODO: load test cases
+	if user.Can("read_problem", problem) {
+		return c.JSON(http.StatusOK, response.AdminGetProblemResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemForAdmin `json:"problem"`
+			}{
+				resource.GetProblemForAdmin(problem),
+			},
+		})
+	}
 	return c.JSON(http.StatusOK, response.GetProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -35,8 +50,7 @@ func GetProblem(c echo.Context) error {
 	})
 }
 
-func GetProblems(c echo.Context) error {
-	// TODO: merge this with GetProblem.
+func GetProblems(c echo.Context) error { // TODO: add test for admin check
 	req := request.GetProblemsRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
@@ -44,8 +58,13 @@ func GetProblems(c echo.Context) error {
 
 	query := base.DB.Model(&models.Problem{}).Order("id ASC")
 
-	// TODO: check for admins and merge this with adminGetProblems.
-	query = query.Where("public = ?", true)
+	var user models.User
+	var ok bool
+	if user, ok = c.Get("user").(models.User); !ok {
+		panic("could not convert my user into type models.User")
+	}
+	isAdmin := user.Can("read_problem")
+	query = query.Where("public = ?", !isAdmin)
 
 	if req.Search != "" {
 		id, _ := strconv.ParseUint(req.Search, 10, 64)
@@ -59,6 +78,27 @@ func GetProblems(c echo.Context) error {
 			return herr.Response(c)
 		}
 		panic(err)
+	}
+	if isAdmin {
+		return c.JSON(http.StatusOK, response.AdminGetProblemsResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				Problems []resource.ProblemForAdmin `json:"problems"`
+				Total    int                        `json:"total"`
+				Count    int                        `json:"count"`
+				Offset   int                        `json:"offset"`
+				Prev     *string                    `json:"prev"`
+				Next     *string                    `json:"next"`
+			}{
+				Problems: resource.GetProblemForAdminSlice(problems),
+				Total:    total,
+				Count:    len(problems),
+				Offset:   req.Offset,
+				Prev:     prevUrl,
+				Next:     nextUrl,
+			},
+		})
 	}
 	return c.JSON(http.StatusOK, response.GetProblemsResponse{
 		Message: "SUCCESS",
@@ -82,8 +122,12 @@ func GetProblems(c echo.Context) error {
 }
 
 func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
-	// TODO: check for admins
-	problem, err := utils.FindProblem(c.Param("id"), true)
+	var user models.User
+	var ok bool
+	if user, ok = c.Get("user").(models.User); !ok {
+		panic("could not convert my user into type models.User")
+	}
+	problem, err := utils.FindProblem(c.Param("id"), &user)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if err != nil {
