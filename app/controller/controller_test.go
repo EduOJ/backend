@@ -206,7 +206,7 @@ type fieldContent struct {
 type fileContent struct {
 	key      string
 	fileName string
-	reader   io.Reader
+	reader   io.ReadSeeker
 }
 
 func (c *fieldContent) add(w *multipart.Writer) (err error) {
@@ -225,7 +225,10 @@ func (c *fileContent) add(w *multipart.Writer) (err error) {
 	}
 	b, err := ioutil.ReadAll(c.reader)
 	_, err = io.Copy(fw, bytes.NewReader(b))
-	c.reader = bytes.NewReader(b)
+	if err != nil {
+		return err
+	}
+	_, err = c.reader.Seek(0, io.SeekStart)
 	return
 }
 
@@ -241,10 +244,14 @@ func addFieldContentSlice(c []reqContent, fields map[string]string) []reqContent
 }
 
 func newFileContent(key, fileName, base64Data string) *fileContent {
+	b, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding, strings.NewReader(base64Data)))
+	if err != nil {
+		panic(err)
+	}
 	return &fileContent{
 		key:      key,
 		fileName: fileName,
-		reader:   base64.NewDecoder(base64.StdEncoding, strings.NewReader(base64Data)),
+		reader:   bytes.NewReader(b),
 	}
 }
 

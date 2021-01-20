@@ -353,7 +353,7 @@ func GetMigration() *gormigrate.Gormigrate {
 
 				problemString := "problem"
 				problemCreator := Role{
-					Name:   "creator",
+					Name:   "problem_creator",
 					Target: &problemString,
 				}
 				err = tx.Create(&problemCreator).Error
@@ -386,7 +386,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				}
 
 				var problemCreator Role
-				err = tx.Where("name = ? and target = ? ", "creator", "problem").First(&problemCreator).Error
+				err = tx.Where("name = ? and target = ? ", "problem_creator", "problem").First(&problemCreator).Error
 				if err != nil {
 					return
 				}
