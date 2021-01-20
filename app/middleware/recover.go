@@ -19,7 +19,6 @@ func Recover(next echo.HandlerFunc) echo.HandlerFunc {
 				} else {
 					log.Error("controller panics: ", xx)
 				}
-				// TODO: show call stacks to admins.
 				if config.MustGet("debug", false).Value().(bool) {
 					stack := debug.Stack()
 					err = c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", string(stack)))

@@ -3,8 +3,6 @@ package utils
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/labstack/echo/v4"
-	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
@@ -14,20 +12,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-type HttpError struct {
-	Code    int
-	Message string
-	Err     error
-}
-
-func (e HttpError) Error() string {
-	return fmt.Sprintf("[%d]%s", e.Code, e.Message)
-}
-
-func (e HttpError) Response(c echo.Context) error {
-	return c.JSON(e.Code, response.ErrorResp(e.Message, e.Err))
-}
 
 func Paginator(query *gorm.DB, limit, offset int, requestURL *url.URL, output interface{}) (total int, prevUrl, nextUrl *string, err error) {
 	if limit == 0 {

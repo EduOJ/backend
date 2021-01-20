@@ -37,11 +37,7 @@ func GetUser(c echo.Context) error {
 }
 
 func GetMe(c echo.Context) error {
-	var user models.User
-	var ok bool
-	if user, ok = c.Get("user").(models.User); !ok {
-		panic("could not convert my user into type models.User")
-	}
+	user := c.Get("user").(models.User)
 	if !user.RoleLoaded {
 		user.LoadRoles()
 	}
