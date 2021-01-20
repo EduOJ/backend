@@ -4,7 +4,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 )
 
-type AdminCreateProblemResponse struct {
+type CreateProblemResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -33,7 +33,7 @@ type AdminGetProblemsResponse struct {
 	} `json:"data"`
 }
 
-type AdminUpdateProblemResponse struct {
+type UpdateProblemResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -41,7 +41,7 @@ type AdminUpdateProblemResponse struct {
 	} `json:"data"`
 }
 
-type AdminCreateTestCaseResponse struct {
+type CreateTestCaseResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -49,7 +49,7 @@ type AdminCreateTestCaseResponse struct {
 	} `json:"data"`
 }
 
-type AdminUpdateTestCaseResponse struct {
+type UpdateTestCaseResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
