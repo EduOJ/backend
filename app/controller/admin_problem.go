@@ -13,7 +13,6 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -74,49 +73,6 @@ func AdminCreateProblem(c echo.Context) error {
 			*resource.ProblemForAdmin `json:"problem"`
 		}{
 			resource.GetProblemForAdmin(&problem),
-		},
-	})
-}
-
-func AdminGetProblems(c echo.Context) error { // TODO: remove this
-	// TODO: merge this with GetProblem.
-	req := request.AdminGetProblemsRequest{}
-	if err, ok := utils.BindAndValidate(&req, c); !ok {
-		return err
-	}
-
-	query, err := utils.Sorter(base.DB.Model(&models.Problem{}), req.OrderBy, "id")
-	if err != nil {
-		if herr, ok := err.(utils.HttpError); ok {
-			return herr.Response(c)
-		}
-		panic(err)
-	}
-
-	if req.Search != "" {
-		id, _ := strconv.ParseUint(req.Search, 10, 64)
-		query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
-	}
-
-	var problems []models.Problem
-	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &problems)
-	return c.JSON(http.StatusOK, response.AdminGetProblemsResponse{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data: struct {
-			Problems []resource.ProblemForAdmin `json:"problems"`
-			Total    int                        `json:"total"`
-			Count    int                        `json:"count"`
-			Offset   int                        `json:"offset"`
-			Prev     *string                    `json:"prev"`
-			Next     *string                    `json:"next"`
-		}{
-			Problems: resource.GetProblemForAdminSlice(problems),
-			Total:    total,
-			Count:    len(problems),
-			Offset:   req.Offset,
-			Prev:     prevUrl,
-			Next:     nextUrl,
 		},
 	})
 }

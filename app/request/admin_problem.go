@@ -14,16 +14,6 @@ type AdminCreateProblemRequest struct {
 	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
 }
 
-type AdminGetProblemsRequest struct {
-	Search string `json:"search" form:"search" query:"search"`
-
-	Limit  int `json:"limit" form:"limit" query:"limit" validate:"max=100,min=0"`
-	Offset int `json:"offset" form:"offset" query:"offset" validate:"min=0"`
-
-	// OrderBy example: name.DESC
-	OrderBy string `json:"order_by" form:"order_by" query:"order_by"`
-}
-
 type AdminUpdateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
