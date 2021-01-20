@@ -25,7 +25,6 @@ func GetProblem(c echo.Context) error {
 	} else if err != nil {
 		panic(err)
 	}
-	// TODO: load test cases
 	if user.Can("read_problem", problem) {
 		return c.JSON(http.StatusOK, response.AdminGetProblemResponse{
 			Message: "SUCCESS",
@@ -48,7 +47,7 @@ func GetProblem(c echo.Context) error {
 	})
 }
 
-func GetProblems(c echo.Context) error { // TODO: add test for admin check
+func GetProblems(c echo.Context) error {
 	req := request.GetProblemsRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err

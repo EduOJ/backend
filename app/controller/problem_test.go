@@ -26,6 +26,70 @@ func getObjectContent(t *testing.T, bucketName, objectName string) (content []by
 	return
 }
 
+func createProblemForTest(t *testing.T, name string, index int, attachmentFile *fileContent) (problem models.Problem, user models.User) {
+	problem = models.Problem{
+		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, index),
+		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, index),
+		AttachmentFileName: "",
+		Public:             true,
+		Privacy:            false,
+		MemoryLimit:        1024,
+		TimeLimit:          1000,
+		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d", name, index),
+		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, index),
+		CompareScriptID:    1,
+	}
+	if attachmentFile != nil {
+		problem.AttachmentFileName = attachmentFile.fileName
+	}
+	assert.Nil(t, base.DB.Create(&problem).Error)
+	user = createUserForTest(t, name, index)
+	user.GrantRole("creator", problem)
+	if attachmentFile != nil {
+		attachmentBytes, err := ioutil.ReadAll(attachmentFile.reader)
+		assert.Nil(t, err)
+		attachmentFile.reader = bytes.NewReader(attachmentBytes)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), bytes.NewReader(attachmentBytes), int64(len(attachmentBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+	}
+	return
+}
+
+func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inputFile, outputFile *fileContent) (testCase models.TestCase) {
+	var inputFileName, outputFileName string
+
+	if inputFile != nil {
+		inputFileName = inputFile.fileName
+	}
+	if outputFile != nil {
+		outputFileName = outputFile.fileName
+	}
+
+	testCase = models.TestCase{
+		Score:          score,
+		InputFileName:  inputFileName,
+		OutputFileName: outputFileName,
+	}
+	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error)
+
+	if inputFile != nil {
+		inputBytes, err := ioutil.ReadAll(inputFile.reader)
+		assert.Nil(t, err)
+		inputFile.reader = bytes.NewReader(inputBytes)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+	}
+	if outputFile != nil {
+		outputBytes, err := ioutil.ReadAll(outputFile.reader)
+		assert.Nil(t, err)
+		outputFile.reader = bytes.NewReader(outputBytes)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+	}
+
+	return
+}
+
 func TestGetProblem(t *testing.T) {
 	t.Parallel()
 
@@ -598,7 +662,7 @@ func TestCreateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "CompareScriptID",
 					"reason":      "required",
-					"translation": "比较脚本编号为必填字段",
+					"translation": "评测脚本为必填字段",
 				},
 			}),
 		},
@@ -804,7 +868,7 @@ func TestUpdateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "CompareScriptID",
 					"reason":      "required",
-					"translation": "比较脚本编号为必填字段",
+					"translation": "评测脚本为必填字段",
 				},
 			}),
 		},
@@ -1303,70 +1367,6 @@ func TestDeleteProblem(t *testing.T) {
 			})
 		}
 	})
-}
-
-func createProblemForTest(t *testing.T, name string, index int, attachmentFile *fileContent) (problem models.Problem, user models.User) {
-	problem = models.Problem{
-		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, index),
-		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, index),
-		AttachmentFileName: "",
-		Public:             true,
-		Privacy:            false,
-		MemoryLimit:        1024,
-		TimeLimit:          1000,
-		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d", name, index),
-		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, index),
-		CompareScriptID:    1,
-	}
-	if attachmentFile != nil {
-		problem.AttachmentFileName = attachmentFile.fileName
-	}
-	assert.Nil(t, base.DB.Create(&problem).Error)
-	user = createUserForTest(t, name, index)
-	user.GrantRole("creator", problem)
-	if attachmentFile != nil {
-		attachmentBytes, err := ioutil.ReadAll(attachmentFile.reader)
-		assert.Nil(t, err)
-		attachmentFile.reader = bytes.NewReader(attachmentBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), bytes.NewReader(attachmentBytes), int64(len(attachmentBytes)), minio.PutObjectOptions{})
-		assert.Nil(t, err)
-	}
-	return
-}
-
-func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inputFile, outputFile *fileContent) (testCase models.TestCase) {
-	var inputFileName, outputFileName string
-
-	if inputFile != nil {
-		inputFileName = inputFile.fileName
-	}
-	if outputFile != nil {
-		outputFileName = outputFile.fileName
-	}
-
-	testCase = models.TestCase{
-		Score:          score,
-		InputFileName:  inputFileName,
-		OutputFileName: outputFileName,
-	}
-	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error)
-
-	if inputFile != nil {
-		inputBytes, err := ioutil.ReadAll(inputFile.reader)
-		assert.Nil(t, err)
-		inputFile.reader = bytes.NewReader(inputBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
-		assert.Nil(t, err)
-	}
-	if outputFile != nil {
-		outputBytes, err := ioutil.ReadAll(outputFile.reader)
-		assert.Nil(t, err)
-		outputFile.reader = bytes.NewReader(outputBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
-		assert.Nil(t, err)
-	}
-
-	return
 }
 
 func TestCreateTestCase(t *testing.T) {
@@ -1880,7 +1880,7 @@ func TestDeleteTestCase(t *testing.T) {
 			newFileContent("output_file", "test_delete_test_case_0.out", "b3V0cHV0IHRleHQK"),
 		)
 
-		req := makeReq(t, "DELETE", base.Echo.Reverse("problem.deleteTestCases", problem.ID, testCase.ID), request.DeleteTestCaseRequest{}, headerOption{
+		req := makeReq(t, "DELETE", base.Echo.Reverse("problem.deleteTestCase", problem.ID, testCase.ID), request.DeleteTestCaseRequest{}, headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 		})
 		httpResp := makeResp(req)

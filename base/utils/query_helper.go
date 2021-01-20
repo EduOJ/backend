@@ -137,7 +137,7 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	if !problem.Public && user != nil && !user.Can("read_problem", problem) {
 		return nil, gorm.ErrRecordNotFound
 	}
-	problem.LoadTestCases() // TODO: query once ?
+	problem.LoadTestCases()
 	return &problem, nil
 }
 
