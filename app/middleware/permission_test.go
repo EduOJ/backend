@@ -187,23 +187,13 @@ func TestHasPermission(t *testing.T) {
 		userGroups[i] = e.Group("/"+user.Username, setUser(user))
 		for _, permTest := range permTests {
 			if permTest.targetType == nil {
-				userGroups[i].POST("/"+permTest.path, testController, middleware.HasPermission(permTest.permName))
+				userGroups[i].POST("/"+permTest.path, testController, middleware.HasPermission(middleware.UnscopedPermission{P: permTest.permName}))
 			} else {
-				userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(permTest.permName, *permTest.targetType))
+				userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(middleware.ScopedPermission{P: permTest.permName, T: *permTest.targetType}))
 			}
 		}
 	}
-	e.POST("/noUser/test_perm_global", testController, middleware.HasPermission("testPerm"))
-	e.POST("/testHasPermAdministrator/testMultipleTarget",
-		testController,
-		setUser(testHasPermAdministrator),
-		middleware.HasPermission("all", "targetA", "targetB"))
-	e.POST("/testNonUser", testController, func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Set("user", "nonUser")
-			return next(c)
-		}
-	}, middleware.HasPermission("all"))
+	e.POST("/noUser/test_perm_global", testController, middleware.HasPermission(middleware.UnscopedPermission{P: "testPerm"}))
 
 	for _, user := range users {
 		t.Run(user.Username, func(t *testing.T) {
@@ -231,33 +221,6 @@ func TestHasPermission(t *testing.T) {
 			}
 		})
 	}
-
-	t.Run("testNoUser", func(t *testing.T) {
-		t.Parallel()
-		resp := response.Response{}
-		httpResp := makeResp(makeReq(t, "POST", "/noUser/test_perm_global", nil), e)
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
-		assert.Equal(t, response.MakeInternalErrorResp(), resp)
-	})
-
-	t.Run("testAdministrator", func(t *testing.T) {
-		t.Parallel()
-		httpResp := makeResp(makeReq(t, "POST", "/testHasPermAdministrator/testMultipleTarget", nil), e)
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
-		assert.Equal(t, response.MakeInternalErrorResp(), resp)
-	})
-
-	t.Run("testAdministrator", func(t *testing.T) {
-		t.Parallel()
-		httpResp := makeResp(makeReq(t, "POST", "/testNonUser", nil), e)
-		resp := response.Response{}
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, http.StatusInternalServerError, httpResp.StatusCode)
-		assert.Equal(t, response.MakeInternalErrorResp(), resp)
-	})
 
 	t.Run("testIllegalRouteParam", func(t *testing.T) {
 		t.Parallel()
