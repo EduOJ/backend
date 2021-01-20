@@ -51,8 +51,6 @@ func Register(e *echo.Echo) {
 
 	admin.POST("/problem",
 		controller.AdminCreateProblem, middleware.HasPermission("manage_problem")).Name = "admin.problem.createProblem"
-	admin.GET("/problem/:id",
-		controller.AdminGetProblem, middleware.HasPermission("read_problem", "problem")).Name = "admin.problem.getProblem" // TODO: merge this API into GetProblem
 	admin.GET("/problems",
 		controller.AdminGetProblems, middleware.HasPermission("read_problem")).Name = "admin.problem.getProblems" // TODO: merge this API into GetProblems
 	admin.PUT("/problem/:id",

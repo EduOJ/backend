@@ -91,10 +91,6 @@ Common return codes.
 
 #### AdminCreateProblem
 
-#### AdminGetProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 #### AdminGetProblems
 |         message         |         结果         |
 |:-----------------------:|:-------------------:|
