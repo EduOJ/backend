@@ -118,12 +118,11 @@ func FindUser(id string) (*models.User, error) {
 	return &user, nil
 }
 
-func FindProblem(id string, publicOnly bool) (*models.Problem, error) {
+// This function checks if the user has permission to get problems which are not public.
+// nil user pointer is regarded as admin(skip the permission judgement).
+func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	problem := models.Problem{}
 	query := base.DB
-	if publicOnly {
-		query = query.Model(&models.Problem{}).Where("public = ?", true)
-	}
 	err := query.Where("id = ?", id).First(&problem).Error
 	if err != nil {
 		err = query.Where("name = ?", id).First(&problem).Error
@@ -135,12 +134,17 @@ func FindProblem(id string, publicOnly bool) (*models.Problem, error) {
 			}
 		}
 	}
+	if !problem.Public && user != nil && !user.Can("read_problem", problem) {
+		return nil, gorm.ErrRecordNotFound
+	}
 	problem.LoadTestCases() // TODO: query once ?
 	return &problem, nil
 }
 
-func FindTestCase(problemId string, testCaseIdStr string, publicOnly bool) (*models.TestCase, *models.Problem, error) {
-	problem, err := FindProblem(problemId, publicOnly)
+// This function checks if the user has permission to get problems which are not public.
+// nil user pointer is regarded as admin(skip the permission judgement).
+func FindTestCase(problemId string, testCaseIdStr string, user *models.User) (*models.TestCase, *models.Problem, error) {
+	problem, err := FindProblem(problemId, user)
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil, err
 	} else if err != nil {

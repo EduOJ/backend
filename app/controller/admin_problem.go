@@ -78,27 +78,7 @@ func AdminCreateProblem(c echo.Context) error {
 	})
 }
 
-func AdminGetProblem(c echo.Context) error {
-	// TODO: merge this with GetProblem.
-	problem, err := utils.FindProblem(c.Param("id"), false)
-	if err == gorm.ErrRecordNotFound {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-	} else if err != nil {
-		panic(err)
-	}
-
-	return c.JSON(http.StatusOK, response.AdminGetProblemResponse{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data: struct {
-			*resource.ProblemForAdmin `json:"problem"`
-		}{
-			resource.GetProblemForAdmin(problem),
-		},
-	})
-}
-
-func AdminGetProblems(c echo.Context) error {
+func AdminGetProblems(c echo.Context) error { // TODO: remove this
 	// TODO: merge this with GetProblem.
 	req := request.AdminGetProblemsRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
@@ -146,7 +126,7 @@ func AdminUpdateProblem(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-	problem, err := utils.FindProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -201,7 +181,7 @@ func AdminUpdateProblem(c echo.Context) error {
 }
 
 func AdminDeleteProblem(c echo.Context) error {
-	problem, err := utils.FindProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
@@ -235,7 +215,7 @@ func AdminDeleteProblem(c echo.Context) error {
 
 func AdminCreateTestCase(c echo.Context) error {
 
-	problem, err := utils.FindProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
@@ -286,7 +266,7 @@ func AdminCreateTestCase(c echo.Context) error {
 }
 
 func AdminGetTestCaseInputFile(c echo.Context) error {
-	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if testCase == nil {
@@ -301,7 +281,7 @@ func AdminGetTestCaseInputFile(c echo.Context) error {
 }
 
 func AdminGetTestCaseOutputFile(c echo.Context) error {
-	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if testCase == nil {
@@ -316,7 +296,7 @@ func AdminGetTestCaseOutputFile(c echo.Context) error {
 }
 
 func AdminUpdateTestCase(c echo.Context) error {
-	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if testCase == nil {
@@ -361,7 +341,7 @@ func AdminUpdateTestCase(c echo.Context) error {
 }
 
 func AdminDeleteTestCase(c echo.Context) error {
-	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), false)
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if testCase == nil {
@@ -378,7 +358,7 @@ func AdminDeleteTestCase(c echo.Context) error {
 }
 
 func AdminDeleteTestCases(c echo.Context) error {
-	problem, err := utils.FindProblem(c.Param("id"), false)
+	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if err != nil {
