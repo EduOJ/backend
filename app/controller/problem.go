@@ -16,11 +16,7 @@ import (
 )
 
 func GetProblem(c echo.Context) error {
-	var user models.User
-	var ok bool
-	if user, ok = c.Get("user").(models.User); !ok {
-		panic("could not convert my user into type models.User")
-	}
+	user, _ := c.Get("user").(models.User)
 	problem, err := utils.FindProblem(c.Param("id"), &user)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))

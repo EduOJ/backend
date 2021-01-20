@@ -148,11 +148,10 @@ func TestGetProblem(t *testing.T) {
 		},
 	}
 
-	user := createUserForTest(t, "get_problem", 0)
-
 	t.Run("testGetProblemSuccess", func(t *testing.T) {
 		t.Parallel()
-		for _, test := range successTests {
+		for i, test := range successTests {
+			i := i
 			test := test
 			t.Run("testGetProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
@@ -160,6 +159,7 @@ func TestGetProblem(t *testing.T) {
 				for j := range test.testCases {
 					assert.Nil(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]).Error)
 				}
+				user := createUserForTest(t, "get_problem", i)
 				if test.isAdmin {
 					user.GrantRole("creator", test.problem)
 				}
@@ -243,6 +243,7 @@ func TestGetProblems(t *testing.T) {
 		name     string
 		req      request.GetProblemsRequest
 		respData respData
+		isAdmin  bool
 	}{
 		{
 			name: "All",
@@ -263,6 +264,28 @@ func TestGetProblems(t *testing.T) {
 				Prev:   nil,
 				Next:   nil,
 			},
+			isAdmin: false,
+		},
+		{
+			name: "AllWithAdminPermission",
+			req: request.GetProblemsRequest{
+				Search: "test_get_problems",
+				Limit:  0,
+				Offset: 0,
+			},
+			respData: respData{
+				Problems: []resource.Problem{
+					*resource.GetProblem(&problem1),
+					*resource.GetProblem(&problem2),
+					*resource.GetProblem(&problem3),
+				},
+				Total:  3,
+				Count:  3,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+			isAdmin: true,
 		},
 		{
 			name: "NonExist",
@@ -279,6 +302,7 @@ func TestGetProblems(t *testing.T) {
 				Prev:     nil,
 				Next:     nil,
 			},
+			isAdmin: false,
 		},
 		{
 			name: "Search",
@@ -297,6 +321,7 @@ func TestGetProblems(t *testing.T) {
 				Prev:   nil,
 				Next:   nil,
 			},
+			isAdmin: false,
 		},
 		{
 			name: "Paginator",
@@ -319,16 +344,24 @@ func TestGetProblems(t *testing.T) {
 					"offset": "2",
 				}),
 			},
+			isAdmin: false,
 		},
 	}
 
 	t.Run("testGetProblemsSuccess", func(t *testing.T) {
 		t.Parallel()
-		for _, test := range successTests {
+		for i, test := range successTests {
+			i := i
 			test := test
 			t.Run("testGetProblems"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblems"), test.req, applyNormalUser))
+				user := createUserForTest(t, "get_problems", i)
+				if test.isAdmin {
+					user.GrantRole("creator")
+				}
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblems"), test.req, headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+				}))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
