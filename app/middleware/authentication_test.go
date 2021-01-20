@@ -26,7 +26,31 @@ func testController(context echo.Context) error {
 	})
 }
 
-func TestAuthenticationAndLoginCheck(t *testing.T) {
+func testAllowGuestController(context echo.Context) error {
+	user := context.Get("user")
+	u, _ := user.(models.User)
+	return context.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			Username   string
+			Nickname   string
+			Email      string
+			Password   string
+			RoleLoaded bool
+			Roles      []models.UserHasRole
+		}{
+			Username:   u.Username,
+			Nickname:   u.Nickname,
+			Email:      u.Email,
+			Password:   u.Password,
+			RoleLoaded: u.RoleLoaded,
+			Roles:      u.Roles,
+		},
+	})
+}
+
+func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 	t.Parallel()
 	e := echo.New()
 	httpSuccessResponse := response.Response{
@@ -38,6 +62,7 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 	e.Use(middleware.Authentication)
 	e.POST("/test_authentication", testController)
 	e.POST("/test_loginCheck", testController, middleware.Logged)
+	e.POST("/test_allowGuest", testAllowGuestController, middleware.AllowGuest)
 
 	testUser := models.User{
 		Username: "testAuthenticationMiddle",
@@ -176,5 +201,52 @@ func TestAuthenticationAndLoginCheck(t *testing.T) {
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		jsonEQ(t, responseWithUser(activeToken.User), resp)
+	})
+
+	t.Run("testAllowGuestWithoutUser", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "POST", "/test_allowGuest", nil), e)
+		resp := struct {
+			Message string      `json:"message"`
+			Error   interface{} `json:"error"`
+			Data    struct {
+				Username   string
+				Nickname   string
+				Email      string
+				Password   string
+				RoleLoaded bool
+				Roles      []models.UserHasRole
+			}
+		}{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.True(t, resp.Data.RoleLoaded)
+		assert.Equal(t, []models.UserHasRole{}, resp.Data.Roles)
+	})
+
+	t.Run("testAllowGuestWithUser", func(t *testing.T) {
+		t.Parallel()
+		req := makeReq(t, "POST", "/test_allowGuest", nil)
+		req.Header.Set("Authorization", activeToken.Token)
+		httpResp := makeResp(req, e)
+		resp := struct {
+			Message string      `json:"message"`
+			Error   interface{} `json:"error"`
+			Data    struct {
+				Username   string
+				Nickname   string
+				Email      string
+				Password   string
+				RoleLoaded bool
+				Roles      []models.UserHasRole
+			}
+		}{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		expectUser := activeToken.User
+		assert.Equal(t, expectUser.Username, resp.Data.Username)
+		assert.Equal(t, expectUser.Nickname, resp.Data.Nickname)
+		assert.Equal(t, expectUser.Email, resp.Data.Email)
+		assert.Equal(t, expectUser.Password, resp.Data.Password)
 	})
 }
