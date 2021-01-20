@@ -20,7 +20,10 @@ import (
 
 var inputTextBase64 = "aW5wdXQgdGV4dAo="
 var outputTextBase64 = "b3V0cHV0IHRleHQK"
+var newInputTextBase64 = "bmV3IGlucHV0IHRleHQK"
+var newOutputTextBase64 = "bmV3IG91dHB1dCB0ZXh0"
 var attachmentFileBase64 = "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"
+var newAttachmentFileBase64 = "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdAo="
 
 func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
 	obj, err := base.Storage.GetObject(bucketName, objectName, minio.GetObjectOptions{})
@@ -992,7 +995,7 @@ func TestUpdateProblem(t *testing.T) {
 				TimeLimit:       2000,
 				CompareScriptID: 2,
 			},
-			updatedAttachment: newFileContent("attachment_file", "test_update_problem_attachment_40", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
+			updatedAttachment: newFileContent("attachment_file", "test_update_problem_attachment_40", newAttachmentFileBase64),
 			testCases:         nil,
 		},
 		{
@@ -1031,7 +1034,7 @@ func TestUpdateProblem(t *testing.T) {
 				CompareScriptID: 2,
 			},
 			originalAttachment: newFileContent("attachment_file", "test_update_problem_attachment_5", attachmentFileBase64),
-			updatedAttachment:  newFileContent("attachment_file", "test_update_problem_attachment_50", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
+			updatedAttachment:  newFileContent("attachment_file", "test_update_problem_attachment_50", newAttachmentFileBase64),
 			testCases:          nil,
 		},
 		{
@@ -1717,7 +1720,7 @@ func TestUpdateTestCase(t *testing.T) {
 			updatedScore:       100,
 			originalInputFile:  newFileContent("input_file", "test_update_test_case_2.in", inputTextBase64),
 			originalOutputFile: newFileContent("output_file", "test_update_test_case_2.out", outputTextBase64),
-			updatedInputFile:   newFileContent("input_file", "test_update_test_case_20.in", "bmV3IGlucHV0IHRleHQ"),
+			updatedInputFile:   newFileContent("input_file", "test_update_test_case_20.in", newInputTextBase64),
 			updatedOutputFile:  nil,
 			expectedTestCase: models.TestCase{
 				ProblemID:      problem.ID,
@@ -1747,8 +1750,8 @@ func TestUpdateTestCase(t *testing.T) {
 			updatedScore:       100,
 			originalInputFile:  newFileContent("input_file", "test_update_test_case_4.in", inputTextBase64),
 			originalOutputFile: newFileContent("output_file", "test_update_test_case_4.out", outputTextBase64),
-			updatedInputFile:   newFileContent("input_file", "test_update_test_case_40.in", "bmV3IGlucHV0IHRleHQ"),
-			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_40.out", "bmV3IG91dHB1dCB0ZXh0"),
+			updatedInputFile:   newFileContent("input_file", "test_update_test_case_40.in", newInputTextBase64),
+			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_40.out", newOutputTextBase64),
 			expectedTestCase: models.TestCase{
 				ProblemID:      problem.ID,
 				Score:          100,
