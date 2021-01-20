@@ -50,11 +50,11 @@ func Register(e *echo.Echo) {
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.createImage"
 
 	admin.POST("/problem",
-		controller.AdminCreateProblem, middleware.HasPermission("manage_problem")).Name = "admin.problem.createProblem"
+		controller.CreateProblem, middleware.HasPermission("manage_problem")).Name = "problem.createProblem"
 	admin.PUT("/problem/:id",
-		controller.AdminUpdateProblem, middleware.HasPermission("manage_problem", "problem")).Name = "admin.problem.updateProblem"
+		controller.UpdateProblem, middleware.HasPermission("manage_problem", "problem")).Name = "problem.updateProblem"
 	admin.DELETE("/problem/:id",
-		controller.AdminDeleteProblem, middleware.HasPermission("manage_problem", "problem")).Name = "admin.problem.deleteProblem"
+		controller.DeleteProblem, middleware.HasPermission("manage_problem", "problem")).Name = "problem.deleteProblem"
 
 	api.GET("/problem/:id", controller.GetProblem).Name = "problem.getProblem"
 	api.GET("/problems", controller.GetProblems).Name = "problem.getProblems"
@@ -62,24 +62,24 @@ func Register(e *echo.Echo) {
 	api.GET("/problem/:id/attachment_file", controller.GetProblemAttachmentFile).Name = "problem.getProblemAttachmentFile"
 
 	admin.POST("/problem/:id/test_case",
-		controller.AdminCreateTestCase,
-		middleware.HasPermission("manage_problem", "problem")).Name = "admin.problem.createTestCase"
+		controller.CreateTestCase,
+		middleware.HasPermission("manage_problem", "problem")).Name = "problem.createTestCase"
 	admin.PUT("/problem/:id/test_case/:test_case_id",
-		controller.AdminUpdateTestCase,
-		middleware.HasPermission("manage_problem", "problem")).Name = "admin.problem.updateTestCase"
+		controller.UpdateTestCase,
+		middleware.HasPermission("manage_problem", "problem")).Name = "problem.updateTestCase"
 	admin.DELETE("/problem/:id/test_case/all",
-		controller.AdminDeleteTestCases,
-		middleware.HasPermission("manage_problem", "problem")).Name = "admin.problem.deleteTestCases"
+		controller.DeleteTestCases,
+		middleware.HasPermission("manage_problem", "problem")).Name = "problem.deleteTestCases"
 	admin.DELETE("/problem/:id/test_case/:test_case_id",
-		controller.AdminDeleteTestCase,
-		middleware.HasPermission("manage_problem", "problem")).Name = "admin.problem.deleteTestCase"
+		controller.DeleteTestCase,
+		middleware.HasPermission("manage_problem", "problem")).Name = "problem.deleteTestCase"
 
 	admin.GET("/problem/:id/test_case/:test_case_id/input_file",
-		controller.AdminGetTestCaseInputFile,
-		middleware.HasPermission("read_problem", "problem")).Name = "admin.problem.getTestCaseInputFile"
+		controller.GetTestCaseInputFile,
+		middleware.HasPermission("read_problem", "problem")).Name = "problem.getTestCaseInputFile"
 	admin.GET("/problem/:id/test_case/:test_case_id/output_file",
-		controller.AdminGetTestCaseOutputFile,
-		middleware.HasPermission("read_problem", "problem")).Name = "admin.problem.getTestCaseOutputFile"
+		controller.GetTestCaseOutputFile,
+		middleware.HasPermission("read_problem", "problem")).Name = "problem.getTestCaseOutputFile"
 
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission("read_logs")).Name = "admin.getLogs"
