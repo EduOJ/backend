@@ -18,6 +18,10 @@ import (
 	"testing"
 )
 
+var inputTextBase64 = "aW5wdXQgdGV4dAo="
+var outputTextBase64 = "b3V0cHV0IHRleHQK"
+var attachmentFileBase64 = "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"
+
 func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
 	obj, err := base.Storage.GetObject(bucketName, objectName, minio.GetObjectOptions{})
 	assert.Nil(t, err)
@@ -44,7 +48,7 @@ func createProblemForTest(t *testing.T, name string, index int, attachmentFile *
 	}
 	assert.Nil(t, base.DB.Create(&problem).Error)
 	user = createUserForTest(t, name, index)
-	user.GrantRole("creator", problem)
+	user.GrantRole("problem_creator", problem)
 	if attachmentFile != nil {
 		attachmentBytes, err := ioutil.ReadAll(attachmentFile.reader)
 		assert.Nil(t, err)
@@ -238,7 +242,7 @@ func TestGetProblem(t *testing.T) {
 				}
 				user := createUserForTest(t, "get_problem", i)
 				if test.isAdmin {
-					user.GrantRole("creator", test.problem)
+					user.GrantRole("problem_creator", test.problem)
 				}
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblem", test.problem.ID), request.GetUserRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
@@ -717,7 +721,7 @@ func TestCreateProblem(t *testing.T) {
 				Public:          &boolTrue,
 				Privacy:         &boolFalse,
 			},
-			attachment: newFileContent("attachment_file", "test_create_problem_attachment_file", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			attachment: newFileContent("attachment_file", "test_create_problem_attachment_file", attachmentFileBase64),
 		},
 	}
 	t.Run("TestCreateProblemSuccess", func(t *testing.T) {
@@ -774,7 +778,7 @@ func TestCreateProblem(t *testing.T) {
 						resource.GetProblemForAdmin(&databaseProblem),
 					},
 				}, resp)
-				assert.True(t, user.HasRole("creator", databaseProblem))
+				assert.True(t, user.HasRole("problem_creator", databaseProblem))
 				if test.attachment != nil {
 					storageContent := getObjectContent(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
 					expectedContent, err := ioutil.ReadAll(test.attachment.reader)
@@ -805,7 +809,7 @@ func TestUpdateProblem(t *testing.T) {
 		Password: utils.HashPassword("test_update_problem_user_p1"),
 	}
 	assert.Nil(t, base.DB.Create(&userWithProblem1Perm).Error)
-	userWithProblem1Perm.GrantRole("creator", problem1)
+	userWithProblem1Perm.GrantRole("problem_creator", problem1)
 
 	FailTests := []failTest{
 		{
@@ -1026,7 +1030,7 @@ func TestUpdateProblem(t *testing.T) {
 				TimeLimit:       2000,
 				CompareScriptID: 2,
 			},
-			originalAttachment: newFileContent("attachment_file", "test_update_problem_attachment_5", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			originalAttachment: newFileContent("attachment_file", "test_update_problem_attachment_5", attachmentFileBase64),
 			updatedAttachment:  newFileContent("attachment_file", "test_update_problem_attachment_50", "bmV3IGF0dGFjaG1lbnQgZmlsZSBmb3IgdGVzdA"),
 			testCases:          nil,
 		},
@@ -1065,7 +1069,7 @@ func TestUpdateProblem(t *testing.T) {
 				TimeLimit:       2000,
 				CompareScriptID: 2,
 			},
-			originalAttachment: newFileContent("attachment_file", "test_update_problem_attachment_6", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			originalAttachment: newFileContent("attachment_file", "test_update_problem_attachment_6", attachmentFileBase64),
 			updatedAttachment:  nil,
 			testCases:          nil,
 		},
@@ -1138,7 +1142,7 @@ func TestUpdateProblem(t *testing.T) {
 				}
 				path := base.Echo.Reverse("problem.updateProblem", test.originalProblem.ID)
 				user := createUserForTest(t, "update_problem", i)
-				user.GrantRole("creator", test.originalProblem)
+				user.GrantRole("problem_creator", test.originalProblem)
 				var data interface{}
 				if test.updatedAttachment != nil {
 					data = addFieldContentSlice([]reqContent{
@@ -1257,7 +1261,7 @@ func TestDeleteProblem(t *testing.T) {
 				AttachmentFileName: "test_delete_problem_attachment_2",
 				LanguageAllowed:    "test_delete_problem_2_language_allowed",
 			},
-			originalAttachment: newFileContent("attachment_file", "test_delete_problem_attachment_2", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			originalAttachment: newFileContent("attachment_file", "test_delete_problem_attachment_2", attachmentFileBase64),
 			testCases:          nil,
 		},
 		{
@@ -1279,8 +1283,8 @@ func TestDeleteProblem(t *testing.T) {
 						InputFileName:  "test_delete_problem_3_test_case_1_input_file_name",
 						OutputFileName: "test_delete_problem_3_test_case_1_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_delete_problem_3_test_case_1.in", "aW5wdXQgdGV4dAo="),
-					outputFile: newFileContent("output_file", "test_delete_problem_3_test_case_1.out", "b3V0cHV0IHRleHQK"),
+					inputFile:  newFileContent("input_file", "test_delete_problem_3_test_case_1.in", inputTextBase64),
+					outputFile: newFileContent("output_file", "test_delete_problem_3_test_case_1.out", outputTextBase64),
 				},
 				{
 					testcase: models.TestCase{
@@ -1288,8 +1292,8 @@ func TestDeleteProblem(t *testing.T) {
 						InputFileName:  "test_delete_problem_3_test_case_2_input_file_name",
 						OutputFileName: "test_delete_problem_3_test_case_2_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_delete_problem_3_test_case_2.in", "aW5wdXQgdGV4dAo="),
-					outputFile: newFileContent("output_file", "test_delete_problem_3_test_case_2.out", "b3V0cHV0IHRleHQK"),
+					inputFile:  newFileContent("input_file", "test_delete_problem_3_test_case_2.in", inputTextBase64),
+					outputFile: newFileContent("output_file", "test_delete_problem_3_test_case_2.out", outputTextBase64),
 				},
 			},
 		},
@@ -1300,7 +1304,7 @@ func TestDeleteProblem(t *testing.T) {
 				AttachmentFileName: "test_delete_problem_attachment_4",
 				LanguageAllowed:    "test_delete_problem_4_language_allowed",
 			},
-			originalAttachment: newFileContent("attachment_file", "test_delete_problem_attachment_4", "YXR0YWNobWVudCBmaWxlIGZvciB0ZXN0"),
+			originalAttachment: newFileContent("attachment_file", "test_delete_problem_attachment_4", attachmentFileBase64),
 			testCases: []struct {
 				testcase   models.TestCase
 				inputFile  *fileContent
@@ -1312,8 +1316,8 @@ func TestDeleteProblem(t *testing.T) {
 						InputFileName:  "test_delete_problem_4_test_case_1_input_file_name",
 						OutputFileName: "test_delete_problem_4_test_case_1_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_delete_problem_4_test_case_1.in", "aW5wdXQgdGV4dAo="),
-					outputFile: newFileContent("output_file", "test_delete_problem_4_test_case_1.out", "b3V0cHV0IHRleHQK"),
+					inputFile:  newFileContent("input_file", "test_delete_problem_4_test_case_1.in", inputTextBase64),
+					outputFile: newFileContent("output_file", "test_delete_problem_4_test_case_1.out", outputTextBase64),
 				},
 				{
 					testcase: models.TestCase{
@@ -1321,8 +1325,8 @@ func TestDeleteProblem(t *testing.T) {
 						InputFileName:  "test_delete_problem_4_test_case_2_input_file_name",
 						OutputFileName: "test_delete_problem_4_test_case_2_output_file_name",
 					},
-					inputFile:  newFileContent("input_file", "test_delete_problem_4_test_case_2.in", "aW5wdXQgdGV4dAo="),
-					outputFile: newFileContent("output_file", "test_delete_problem_4_test_case_2.out", "b3V0cHV0IHRleHQK"),
+					inputFile:  newFileContent("input_file", "test_delete_problem_4_test_case_2.in", inputTextBase64),
+					outputFile: newFileContent("output_file", "test_delete_problem_4_test_case_2.out", outputTextBase64),
 				},
 			},
 		},
@@ -1347,7 +1351,7 @@ func TestDeleteProblem(t *testing.T) {
 					test.originalAttachment.reader = bytes.NewReader(b)
 				}
 				user := createUserForTest(t, "delete_problem", i)
-				user.GrantRole("creator", test.problem)
+				user.GrantRole("problem_creator", test.problem)
 				httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("problem.deleteProblem", test.problem.ID), request.DeleteProblemRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
@@ -1360,7 +1364,7 @@ func TestDeleteProblem(t *testing.T) {
 					Data:    nil,
 				}, resp)
 				assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.Problem{}, test.problem.ID).Error)
-				assert.False(t, user.HasRole("creator", test.problem))
+				assert.False(t, user.HasRole("problem_creator", test.problem))
 				for j := range test.testCases {
 					assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.TestCase{}, test.testCases[j].testcase.ID).Error)
 				}
@@ -1378,8 +1382,8 @@ func TestCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createTestCase", -1),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_create_test_case_non_existing_problem.in", "aW5wdXQgdGV4dAo="),
-				newFileContent("output_file", "test_create_test_case_non_existing_problem.out", "b3V0cHV0IHRleHQK"),
+				newFileContent("input_file", "test_create_test_case_non_existing_problem.in", inputTextBase64),
+				newFileContent("output_file", "test_create_test_case_non_existing_problem.out", outputTextBase64),
 			}, map[string]string{
 				"score": "100",
 			}),
@@ -1396,7 +1400,7 @@ func TestCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("output_file", "test_create_test_case_lack_input_file.out", "b3V0cHV0IHRleHQK"),
+				newFileContent("output_file", "test_create_test_case_lack_input_file.out", outputTextBase64),
 			}, map[string]string{
 				"score": "100",
 			}),
@@ -1413,7 +1417,7 @@ func TestCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_create_test_case_lack_output_file.in", "aW5wdXQgdGV4dAo="),
+				newFileContent("input_file", "test_create_test_case_lack_output_file.in", inputTextBase64),
 			}, map[string]string{
 				"score": "100",
 			}),
@@ -1445,8 +1449,8 @@ func TestCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{
-				newFileContent("input_file", "test_create_test_case_permission_denied.in", "aW5wdXQgdGV4dAo="),
-				newFileContent("output_file", "test_create_test_case_permission_denied.out", "b3V0cHV0IHRleHQK"),
+				newFileContent("input_file", "test_create_test_case_permission_denied.in", inputTextBase64),
+				newFileContent("output_file", "test_create_test_case_permission_denied.out", outputTextBase64),
 			}, map[string]string{
 				"score": "100",
 			}),
@@ -1463,8 +1467,8 @@ func TestCreateTestCase(t *testing.T) {
 	t.Run("TestCreateTestCaseSuccess", func(t *testing.T) {
 		t.Parallel()
 		req := makeReq(t, "POST", base.Echo.Reverse("problem.createTestCase", problem.ID), addFieldContentSlice([]reqContent{
-			newFileContent("input_file", "test_create_test_case_success.in", "aW5wdXQgdGV4dAo="),
-			newFileContent("output_file", "test_create_test_case_success.out", "b3V0cHV0IHRleHQK"),
+			newFileContent("input_file", "test_create_test_case_success.in", inputTextBase64),
+			newFileContent("output_file", "test_create_test_case_success.out", outputTextBase64),
 		}, map[string]string{
 			"score": "100",
 		}), headerOption{
@@ -1550,7 +1554,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 	runFailTests(t, failTests, "GetTestCaseInputFile")
 
 	testCase := createTestCaseForTest(t, problem, 51,
-		newFileContent("", "test_get_test_case_input_file_success.in", "aW5wdXQgdGV4dAo="),
+		newFileContent("", "test_get_test_case_input_file_success.in", inputTextBase64),
 		nil,
 	)
 
@@ -1614,7 +1618,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 
 	testCase := createTestCaseForTest(t, problem, 52,
 		nil,
-		newFileContent("", "test_get_test_case_output_file_success.out", "b3V0cHV0IHRleHQK"),
+		newFileContent("", "test_get_test_case_output_file_success.out", outputTextBase64),
 	)
 
 	req := makeReq(t, "GET", base.Echo.Reverse("problem.getTestCaseOutputFile", problem.ID, testCase.ID), request.GetTestCaseOutputFileRequest{}, headerOption{
@@ -1696,8 +1700,8 @@ func TestUpdateTestCase(t *testing.T) {
 			name:               "SuccessWithoutUpdatingFile",
 			originalScore:      0,
 			updatedScore:       100,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_1.in", "aW5wdXQgdGV4dAo="),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_1.out", "b3V0cHV0IHRleHQK"),
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_1.in", inputTextBase64),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_1.out", outputTextBase64),
 			updatedInputFile:   nil,
 			updatedOutputFile:  nil,
 			expectedTestCase: models.TestCase{
@@ -1711,8 +1715,8 @@ func TestUpdateTestCase(t *testing.T) {
 			name:               "SuccessWithUpdatingInputFile",
 			originalScore:      0,
 			updatedScore:       100,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_2.in", "aW5wdXQgdGV4dAo="),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_2.out", "b3V0cHV0IHRleHQK"),
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_2.in", inputTextBase64),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_2.out", outputTextBase64),
 			updatedInputFile:   newFileContent("input_file", "test_update_test_case_20.in", "bmV3IGlucHV0IHRleHQ"),
 			updatedOutputFile:  nil,
 			expectedTestCase: models.TestCase{
@@ -1726,8 +1730,8 @@ func TestUpdateTestCase(t *testing.T) {
 			name:               "SuccessWithUpdatingOutputFile",
 			originalScore:      0,
 			updatedScore:       100,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_3.in", "aW5wdXQgdGV4dAo="),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_3.out", "b3V0cHV0IHRleHQK"),
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_3.in", inputTextBase64),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_3.out", outputTextBase64),
 			updatedInputFile:   nil,
 			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_30.out", "bmV3IG91dHB1dCB0ZXh0"),
 			expectedTestCase: models.TestCase{
@@ -1741,8 +1745,8 @@ func TestUpdateTestCase(t *testing.T) {
 			name:               "SuccessWithUpdatingBothFile",
 			originalScore:      0,
 			updatedScore:       100,
-			originalInputFile:  newFileContent("input_file", "test_update_test_case_4.in", "aW5wdXQgdGV4dAo="),
-			originalOutputFile: newFileContent("output_file", "test_update_test_case_4.out", "b3V0cHV0IHRleHQK"),
+			originalInputFile:  newFileContent("input_file", "test_update_test_case_4.in", inputTextBase64),
+			originalOutputFile: newFileContent("output_file", "test_update_test_case_4.out", outputTextBase64),
 			updatedInputFile:   newFileContent("input_file", "test_update_test_case_40.in", "bmV3IGlucHV0IHRleHQ"),
 			updatedOutputFile:  newFileContent("output_file", "test_update_test_case_40.out", "bmV3IG91dHB1dCB0ZXh0"),
 			expectedTestCase: models.TestCase{
@@ -1826,9 +1830,7 @@ func TestDeleteTestCase(t *testing.T) {
 			name:   "NonExistingProblem",
 			method: "DELETE",
 			path:   base.Echo.Reverse("problem.deleteTestCases", -1, 1),
-			req: request.UpdateTestCaseRequest{
-				Score: 100,
-			},
+			req:    request.DeleteProblemRequest{},
 			reqOptions: []reqOption{
 				headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
@@ -1841,9 +1843,7 @@ func TestDeleteTestCase(t *testing.T) {
 			name:   "NonExistingTestCase",
 			method: "DELETE",
 			path:   base.Echo.Reverse("problem.deleteTestCase", problem.ID, -1),
-			req: request.UpdateTestCaseRequest{
-				Score: 100,
-			},
+			req:    request.DeleteProblemRequest{},
 			reqOptions: []reqOption{
 				headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
@@ -1860,9 +1860,7 @@ func TestDeleteTestCase(t *testing.T) {
 			name:   "PermissionDenied",
 			method: "DELETE",
 			path:   base.Echo.Reverse("problem.deleteTestCases", problem.ID, 1),
-			req: request.UpdateTestCaseRequest{
-				Score: 100,
-			},
+			req:    request.DeleteProblemRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
 			},
@@ -1876,8 +1874,8 @@ func TestDeleteTestCase(t *testing.T) {
 	t.Run("TestDeleteTestCaseSuccess", func(t *testing.T) {
 		t.Parallel()
 		testCase := createTestCaseForTest(t, problem, 72,
-			newFileContent("input_file", "test_delete_test_case_0.in", "aW5wdXQgdGV4dAo="),
-			newFileContent("output_file", "test_delete_test_case_0.out", "b3V0cHV0IHRleHQK"),
+			newFileContent("input_file", "test_delete_test_case_0.in", inputTextBase64),
+			newFileContent("output_file", "test_delete_test_case_0.out", outputTextBase64),
 		)
 
 		req := makeReq(t, "DELETE", base.Echo.Reverse("problem.deleteTestCase", problem.ID, testCase.ID), request.DeleteTestCaseRequest{}, headerOption{
@@ -1907,9 +1905,7 @@ func TestDeleteTestCases(t *testing.T) {
 			name:   "NonExistingProblem",
 			method: "DELETE",
 			path:   base.Echo.Reverse("problem.deleteTestCases", -1),
-			req: request.UpdateTestCaseRequest{
-				Score: 100,
-			},
+			req:    request.DeleteTestCasesRequest{},
 			reqOptions: []reqOption{
 				headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
@@ -1922,9 +1918,7 @@ func TestDeleteTestCases(t *testing.T) {
 			name:   "PermissionDenied",
 			method: "DELETE",
 			path:   base.Echo.Reverse("problem.deleteTestCases", problem.ID),
-			req: request.UpdateTestCaseRequest{
-				Score: 100,
-			},
+			req:    request.DeleteTestCasesRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
 			},
@@ -1939,8 +1933,8 @@ func TestDeleteTestCases(t *testing.T) {
 		t.Parallel()
 		for i := 0; i < 5; i++ {
 			createTestCaseForTest(t, problem, 0,
-				newFileContent("input_file", fmt.Sprintf("test_delete_test_cases_%d.in", i), "aW5wdXQgdGV4dAo="),
-				newFileContent("output_file", fmt.Sprintf("test_delete_test_cases_%d.out", i), "b3V0cHV0IHRleHQK"),
+				newFileContent("input_file", fmt.Sprintf("test_delete_test_cases_%d.in", i), inputTextBase64),
+				newFileContent("output_file", fmt.Sprintf("test_delete_test_cases_%d.out", i), outputTextBase64),
 			)
 		}
 		req := makeReq(t, "DELETE", base.Echo.Reverse("problem.deleteTestCases", problem.ID), request.DeleteTestCasesRequest{}, headerOption{
@@ -1951,6 +1945,6 @@ func TestDeleteTestCases(t *testing.T) {
 		mustJsonDecode(httpResp, &resp)
 		var databaseTestCases []models.TestCase
 		assert.Nil(t, base.DB.Find(&databaseTestCases, "problem_id = ?", problem.ID).Error)
-		assert.Equal(t, []models.TestCase{}, databaseTestCases)
+		assert.Equal(t, 0, len(databaseTestCases))
 	})
 }

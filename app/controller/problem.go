@@ -18,7 +18,7 @@ import (
 )
 
 func GetProblem(c echo.Context) error {
-	user, _ := c.Get("user").(models.User)
+	user := c.Get("user").(models.User)
 	problem, err := utils.FindProblem(c.Param("id"), &user)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -53,13 +53,9 @@ func GetProblems(c echo.Context) error {
 		return err
 	}
 
-	query := base.DB.Model(&models.Problem{}).Order("id ASC")
+	query := base.DB.Model(&models.Problem{}).Order("id ASC") // Force order by id asc.
 
-	var user models.User
-	var ok bool
-	if user, ok = c.Get("user").(models.User); !ok {
-		panic("could not convert my user into type models.User")
-	}
+	user := c.Get("user").(models.User)
 	isAdmin := user.Can("read_problem")
 	if !isAdmin {
 		query = query.Where("public = ?", true)
@@ -121,11 +117,7 @@ func GetProblems(c echo.Context) error {
 }
 
 func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
-	var user models.User
-	var ok bool
-	if user, ok = c.Get("user").(models.User); !ok {
-		panic("could not convert my user into type models.User")
-	}
+	user := c.Get("user").(models.User)
 	problem, err := utils.FindProblem(c.Param("id"), &user)
 	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
@@ -138,11 +130,11 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	object := utils.MustGetObject("problems", fmt.Sprintf("%d/attachment", problem.ID))
 	contentType := "application/octet-stream"
 	if strings.HasSuffix(problem.AttachmentFileName, ".pdf") {
-		// If file is a pdf, render it in browser.
+		// If attachment file is a pdf, render it in browser.
 		contentType = "application/pdf"
 		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, problem.AttachmentFileName))
 	} else {
-		// If not, download it as a file.
+		// If else, download it as a file.
 		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, problem.AttachmentFileName))
 	}
 	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
@@ -189,12 +181,9 @@ func CreateProblem(c echo.Context) error {
 	}
 	utils.PanicIfDBError(base.DB.Create(&problem), "could not create problem")
 
-	// Move this before "Must Put Object" to prevent creating a problem without "creator" if put object fails.
-	var user models.User
-	if user, ok = c.Get("user").(models.User); !ok {
-		panic("could not get user to grant role problem creator")
-	}
-	user.GrantRole("creator", problem)
+	// Move this before "Must Put Object" to prevent creating a problem without "problem_creator" if put object fails.
+	user := c.Get("user").(models.User)
+	user.GrantRole("problem_creator", problem)
 
 	if file != nil {
 		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))

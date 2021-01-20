@@ -21,10 +21,12 @@ All other tests should make it own database and clean it up after running.
 
 Here are the permissions and their descriptions.
 
-|      Name      |            Description            |
-|:--------------:|:---------------------------------:|
-|   read_user    |   the permission to read users    |
-|  manage_user   |  the permission to manage users   |
-|  read_problem  |  the permission to read problems  |
-| manage_problem | the permission to manage problems |
-|   read_logs    |            reda logs.             |
+|         Name         |                                                 Description                                                 |
+|:--------------------:|:-----------------------------------------------------------------------------------------------------------:|
+|      read_user       |                                        the permission to read users                                         |
+|     manage_user      |                                       the permission to manage users                                        |
+|    create_problem    |                                               create problem                                                |
+|    update_problem    | update problem. A scoped update_problem can only update selected problem. unscoped can update all problems. |
+|    delete_problem    |                                      delete a problem. same as above.                                       |
+| read_problem_secrets |                                read sensitive information such as test case.                                |
+|      read_logs       |                                                 read logs.                                                  |

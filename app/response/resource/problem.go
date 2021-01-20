@@ -84,13 +84,14 @@ func (p *ProblemForAdmin) Convert(problem *models.Problem) {
 	p.Name = problem.Name
 	p.Description = problem.Description
 	p.AttachmentFileName = problem.AttachmentFileName
-	p.Public = problem.Public
-	p.Privacy = problem.Privacy
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
 	p.LanguageAllowed = strings.Split(problem.LanguageAllowed, ",")
-	p.CompileEnvironment = problem.CompileEnvironment
 	p.CompareScriptID = problem.CompareScriptID
+
+	p.Public = problem.Public
+	p.Privacy = problem.Privacy
+	p.CompileEnvironment = problem.CompileEnvironment
 
 	p.TestCases = make([]TestCaseForAdmin, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {

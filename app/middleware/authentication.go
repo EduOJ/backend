@@ -48,9 +48,9 @@ func Logged(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// Using this middleware means the controller could accept guest users, whose most information doesn't exist.
-// The only exception is roles information, guest users don't have any permissions or roles.
-// Any User information other than roles SHOULD NOT be read in controllers that use this middleware.
+// Using this middleware means the controller could accept access from guests.
+// The only exception is role information, guest users don't have any permissions or roles.
+// Any user information other than roles SHOULD NOT be read in controllers that use this middleware.
 func AllowGuest(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		guestUser := models.User{
