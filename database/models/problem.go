@@ -57,7 +57,6 @@ func (p Problem) TypeName() string {
 }
 
 func (p *Problem) LoadTestCases() {
-	// TODO: add test for test cases in problem CRUD
 	err := base.DB.Set("gorm:auto_preload", true).Model(p).Related(&p.TestCases).Error
 	if err != nil {
 		panic(err)
