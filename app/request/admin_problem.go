@@ -14,9 +14,6 @@ type AdminCreateProblemRequest struct {
 	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
 }
 
-type AdminGetProblemRequest struct {
-}
-
 type AdminGetProblemsRequest struct {
 	Search string `json:"search" form:"search" query:"search"`
 

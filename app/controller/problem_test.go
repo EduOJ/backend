@@ -37,7 +37,7 @@ func TestGetProblem(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
-			name:   "PublicFalse",
+			name:   "PublicFalseFail",
 			method: "GET",
 			path:   base.Echo.Reverse("problem.getProblem", publicFalseProblem.ID),
 			req:    request.GetProblemRequest{},
@@ -52,15 +52,15 @@ func TestGetProblem(t *testing.T) {
 	runFailTests(t, failTests, "GetProblem")
 
 	successTests := []struct {
-		name       string
-		path       string
-		req        request.GetProblemRequest
-		problem    models.Problem
-		role       models.Role
-		roleTarget models.HasRole
+		name      string
+		path      string
+		req       request.GetProblemRequest
+		problem   models.Problem
+		isAdmin   bool
+		testCases []models.TestCase
 	}{
 		{
-			name: "Success",
+			name: "AdminUserWithoutTestCases",
 			path: "id",
 			req:  request.GetProblemRequest{},
 			problem: models.Problem{
@@ -69,37 +69,131 @@ func TestGetProblem(t *testing.T) {
 				LanguageAllowed:    "test_get_problem_1_language_allowed",
 				Public:             true,
 			},
-			role:       models.Role{},
-			roleTarget: nil,
+			isAdmin:   true,
+			testCases: nil,
 		},
-		// TODO: with test case
+		{
+			name: "NormalUserWithoutTestCases",
+			path: "id",
+			req:  request.GetProblemRequest{},
+			problem: models.Problem{
+				Name:               "test_get_problem_2",
+				AttachmentFileName: "test_get_problem_2_attachment_file_name",
+				LanguageAllowed:    "test_get_problem_2_language_allowed",
+				Public:             true,
+			},
+			isAdmin:   false,
+			testCases: nil,
+		},
+		{
+			name: "PublicFalseSuccess",
+			path: "id",
+			req:  request.GetProblemRequest{},
+			problem: models.Problem{
+				Name:               "test_get_problem_3",
+				AttachmentFileName: "test_get_problem_3_attachment_file_name",
+				LanguageAllowed:    "test_get_problem_3_language_allowed",
+				Public:             false,
+			},
+			isAdmin:   true,
+			testCases: nil,
+		},
+		{
+			name: "AdminUserWithTestCases",
+			path: "id",
+			req:  request.GetProblemRequest{},
+			problem: models.Problem{
+				Name:               "test_admin_get_problem_4",
+				AttachmentFileName: "test_admin_get_problem_4_attachment_file_name",
+				LanguageAllowed:    "test_admin_get_problem_4_language_allowed",
+				Public:             true,
+			},
+			isAdmin: true,
+			testCases: []models.TestCase{
+				{
+					Score:          100,
+					InputFileName:  "test_admin_get_problem_4_test_case_1_input_file_name",
+					OutputFileName: "test_admin_get_problem_4_test_case_1_output_file_name",
+				},
+				{
+					Score:          100,
+					InputFileName:  "test_admin_get_problem_4_test_case_2_input_file_name",
+					OutputFileName: "test_admin_get_problem_4_test_case_2_output_file_name",
+				},
+			},
+		},
+		{
+			name: "NormalUserWithTestCases",
+			path: "id",
+			req:  request.GetProblemRequest{},
+			problem: models.Problem{
+				Name:               "test_admin_get_problem_5",
+				AttachmentFileName: "test_admin_get_problem_5_attachment_file_name",
+				LanguageAllowed:    "test_admin_get_problem_5_language_allowed",
+				Public:             true,
+			},
+			isAdmin: false,
+			testCases: []models.TestCase{
+				{
+					Score:          100,
+					InputFileName:  "test_admin_get_problem_5_test_case_1_input_file_name",
+					OutputFileName: "test_admin_get_problem_5_test_case_1_output_file_name",
+				},
+				{
+					Score:          100,
+					InputFileName:  "test_admin_get_problem_5_test_case_2_input_file_name",
+					OutputFileName: "test_admin_get_problem_5_test_case_2_output_file_name",
+				},
+			},
+		},
 	}
 
 	user := createUserForTest(t, "get_problem", 0)
 
-	t.Run("testGetUserSuccess", func(t *testing.T) {
+	t.Run("testGetProblemSuccess", func(t *testing.T) {
 		t.Parallel()
 		for _, test := range successTests {
 			test := test
 			t.Run("testGetProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
-				user.GrantRole("creator", test.problem)
+				for j := range test.testCases {
+					assert.Nil(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]).Error)
+				}
+				if test.isAdmin {
+					user.GrantRole("creator", test.problem)
+				}
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblem", test.problem.ID), request.GetUserRequest{}, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
-				resp := response.GetProblemResponse{}
-				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-				assert.Equal(t, response.GetProblemResponse{
-					Message: "SUCCESS",
-					Error:   nil,
-					Data: struct {
-						*resource.Problem `json:"problem"`
-					}{
-						resource.GetProblem(&test.problem),
-					},
-				}, resp)
+				if test.isAdmin {
+					resp := response.AdminGetProblemResponse{}
+					expectResp := response.AdminGetProblemResponse{
+						Message: "SUCCESS",
+						Error:   nil,
+						Data: struct {
+							*resource.ProblemForAdmin `json:"problem"`
+						}{
+							resource.GetProblemForAdmin(&test.problem),
+						},
+					}
+					mustJsonDecode(httpResp, &resp)
+					assert.Equal(t, expectResp, resp)
+				} else {
+					resp := response.GetProblemResponse{}
+					expectResp := response.GetProblemResponse{
+						Message: "SUCCESS",
+						Error:   nil,
+						Data: struct {
+							*resource.Problem `json:"problem"`
+						}{
+							resource.GetProblem(&test.problem),
+						},
+					}
+					mustJsonDecode(httpResp, &resp)
+					assert.Equal(t, expectResp, resp)
+				}
 			})
 		}
 	})
@@ -261,8 +355,22 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 		CompileEnvironment: "test_get_problem_attachment_file_0_compile_environment",
 		CompareScriptID:    1,
 	}
-
+	// publicFalseProblem means a problem which "public" field is false
+	publicFalseProblem := models.Problem{
+		Name:               "test_get_problem_attachment_file_1",
+		Description:        "test_get_problem_attachment_file_1_desc",
+		AttachmentFileName: "",
+		Public:             false,
+		Privacy:            false,
+		MemoryLimit:        1024,
+		TimeLimit:          1000,
+		LanguageAllowed:    "test_get_problem_attachment_file_1_language_allowed",
+		CompileEnvironment: "test_get_problem_attachment_file_1_compile_environment",
+		CompareScriptID:    1,
+	}
 	assert.Nil(t, base.DB.Create(&problemWithoutAttachmentFile).Error)
+	assert.Nil(t, base.DB.Create(&publicFalseProblem).Error)
+
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
@@ -285,6 +393,17 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 			},
 			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "PublicFalse",
+			method: "GET",
+			path:   base.Echo.Reverse("problem.getProblemAttachmentFile", publicFalseProblem.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_NOT_FOUND", nil),
 		},
 	}
 
@@ -314,7 +433,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 			test := test
 			t.Run("testGetProblemAttachmentFile"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, _ := createProblemForTest(t, "test_get_problem_attachment_file", i+1, test.file)
+				problem, _ := createProblemForTest(t, "test_get_problem_attachment_file", i+2, test.file)
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblemAttachmentFile", problem.ID), nil, applyNormalUser))
 				assert.Equal(t, test.respContentDisposition, httpResp.Header.Get("Content-Disposition"))
 				assert.Equal(t, "public; max-age=31536000", httpResp.Header.Get("Cache-Control"))
