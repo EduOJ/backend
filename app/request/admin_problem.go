@@ -1,6 +1,6 @@
 package request
 
-type AdminCreateProblemRequest struct {
+type CreateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 	// attachment_file(optional)
@@ -14,7 +14,7 @@ type AdminCreateProblemRequest struct {
 	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
 }
 
-type AdminUpdateProblemRequest struct {
+type UpdateProblemRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 	// attachment_file(optional)
@@ -28,31 +28,31 @@ type AdminUpdateProblemRequest struct {
 	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
 }
 
-type AdminDeleteProblemRequest struct {
+type DeleteProblemRequest struct {
 }
 
-type AdminCreateTestCaseRequest struct {
+type CreateTestCaseRequest struct {
 	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
 	// input_file(required)
 	// output_file(required)
 }
 
-type AdminGetTestCaseInputFileRequest struct {
+type GetTestCaseInputFileRequest struct {
 }
 
-type AdminGetTestCaseOutputFileRequest struct {
+type GetTestCaseOutputFileRequest struct {
 }
 
-type AdminUpdateTestCaseRequest struct {
+type UpdateTestCaseRequest struct {
 	Score uint `json:"score" form:"score" query:"score"` // 0 for 平均分配
 
 	// input_file(optional)
 	// output_file(optional)
 }
 
-type AdminDeleteTestCaseRequest struct {
+type DeleteTestCaseRequest struct {
 }
 
-type AdminDeleteTestCasesRequest struct {
+type DeleteTestCasesRequest struct {
 }
