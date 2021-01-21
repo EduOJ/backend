@@ -100,15 +100,24 @@ func TestHasPermission(t *testing.T) {
 		Email:    "a@e.com",
 		Password: "",
 	}
+	testHasPermUserWithClassAAndGlobalPerm := models.User{
+		Username: "testHasPermUserWithClassAAndGlobalPerm",
+		Nickname: "uwaagp",
+		Email:    "uwaagp@e.com",
+		Password: "",
+	}
 
 	base.DB.Create(&testHasPermUserWithClassAPerm)
 	base.DB.Create(&testHasPermUserWithAllClassAPerms)
 	base.DB.Create(&testHasPermUserWithPerm)
 	base.DB.Create(&testHasPermAdministrator)
+	base.DB.Create(&testHasPermUserWithClassAAndGlobalPerm)
 	testHasPermUserWithClassAPerm.GrantRole(permRole.Name, classA)
 	testHasPermUserWithAllClassAPerms.GrantRole(adminRole.Name, classA)
 	testHasPermUserWithPerm.GrantRole(globalPermRole.Name)
 	testHasPermAdministrator.GrantRole(globalAdminRole.Name)
+	testHasPermUserWithClassAAndGlobalPerm.GrantRole(permRole.Name, classA)
+	testHasPermUserWithClassAAndGlobalPerm.GrantRole(globalPermRole.Name)
 
 	users := []models.User{
 		testHasPermUserWithoutPerms,
@@ -116,6 +125,7 @@ func TestHasPermission(t *testing.T) {
 		testHasPermUserWithAllClassAPerms,
 		testHasPermUserWithPerm,
 		testHasPermAdministrator,
+		testHasPermUserWithClassAAndGlobalPerm,
 	}
 
 	permTests := []struct {
@@ -123,18 +133,23 @@ func TestHasPermission(t *testing.T) {
 		path       string
 		permName   string
 		targetType *string
+		logicMode  string
 		targetID   uint
 	}{
 		{
-			name:     "perm_global",
-			path:     "test_perm_global",
-			permName: "testPerm",
+			name:       "perm_global",
+			path:       "test_perm_global",
+			permName:   "testPerm",
+			targetType: nil,
+			logicMode:  "",
+			targetID:   0,
 		},
 		{
 			name:       "perm_a",
 			path:       "test_perm",
 			permName:   "testPerm",
 			targetType: &dummy,
+			logicMode:  "",
 			targetID:   classA.ID,
 		},
 		{
@@ -142,18 +157,39 @@ func TestHasPermission(t *testing.T) {
 			path:       "test_perm",
 			permName:   "testPerm",
 			targetType: &dummy,
+			logicMode:  "",
 			targetID:   classB.ID,
 		},
 		{
-			name:     "all_global",
-			path:     "test_all_global",
-			permName: "nonExitingPerm",
+			name:       "perm_a_and_global",
+			path:       "test_perm_and",
+			permName:   "testPerm",
+			targetType: &dummy,
+			logicMode:  "and",
+			targetID:   classA.ID,
+		},
+		{
+			name:       "perm_a_or_global",
+			path:       "test_perm_or",
+			permName:   "testPerm",
+			targetType: &dummy,
+			logicMode:  "or",
+			targetID:   classA.ID,
+		},
+		{
+			name:       "all_global",
+			path:       "test_all_global",
+			permName:   "nonExitingPerm",
+			targetType: nil,
+			logicMode:  "",
+			targetID:   0,
 		},
 		{
 			name:       "all_a",
 			path:       "test_all",
 			permName:   "non_exiting",
 			targetType: &dummy,
+			logicMode:  "",
 			targetID:   classA.ID,
 		},
 		{
@@ -161,6 +197,7 @@ func TestHasPermission(t *testing.T) {
 			path:       "test_all",
 			permName:   "nonExitingPerm",
 			targetType: &dummy,
+			logicMode:  "",
 			targetID:   classB.ID,
 		},
 	}
@@ -168,28 +205,52 @@ func TestHasPermission(t *testing.T) {
 	expectedRet := map[string]map[string]bool{
 		"testHasPermUserWithoutPerms": {},
 		"testHasPermUserWithClassAPerm": {
-			"perm_a": true,
+			"perm_a":           true,
+			"perm_a_or_global": true,
 		},
 		"testHasPermUserWithAllClassAPerms": {
-			"perm_a": true,
-			"all_a":  true,
+			"perm_a":           true,
+			"all_a":            true,
+			"perm_a_or_global": true,
 		},
 		"testHasPermUserWithPerm": {
-			"perm_global": true,
+			"perm_global":      true,
+			"perm_a_or_global": true,
 		},
 		"testHasPermAdministrator": {
-			"perm_global": true,
-			"all_global":  true,
+			"perm_global":      true,
+			"all_global":       true,
+			"perm_a_or_global": true,
+		},
+		"testHasPermUserWithClassAAndGlobalPerm": {
+			"perm_a":            true,
+			"perm_global":       true,
+			"perm_a_and_global": true,
+			"perm_a_or_global":  true,
 		},
 	}
+
 	userGroups := make([]*echo.Group, len(users))
 	for i, user := range users {
 		userGroups[i] = e.Group("/"+user.Username, setUser(user))
 		for _, permTest := range permTests {
-			if permTest.targetType == nil {
-				userGroups[i].POST("/"+permTest.path, testController, middleware.HasPermission(middleware.UnscopedPermission{P: permTest.permName}))
-			} else {
-				userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(middleware.ScopedPermission{P: permTest.permName, T: *permTest.targetType}))
+			if permTest.logicMode == "" {
+				if permTest.targetType == nil {
+					userGroups[i].POST("/"+permTest.path, testController, middleware.HasPermission(middleware.UnscopedPermission{P: permTest.permName}))
+				} else {
+					userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(middleware.ScopedPermission{P: permTest.permName, T: *permTest.targetType}))
+				}
+				// We only test logical operations for a global permission and a specified target permission
+			} else if permTest.logicMode == "and" {
+				userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(middleware.AndPermission{
+					A: middleware.ScopedPermission{P: permTest.permName, T: *permTest.targetType},
+					B: middleware.UnscopedPermission{P: permTest.permName},
+				}))
+			} else if permTest.logicMode == "or" {
+				userGroups[i].POST("/"+permTest.path+"/:id", testController, middleware.HasPermission(middleware.OrPermission{
+					A: middleware.ScopedPermission{P: permTest.permName, T: *permTest.targetType},
+					B: middleware.UnscopedPermission{P: permTest.permName},
+				}))
 			}
 		}
 	}
@@ -199,6 +260,7 @@ func TestHasPermission(t *testing.T) {
 		t.Run(user.Username, func(t *testing.T) {
 			t.Parallel()
 			for _, permTest := range permTests {
+				permTest := permTest
 				t.Run(permTest.name, func(t *testing.T) {
 					t.Parallel()
 					httpResp := (*http.Response)(nil)
