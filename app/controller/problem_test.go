@@ -798,6 +798,8 @@ func TestCreateProblem(t *testing.T) {
 
 func TestUpdateProblem(t *testing.T) {
 	t.Parallel()
+	boolTrue := true
+	boolFalse := false
 	problem1 := models.Problem{
 		Name:               "test_update_problem_1",
 		AttachmentFileName: "test_update_problem_1_attachment_file_name",
@@ -884,14 +886,21 @@ func TestUpdateProblem(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("problem.updateProblem", -1),
 			req: request.UpdateProblemRequest{
-				Name:            "test_update_problem_non_exist",
-				LanguageAllowed: "test_update_problem_non_exist_language_allowed",
+				Name:               "test_update_problem_non_exist",
+				Description:        "test_update_problem_non_exist_desc",
+				Public:             &boolFalse,
+				Privacy:            &boolFalse,
+				MemoryLimit:        1024,
+				TimeLimit:          1000,
+				LanguageAllowed:    "test_update_problem_non_exist_language_allowed",
+				CompileEnvironment: "test_update_problem_non_exist_compile_environment",
+				CompareScriptID:    1,
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "PermissionDenied",
@@ -910,9 +919,6 @@ func TestUpdateProblem(t *testing.T) {
 	}
 
 	runFailTests(t, FailTests, "UpdateProblem")
-
-	boolTrue := true
-	boolFalse := false
 
 	successTests := []struct {
 		name               string
@@ -1219,8 +1225,8 @@ func TestDeleteProblem(t *testing.T) {
 			reqOptions: []reqOption{
 				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "PermissionDenied",
@@ -1458,7 +1464,7 @@ func TestCreateTestCase(t *testing.T) {
 				"score": "100",
 			}),
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyNormalUser,
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
@@ -1547,7 +1553,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 			path:   base.Echo.Reverse("problem.getTestCaseInputFile", problem.ID, 1),
 			req:    request.GetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyNormalUser,
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
@@ -1610,7 +1616,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 			path:   base.Echo.Reverse("problem.getTestCaseOutputFile", problem.ID, 1),
 			req:    request.GetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyNormalUser,
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
@@ -1680,7 +1686,7 @@ func TestUpdateTestCase(t *testing.T) {
 				Score: 100,
 			},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyNormalUser,
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
@@ -1865,7 +1871,7 @@ func TestDeleteTestCase(t *testing.T) {
 			path:   base.Echo.Reverse("problem.deleteTestCases", problem.ID, 1),
 			req:    request.DeleteProblemRequest{},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyNormalUser,
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
@@ -1923,7 +1929,7 @@ func TestDeleteTestCases(t *testing.T) {
 			path:   base.Echo.Reverse("problem.deleteTestCases", problem.ID),
 			req:    request.DeleteTestCasesRequest{},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyNormalUser,
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
