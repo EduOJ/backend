@@ -18,7 +18,7 @@ type UserForAdmin struct {
 	Roles []Role `json:"roles"`
 }
 
-func (p *User) Convert(user *models.User) {
+func (p *User) convert(user *models.User) {
 	if user == nil {
 		return
 	}
@@ -28,7 +28,7 @@ func (p *User) Convert(user *models.User) {
 	p.Email = user.Email
 }
 
-func (p *UserForAdmin) Convert(user *models.User) {
+func (p *UserForAdmin) convert(user *models.User) {
 	if user == nil {
 		return
 	}
@@ -41,13 +41,13 @@ func (p *UserForAdmin) Convert(user *models.User) {
 
 func GetUser(user *models.User) *User {
 	p := User{}
-	p.Convert(user)
+	p.convert(user)
 	return &p
 }
 
 func GetUserForAdmin(user *models.User) *UserForAdmin {
 	p := UserForAdmin{}
-	p.Convert(user)
+	p.convert(user)
 	return &p
 }
 
@@ -58,5 +58,3 @@ func GetUserSlice(users []models.User) (profiles []User) {
 	}
 	return
 }
-
-// TODO: test
