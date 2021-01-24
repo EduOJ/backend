@@ -3,7 +3,6 @@ package controller_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
@@ -12,6 +11,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -77,7 +77,7 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 		InputFileName:  inputFileName,
 		OutputFileName: outputFileName,
 	}
-	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error)
+	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase))
 
 	if inputFile != nil {
 		inputBytes, err := ioutil.ReadAll(inputFile.reader)
@@ -241,7 +241,7 @@ func TestGetProblem(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.problem).Error)
 				for j := range test.testCases {
-					assert.Nil(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]).Error)
+					assert.Nil(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]))
 				}
 				user := createUserForTest(t, "get_problem", i)
 				if test.isAdmin {
@@ -1140,7 +1140,7 @@ func TestUpdateProblem(t *testing.T) {
 				t.Parallel()
 				assert.Nil(t, base.DB.Create(&test.originalProblem).Error)
 				for j := range test.testCases {
-					assert.Nil(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]).Error)
+					assert.Nil(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]))
 				}
 				if test.originalAttachment != nil {
 					b, err := ioutil.ReadAll(test.originalAttachment.reader)
@@ -1180,7 +1180,7 @@ func TestUpdateProblem(t *testing.T) {
 				test.expectedProblem.UpdatedAt = databaseProblem.UpdatedAt
 				test.expectedProblem.DeletedAt = databaseProblem.DeletedAt
 				assert.Equal(t, test.expectedProblem, databaseProblem)
-				assert.Nil(t, base.DB.Set("gorm:auto_preload", true).Model(databaseProblem).Related(&databaseProblem.TestCases).Error)
+				assert.Nil(t, base.DB.Set("gorm:auto_preload", true).Model(databaseProblem).Association("TestCases").Find(&databaseProblem.TestCases))
 				if test.testCases != nil {
 					jsonEQ(t, test.testCases, databaseProblem.TestCases)
 				} else {

@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -11,16 +9,15 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
 )
 
 func GetUser(c echo.Context) error {
 
 	user, err := utils.FindUser(c.Param("id"))
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
@@ -61,66 +58,25 @@ func GetUsers(c echo.Context) error {
 	var users []models.User
 	var total int
 
-	query := base.DB.Model(&models.User{})
-	if req.OrderBy != "" {
-		order := strings.SplitN(req.OrderBy, ".", 2)
-		if len(order) != 2 {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
+	query, err := utils.Sorter(base.DB.Model(&models.User{}), req.OrderBy, "id", "username", "nickname", "email")
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
 		}
-		if !utils.Contain(order[0], []string{"username", "id", "nickname", "email"}) {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
-		}
-		if !utils.Contain(order[1], []string{"ASC", "DESC"}) {
-			return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ORDER", nil))
-		}
-		query = query.Order(strings.Join(order, " "))
+		panic(err)
 	}
+
 	if req.Search != "" {
 		id, _ := strconv.ParseUint(req.Search, 10, 64)
 		query = query.Where("id = ? or username like ? or email like ? or nickname like ?", id, "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
 	}
-	if req.Limit == 0 {
-		req.Limit = 20 // Default limit
-	}
-	err := query.Limit(req.Limit).Offset(req.Offset).Find(&users).Error
-	if err != nil {
-		panic(errors.Wrap(err, "could not query users"))
-	}
-	err = query.Count(&total).Error
-	if err != nil {
-		panic(errors.Wrap(err, "could not query count of users"))
-	}
 
-	var nextUrlStr *string
-	var prevUrlStr *string
-
-	if req.Offset-req.Limit >= 0 {
-		prevURL := c.Request().URL
-		q, err := url.ParseQuery(prevURL.RawQuery)
-		if err != nil {
-			panic(errors.Wrap(err, "could not parse query for url"))
+	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &users)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
 		}
-		q.Set("offset", fmt.Sprint(req.Offset-req.Limit))
-		q.Set("limit", fmt.Sprint(req.Limit))
-		prevURL.RawQuery = q.Encode()
-		temp := prevURL.String()
-		prevUrlStr = &temp
-	} else {
-		prevUrlStr = nil
-	}
-	if req.Offset+len(users) < total {
-		nextURL := c.Request().URL
-		q, err := url.ParseQuery(nextURL.RawQuery)
-		if err != nil {
-			panic(errors.Wrap(err, "could not parse query for url"))
-		}
-		q.Set("offset", fmt.Sprint(req.Offset+req.Limit))
-		q.Set("limit", fmt.Sprint(req.Limit))
-		nextURL.RawQuery = q.Encode()
-		temp := nextURL.String()
-		nextUrlStr = &temp
-	} else {
-		nextUrlStr = nil
+		panic(err)
 	}
 
 	return c.JSON(http.StatusOK, response.GetUsersResponse{
@@ -138,8 +94,8 @@ func GetUsers(c echo.Context) error {
 			total,
 			len(users),
 			req.Offset,
-			prevUrlStr,
-			nextUrlStr,
+			prevUrl,
+			nextUrl,
 		},
 	})
 }
@@ -157,7 +113,7 @@ func UpdateMe(c echo.Context) error {
 	if !ok {
 		return err
 	}
-	count := 0
+	count := int64(0)
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Email != req.Email) {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -12,6 +11,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,7 +20,7 @@ import (
 func GetProblem(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	problem, err := utils.FindProblem(c.Param("id"), &user)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
@@ -119,7 +119,7 @@ func GetProblems(c echo.Context) error {
 func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	user := c.Get("user").(models.User)
 	problem, err := utils.FindProblem(c.Param("id"), &user)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
@@ -207,7 +207,7 @@ func UpdateProblem(c echo.Context) error {
 	}
 	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
 		panic(err)
@@ -261,7 +261,7 @@ func UpdateProblem(c echo.Context) error {
 
 func DeleteProblem(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), nil)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
@@ -296,7 +296,7 @@ func CreateTestCase(c echo.Context) error {
 
 	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 		}
 		panic(err)
@@ -326,7 +326,7 @@ func CreateTestCase(c echo.Context) error {
 		OutputFileName: outputFile.Filename,
 	}
 
-	if err := base.DB.Model(&problem).Association("TestCases").Append(&testCase).Error; err != nil {
+	if err := base.DB.Model(&problem).Association("TestCases").Append(&testCase); err != nil {
 		panic(errors.Wrap(err, "could not create test case"))
 	}
 
@@ -438,7 +438,7 @@ func DeleteTestCase(c echo.Context) error {
 
 func DeleteTestCases(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), nil)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)

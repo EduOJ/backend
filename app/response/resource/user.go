@@ -3,14 +3,14 @@ package resource
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
 type User struct {
-	ID       uint   `gorm:"primary_key" json:"id"`
+	ID       uint   `gorm:"primaryKey" json:"id"`
 	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 }
 
 type UserForAdmin struct {
-	ID       uint   `gorm:"primary_key" json:"id"`
+	ID       uint   `gorm:"primaryKey" json:"id"`
 	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`

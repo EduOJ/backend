@@ -6,7 +6,7 @@ import (
 )
 
 type TestCase struct {
-	ID uint `gorm:"primary_key" json:"id"`
+	ID uint `gorm:"primaryKey" json:"id"`
 
 	ProblemID uint `sql:"index" json:"problem_id" gorm:"not null"`
 	Score     uint `json:"score" gorm:"default:0;not null"` // 0 for 平均分配
@@ -20,7 +20,7 @@ type TestCase struct {
 }
 
 type ProblemTag struct {
-	ID        uint `gorm:"primary_key" json:"id"`
+	ID        uint `gorm:"primaryKey" json:"id"`
 	ProblemID uint `gorm:"index"`
 	Name      string
 	CreatedAt time.Time `json:"created_at"`
@@ -28,7 +28,7 @@ type ProblemTag struct {
 
 //TODO: add tag system
 type Problem struct {
-	ID                 uint   `gorm:"primary_key" json:"id"`
+	ID                 uint   `gorm:"primaryKey" json:"id"`
 	Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
 	Description        string `json:"description"`
 	AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
@@ -57,7 +57,7 @@ func (p Problem) TypeName() string {
 }
 
 func (p *Problem) LoadTestCases() {
-	err := base.DB.Set("gorm:auto_preload", true).Model(p).Related(&p.TestCases).Error
+	err := base.DB.Model(p).Association("TestCases").Find(&p.TestCases)
 	if err != nil {
 		panic(err)
 	}

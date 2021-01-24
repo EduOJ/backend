@@ -2,10 +2,9 @@ package database
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"gopkg.in/gormigrate.v1"
-	"reflect"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -26,16 +25,16 @@ func GetMigration() *gormigrate.Gormigrate {
 			ID: "create_logs_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Log struct {
-					ID        uint `gorm:"primary_key"`
+					ID        uint `gorm:"primaryKey"`
 					Level     *int
 					Message   string
 					Caller    string
 					CreatedAt time.Time
 				}
-				return tx.AutoMigrate(&Log{}).Error
+				return tx.AutoMigrate(&Log{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("logs").Error
+				return tx.Migrator().DropTable("logs")
 			},
 		},
 		// create users table
@@ -43,43 +42,48 @@ func GetMigration() *gormigrate.Gormigrate {
 			ID: "create_users_table",
 			Migrate: func(tx *gorm.DB) error {
 				type User struct {
-					ID       uint   `gorm:"primary_key" json:"id"`
-					Username string `gorm:"unique_index;size:30" json:"username" validate:"required,max=30,min=5"`
-					Nickname string `gorm:"index:nickname;size:30" json:"nickname"`
-					Email    string `gorm:"unique_index;size:320" json:"email"`
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
 
 					CreatedAt time.Time  `json:"created_at"`
 					UpdatedAt time.Time  `json:"-"`
 					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
 				}
-				return tx.AutoMigrate(&User{}).Error
+				return tx.AutoMigrate(&User{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("users").Error
+				return tx.Migrator().DropTable("users")
 			},
 		},
 		// add tokens table
 		{
 			ID: "create_tokens_table",
 			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
+					Password string `json:"-"`
+
+					CreatedAt time.Time  `json:"created_at"`
+					UpdatedAt time.Time  `json:"-"`
+					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+				}
 				type Token struct {
-					ID        uint   `gorm:"primary_key" json:"id"`
-					Token     string `gorm:"unique_index;size:32" json:"token"`
-					UserID    uint
+					ID     uint   `gorm:"primaryKey" json:"id"`
+					Token  string `gorm:"unique_index;size:32" json:"token"`
+					UserID uint
+					User
 					CreatedAt time.Time `json:"created_at"`
 				}
-				err := tx.AutoMigrate(&Token{}).Error
-				if err != nil {
-					return err
-				}
-				if reflect.TypeOf(tx.DB().Driver()).String() != "*sqlite3.SQLiteDriver" {
-					err = tx.Model(&Token{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
-				}
-				return err
+				return tx.AutoMigrate(&Token{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("tokens").Error
+				return tx.Migrator().DropTable("tokens")
 			},
 		},
 		// add configs table
@@ -87,71 +91,68 @@ func GetMigration() *gormigrate.Gormigrate {
 			ID: "create_configs_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Config struct {
-					ID        uint    `gorm:"primary_key"`
+					ID        uint    `gorm:"primaryKey"`
 					Key       string  `gorm:"size:255"`
 					Value     *string `gorm:"default:''"` // 可能是空字符串, 因此得是指针
 					CreatedAt time.Time
 					UpdatedAt time.Time
 				}
-				return tx.AutoMigrate(&Config{}).Error
+				return tx.AutoMigrate(&Config{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("configs").Error
+				return tx.Migrator().DropTable("configs")
 			},
 		},
 		// add permissions
 		{
 			ID: "add_permissions",
 			Migrate: func(tx *gorm.DB) (err error) {
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
+					Password string `json:"-"`
 
+					CreatedAt time.Time  `json:"created_at"`
+					UpdatedAt time.Time  `json:"-"`
+					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+				}
 				type UserHasRole struct {
-					ID       uint `gorm:"primary_key" json:"id"`
-					UserID   uint `json:"user_id"`
+					ID     uint `gorm:"primaryKey" json:"id"`
+					UserID uint `json:"user_id"`
+					User
 					RoleID   uint `json:"role_id"`
 					TargetID uint `json:"target_id"`
 				}
 
 				type Role struct {
-					ID     uint    `gorm:"primary_key" json:"id"`
+					ID     uint    `gorm:"primaryKey" json:"id"`
 					Name   string  `json:"name" gorm:"size:255"`
 					Target *string `json:"target" gorm:"size:255"`
 				}
 
 				type Permission struct {
-					ID     uint   `gorm:"primary_key" json:"id"`
+					ID     uint   `gorm:"primaryKey" json:"id"`
 					RoleID uint   `json:"role_id"`
 					Name   string `json:"name" gorm:"size:255"`
 				}
-				err = tx.AutoMigrate(&UserHasRole{}, &Role{}, &Permission{}).Error
+				err = tx.AutoMigrate(&UserHasRole{}, &Role{}, &Permission{})
 				if err != nil {
 					return
-				}
-				if reflect.TypeOf(tx.DB().Driver()).String() != "*sqlite3.SQLiteDriver" {
-					err = tx.Model(&UserHasRole{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error
-					if err != nil {
-						return
-					}
-					err = tx.Model(&UserHasRole{}).AddForeignKey("role_id", "roles(id)", "CASCADE", "CASCADE").Error
-					if err != nil {
-						return
-					}
-					err = tx.Model(&Permission{}).AddForeignKey("role_id", "roles(id)", "CASCADE", "CASCADE").Error
-					if err != nil {
-						return
-					}
 				}
 				return
 			},
 			Rollback: func(tx *gorm.DB) (err error) {
-				err = tx.DropTable("user_has_roles").Error
+				err = tx.Migrator().DropTable("user_has_roles")
 				if err != nil {
 					return
 				}
-				err = tx.DropTable("permissions").Error
+				err = tx.Migrator().DropTable("permissions")
 				if err != nil {
 					return
 				}
-				err = tx.DropTable("roles").Error
+				err = tx.Migrator().DropTable("roles")
 				if err != nil {
 					return
 				}
@@ -165,10 +166,13 @@ func GetMigration() *gormigrate.Gormigrate {
 				type Token struct {
 					UpdatedAt time.Time
 				}
-				return tx.AutoMigrate(&Token{}).Error
+				return tx.AutoMigrate(&Token{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.Table("tokens").DropColumn("updated_at").Error
+				type Token struct {
+					RememberMe bool
+				}
+				return tx.Migrator().DropColumn(&Token{}, "updated_at")
 			},
 		},
 		// add RememberMe column
@@ -178,10 +182,13 @@ func GetMigration() *gormigrate.Gormigrate {
 				type Token struct {
 					RememberMe bool
 				}
-				return tx.AutoMigrate(&Token{}).Error
+				return tx.AutoMigrate(&Token{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.Table("tokens").DropColumn("remember_me").Error
+				type Token struct {
+					RememberMe bool
+				}
+				return tx.Migrator().DropColumn(&Token{}, "remember_me")
 			},
 		},
 		// add images table
@@ -189,18 +196,18 @@ func GetMigration() *gormigrate.Gormigrate {
 			ID: "create_images_table",
 			Migrate: func(tx *gorm.DB) error {
 				type Image struct {
-					ID        uint      `gorm:"primary_key" json:"id"`
-					Filename  string    `gorm:"filename,size:2048,unique_index"`
+					ID        uint      `gorm:"primaryKey" json:"id"`
+					Filename  string    `gorm:"filename,size:2048,uniqueIndex"`
 					FilePath  string    `gorm:"filepath,size:2048"`
 					UserID    uint      `gorm:"index"`
 					CreatedAt time.Time `json:"created_at"`
 					UpdatedAt time.Time `json:"updated_at"`
 				}
 
-				return tx.AutoMigrate(&Image{}).Error
+				return tx.AutoMigrate(&Image{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.DropTable("images").Error
+				return tx.Migrator().DropTable("images")
 			},
 		},
 		// add default admin role
@@ -209,13 +216,13 @@ func GetMigration() *gormigrate.Gormigrate {
 			Migrate: func(tx *gorm.DB) (err error) {
 
 				type Permission struct {
-					ID     uint   `gorm:"primary_key" json:"id"`
+					ID     uint   `gorm:"primaryKey" json:"id"`
 					RoleID uint   `json:"role_id"`
 					Name   string `json:"name" gorm:"size:255"`
 				}
 
 				type Role struct {
-					ID          uint    `gorm:"primary_key" json:"id"`
+					ID          uint    `gorm:"primaryKey" json:"id"`
 					Name        string  `json:"name" gorm:"size:255"`
 					Target      *string `json:"target" gorm:"size:255"`
 					Permissions []Permission
@@ -233,7 +240,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					RoleID: admin.ID,
 					Name:   "all",
 				}
-				err = tx.Model(&admin).Association("Permissions").Append(perm).Error
+				err = tx.Model(&admin).Association("Permissions").Append(&perm)
 				if err != nil {
 					return
 				}
@@ -242,13 +249,13 @@ func GetMigration() *gormigrate.Gormigrate {
 			Rollback: func(tx *gorm.DB) (err error) {
 
 				type Permission struct {
-					ID     uint   `gorm:"primary_key" json:"id"`
+					ID     uint   `gorm:"primaryKey" json:"id"`
 					RoleID uint   `json:"role_id"`
 					Name   string `json:"name" gorm:"size:255"`
 				}
 
 				type Role struct {
-					ID          uint    `gorm:"primary_key" json:"id"`
+					ID          uint    `gorm:"primaryKey" json:"id"`
 					Name        string  `json:"name" gorm:"size:255"`
 					Target      *string `json:"target" gorm:"size:255"`
 					Permissions []Permission
@@ -276,7 +283,7 @@ func GetMigration() *gormigrate.Gormigrate {
 			Migrate: func(tx *gorm.DB) (err error) {
 
 				type TestCase struct {
-					ID uint `gorm:"primary_key" json:"id"`
+					ID uint `gorm:"primaryKey" json:"id"`
 
 					ProblemID uint `sql:"index" json:"problem_id" gorm:"not null"`
 					Score     uint `json:"score" gorm:"default:0;not null"` // 0 for 平均分配
@@ -290,7 +297,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				}
 
 				type Problem struct {
-					ID                 uint   `gorm:"primary_key" json:"id"`
+					ID                 uint   `gorm:"primaryKey" json:"id"`
 					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
 					Description        string `json:"description"`
 					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
@@ -309,24 +316,18 @@ func GetMigration() *gormigrate.Gormigrate {
 					UpdatedAt time.Time  `json:"-"`
 					DeletedAt *time.Time `json:"deleted_at"`
 				}
-				err = tx.AutoMigrate(&Problem{}, &TestCase{}).Error
+				err = tx.AutoMigrate(&Problem{}, &TestCase{})
 				if err != nil {
 					return
-				}
-				if reflect.TypeOf(tx.DB().Driver()).String() != "*sqlite3.SQLiteDriver" {
-					err = tx.Model(&TestCase{}).AddForeignKey("problem_id", "problems(id)", "CASCADE", "CASCADE").Error
-					if err != nil {
-						return
-					}
 				}
 				return
 			},
 			Rollback: func(tx *gorm.DB) (err error) {
-				err = tx.DropTable("test_cases").Error
+				err = tx.Migrator().DropTable("test_cases")
 				if err != nil {
 					return
 				}
-				err = tx.DropTable("problems").Error
+				err = tx.Migrator().DropTable("problems")
 				if err != nil {
 					return
 				}
@@ -339,13 +340,13 @@ func GetMigration() *gormigrate.Gormigrate {
 			Migrate: func(tx *gorm.DB) (err error) {
 
 				type Permission struct {
-					ID     uint   `gorm:"primary_key" json:"id"`
+					ID     uint   `gorm:"primaryKey" json:"id"`
 					RoleID uint   `json:"role_id"`
 					Name   string `json:"name" gorm:"size:255"`
 				}
 
 				type Role struct {
-					ID          uint    `gorm:"primary_key" json:"id"`
+					ID          uint    `gorm:"primaryKey" json:"id"`
 					Name        string  `json:"name" gorm:"size:255"`
 					Target      *string `json:"target" gorm:"size:255"`
 					Permissions []Permission
@@ -364,7 +365,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					RoleID: problemCreator.ID,
 					Name:   "all",
 				}
-				err = tx.Model(&problemCreator).Association("Permissions").Append(problemPerm).Error
+				err = tx.Model(&problemCreator).Association("Permissions").Append(&problemPerm)
 				if err != nil {
 					return
 				}
@@ -373,13 +374,13 @@ func GetMigration() *gormigrate.Gormigrate {
 			Rollback: func(tx *gorm.DB) (err error) {
 
 				type Permission struct {
-					ID     uint   `gorm:"primary_key" json:"id"`
+					ID     uint   `gorm:"primaryKey" json:"id"`
 					RoleID uint   `json:"role_id"`
 					Name   string `json:"name" gorm:"size:255"`
 				}
 
 				type Role struct {
-					ID          uint    `gorm:"primary_key" json:"id"`
+					ID          uint    `gorm:"primaryKey" json:"id"`
 					Name        string  `json:"name" gorm:"size:255"`
 					Target      *string `json:"target" gorm:"size:255"`
 					Permissions []Permission

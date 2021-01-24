@@ -1,14 +1,14 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"time"
 )
 
 type User struct {
-	ID       uint   `gorm:"primary_key" json:"id"`
+	ID       uint   `gorm:"primaryKey" json:"id"`
 	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
@@ -26,16 +26,16 @@ type User struct {
 func (u *User) GrantRole(name string, target ...HasRole) {
 	role := getRole(name, target...)
 	if len(target) == 0 {
-		if err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
+		if err := base.DB.Model(u).Association("Roles").Append(&UserHasRole{
 			Role: role,
-		}).Error; err != nil {
+		}); err != nil {
 			panic(err)
 		}
 	} else {
-		if err := base.DB.Model(u).Association("Roles").Append(UserHasRole{
+		if err := base.DB.Model(u).Association("Roles").Append(&UserHasRole{
 			Role:     role,
 			TargetID: target[0].GetID(),
-		}).Error; err != nil {
+		}); err != nil {
 			panic(err)
 		}
 	}
@@ -45,13 +45,13 @@ func (u *User) DeleteRole(name string, target ...HasRole) {
 	role := getRole(name, target...)
 	userHasRole := UserHasRole{}
 	if len(target) == 0 {
-		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, 0).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, 0).First(&userHasRole).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			return
 		} else if err != nil {
 			panic(err)
 		}
 	} else {
-		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, target[0].GetID()).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, target[0].GetID()).First(&userHasRole).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			return
 		} else if err != nil {
 			panic(err)
@@ -66,13 +66,13 @@ func (u *User) HasRole(name string, target ...HasRole) bool {
 	role := getRole(name, target...)
 	userHasRole := UserHasRole{}
 	if len(target) == 0 {
-		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, 0).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, 0).First(&userHasRole).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			return false
 		} else if err != nil {
 			panic(err)
 		}
 	} else {
-		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, target[0].GetID()).First(&userHasRole).Error; err == gorm.ErrRecordNotFound {
+		if err := base.DB.Where("user_id = ? and role_id = ? and target_id = ?", u.ID, role.ID, target[0].GetID()).First(&userHasRole).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 			return false
 		} else if err != nil {
 			panic(err)
@@ -96,7 +96,7 @@ func getRole(name string, target ...HasRole) Role {
 }
 
 func (u *User) LoadRoles() {
-	err := base.DB.Set("gorm:auto_preload", true).Model(u).Related(&u.Roles).Error
+	err := base.DB.Preload("Role.Permissions").Model(u).Association("Roles").Find(&u.Roles)
 	if err != nil {
 		panic(err)
 	}

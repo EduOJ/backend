@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -9,6 +8,8 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
@@ -20,7 +21,7 @@ func AdminCreateUser(c echo.Context) error {
 		return err
 	}
 	hashed := utils.HashPassword(req.Password)
-	count := 0
+	count := int64(0)
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
@@ -54,12 +55,12 @@ func AdminUpdateUser(c echo.Context) error {
 		return err
 	}
 	user, err := utils.FindUser(c.Param("id"))
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
-	count := 0
+	count := int64(0)
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count > 1 || (count == 1 && user.Email != req.Email) {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
@@ -89,7 +90,7 @@ func AdminUpdateUser(c echo.Context) error {
 
 func AdminDeleteUser(c echo.Context) error {
 	user, err := utils.FindUser(c.Param("id"))
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
@@ -105,7 +106,7 @@ func AdminDeleteUser(c echo.Context) error {
 func AdminGetUser(c echo.Context) error {
 
 	user, err := utils.FindUser(c.Param("id"))
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
