@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -10,6 +9,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -21,7 +21,7 @@ func Login(c echo.Context) error {
 	user := models.User{}
 	err := base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("WRONG_USERNAME", nil))
 		} else {
 			panic(errors.Wrap(err, "could not query username or email"))
@@ -59,7 +59,7 @@ func Register(c echo.Context) error {
 		return err
 	}
 	hashed := utils.HashPassword(req.Password)
-	count := 0
+	count := int64(0)
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
@@ -99,7 +99,7 @@ func EmailRegistered(c echo.Context) error {
 	if !ok {
 		return err
 	}
-	var count int
+	var count int64
 	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
 	if count != 0 {
 		return c.JSON(http.StatusConflict, response.ErrorResp("EMAIL_REGISTERED", nil))

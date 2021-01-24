@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
@@ -9,6 +8,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
@@ -20,7 +20,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 		token, err := utils.GetToken(tokenString)
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return next(c)
 		}
 		if err != nil {

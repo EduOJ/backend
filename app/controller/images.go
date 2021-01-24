@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
@@ -12,6 +11,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	path2 "path"
@@ -22,8 +22,8 @@ func GetImage(c echo.Context) error {
 	// TODO: check referrer
 	id := c.Param("id")
 	imageModel := models.Image{}
-	err := base.DB.Model(&models.Image{}).Where("file_path = ?", id).Find(&imageModel).Error
-	if err == gorm.ErrRecordNotFound {
+	err := base.DB.Model(&models.Image{}).Where("file_path = ?", id).First(&imageModel).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("IMAGE_NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
@@ -65,7 +65,7 @@ func CreateImage(c echo.Context) error {
 	if err != nil {
 		panic(err)
 	}
-	count := 1
+	count := int64(1)
 	fileIndex := ""
 	for count != 0 {
 		fileIndex = utils.RandStr(32)

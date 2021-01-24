@@ -3,7 +3,7 @@ package resource
 import "github.com/leoleoasd/EduOJBackend/database/models"
 
 type Permission struct {
-	ID   uint   `gorm:"primary_key" json:"id"`
+	ID   uint   `gorm:"primaryKey" json:"id"`
 	Name string `json:"name"`
 }
 

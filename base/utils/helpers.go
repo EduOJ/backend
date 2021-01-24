@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"github.com/go-playground/validator/v10"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
@@ -11,6 +10,7 @@ import (
 	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"mime/multipart"
 	"net/http"
 )

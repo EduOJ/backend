@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Submission struct {
-	ID uint `gorm:"primary_key" json:"id"`
+	ID uint `gorm:"primaryKey" json:"id"`
 
 	UserID       uint   `sql:"index" json:"user_id"`
 	ProblemID    uint   `sql:"index" json:"problem_id"`
@@ -21,7 +21,7 @@ type Submission struct {
 }
 
 type Run struct {
-	ID uint `gorm:"primary_key" json:"id"`
+	ID uint `gorm:"primaryKey" json:"id"`
 
 	UserID       uint  `sql:"index" json:"user_id"`
 	ProblemID    uint  `sql:"index" json:"problem_id"`

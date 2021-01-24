@@ -5,7 +5,7 @@ import (
 )
 
 type Log struct {
-	ID        uint      `gorm:"primary_key" json:"id"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
 	Level     *int      `json:"level"`
 	Message   string    `json:"message"`
 	Caller    string    `json:"caller"`
