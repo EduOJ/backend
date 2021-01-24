@@ -2,8 +2,9 @@ package database
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -14,14 +15,18 @@ var testDatabaseLock = sync.Mutex{}
 func SetupDatabaseForTest() func() {
 	testDatabaseLock.Lock()
 	oldDB := base.DB
-	x, err := gorm.Open("sqlite3", ":memory:")
+	x, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		fmt.Print(err)
 		panic(err)
 	}
 	base.DB = x
-	base.DB.DB().SetMaxOpenConns(1)
-	base.DB.LogMode(false)
+	sqlDB, err := base.DB.DB()
+	if err != nil {
+		fmt.Print(err)
+		panic(err)
+	}
+	sqlDB.SetMaxOpenConns(1)
 	Migrate()
 	return func() {
 		base.DB = oldDB

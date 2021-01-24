@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app"
@@ -17,6 +16,10 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/minio/minio-go"
 	"github.com/pkg/errors"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"os"
 )
 
@@ -142,12 +145,21 @@ func initGorm(toMigrate ...bool) {
 	}
 	dialect := databaseConf.MustGet("dialect", "").Value().(string)
 	uri := databaseConf.MustGet("uri", "").Value().(string)
-	base.DB, err = gorm.Open(dialect, uri)
+	switch dialect {
+	case "mysql":
+		base.DB, err = gorm.Open(mysql.Open(uri), &gorm.Config{})
+	case "postgres":
+		base.DB, err = gorm.Open(postgres.Open(uri), &gorm.Config{})
+	case "sqlite":
+		base.DB, err = gorm.Open(sqlite.Open(uri), &gorm.Config{})
+	default:
+		log.Fatal("unsupported database dialect")
+		os.Exit(-1)
+	}
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not init database with config "+databaseConf.String()))
 		os.Exit(-1)
 	}
-	base.DB.LogMode(false)
 	if len(toMigrate) == 0 || toMigrate[0] {
 		database.Migrate()
 	}

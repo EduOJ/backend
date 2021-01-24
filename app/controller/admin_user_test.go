@@ -2,14 +2,15 @@ package controller_test
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"testing"
@@ -489,7 +490,7 @@ func TestAdminDeleteUser(t *testing.T) {
 					Error:   nil,
 					Data:    nil,
 				}, resp)
-				assert.Equal(t, gorm.ErrRecordNotFound, base.DB.First(models.User{}, test.user.ID).Error)
+				assert.True(t, errors.Is(base.DB.First(models.User{}, test.user.ID).Error, gorm.ErrRecordNotFound))
 			})
 		}
 	})

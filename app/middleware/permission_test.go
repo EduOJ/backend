@@ -13,7 +13,7 @@ import (
 )
 
 type testClass struct {
-	ID uint `gorm:"primary_key" json:"id"`
+	ID uint `gorm:"primaryKey" json:"id"`
 }
 
 func (c testClass) TypeName() string {

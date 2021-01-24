@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/fatih/color v1.9.0
 	github.com/gabriel-vasile/mimetype v1.1.1
+	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/go-ini/ini v1.60.2 // indirect
 	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/locales v0.13.0
@@ -12,7 +13,6 @@ require (
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/go-redis/redis/v8 v8.0.0-beta.6
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/jinzhu/gorm v1.9.15
 	github.com/johannesboyne/gofakes3 v0.0.0-20200716060623-6b2b4cb092cc
 	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
 	github.com/labstack/echo/v4 v4.1.16
@@ -30,10 +30,12 @@ require (
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
 	golang.org/x/sys v0.0.0-20200831180312-196b9ba8737a // indirect
-	golang.org/x/text v0.3.3 // indirect
-	gopkg.in/gormigrate.v1 v1.6.0
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
+	gorm.io/driver/mysql v1.0.1
+	gorm.io/driver/postgres v1.0.0
+	gorm.io/driver/sqlite v1.1.1
+	gorm.io/gorm v1.20.11
 )
 
 replace github.com/stretchr/testify v1.6.1 => github.com/leoleoasd/testify v1.6.2-0.20200818074144-885db91dbfe9

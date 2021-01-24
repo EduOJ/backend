@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Image struct {
-	ID        uint   `gorm:"primary_key" json:"id"`
+	ID        uint   `gorm:"primaryKey" json:"id"`
 	Filename  string `gorm:"filename"`
 	FilePath  string `gorm:"filepath"`
 	UserID    uint

@@ -9,6 +9,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/minio/minio-go"
+	"github.com/pkg/errors"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -16,7 +17,9 @@ import (
 
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
-	PanicIfDBError(base.DB.AutoMigrate(&TestObject{}), "could not create table for test object")
+	if err := base.DB.Migrator().AutoMigrate(&TestObject{}); err != nil {
+		panic(errors.Wrap(err, "could not create table for test object"))
+	}
 
 	configFile := bytes.NewBufferString(`debug: true
 server:

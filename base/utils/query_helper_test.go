@@ -2,10 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"net/url"
 	"testing"
 	"time"
@@ -358,9 +358,6 @@ func TestSorter(t *testing.T) {
 	assert.Nil(t, base.DB.Create(&testObject3).Error)
 	assert.Nil(t, base.DB.Create(&testObject4).Error)
 
-	query := base.DB.Model(&TestObject{}).Where("name like ?", "%test_sorter_object_%")
-	assert.Nil(t, query.Error)
-
 	invalidError := HttpError{
 		Code:    400,
 		Message: "INVALID_ORDER",
@@ -369,7 +366,6 @@ func TestSorter(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		query         *gorm.DB
 		orderBy       string
 		columnAllowed []string
 		output        []TestObject
@@ -377,7 +373,6 @@ func TestSorter(t *testing.T) {
 	}{
 		{
 			name:          "Default",
-			query:         query,
 			orderBy:       "",
 			columnAllowed: []string{},
 			output: []TestObject{
@@ -390,7 +385,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "SuccessIdAsc",
-			query:   query,
 			orderBy: "id.ASC",
 			columnAllowed: []string{
 				"id",
@@ -405,7 +399,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "SuccessIdDesc",
-			query:   query,
 			orderBy: "id.DESC",
 			columnAllowed: []string{
 				"id",
@@ -421,7 +414,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "SuccessNameAsc",
-			query:   query,
 			orderBy: "name.ASC",
 			columnAllowed: []string{
 				"name",
@@ -436,7 +428,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "SuccessStringAttributeDesc",
-			query:   query,
 			orderBy: "string_attribute.DESC",
 			columnAllowed: []string{
 				"id",
@@ -454,7 +445,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "SuccessIntegerAttributeAsc",
-			query:   query,
 			orderBy: "integer_attribute.ASC",
 			columnAllowed: []string{
 				"integer_attribute",
@@ -469,7 +459,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "SuccessIntegerAttributeDesc",
-			query:   query,
 			orderBy: "integer_attribute.DESC",
 			columnAllowed: []string{
 				"id",
@@ -487,7 +476,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "InvalidOrder",
-			query:   query,
 			orderBy: "invalid_order",
 			columnAllowed: []string{
 				"id",
@@ -500,7 +488,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "ColumnNotAllowed",
-			query:   query,
 			orderBy: "id.ASC",
 			columnAllowed: []string{
 				"name",
@@ -512,7 +499,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "OrderLowercase",
-			query:   query,
 			orderBy: "id.desc",
 			columnAllowed: []string{
 				"id",
@@ -525,7 +511,6 @@ func TestSorter(t *testing.T) {
 		},
 		{
 			name:    "OrderNonExist",
-			query:   query,
 			orderBy: "id.NON_EXIST_ORDER",
 			columnAllowed: []string{
 				"id",
@@ -543,7 +528,7 @@ func TestSorter(t *testing.T) {
 		t.Run("testSorter"+test.name, func(t *testing.T) {
 			t.Parallel()
 			var output []TestObject
-			resultQuery, err := Sorter(test.query, test.orderBy, test.columnAllowed...)
+			resultQuery, err := Sorter(base.DB.Model(&TestObject{}).Where("name like ?", "%test_sorter_object_%"), test.orderBy, test.columnAllowed...)
 			assert.Equal(t, test.err, err)
 			if err == nil {
 				assert.Nil(t, resultQuery.Find(&output).Error)

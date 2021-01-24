@@ -2,10 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -17,11 +17,13 @@ func Paginator(query *gorm.DB, limit, offset int, requestURL *url.URL, output in
 	if limit == 0 {
 		limit = 20 // Default limit
 	}
-	err = query.Count(&total).Error
+	total64 := int64(0)
+	err = query.Count(&total64).Error
 	if err != nil {
 		err = errors.Wrap(err, "could not query count of objects")
 		return
 	}
+	total = int(total64)
 	err = query.Limit(limit).Offset(offset).Find(output).Error
 	if err != nil {
 		err = errors.Wrap(err, "could not query objects")
@@ -92,7 +94,7 @@ func FindUser(id string) (*models.User, error) {
 	if err != nil {
 		err = base.DB.Where("username = ?", id).First(&user).Error
 		if err != nil {
-			if err == gorm.ErrRecordNotFound {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			} else {
 				panic(errors.Wrap(err, "could not query user"))
@@ -111,7 +113,7 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	if err != nil {
 		err = query.Where("name = ?", id).First(&problem).Error
 		if err != nil {
-			if err == gorm.ErrRecordNotFound {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			} else {
 				panic(errors.Wrap(err, "could not query problem"))
@@ -129,7 +131,7 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 // nil user pointer is regarded as admin(skip the permission judgement).
 func FindTestCase(problemId string, testCaseIdStr string, user *models.User) (*models.TestCase, *models.Problem, error) {
 	problem, err := FindProblem(problemId, user)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil, err
 	} else if err != nil {
 		panic(err)

@@ -4,13 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/fatih/color"
-	"github.com/jinzhu/gorm"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"github.com/xlab/treeprint"
+	"gorm.io/gorm"
 	"io"
 	"os"
 	"os/signal"
@@ -227,7 +227,7 @@ func findRole(id string) (*models.Role, error) {
 	if err != nil {
 		err = base.DB.Set("gorm:auto_preload", true).Where("name = ?", id).First(&role).Error
 		if err != nil {
-			if err == gorm.ErrRecordNotFound {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, errors.New("role record not found")
 			} else {
 				return nil, errors.Wrap(err, "could not query role")
