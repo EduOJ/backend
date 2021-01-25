@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -57,7 +56,9 @@ func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fil
 		assert.Nil(t, err)
 		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), bytes.NewReader(attachmentBytes), int64(len(attachmentBytes)), minio.PutObjectOptions{})
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, int64(len(attachmentBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
 	}
 	return
@@ -83,15 +84,21 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, score uint, inp
 	if inputFile != nil {
 		inputBytes, err := ioutil.ReadAll(inputFile.reader)
 		assert.Nil(t, err)
-		inputFile.reader = bytes.NewReader(inputBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), bytes.NewReader(inputBytes), int64(len(inputBytes)), minio.PutObjectOptions{})
+		_, err = inputFile.reader.Seek(0, io.SeekStart)
+		assert.Nil(t, err)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), inputFile.reader, int64(len(inputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		_, err = inputFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
 	}
 	if outputFile != nil {
 		outputBytes, err := ioutil.ReadAll(outputFile.reader)
 		assert.Nil(t, err)
-		outputFile.reader = bytes.NewReader(outputBytes)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), bytes.NewReader(outputBytes), int64(len(outputBytes)), minio.PutObjectOptions{})
+		_, err = outputFile.reader.Seek(0, io.SeekStart)
+		assert.Nil(t, err)
+		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), outputFile.reader, int64(len(outputBytes)), minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		_, err = outputFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
 	}
 
@@ -1146,9 +1153,12 @@ func TestUpdateProblem(t *testing.T) {
 				if test.originalAttachment != nil {
 					b, err := ioutil.ReadAll(test.originalAttachment.reader)
 					assert.Nil(t, err)
-					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), bytes.NewReader(b), int64(len(b)), minio.PutObjectOptions{})
+					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
 					assert.Nil(t, err)
-					test.originalAttachment.reader = bytes.NewReader(b)
+					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), test.originalAttachment.reader, int64(len(b)), minio.PutObjectOptions{})
+					assert.Nil(t, err)
+					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
+					assert.Nil(t, err)
 				}
 				path := base.Echo.Reverse("problem.updateProblem", test.originalProblem.ID)
 				user := createUserForTest(t, "update_problem", i)
@@ -1356,9 +1366,12 @@ func TestDeleteProblem(t *testing.T) {
 				if test.originalAttachment != nil {
 					b, err := ioutil.ReadAll(test.originalAttachment.reader)
 					assert.Nil(t, err)
-					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.problem.ID), bytes.NewReader(b), int64(len(b)), minio.PutObjectOptions{})
+					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
 					assert.Nil(t, err)
-					test.originalAttachment.reader = bytes.NewReader(b)
+					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.problem.ID), test.originalAttachment.reader, int64(len(b)), minio.PutObjectOptions{})
+					assert.Nil(t, err)
+					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
+					assert.Nil(t, err)
 				}
 				user := createUserForTest(t, "delete_problem", i)
 				user.GrantRole("problem_creator", test.problem)
