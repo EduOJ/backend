@@ -53,7 +53,7 @@ type Problem struct {
 	TestCases []TestCase `json:"test_cases"`
 }
 
-func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {
+func (t *TestCaseForAdmin) Convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
 	t.Score = testCase.Score
@@ -61,7 +61,7 @@ func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {
 	t.OutputFileName = testCase.OutputFileName
 }
 
-func (t *TestCase) convert(testCase *models.TestCase) {
+func (t *TestCase) Convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
 	t.Score = testCase.Score
@@ -69,17 +69,17 @@ func (t *TestCase) convert(testCase *models.TestCase) {
 
 func GetTestCaseForAdmin(testCase *models.TestCase) *TestCaseForAdmin {
 	t := TestCaseForAdmin{}
-	t.convert(testCase)
+	t.Convert(testCase)
 	return &t
 }
 
 func GetTestCase(testCase *models.TestCase) *TestCase {
 	t := TestCase{}
-	t.convert(testCase)
+	t.Convert(testCase)
 	return &t
 }
 
-func (p *ProblemForAdmin) convert(problem *models.Problem) {
+func (p *ProblemForAdmin) Convert(problem *models.Problem) {
 	p.ID = problem.ID
 	p.Name = problem.Name
 	p.Description = problem.Description
@@ -95,11 +95,11 @@ func (p *ProblemForAdmin) convert(problem *models.Problem) {
 
 	p.TestCases = make([]TestCaseForAdmin, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
-		p.TestCases[i].convert(&testCase)
+		p.TestCases[i].Convert(&testCase)
 	}
 }
 
-func (p *Problem) convert(problem *models.Problem) {
+func (p *Problem) Convert(problem *models.Problem) {
 	p.ID = problem.ID
 	p.Name = problem.Name
 	p.Description = problem.Description
@@ -111,34 +111,33 @@ func (p *Problem) convert(problem *models.Problem) {
 
 	p.TestCases = make([]TestCase, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
-		p.TestCases[i].convert(&testCase)
+		p.TestCases[i].Convert(&testCase)
 	}
 }
 
 func GetProblemForAdmin(problem *models.Problem) *ProblemForAdmin {
 	p := ProblemForAdmin{}
-	p.convert(problem)
+	p.Convert(problem)
 	return &p
 }
 
 func GetProblemForAdminSlice(problems []models.Problem) (profiles []ProblemForAdmin) {
 	profiles = make([]ProblemForAdmin, len(problems))
 	for i, problem := range problems {
-		profiles[i].convert(&problem)
+		profiles[i].Convert(&problem)
+	}
+	return
+}
+func GetProblemSlice(problems []models.Problem) (profiles []Problem) {
+	profiles = make([]Problem, len(problems))
+	for i, problem := range problems {
+		profiles[i].Convert(&problem)
 	}
 	return
 }
 
 func GetProblem(problem *models.Problem) *Problem {
 	p := Problem{}
-	p.convert(problem)
+	p.Convert(problem)
 	return &p
-}
-
-func GetProblemSlice(problems []models.Problem) (profiles []Problem) {
-	profiles = make([]Problem, len(problems))
-	for i, problem := range problems {
-		profiles[i].convert(&problem)
-	}
-	return
 }

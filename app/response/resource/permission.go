@@ -15,37 +15,37 @@ type Role struct {
 	TargetID    uint         `json:"target_id"`
 }
 
-func (p *Permission) convert(perm *models.Permission) {
+func (p *Permission) Convert(perm *models.Permission) {
 	p.ID = perm.ID
 	p.Name = perm.Name
 }
 
-func (p *Role) convert(userHasRole *models.UserHasRole) {
+func (p *Role) Convert(userHasRole *models.UserHasRole) {
 	p.Name = userHasRole.Role.Name
 	p.Target = userHasRole.Role.Target
 	p.TargetID = userHasRole.TargetID
 	p.Permissions = make([]Permission, len(userHasRole.Role.Permissions))
 	for i, perm := range userHasRole.Role.Permissions {
-		p.Permissions[i].convert(&perm)
+		p.Permissions[i].Convert(&perm)
 	}
 }
 
 func GetPermission(perm *models.Permission) *Permission {
 	p := Permission{}
-	p.convert(perm)
+	p.Convert(perm)
 	return &p
 }
 
 func GetRole(role *models.UserHasRole) *Role {
 	p := Role{}
-	p.convert(role)
+	p.Convert(role)
 	return &p
 }
 
 func GetRoleSlice(roles []models.UserHasRole) (profiles []Role) {
 	profiles = make([]Role, len(roles))
 	for i, role := range roles {
-		profiles[i].convert(&role)
+		profiles[i].Convert(&role)
 	}
 	return
 }
