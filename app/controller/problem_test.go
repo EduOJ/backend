@@ -33,29 +33,30 @@ func getObjectContent(t *testing.T, bucketName, objectName string) (content []by
 	return
 }
 
-func createProblemForTest(t *testing.T, name string, index int, attachmentFile *fileContent) (problem models.Problem, user models.User) {
+func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fileContent) (problem models.Problem, user models.User) {
 	problem = models.Problem{
-		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, index),
-		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, index),
+		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, id),
+		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, id),
 		AttachmentFileName: "",
 		Public:             true,
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
-		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d", name, index),
-		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, index),
+		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d", name, id),
+		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, id),
 		CompareScriptID:    1,
 	}
 	if attachmentFile != nil {
 		problem.AttachmentFileName = attachmentFile.fileName
 	}
 	assert.Nil(t, base.DB.Create(&problem).Error)
-	user = createUserForTest(t, name, index)
+	user = createUserForTest(t, name, id)
 	user.GrantRole("problem_creator", problem)
 	if attachmentFile != nil {
 		attachmentBytes, err := ioutil.ReadAll(attachmentFile.reader)
 		assert.Nil(t, err)
-		attachmentFile.reader = bytes.NewReader(attachmentBytes)
+		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
+		assert.Nil(t, err)
 		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), bytes.NewReader(attachmentBytes), int64(len(attachmentBytes)), minio.PutObjectOptions{})
 		assert.Nil(t, err)
 	}
