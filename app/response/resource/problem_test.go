@@ -9,40 +9,40 @@ import (
 	"time"
 )
 
-func createTestCaseForTest(name string, index1 uint, index2 uint) (testCase models.TestCase) {
+func createTestCaseForTest(name string, problemId uint, id uint) (testCase models.TestCase) {
 	testCase = models.TestCase{
-		ID:             index2,
-		ProblemID:      index1,
-		Score:          index2,
-		InputFileName:  fmt.Sprintf("test_%s_problem_%d_test_case_%d_input", name, index1, index2),
-		OutputFileName: fmt.Sprintf("test_%s_problem_%d_test_case_%d_output", name, index1, index2),
-		CreatedAt:      time.Date(int(index1), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
-		UpdatedAt:      time.Date(int(index1), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
+		ID:             id,
+		ProblemID:      problemId,
+		Score:          id,
+		InputFileName:  fmt.Sprintf("test_%s_problem_%d_test_case_%d_input", name, problemId, id),
+		OutputFileName: fmt.Sprintf("test_%s_problem_%d_test_case_%d_output", name, problemId, id),
+		CreatedAt:      time.Date(int(problemId), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
+		UpdatedAt:      time.Date(int(problemId), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
 		DeletedAt:      nil,
 	}
 	return
 }
 
-func createProblemForTest(name string, index uint, testCaseCount uint) (problem models.Problem) {
+func createProblemForTest(name string, id uint, testCaseCount uint) (problem models.Problem) {
 	problem = models.Problem{
-		ID:                 index,
-		Name:               fmt.Sprintf("test_%s_problem_%d", name, index),
-		Description:        fmt.Sprintf("test_%s_problem_%d_desc", name, index),
-		AttachmentFileName: fmt.Sprintf("test_%s_problem_%d_attachment", name, index),
+		ID:                 id,
+		Name:               fmt.Sprintf("test_%s_problem_%d", name, id),
+		Description:        fmt.Sprintf("test_%s_problem_%d_desc", name, id),
+		AttachmentFileName: fmt.Sprintf("test_%s_problem_%d_attachment", name, id),
 		Public:             true,
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
-		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d,test_language", name, index),
-		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, index),
+		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d,test_language", name, id),
+		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, id),
 		CompareScriptID:    1,
 		TestCases:          make([]models.TestCase, testCaseCount),
-		CreatedAt:          time.Date(int(index), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
-		UpdatedAt:          time.Date(int(index), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
+		CreatedAt:          time.Date(int(id), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
+		UpdatedAt:          time.Date(int(id), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
 		DeletedAt:          nil,
 	}
 	for i := range problem.TestCases {
-		problem.TestCases[i] = createTestCaseForTest(name, index, uint(i))
+		problem.TestCases[i] = createTestCaseForTest(name, id, uint(i))
 	}
 	return
 }
