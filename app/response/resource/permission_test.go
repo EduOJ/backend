@@ -15,41 +15,41 @@ type roleWithTargetID struct {
 	id   uint
 }
 
-func createPermissionForTest(name string, id uint, roleId uint) (permission models.Permission) {
+func createPermissionForTest(name string, index uint, roleId uint) (permission models.Permission) {
 	permission = models.Permission{
-		ID:     id,
+		ID:     index,
 		RoleID: roleId,
-		Name:   fmt.Sprintf("test_%s_permission_%d", name, id),
+		Name:   fmt.Sprintf("test_%s_permission_%d", name, index),
 	}
 	return
 }
 
-func createRoleForTest(name string, id uint, permissionCount uint) (role models.Role) {
-	target := fmt.Sprintf("test_%s_role_%d_target", name, id)
+func createRoleForTest(name string, index uint, permissionCount uint) (role models.Role) {
+	target := fmt.Sprintf("test_%s_role_%d_target", name, index)
 	permissions := make([]models.Permission, permissionCount)
 	for i := range permissions {
-		permissions[i] = createPermissionForTest(name, uint(i), id)
+		permissions[i] = createPermissionForTest(name, uint(i), index)
 	}
 	role = models.Role{
-		ID:          id,
-		Name:        fmt.Sprintf("test_%s_role_%d", name, id),
+		ID:          index,
+		Name:        fmt.Sprintf("test_%s_role_%d", name, index),
 		Target:      &target,
 		Permissions: permissions,
 	}
 	return
 }
 
-func createUserForTest(name string, id uint, roles ...roleWithTargetID) (user models.User) {
+func createUserForTest(name string, index uint, roles ...roleWithTargetID) (user models.User) {
 	user = models.User{
-		ID:         id,
-		Username:   fmt.Sprintf("test_%s_user_%d", name, id),
-		Nickname:   fmt.Sprintf("test_%s_user_%d_nick", name, id),
-		Email:      fmt.Sprintf("test_%s_user_%d@e.e", name, id),
-		Password:   utils.HashPassword(fmt.Sprintf("test_%s_user_%d_pwd", name, id)),
+		ID:         index,
+		Username:   fmt.Sprintf("test_%s_user_%d", name, index),
+		Nickname:   fmt.Sprintf("test_%s_user_%d_nick", name, index),
+		Email:      fmt.Sprintf("test_%s_user_%d@e.e", name, index),
+		Password:   utils.HashPassword(fmt.Sprintf("test_%s_user_%d_pwd", name, index)),
 		Roles:      make([]models.UserHasRole, len(roles)),
 		RoleLoaded: true,
-		CreatedAt:  time.Date(int(id), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
-		UpdatedAt:  time.Date(int(id), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
+		CreatedAt:  time.Date(int(index), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
+		UpdatedAt:  time.Date(int(index), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
 		DeletedAt:  nil,
 	}
 	for i, role := range roles {
