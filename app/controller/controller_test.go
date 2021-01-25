@@ -117,12 +117,12 @@ func runFailTests(t *testing.T, tests []failTest, groupName string) {
 	})
 }
 
-func createUserForTest(t *testing.T, name string, index int) (user models.User) {
+func createUserForTest(t *testing.T, name string, id int) (user models.User) {
 	user = models.User{
-		Username: fmt.Sprintf("test_%s_user_%d", name, index),
-		Nickname: fmt.Sprintf("test_%s_user_%d_nick", name, index),
-		Email:    fmt.Sprintf("test_%s_user_%d@e.e", name, index),
-		Password: utils.HashPassword(fmt.Sprintf("test_%s_user_%d_pwd", name, index)),
+		Username: fmt.Sprintf("test_%s_user_%d", name, id),
+		Nickname: fmt.Sprintf("test_%s_user_%d_nick", name, id),
+		Email:    fmt.Sprintf("test_%s_user_%d@e.e", name, id),
+		Password: utils.HashPassword(fmt.Sprintf("test_%s_user_%d_pwd", name, id)),
 	}
 	assert.Nil(t, base.DB.Create(&user).Error)
 	return
