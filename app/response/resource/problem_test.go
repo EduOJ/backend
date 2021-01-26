@@ -14,6 +14,7 @@ func createTestCaseForTest(name string, problemId uint, id uint) (testCase model
 		ID:             id,
 		ProblemID:      problemId,
 		Score:          id,
+		Sample:         true,
 		InputFileName:  fmt.Sprintf("test_%s_problem_%d_test_case_%d_input", name, problemId, id),
 		OutputFileName: fmt.Sprintf("test_%s_problem_%d_test_case_%d_output", name, problemId, id),
 		CreatedAt:      time.Date(int(problemId), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
@@ -55,6 +56,7 @@ func TestGetTestCaseAndGetTestCaseForAdmin(t *testing.T) {
 			ID:        0,
 			ProblemID: 0,
 			Score:     0,
+			Sample:    true,
 		}
 		assert.Equal(t, expectedT, actualT)
 	})
@@ -64,6 +66,7 @@ func TestGetTestCaseAndGetTestCaseForAdmin(t *testing.T) {
 			ID:             0,
 			ProblemID:      0,
 			Score:          0,
+			Sample:         true,
 			InputFileName:  "test_get_test_case_problem_0_test_case_0_input",
 			OutputFileName: "test_get_test_case_problem_0_test_case_0_output",
 		}
@@ -89,10 +92,12 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 					ID:        0,
 					ProblemID: 0,
 					Score:     0,
+					Sample:    true,
 				}, {
 					ID:        1,
 					ProblemID: 0,
 					Score:     1,
+					Sample:    true,
 				},
 			},
 		}
@@ -117,12 +122,14 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 					ID:             0,
 					ProblemID:      0,
 					Score:          0,
+					Sample:         true,
 					InputFileName:  "test_get_problem_problem_0_test_case_0_input",
 					OutputFileName: "test_get_problem_problem_0_test_case_0_output",
 				}, {
 					ID:             1,
 					ProblemID:      0,
 					Score:          1,
+					Sample:         true,
 					InputFileName:  "test_get_problem_problem_0_test_case_1_input",
 					OutputFileName: "test_get_problem_problem_0_test_case_1_output",
 				},
@@ -152,6 +159,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 						ID:        0,
 						ProblemID: 1,
 						Score:     0,
+						Sample:    true,
 					},
 				},
 			}, {
@@ -168,10 +176,12 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 						ID:        0,
 						ProblemID: 2,
 						Score:     0,
+						Sample:    true,
 					}, {
 						ID:        1,
 						ProblemID: 2,
 						Score:     1,
+						Sample:    true,
 					},
 				},
 			},
@@ -198,6 +208,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 						ID:             0,
 						ProblemID:      1,
 						Score:          0,
+						Sample:         true,
 						InputFileName:  "test_get_problem_slice_problem_1_test_case_0_input",
 						OutputFileName: "test_get_problem_slice_problem_1_test_case_0_output",
 					},
@@ -219,12 +230,14 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 						ID:             0,
 						ProblemID:      2,
 						Score:          0,
+						Sample:         true,
 						InputFileName:  "test_get_problem_slice_problem_2_test_case_0_input",
 						OutputFileName: "test_get_problem_slice_problem_2_test_case_0_output",
 					}, {
 						ID:             1,
 						ProblemID:      2,
 						Score:          1,
+						Sample:         true,
 						InputFileName:  "test_get_problem_slice_problem_2_test_case_1_input",
 						OutputFileName: "test_get_problem_slice_problem_2_test_case_1_output",
 					},

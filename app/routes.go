@@ -54,12 +54,12 @@ func Register(e *echo.Echo) {
 	admin.PUT("/problem/:id",
 		controller.UpdateProblem, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.updateProblem"
 	admin.DELETE("/problem/:id",
 		controller.DeleteProblem, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "delete_problem", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "delete_problem"},
 		})).Name = "problem.deleteProblem"
 
 	api.GET("/problem/:id", controller.GetProblem).Name = "problem.getProblem"
@@ -71,38 +71,38 @@ func Register(e *echo.Echo) {
 		controller.CreateTestCase,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.createTestCase"
 	admin.PUT("/problem/:id/test_case/:test_case_id",
 		controller.UpdateTestCase,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.updateTestCase"
 	admin.DELETE("/problem/:id/test_case/all",
 		controller.DeleteTestCases,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.deleteTestCases"
 	admin.DELETE("/problem/:id/test_case/:test_case_id",
 		controller.DeleteTestCase,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.deleteTestCase"
 
 	admin.GET("/problem/:id/test_case/:test_case_id/input_file",
 		controller.GetTestCaseInputFile,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "read_problem_secret", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "read_problem_secret"},
 		})).Name = "problem.getTestCaseInputFile"
 	admin.GET("/problem/:id/test_case/:test_case_id/output_file",
 		controller.GetTestCaseOutputFile,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "read_problem_secret", T: "problem"},
-			B: middleware.UnscopedPermission{P: "manage_problem"},
+			B: middleware.UnscopedPermission{P: "read_problem_secret"},
 		})).Name = "problem.getTestCaseOutputFile"
 
 	admin.GET("/logs",

@@ -402,6 +402,20 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
+		{
+			// add sample column
+			ID: "add_sample_column",
+			Migrate: func(tx *gorm.DB) (err error) {
+				type TestCase struct {
+					Sample bool `json:"sample" gorm:"default:false;not null"`
+				}
+				return tx.AutoMigrate(&TestCase{})
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				type TestCase struct{}
+				return tx.Migrator().DropColumn(&TestCase{}, "sample")
+			},
+		},
 	})
 }
 

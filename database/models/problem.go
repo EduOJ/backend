@@ -10,6 +10,7 @@ type TestCase struct {
 
 	ProblemID uint `sql:"index" json:"problem_id" gorm:"not null"`
 	Score     uint `json:"score" gorm:"default:0;not null"` // 0 for 平均分配
+	Sample    bool `json:"sample" gorm:"default:false;not null"`
 
 	InputFileName  string `json:"input_file_name" gorm:"size:255;default:'';not null"`
 	OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
