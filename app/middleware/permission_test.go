@@ -292,4 +292,27 @@ func TestHasPermission(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
 	})
+
+	userGroups[1].POST("/scoped_multiple_id/:id1/:id2",
+		testController,
+		middleware.HasPermission(middleware.ScopedPermission{
+			P:           "testPerm",
+			IdFieldName: "id2",
+			T:           "test_class",
+		}))
+
+	t.Run("scopedPermissionWithMultipleId", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "POST", "/testHasPermUserWithClassAPerm/scoped_multiple_id/2/1", nil), e)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, responseWithUser(testHasPermUserWithClassAPerm), resp)
+
+		httpResp = makeResp(makeReq(t, "POST", "/testHasPermUserWithClassAPerm/scoped_multiple_id/1/2", nil), e)
+		resp = response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("PERMISSION_DENIED", nil), resp)
+	})
 }
