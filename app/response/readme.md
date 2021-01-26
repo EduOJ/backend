@@ -87,61 +87,6 @@ Common return codes.
 |:-----------------------:|:-------------------:|
 |      INVALID_ORDER      |     无效的排序设置     |
 
-### Problem
-
-#### AdminCreateProblem
-
-#### AdminGetProblems
-|         message         |         结果         |
-|:-----------------------:|:-------------------:|
-|      INVALID_ORDER      |     无效的排序设置     |
-
-#### AdminUpdateProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
-
-#### AdminDeleteProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
-
-#### AdminCreateTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |     错误的problem     |
-|        INVALID_FILE        |        缺少文件       |
-
-#### AdminUpdateTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
-
-
-#### AdminDeleteTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
-
-#### AdminDeleteTestCases
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-
-#### AdminGetTestCaseInputFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
-
-#### AdminGetTestCaseOutputFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
-
 ## User
 
 ### GetMe
@@ -173,21 +118,69 @@ Common return codes.
 
 ## Problem
 
+### CreateProblem
+
 ### GetProblem
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |   无法找到指定problem  |
-
-### GetProblems
-|         message         |         结果         |
-|:-----------------------:|:-------------------:|
-|      INVALID_ORDER      |     无效的排序设置     |
 
 ### GetProblemAttachmentFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |    PROBLEM_NOT_FOUND    |      错误的problem    |
 |        NOT_FOUND        |     无法找到指定附件    |
+
+### GetProblems
+|         message         |         结果         |
+|:-----------------------:|:-------------------:|
+|      INVALID_ORDER      |     无效的排序设置     |
+
+### UpdateProblem
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到指定problem  |
+
+### DeleteProblem
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到指定problem  |
+
+### CreateTestCase
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |     错误的problem     |
+|        INVALID_FILE        |        缺少文件       |
+
+### UpdateTestCase
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
+
+### DeleteTestCase
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
+### DeleteTestCases
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+
+### GetTestCaseInputFile
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
+
+### GetTestCaseOutputFile
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |   无法找到test case   |
 
 ## Image
 ### CreateImage

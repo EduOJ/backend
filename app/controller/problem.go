@@ -26,7 +26,7 @@ func GetProblem(c echo.Context) error {
 		panic(err)
 	}
 	if user.Can("read_problem", problem) {
-		return c.JSON(http.StatusOK, response.AdminGetProblemResponse{
+		return c.JSON(http.StatusOK, response.GetProblemResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -75,7 +75,7 @@ func GetProblems(c echo.Context) error {
 		panic(err)
 	}
 	if isAdmin {
-		return c.JSON(http.StatusOK, response.AdminGetProblemsResponse{
+		return c.JSON(http.StatusOK, response.GetProblemsResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -322,6 +322,7 @@ func CreateTestCase(c echo.Context) error {
 
 	testCase := models.TestCase{
 		Score:          req.Score,
+		Sample:         req.Sample,
 		InputFileName:  inputFile.Filename,
 		OutputFileName: outputFile.Filename,
 	}
@@ -406,6 +407,7 @@ func UpdateTestCase(c echo.Context) error {
 	}
 
 	testCase.Score = req.Score
+	testCase.Sample = req.Sample
 	utils.PanicIfDBError(base.DB.Save(&testCase), "could not update testCase")
 
 	return c.JSON(http.StatusOK, response.UpdateTestCaseResponse{
