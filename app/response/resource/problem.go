@@ -10,6 +10,7 @@ type TestCaseForAdmin struct {
 
 	ProblemID uint `sql:"index" json:"problem_id"`
 	Score     uint `json:"score"` // 0 for 平均分配
+	Sample    bool `json:"sample"`
 
 	InputFileName  string `json:"input_file_name"`
 	OutputFileName string `json:"output_file_name"`
@@ -20,6 +21,7 @@ type TestCase struct {
 
 	ProblemID uint `sql:"index" json:"problem_id"`
 	Score     uint `json:"score"` // 0 for 平均分配
+	Sample    bool `json:"sample"`
 }
 
 type ProblemForAdmin struct {
@@ -57,6 +59,7 @@ func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
 	t.Score = testCase.Score
+	t.Sample = testCase.Sample
 	t.InputFileName = testCase.InputFileName
 	t.OutputFileName = testCase.OutputFileName
 }
@@ -65,6 +68,7 @@ func (t *TestCase) convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
 	t.Score = testCase.Score
+	t.Sample = testCase.Sample
 }
 
 func GetTestCaseForAdmin(testCase *models.TestCase) *TestCaseForAdmin {
