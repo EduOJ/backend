@@ -34,13 +34,18 @@ func (p UnscopedPermission) Check(c echo.Context) bool {
 }
 
 type ScopedPermission struct {
-	P string
-	T string
+	P           string
+	IdFieldName string
+	T           string
 }
 
 func (p ScopedPermission) Check(c echo.Context) bool {
+	idFieldName := "id"
+	if p.IdFieldName != "" {
+		idFieldName = p.IdFieldName
+	}
 	u := c.Get("user").(models.User)
-	id, err := strconv.ParseUint(c.Param("id"), 10, strconv.IntSize)
+	id, err := strconv.ParseUint(c.Param(idFieldName), 10, strconv.IntSize)
 	if err != nil {
 		return false
 	}
