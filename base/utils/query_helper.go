@@ -147,3 +147,19 @@ func FindTestCase(problemId string, testCaseIdStr string, user *models.User) (*m
 	}
 	return nil, problem, err
 }
+
+func FindSubmission(id uint, includeProblemSet bool) (*models.Submission, error) {
+	submission := models.Submission{}
+	err := base.DB.Where("id = ?", id).First(&submission).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		} else {
+			panic(errors.Wrap(err, "could not query problem"))
+		}
+	}
+	if !includeProblemSet && submission.ProblemSetId.Valid {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &submission, nil
+}

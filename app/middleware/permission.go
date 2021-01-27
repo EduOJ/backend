@@ -73,6 +73,14 @@ func (p AndPermission) Check(c echo.Context) bool {
 	return p.A.Check(c) && p.B.Check(c)
 }
 
+type CustomPermission struct {
+	F func(c echo.Context) bool
+}
+
+func (p CustomPermission) Check(c echo.Context) bool {
+	return p.F(c)
+}
+
 func HasPermission(p PermissionOption) func(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

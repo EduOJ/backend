@@ -5,11 +5,15 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/controller"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
+	"github.com/leoleoasd/EduOJBackend/app/request"
+	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
+	"github.com/leoleoasd/EduOJBackend/database/models"
 	"net/http"
 	"net/http/pprof"
+	"strconv"
 )
 
 func Register(e *echo.Echo) {
@@ -105,11 +109,40 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "read_problem_secret"},
 		})).Name = "problem.getTestCaseOutputFile"
 
-	// TODO:seems can't use HasPermission middleware to finish permission validation here
-	api.POST("/submission", controller.Todo).Name = "submission.createSubmission"
+	admin.POST("/submission", controller.Todo, middleware.HasPermission(middleware.CustomPermission{F: func(c echo.Context) bool {
+		req := request.CreateSubmissionRequest{}
+		err, ok := utils.BindAndValidate(&req, c)
+		c.Set("request", req)
+		c.Set("bind_and_validate_error", err)
+		if !ok {
+			return true
+		}
+		problem := models.Problem{}
+		err = base.DB.Where("id = ?", req.ProblemID).First(&problem).Error
+		user := c.Get("user").(models.User)
+		if err == nil && !problem.Public && user.Can("read_problem", problem) {
+			return false
+		}
+		c.Set("problem", problem)
+		c.Set("find_problem_error", err)
+		return true
+	}})).Name = "submission.createSubmission"
 	api.GET("/submission/:id", controller.Todo).Name = "submission.getSubmission"
 	api.GET("/submissions", controller.Todo).Name = "submission.getSubmissions"
-	api.GET("/submission/:id/run/:run_id", controller.Todo).Name = "submission.getRun"
+	admin.GET("/submission/:id/run/:run_id", controller.Todo, middleware.HasPermission(middleware.CustomPermission{F: func(c echo.Context) bool {
+		user := c.Get("user").(models.User)
+		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		if err != nil {
+			return false
+		}
+		submission, err := utils.FindSubmission(uint(id), false)
+		if submission != nil && submission.UserID != user.ID && !user.Can("read_problem_secret", submission.Problem) {
+			return false
+		}
+		c.Set("submission", submission)
+		c.Set("find_submission_error", err)
+		return true
+	}})).Name = "submission.getRun"
 
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
