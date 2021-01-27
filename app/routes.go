@@ -105,6 +105,12 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "read_problem_secret"},
 		})).Name = "problem.getTestCaseOutputFile"
 
+	// TODO:seems can't use HasPermission middleware to finish permission validation here
+	api.POST("/submission", controller.Todo).Name = "submission.createSubmission"
+	api.GET("/submission/:id", controller.Todo).Name = "submission.getSubmission"
+	api.GET("/submissions", controller.Todo).Name = "submission.getSubmissions"
+	api.GET("/submission/:id/run/:run_id", controller.Todo).Name = "submission.getRun"
+
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
 
