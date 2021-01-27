@@ -560,7 +560,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 				applyNormalUser,
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("PROBLEM_NOT_FOUND", nil),
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "ProblemWithoutAttachmentFile",
@@ -571,7 +571,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 				applyNormalUser,
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("ATTACHMENT_NOT_FOUND", nil),
 		},
 		{
 			name:   "PublicFalse",
@@ -582,7 +582,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 				applyNormalUser,
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("PROBLEM_NOT_FOUND", nil),
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 	}
 
@@ -1433,12 +1433,10 @@ func TestCreateTestCase(t *testing.T) {
 				"sample": "true",
 			}),
 			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-				},
+				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "LackInputFile",
@@ -1566,12 +1564,10 @@ func TestGetTestCaseInputFile(t *testing.T) {
 			path:   base.Echo.Reverse("problem.getTestCaseInputFile", -1, 1),
 			req:    request.GetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-				},
+				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingTestCase",
@@ -1584,7 +1580,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusNotFound,
-			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+			resp: response.ErrorResp("TEST_CASE_NOT_FOUND", map[string]interface{}{
 				"Err":  map[string]interface{}{},
 				"Func": "ParseUint",
 				"Num":  "-1",
@@ -1631,12 +1627,10 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 			path:   base.Echo.Reverse("problem.getTestCaseOutputFile", -1, 1),
 			req:    request.GetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-				},
+				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingTestCase",
@@ -1649,7 +1643,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusNotFound,
-			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+			resp: response.ErrorResp("TEST_CASE_NOT_FOUND", map[string]interface{}{
 				"Err":  map[string]interface{}{},
 				"Func": "ParseUint",
 				"Num":  "-1",
@@ -1689,6 +1683,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 
 func TestUpdateTestCase(t *testing.T) {
 	problem, user := createProblemForTest(t, "update_test_case", 0, nil)
+	boolTrue := true
 
 	failTests := []failTest{
 		{
@@ -1697,15 +1692,13 @@ func TestUpdateTestCase(t *testing.T) {
 			path:   base.Echo.Reverse("problem.updateTestCase", -1, 1),
 			req: request.UpdateTestCaseRequest{
 				Score:  100,
-				Sample: true,
+				Sample: &boolTrue,
 			},
 			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-				},
+				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingTestCase",
@@ -1713,7 +1706,7 @@ func TestUpdateTestCase(t *testing.T) {
 			path:   base.Echo.Reverse("problem.updateTestCase", problem.ID, -1),
 			req: request.UpdateTestCaseRequest{
 				Score:  100,
-				Sample: true,
+				Sample: &boolTrue,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -1721,7 +1714,7 @@ func TestUpdateTestCase(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusNotFound,
-			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+			resp: response.ErrorResp("TEST_CASE_NOT_FOUND", map[string]interface{}{
 				"Err":  map[string]interface{}{},
 				"Func": "ParseUint",
 				"Num":  "-1",
@@ -1733,7 +1726,7 @@ func TestUpdateTestCase(t *testing.T) {
 			path:   base.Echo.Reverse("problem.updateTestCase", problem.ID, 1),
 			req: request.UpdateTestCaseRequest{
 				Score:  100,
-				Sample: true,
+				Sample: &boolTrue,
 			},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1914,15 +1907,13 @@ func TestDeleteTestCase(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "DELETE",
-			path:   base.Echo.Reverse("problem.deleteTestCases", -1, 1),
+			path:   base.Echo.Reverse("problem.deleteTestCase", -1, 1),
 			req:    request.DeleteProblemRequest{},
 			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-				},
+				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingTestCase",
@@ -1935,7 +1926,7 @@ func TestDeleteTestCase(t *testing.T) {
 				},
 			},
 			statusCode: http.StatusNotFound,
-			resp: response.ErrorResp("NOT_FOUND", map[string]interface{}{
+			resp: response.ErrorResp("TEST_CASE_NOT_FOUND", map[string]interface{}{
 				"Err":  map[string]interface{}{},
 				"Func": "ParseUint",
 				"Num":  "-1",
@@ -1944,7 +1935,7 @@ func TestDeleteTestCase(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "DELETE",
-			path:   base.Echo.Reverse("problem.deleteTestCases", problem.ID, 1),
+			path:   base.Echo.Reverse("problem.deleteTestCase", problem.ID, 1),
 			req:    request.DeleteProblemRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1994,12 +1985,10 @@ func TestDeleteTestCases(t *testing.T) {
 			path:   base.Echo.Reverse("problem.deleteTestCases", -1),
 			req:    request.DeleteTestCasesRequest{},
 			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
-				},
+				applyAdminUser,
 			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			name:   "PermissionDenied",

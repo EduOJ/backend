@@ -128,8 +128,8 @@ Common return codes.
 ### GetProblemAttachmentFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |      错误的problem    |
-|        NOT_FOUND        |     无法找到指定附件    |
+|         NOT_FOUND       |     错误的problem     |
+|   ATTACHMENT_NOT_FOUND  |     无法找到指定附件    |
 
 ### GetProblems
 |         message         |         结果         |
@@ -149,38 +149,38 @@ Common return codes.
 ### CreateTestCase
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |     错误的problem     |
-|        INVALID_FILE        |        缺少文件       |
+|        NOT_FOUND        |     错误的problem     |
+|      INVALID_FILE       |        缺少文件       |
 
 ### UpdateTestCase
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
+|        NOT_FOUND        |    无法找到problem    |
+|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 
 ### DeleteTestCase
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
+|        NOT_FOUND        |    无法找到problem    |
+|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### DeleteTestCases
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
+|        NOT_FOUND        |    无法找到problem    |
 
 ### GetTestCaseInputFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
+|        NOT_FOUND        |    无法找到problem    |
+|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### GetTestCaseOutputFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|    PROBLEM_NOT_FOUND    |    无法找到problem    |
-|        NOT_FOUND        |   无法找到test case   |
+|        NOT_FOUND        |    无法找到problem    |
+|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ## Image
 ### CreateImage

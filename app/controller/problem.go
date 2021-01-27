@@ -120,12 +120,12 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	user := c.Get("user").(models.User)
 	problem, err := utils.FindProblem(c.Param("id"), &user)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
 	if problem.AttachmentFileName == "" {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("ATTACHMENT_NOT_FOUND", nil))
 	}
 	object := utils.MustGetObject("problems", fmt.Sprintf("%d/attachment", problem.ID))
 	contentType := "application/octet-stream"
@@ -297,7 +297,7 @@ func CreateTestCase(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
 		panic(err)
 	}
@@ -322,7 +322,7 @@ func CreateTestCase(c echo.Context) error {
 
 	testCase := models.TestCase{
 		Score:          req.Score,
-		Sample:         req.Sample,
+		Sample:         *req.Sample,
 		InputFileName:  inputFile.Filename,
 		OutputFileName: outputFile.Filename,
 	}
@@ -348,9 +348,9 @@ func CreateTestCase(c echo.Context) error {
 func GetTestCaseInputFile(c echo.Context) error {
 	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if testCase == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
@@ -363,9 +363,9 @@ func GetTestCaseInputFile(c echo.Context) error {
 func GetTestCaseOutputFile(c echo.Context) error {
 	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if testCase == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
@@ -378,9 +378,9 @@ func GetTestCaseOutputFile(c echo.Context) error {
 func UpdateTestCase(c echo.Context) error {
 	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if testCase == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
 	}
 
 	req := request.UpdateTestCaseRequest{}
@@ -407,7 +407,7 @@ func UpdateTestCase(c echo.Context) error {
 	}
 
 	testCase.Score = req.Score
-	testCase.Sample = req.Sample
+	testCase.Sample = *req.Sample
 	utils.PanicIfDBError(base.DB.Save(&testCase), "could not update testCase")
 
 	return c.JSON(http.StatusOK, response.UpdateTestCaseResponse{
@@ -424,9 +424,9 @@ func UpdateTestCase(c echo.Context) error {
 func DeleteTestCase(c echo.Context) error {
 	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
 	if problem == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if testCase == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", err))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
 	}
 
 	utils.PanicIfDBError(base.DB.Delete(&testCase), "could not remove test case")
@@ -441,7 +441,7 @@ func DeleteTestCase(c echo.Context) error {
 func DeleteTestCases(c echo.Context) error {
 	problem, err := utils.FindProblem(c.Param("id"), nil)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_NOT_FOUND", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
 		panic(err)
 	}
