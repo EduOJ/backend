@@ -97,7 +97,7 @@ func FindUser(id string) (*models.User, error) {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			} else {
-				panic(errors.Wrap(err, "could not query user"))
+				return nil, errors.Wrap(err, "could not query user")
 			}
 		}
 	}
@@ -116,7 +116,7 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			} else {
-				panic(errors.Wrap(err, "could not query problem"))
+				return nil, errors.Wrap(err, "could not query problem")
 			}
 		}
 	}
@@ -155,10 +155,10 @@ func FindSubmission(id uint, includeProblemSet bool) (*models.Submission, error)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		} else {
-			panic(errors.Wrap(err, "could not query problem"))
+			return nil, errors.Wrap(err, "could not query submission")
 		}
 	}
-	if !includeProblemSet && submission.ProblemSetId.Valid {
+	if !includeProblemSet && submission.ProblemSetId == 0 {
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &submission, nil

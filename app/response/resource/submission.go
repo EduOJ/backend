@@ -1,88 +1,144 @@
 package resource
 
 import (
-	"database/sql"
+	"github.com/leoleoasd/EduOJBackend/database/models"
 	"time"
 )
 
 type Submission struct {
 	ID uint `json:"id"`
 
-	UserID       uint          `sql:"index" json:"user_id"`
-	ProblemID    uint          `sql:"index" json:"problem_id"`
-	ProblemSetId sql.NullInt32 `sql:"index" json:"problem_set_id"`
-	Language     string        `json:"language"`
+	UserID       uint   `json:"user_id"`
+	ProblemID    uint   `json:"problem_id"`
+	ProblemSetId uint   `json:"problem_set_id"` // 0 means not in problem set
+	Language     string `json:"language"`
 
 	Judged bool   `json:"judged"`
 	Score  uint   `json:"score"`
 	Status string `json:"status"`
 
-	CreatedAt time.Time `sql:"index" json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-type SubmissionForAdmin struct {
+func (s *Submission) convert(submission *models.Submission) {
+	s.ID = submission.ID
+	s.UserID = submission.UserID
+	s.ProblemID = submission.ProblemID
+	s.ProblemSetId = submission.ProblemSetId
+	s.Language = submission.Language
+	s.Judged = submission.Judged
+	s.Score = submission.Score
+	s.Status = submission.Status
+	s.CreatedAt = submission.CreatedAt
+}
+
+func GetSubmission(submission *models.Submission) *Submission {
+	s := Submission{}
+	s.convert(submission)
+	return &s
+}
+
+func GetSubmissionSlice(submissions []models.Submission) []Submission {
+	s := make([]Submission, len(submissions))
+	for i, submission := range submissions {
+		s[i].convert(&submission)
+	}
+	return s
+}
+
+type SubmissionDetail struct {
 	ID uint `json:"id"`
 
-	UserID       uint          `sql:"index" json:"user_id"`
-	ProblemID    uint          `sql:"index" json:"problem_id"`
-	ProblemSetId sql.NullInt32 `sql:"index" json:"problem_set_id"`
-	Language     string        `json:"language"`
-	// TODO: remove file name?
-	FileName string `json:"file_name"`
-	Priority uint8  `json:"priority"`
+	UserID       uint   `json:"user_id"`
+	ProblemID    uint   `json:"problem_id"`
+	ProblemSetId uint   `json:"problem_set_id"`
+	Language     string `json:"language"`
+	FileName     string `json:"file_name"`
+	Priority     uint8  `json:"priority"`
 
 	Judged bool   `json:"judged"`
 	Score  uint   `json:"score"`
 	Status string `json:"status"`
-
-	CodeUrl string `json:"code_url"`
 
 	Runs []Run `json:"runs"`
 
-	CreatedAt time.Time `sql:"index" json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (s *SubmissionDetail) convert(submission *models.Submission) {
+	s.ID = submission.ID
+	s.UserID = submission.UserID
+	s.ProblemID = submission.ProblemID
+	s.ProblemSetId = submission.ProblemSetId
+	s.Language = submission.Language
+	s.FileName = submission.FileName
+	s.Priority = submission.Priority
+	s.Judged = submission.Judged
+	s.Score = submission.Score
+	s.Status = submission.Status
+	s.Runs = GetRunSlice(submission.Runs)
+	s.CreatedAt = submission.CreatedAt
+}
+
+func GetSubmissionDetail(submission *models.Submission) *SubmissionDetail {
+	s := SubmissionDetail{}
+	s.convert(submission)
+	return &s
+}
+
+func GetSubmissionDetailSlice(submissions []models.Submission) []SubmissionDetail {
+	s := make([]SubmissionDetail, len(submissions))
+	for i, submission := range submissions {
+		s[i].convert(&submission)
+	}
+	return s
 }
 
 type Run struct {
 	ID uint `json:"id"`
 
-	UserID       uint          `sql:"index" json:"user_id"`
-	ProblemID    uint          `sql:"index" json:"problem_id"`
-	ProblemSetId sql.NullInt32 `sql:"index" json:"problem_set_id"`
-	TestCaseID   uint          `json:"test_case_id"`
-	Sample       bool          `json:"sample"`
-	SubmissionID uint          `json:"submission_id"`
+	UserID       uint  `json:"user_id"`
+	ProblemID    uint  `json:"problem_id"`
+	ProblemSetId uint  `json:"problem_set_id"`
+	TestCaseID   uint  `json:"test_case_id"`
+	Sample       bool  `json:"sample"`
+	SubmissionID uint  `json:"submission_id"`
+	Priority     uint8 `json:"priority"`
 
 	Judged     bool   `json:"judged"`
 	Status     string `json:"status"`      // AC WA TLE MLE OLE
 	MemoryUsed uint   `json:"memory_used"` // Byte
 	TimeUsed   uint   `json:"time_used"`   // ms
 
-	CompilerOutputUrl string `json:"compiler_output_url"`
-
-	CreatedAt time.Time `sql:"index" json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-type RunForAdmin struct {
-	ID uint `json:"id"`
+func (r *Run) convert(run *models.Run) {
+	r.ID = run.ID
+	r.UserID = run.UserID
+	r.ProblemID = run.ProblemID
+	r.ProblemSetId = run.ProblemSetId
+	r.TestCaseID = run.TestCaseID
+	r.Sample = run.Sample
+	r.SubmissionID = run.SubmissionID
+	r.Priority = run.Priority
+	r.Judged = run.Judged
+	r.Status = run.Status
+	r.MemoryUsed = run.MemoryUsed
+	r.TimeUsed = run.TimeUsed
+	r.CreatedAt = run.CreatedAt
+}
 
-	UserID       uint          `sql:"index" json:"user_id"`
-	ProblemID    uint          `sql:"index" json:"problem_id"`
-	ProblemSetId sql.NullInt32 `sql:"index" json:"problem_set_id"`
-	TestCaseID   uint          `json:"test_case_id"`
-	Sample       bool          `json:"sample"`
-	SubmissionID uint          `json:"submission_id"`
-	Priority     uint8         `json:"priority"`
+func GetRun(run *models.Run) *Run {
+	r := Run{}
+	r.convert(run)
+	return &r
+}
 
-	Judged             bool   `json:"judged"`
-	Status             string `json:"status"`      // AC WA TLE MLE OLE
-	MemoryUsed         uint   `json:"memory_used"` // Byte
-	TimeUsed           uint   `json:"time_used"`   // ms
-	OutputStrippedHash string `json:"output_stripped_hash"`
-
-	CompilerOutputUrl string `json:"compiler_output_url"`
-	InputUrl          string `json:"input_url"`
-	OutputUrl         string `json:"output_url"`
-	ComparerOutputUrl string `json:"comparer_output_url"`
-
-	CreatedAt time.Time `sql:"index" json:"created_at"`
+func GetRunSlice(runs []models.Run) []Run {
+	r := make([]Run, len(runs))
+	for i, run := range runs {
+		r[i].convert(&run)
+	}
+	return r
 }
