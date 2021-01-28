@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/leoleoasd/EduOJBackend/base"
@@ -422,63 +421,27 @@ func GetMigration() *gormigrate.Gormigrate {
 			ID: "add_submissions",
 			Migrate: func(tx *gorm.DB) (err error) {
 				type User struct {
-					ID       uint   `gorm:"primaryKey" json:"id"`
-					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
-					Nickname string `gorm:"index;size:30" json:"nickname"`
-					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
-					Password string `json:"-"`
-
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+					ID uint `gorm:"primaryKey" json:"id"`
 				}
 				type TestCase struct {
 					ID uint `gorm:"primaryKey" json:"id"`
-
-					ProblemID uint `sql:"index" json:"problem_id" gorm:"not null"`
-					Score     uint `json:"score" gorm:"default:0;not null"` // 0 for 平均分配
-					Sample    bool `json:"sample" gorm:"default:false;not null"`
-
-					InputFileName  string `json:"input_file_name" gorm:"size:255;default:'';not null"`
-					OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
-
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `json:"deleted_at"`
 				}
 				type Problem struct {
-					ID                 uint   `gorm:"primaryKey" json:"id"`
-					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
-					Description        string `json:"description"`
-					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
-					Public             bool   `json:"public" gorm:"default:false;not null"`
-					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
-
-					MemoryLimit        uint64 `json:"memory_limit" gorm:"default:0;not null;type:bigint"`       // Byte
-					TimeLimit          uint   `json:"time_limit" gorm:"default:0;not null"`                     // ms
-					LanguageAllowed    string `json:"language_allowed" gorm:"size:255;default:'';not null"`     // E.g.    cpp,c,java,python
-					CompileEnvironment string `json:"compile_environment" gorm:"size:2047;default:'';not null"` // E.g.  O2=false
-					CompareScriptID    uint   `json:"compare_script_id" gorm:"default:0;not null"`
-
-					TestCases []TestCase `json:"test_cases"`
-
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `json:"deleted_at"`
+					ID uint `gorm:"primaryKey" json:"id"`
 				}
 				type Run struct {
 					ID uint `gorm:"primaryKey" json:"id"`
 
-					UserID       uint          `sql:"index" json:"user_id"`
-					User         *User         `json:"user"`
-					ProblemID    uint          `sql:"index" json:"problem_id"`
-					Problem      *Problem      `json:"problem"`
-					ProblemSetId sql.NullInt32 `sql:"index" json:"problem_set_id"`
-					TestCaseID   uint          `json:"test_case_id"`
-					TestCase     *TestCase     `json:"test_case"`
-					Sample       bool          `json:"sample" gorm:"not null"`
-					SubmissionID uint          `json:"submission_id"`
-					Priority     uint8         `json:"priority"`
+					UserID       uint      `sql:"index" json:"user_id"`
+					User         *User     `json:"user"`
+					ProblemID    uint      `sql:"index" json:"problem_id"`
+					Problem      *Problem  `json:"problem"`
+					ProblemSetId uint      `sql:"index" json:"problem_set_id"`
+					TestCaseID   uint      `json:"test_case_id"`
+					TestCase     *TestCase `json:"test_case"`
+					Sample       bool      `json:"sample" gorm:"not null"`
+					SubmissionID uint      `json:"submission_id"`
+					Priority     uint8     `json:"priority"`
 
 					Judged             bool   `json:"judged"`
 					Status             string `json:"status"`      // AC WA TLE MLE OLE
@@ -492,15 +455,14 @@ func GetMigration() *gormigrate.Gormigrate {
 				type Submission struct {
 					ID uint `gorm:"primaryKey" json:"id"`
 
-					UserID       uint          `sql:"index" json:"user_id"`
-					User         *User         `json:"user"`
-					ProblemID    uint          `sql:"index" json:"problem_id"`
-					Problem      *Problem      `json:"problem"`
-					ProblemSetId sql.NullInt32 `sql:"index" gorm:"nullable" json:"problem_set_id"`
-					Language     string        `json:"language"`
-					// TODO: remove file name?
-					FileName string `json:"file_name"`
-					Priority uint8  `json:"priority"`
+					UserID       uint     `sql:"index" json:"user_id"`
+					User         *User    `json:"user"`
+					ProblemID    uint     `sql:"index" json:"problem_id"`
+					Problem      *Problem `json:"problem"`
+					ProblemSetId uint     `sql:"index" json:"problem_set_id"`
+					Language     string   `json:"language"`
+					FileName     string   `json:"file_name"`
+					Priority     uint8    `json:"priority"`
 
 					Judged bool   `json:"judged"`
 					Score  uint   `json:"score"`
