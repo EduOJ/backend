@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-func createTestCaseForTest(name string, problemId uint, id uint) (testCase models.TestCase) {
-	testCase = models.TestCase{
+func createTestCaseForTest(name string, problemId uint, id uint) models.TestCase {
+	return models.TestCase{
 		ID:             id,
 		ProblemID:      problemId,
 		Score:          id,
@@ -21,7 +21,6 @@ func createTestCaseForTest(name string, problemId uint, id uint) (testCase model
 		UpdatedAt:      time.Date(int(problemId), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
 		DeletedAt:      nil,
 	}
-	return
 }
 
 func createProblemForTest(name string, id uint, testCaseCount uint) (problem models.Problem) {

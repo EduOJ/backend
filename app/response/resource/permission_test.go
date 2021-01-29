@@ -15,28 +15,26 @@ type roleWithTargetID struct {
 	id   uint
 }
 
-func createPermissionForTest(name string, id uint, roleId uint) (permission models.Permission) {
-	permission = models.Permission{
+func createPermissionForTest(name string, id uint, roleId uint) models.Permission {
+	return models.Permission{
 		ID:     id,
 		RoleID: roleId,
 		Name:   fmt.Sprintf("test_%s_permission_%d", name, id),
 	}
-	return
 }
 
-func createRoleForTest(name string, id uint, permissionCount uint) (role models.Role) {
+func createRoleForTest(name string, id uint, permissionCount uint) models.Role {
 	target := fmt.Sprintf("test_%s_role_%d_target", name, id)
 	permissions := make([]models.Permission, permissionCount)
 	for i := range permissions {
 		permissions[i] = createPermissionForTest(name, uint(i), id)
 	}
-	role = models.Role{
+	return models.Role{
 		ID:          id,
 		Name:        fmt.Sprintf("test_%s_role_%d", name, id),
 		Target:      &target,
 		Permissions: permissions,
 	}
-	return
 }
 
 func createUserForTest(name string, id uint, roles ...roleWithTargetID) (user models.User) {
