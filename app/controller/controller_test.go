@@ -285,6 +285,10 @@ func makeResp(req *http.Request) *http.Response {
 	return rec.Result()
 }
 
+func b64Encode(data string) string {
+	return base64.StdEncoding.EncodeToString([]byte(data))
+}
+
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()

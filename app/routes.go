@@ -105,7 +105,7 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "read_problem_secret"},
 		})).Name = "problem.getTestCaseOutputFile"
 
-	admin.POST("/problem/:pid/submission", controller.Todo).Name = "submission.createSubmission"
+	api.POST("/problem/:pid/submission", controller.CreateSubmission, middleware.Logged).Name = "submission.createSubmission"
 	api.GET("/submission/:id", controller.Todo).Name = "submission.getSubmission"
 	api.GET("/submissions", controller.Todo).Name = "submission.getSubmissions"
 

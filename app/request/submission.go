@@ -1,8 +1,7 @@
 package request
 
 type CreateSubmissionRequest struct {
-	ProblemID uint   `sql:"index" json:"problem_id" form:"problem_id" query:"problem_id" validate:"required"`
-	Language  string `json:"language" form:"language" query:"language" validate:"required"`
+	Language string `json:"language" form:"language" query:"language" validate:"required"`
 	// code(required)
 }
 
