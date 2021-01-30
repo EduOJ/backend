@@ -17,7 +17,8 @@ import (
 func TestCreateSubmission(t *testing.T) {
 	// publicFalseProblem means a problem which "public" field is false
 	publicFalseProblem, _ := createProblemForTest(t, "test_create_submission_public_false", 0, nil)
-	base.DB.Model(&publicFalseProblem).Update("public", false)
+	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("public", false).Error)
+	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("language_allowed", "test_language,golang").Error)
 	failTests := []failTest{
 		{
 			// testCreateSubmissionNonExistingProblem
@@ -60,6 +61,20 @@ func TestCreateSubmission(t *testing.T) {
 			},
 			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("INVALID_FILE", nil),
+		},
+		{
+			// testCreateSubmissionInvalidLanguage
+			name:   "InvalidLanguage",
+			method: "POST",
+			path:   base.Echo.Reverse("submission.createSubmission", publicFalseProblem.ID),
+			req: addFieldContentSlice([]reqContent{
+				newFileContent("code", "code_file_name", b64Encode("test code content")),
+			}, map[string]string{"language": "invalid_language"}),
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("INVALID_LANGUAGE", nil),
 		},
 	}
 
@@ -114,6 +129,7 @@ func TestCreateSubmission(t *testing.T) {
 			test := test
 			t.Run("testCreateSubmission"+test.name, func(t *testing.T) {
 				problem, creator := createProblemForTest(t, "test_create_submission", i, nil)
+				assert.Nil(t, base.DB.Model(&problem).Update("language_allowed", "test_language,golang").Error)
 				for j := 0; j < test.testCaseCount; j++ {
 					createTestCaseForTest(t, problem, testCaseData{
 						Score:  0,
@@ -147,12 +163,12 @@ func TestCreateSubmission(t *testing.T) {
 				httpResp := makeResp(req)
 				resp := response.CreateSubmissionResponse{}
 				mustJsonDecode(httpResp, &resp)
-				responseS := *resp.Data.SubmissionDetail
+				responseSubmission := *resp.Data.SubmissionDetail
 				databaseSubmission := models.Submission{}
 				reqUserID, err := strconv.ParseUint(req.Header.Get("Set-User-For-Test"), 10, 64)
 				assert.Nil(t, err)
-				assert.Nil(t, base.DB.Preload("Runs").Find(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
-				databaseS := resource.GetSubmissionDetail(&databaseSubmission)
+				assert.Nil(t, base.DB.Preload("Runs").First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
+				databaseSubmissionDetail := resource.GetSubmissionDetail(&databaseSubmission)
 				databaseRunData := map[uint]struct {
 					ID        uint
 					CreatedAt time.Time
@@ -166,9 +182,9 @@ func TestCreateSubmission(t *testing.T) {
 						CreatedAt: run.CreatedAt,
 					}
 				}
-				expectedRS := make([]resource.Run, test.testCaseCount)
+				expectedRunSlice := make([]resource.Run, test.testCaseCount)
 				for i, testCase := range problem.TestCases {
-					expectedRS[i] = resource.Run{
+					expectedRunSlice[i] = resource.Run{
 						ID:           databaseRunData[testCase.ID].ID,
 						UserID:       uint(reqUserID),
 						ProblemID:    problem.ID,
@@ -178,14 +194,14 @@ func TestCreateSubmission(t *testing.T) {
 						SubmissionID: databaseSubmission.ID,
 						Priority:     127,
 						Judged:       false,
-						Status:       "Waiting For Judge",
+						Status:       "PENDING",
 						MemoryUsed:   0,
 						TimeUsed:     0,
 						CreatedAt:    databaseRunData[testCase.ID].CreatedAt,
 					}
 				}
-				expectedS := resource.SubmissionDetail{
-					ID:           databaseS.ID,
+				expectedSubmission := resource.SubmissionDetail{
+					ID:           databaseSubmissionDetail.ID,
 					UserID:       uint(reqUserID),
 					ProblemID:    problem.ID,
 					ProblemSetId: 0,
@@ -194,12 +210,12 @@ func TestCreateSubmission(t *testing.T) {
 					Priority:     127,
 					Judged:       false,
 					Score:        0,
-					Status:       "Waiting For Judge",
-					Runs:         expectedRS,
+					Status:       "PENDING",
+					Runs:         expectedRunSlice,
 					CreatedAt:    databaseSubmission.CreatedAt,
 				}
-				assert.Equal(t, &expectedS, databaseS)
-				assert.Equal(t, expectedS, responseS)
+				assert.Equal(t, &expectedSubmission, databaseSubmissionDetail)
+				assert.Equal(t, expectedSubmission, responseSubmission)
 			})
 		}
 

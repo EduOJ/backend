@@ -16,24 +16,24 @@ func TestGetUserGetUserForAdminAndGetUserSlice(t *testing.T) {
 	)
 	user2 := createUserForTest("get_user", 2)
 	t.Run("testGetUser", func(t *testing.T) {
-		actualU := resource.GetUser(&user1)
-		expectedU := resource.User{
+		actualUser := resource.GetUser(&user1)
+		expectedUser := resource.User{
 			ID:       1,
 			Username: "test_get_user_user_1",
 			Nickname: "test_get_user_user_1_nick",
 			Email:    "test_get_user_user_1@e.e",
 		}
-		assert.Equal(t, expectedU, actualU)
+		assert.Equal(t, expectedUser, actualUser)
 	})
 	t.Run("testGetUserNilUser", func(t *testing.T) {
 		emptyUser := resource.User{}
 		assert.Equal(t, emptyUser, resource.GetUser(nil))
 	})
 	t.Run("testGetUserForAdmin", func(t *testing.T) {
-		actualU := resource.GetUserForAdmin(&user1)
+		actualUser := resource.GetUserForAdmin(&user1)
 		target1 := "test_get_user_role_1_target"
 		target2 := "test_get_user_role_2_target"
-		expectedU := resource.UserForAdmin{
+		expectedUser := resource.UserForAdmin{
 			ID:       1,
 			Username: "test_get_user_user_1",
 			Nickname: "test_get_user_user_1_nick",
@@ -60,17 +60,17 @@ func TestGetUserGetUserForAdminAndGetUserSlice(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, &expectedU, actualU)
+		assert.Equal(t, &expectedUser, actualUser)
 	})
 	t.Run("testGetUserForAdminNilUser", func(t *testing.T) {
 		emptyUser := resource.UserForAdmin{}
 		assert.Equal(t, emptyUser, resource.GetUserForAdmin(nil))
 	})
 	t.Run("testGetUserSlice", func(t *testing.T) {
-		actualUS := resource.GetUserSlice([]models.User{
+		actualUserSlice := resource.GetUserSlice([]models.User{
 			user1, user2,
 		})
-		expectedUS := []resource.User{
+		expectedUserSlice := []resource.User{
 			{
 				ID:       1,
 				Username: "test_get_user_user_1",
@@ -84,6 +84,6 @@ func TestGetUserGetUserForAdminAndGetUserSlice(t *testing.T) {
 				Email:    "test_get_user_user_2@e.e",
 			},
 		}
-		assert.Equal(t, expectedUS, actualUS)
+		assert.Equal(t, expectedUserSlice, actualUserSlice)
 	})
 }

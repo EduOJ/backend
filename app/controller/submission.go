@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
+	"strings"
 )
 
 func CreateSubmission(c echo.Context) error {
@@ -18,8 +19,6 @@ func CreateSubmission(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-
-	priority := models.DEFAULT_PRIORITY
 
 	problem := models.Problem{}
 	if err := base.DB.First(&problem, c.Param("pid")).Error; err != nil {
@@ -37,6 +36,17 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
+	languageAllow := false
+	for _, language := range strings.Split(problem.LanguageAllowed, ",") {
+		if language == req.Language {
+			languageAllow = true
+			break
+		}
+	}
+	if !languageAllow {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LANGUAGE", nil))
+	}
+
 	file, err := c.FormFile("code")
 	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
 		panic(errors.Wrap(err, "could not read file"))
@@ -44,6 +54,8 @@ func CreateSubmission(c echo.Context) error {
 	if file == nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
+
+	priority := models.PriorityDefault
 
 	submission := models.Submission{
 		UserID:       user.ID,
@@ -54,7 +66,7 @@ func CreateSubmission(c echo.Context) error {
 		Priority:     priority,
 		Judged:       false,
 		Score:        0,
-		Status:       "Waiting For Judge",
+		Status:       "PENDING",
 		Runs:         make([]models.Run, len(problem.TestCases)),
 	}
 	for i, testCase := range problem.TestCases {
@@ -63,10 +75,10 @@ func CreateSubmission(c echo.Context) error {
 			ProblemID:          problem.ID,
 			ProblemSetId:       0,
 			TestCaseID:         testCase.ID,
-			Sample:             true,
+			Sample:             testCase.Sample,
 			Priority:           priority,
 			Judged:             false,
-			Status:             "Waiting For Judge",
+			Status:             "PENDING",
 			MemoryUsed:         0,
 			TimeUsed:           0,
 			OutputStrippedHash: "",

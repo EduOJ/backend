@@ -187,3 +187,12 @@ Common return codes.
 |     code     |  结果   |
 |:------------:|:------:|
 | ILLEGAL_TYPE | 类型非法 |
+
+## Submission
+
+### CreateSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     错误的problem     |
+|     INVALID_LANGUAGE    |       无效的语言       |
+|       INVALID_FILE      |        缺少文件       |

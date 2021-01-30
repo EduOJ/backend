@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-const DEFAULT_PRIORITY = uint8(127)
+const PriorityDefault = uint8(127)
 
 type Submission struct {
 	ID uint `gorm:"primaryKey" json:"id"`
@@ -18,8 +18,13 @@ type Submission struct {
 	FileName     string   `json:"file_name"`
 	Priority     uint8    `json:"priority"`
 
-	Judged bool   `json:"judged"`
-	Score  uint   `json:"score"`
+	Judged bool `json:"judged"`
+	Score  uint `json:"score"`
+
+	/*
+		PENDING / JUDGING / JUDGEMENT_FAILED / NO_COMMENT
+		ACCEPTED / WRONG_ANSWER / RUNTIME_ERROR / TIME_LIMIT_EXCEEDED / MEMORY_LIMIT_EXCEEDED / DANGEROUS_SYSCALLS
+	*/
 	Status string `json:"status"`
 
 	Runs []Run `json:"runs"`
@@ -43,8 +48,13 @@ type Run struct {
 	Submission   *Submission `json:"submission"`
 	Priority     uint8       `json:"priority"`
 
-	Judged             bool   `json:"judged"`
-	Status             string `json:"status"`      // AC WA TLE MLE OLE
+	Judged bool `json:"judged"`
+
+	/*
+		PENDING / JUDGING / JUDGEMENT_FAILED / NO_COMMENT
+		ACCEPTED / WRONG_ANSWER / RUNTIME_ERROR / TIME_LIMIT_EXCEEDED / MEMORY_LIMIT_EXCEEDED / DANGEROUS_SYSCALLS
+	*/
+	Status             string `json:"status"`
 	MemoryUsed         uint   `json:"memory_used"` // Byte
 	TimeUsed           uint   `json:"time_used"`   // ms
 	OutputStrippedHash string `json:"output_stripped_hash"`
