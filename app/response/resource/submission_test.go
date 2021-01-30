@@ -61,8 +61,8 @@ func TestGetRunAndGetRunSlice(t *testing.T) {
 	run1 := createRunForTest("get_run", 0, 1)
 	run2 := createRunForTest("get_run", 2, 3)
 	t.Run("testGetRun", func(t *testing.T) {
-		actualR := resource.GetRun(&run1)
-		expectedR := resource.Run{
+		actualRun := resource.GetRun(&run1)
+		expectedRun := resource.Run{
 			ID:           1,
 			UserID:       1,
 			ProblemID:    1,
@@ -77,11 +77,11 @@ func TestGetRunAndGetRunSlice(t *testing.T) {
 			TimeUsed:     1000,
 			CreatedAt:    time.Date(1, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		}
-		assert.Equal(t, &expectedR, actualR)
+		assert.Equal(t, &expectedRun, actualRun)
 	})
 	t.Run("testGetRunSlice", func(t *testing.T) {
-		actualRS := resource.GetRunSlice([]models.Run{run1, run2})
-		expectedRS := []resource.Run{
+		actualRunSlice := resource.GetRunSlice([]models.Run{run1, run2})
+		expectedRunSlice := []resource.Run{
 			{
 				ID:           1,
 				UserID:       1,
@@ -112,15 +112,15 @@ func TestGetRunAndGetRunSlice(t *testing.T) {
 				CreatedAt:    time.Date(3, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 			},
 		}
-		assert.Equal(t, expectedRS, actualRS)
+		assert.Equal(t, expectedRunSlice, actualRunSlice)
 	})
 }
 
 func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
 	submission := createSubmissionForTest("get_submission", 1, 2)
 	t.Run("testGetSubmission", func(t *testing.T) {
-		actualS := resource.GetSubmission(&submission)
-		expectedS := resource.Submission{
+		actualSubmission := resource.GetSubmission(&submission)
+		expectedSubmission := resource.Submission{
 			ID:           1,
 			UserID:       1,
 			ProblemID:    1,
@@ -131,11 +131,11 @@ func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
 			Status:       "test_get_submission_submission_1_status",
 			CreatedAt:    time.Date(1, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		}
-		assert.Equal(t, expectedS, actualS)
+		assert.Equal(t, expectedSubmission, actualSubmission)
 	})
 	t.Run("testGetSubmissionDetail", func(t *testing.T) {
-		actualS := resource.GetSubmissionDetail(&submission)
-		expectedS := resource.SubmissionDetail{
+		actualSubmission := resource.GetSubmissionDetail(&submission)
+		expectedSubmission := resource.SubmissionDetail{
 			ID:           1,
 			UserID:       1,
 			ProblemID:    1,
@@ -180,7 +180,7 @@ func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
 			},
 			CreatedAt: time.Date(1, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		}
-		assert.Equal(t, &expectedS, actualS)
+		assert.Equal(t, &expectedSubmission, actualSubmission)
 	})
 }
 
@@ -188,8 +188,8 @@ func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
 	submission1 := createSubmissionForTest("get_submission", 1, 2)
 	submission2 := createSubmissionForTest("get_submission", 2, 1)
 	t.Run("testGetSubmissionSlice", func(t *testing.T) {
-		actualSS := resource.GetSubmissionSlice([]models.Submission{submission1, submission2})
-		expectedSS := []resource.Submission{
+		actualSubmissionSlice := resource.GetSubmissionSlice([]models.Submission{submission1, submission2})
+		expectedSubmissionSlice := []resource.Submission{
 			{
 				ID:           1,
 				UserID:       1,
@@ -212,11 +212,11 @@ func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
 				CreatedAt:    time.Date(2, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 			},
 		}
-		assert.Equal(t, expectedSS, actualSS)
+		assert.Equal(t, expectedSubmissionSlice, actualSubmissionSlice)
 	})
 	t.Run("testGetSubmissionDetailSlice", func(t *testing.T) {
-		actualSS := resource.GetSubmissionDetailSlice([]models.Submission{submission1, submission2})
-		expectedSS := []resource.SubmissionDetail{
+		actualSubmissionSlice := resource.GetSubmissionDetailSlice([]models.Submission{submission1, submission2})
+		expectedSubmissionSlice := []resource.SubmissionDetail{
 			{
 				ID:           1,
 				UserID:       1,
@@ -292,6 +292,6 @@ func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
 				CreatedAt: time.Date(2, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 			},
 		}
-		assert.Equal(t, expectedSS, actualSS)
+		assert.Equal(t, expectedSubmissionSlice, actualSubmissionSlice)
 	})
 }

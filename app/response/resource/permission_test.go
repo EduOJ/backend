@@ -64,12 +64,12 @@ func createUserForTest(name string, id uint, roles ...roleWithTargetID) (user mo
 
 func TestGetPermission(t *testing.T) {
 	permission := createPermissionForTest("get_permission", 0, 0)
-	actualP := resource.GetPermission(&permission)
-	expectedP := resource.Permission{
+	actualPermission := resource.GetPermission(&permission)
+	expectedPermission := resource.Permission{
 		ID:   0,
 		Name: "test_get_permission_permission_0",
 	}
-	assert.Equal(t, expectedP, actualP)
+	assert.Equal(t, expectedPermission, actualPermission)
 }
 
 func TestGetRoleAndGetRoleSlice(t *testing.T) {
@@ -80,9 +80,9 @@ func TestGetRoleAndGetRoleSlice(t *testing.T) {
 		roleWithTargetID{role: role2, id: 2},
 	)
 	t.Run("testGetRole", func(t *testing.T) {
-		actualR := resource.GetRole(&user.Roles[0])
+		actualRole := resource.GetRole(&user.Roles[0])
 		target := "test_get_role_role_1_target"
-		expectedR := resource.Role{
+		expectedRole := resource.Role{
 			ID:     0,
 			Name:   "test_get_role_role_1",
 			Target: &target,
@@ -91,13 +91,13 @@ func TestGetRoleAndGetRoleSlice(t *testing.T) {
 			},
 			TargetID: 1,
 		}
-		assert.Equal(t, expectedR, actualR)
+		assert.Equal(t, expectedRole, actualRole)
 	})
 	t.Run("testGetRoleSlice", func(t *testing.T) {
-		actualRS := resource.GetRoleSlice(user.Roles)
+		actualRoleSlice := resource.GetRoleSlice(user.Roles)
 		target1 := "test_get_role_role_1_target"
 		target2 := "test_get_role_role_2_target"
-		expectedRS := []resource.Role{
+		expectedRoleSlice := []resource.Role{
 			{
 				ID:     0,
 				Name:   "test_get_role_role_1",
@@ -118,6 +118,6 @@ func TestGetRoleAndGetRoleSlice(t *testing.T) {
 				TargetID: 2,
 			},
 		}
-		assert.Equal(t, expectedRS, actualRS)
+		assert.Equal(t, expectedRoleSlice, actualRoleSlice)
 	})
 }

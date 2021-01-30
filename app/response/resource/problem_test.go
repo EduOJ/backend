@@ -50,18 +50,18 @@ func createProblemForTest(name string, id uint, testCaseCount uint) (problem mod
 func TestGetTestCaseAndGetTestCaseForAdmin(t *testing.T) {
 	testCase := createTestCaseForTest("get_test_case", 0, 0)
 	t.Run("testGetTestCase", func(t *testing.T) {
-		actualT := resource.GetTestCase(&testCase)
-		expectedT := resource.TestCase{
+		actualTestCase := resource.GetTestCase(&testCase)
+		expectedTestCase := resource.TestCase{
 			ID:        0,
 			ProblemID: 0,
 			Score:     0,
 			Sample:    true,
 		}
-		assert.Equal(t, expectedT, actualT)
+		assert.Equal(t, expectedTestCase, actualTestCase)
 	})
 	t.Run("testGetTestCaseForAdmin", func(t *testing.T) {
-		actualT := resource.GetTestCaseForAdmin(&testCase)
-		expectedT := resource.TestCaseForAdmin{
+		actualTestCase := resource.GetTestCaseForAdmin(&testCase)
+		expectedTestCase := resource.TestCaseForAdmin{
 			ID:             0,
 			ProblemID:      0,
 			Score:          0,
@@ -69,15 +69,15 @@ func TestGetTestCaseAndGetTestCaseForAdmin(t *testing.T) {
 			InputFileName:  "test_get_test_case_problem_0_test_case_0_input",
 			OutputFileName: "test_get_test_case_problem_0_test_case_0_output",
 		}
-		assert.Equal(t, expectedT, actualT)
+		assert.Equal(t, expectedTestCase, actualTestCase)
 	})
 }
 
 func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 	problem := createProblemForTest("get_problem", 0, 2)
 	t.Run("testGetProblem", func(t *testing.T) {
-		actualP := resource.GetProblem(&problem)
-		expectedP := resource.Problem{
+		actualProblem := resource.GetProblem(&problem)
+		expectedProblem := resource.Problem{
 			ID:                 0,
 			Name:               "test_get_problem_problem_0",
 			Description:        "test_get_problem_problem_0_desc",
@@ -100,11 +100,11 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, &expectedP, actualP)
+		assert.Equal(t, &expectedProblem, actualProblem)
 	})
 	t.Run("testGetProblemForAdmin", func(t *testing.T) {
-		actualP := resource.GetProblemForAdmin(&problem)
-		expectedP := resource.ProblemForAdmin{
+		actualProblem := resource.GetProblemForAdmin(&problem)
+		expectedProblem := resource.ProblemForAdmin{
 			ID:                 0,
 			Name:               "test_get_problem_problem_0",
 			Description:        "test_get_problem_problem_0_desc",
@@ -134,7 +134,7 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, &expectedP, actualP)
+		assert.Equal(t, &expectedProblem, actualProblem)
 	})
 }
 
@@ -142,8 +142,8 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 	problem1 := createProblemForTest("get_problem_slice", 1, 1)
 	problem2 := createProblemForTest("get_problem_slice", 2, 2)
 	t.Run("testGetProblemSlice", func(t *testing.T) {
-		actualPS := resource.GetProblemSlice([]models.Problem{problem1, problem2})
-		expectedPS := []resource.Problem{
+		actualProblemSlice := resource.GetProblemSlice([]models.Problem{problem1, problem2})
+		expectedProblemSlice := []resource.Problem{
 			{
 				ID:                 1,
 				Name:               "test_get_problem_slice_problem_1",
@@ -185,11 +185,11 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, expectedPS, actualPS)
+		assert.Equal(t, expectedProblemSlice, actualProblemSlice)
 	})
 	t.Run("testGetProblemForAdminSlice", func(t *testing.T) {
-		actualPS := resource.GetProblemForAdminSlice([]models.Problem{problem1, problem2})
-		expectedPS := []resource.ProblemForAdmin{
+		actualProblemSlice := resource.GetProblemForAdminSlice([]models.Problem{problem1, problem2})
+		expectedProblemSlice := []resource.ProblemForAdmin{
 			{
 				ID:                 1,
 				Name:               "test_get_problem_slice_problem_1",
@@ -243,6 +243,6 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, expectedPS, actualPS)
+		assert.Equal(t, expectedProblemSlice, actualProblemSlice)
 	})
 }
