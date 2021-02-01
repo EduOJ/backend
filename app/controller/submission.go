@@ -55,6 +55,8 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
 
+	// TODO: save file
+
 	priority := models.PriorityDefault
 
 	submission := models.Submission{
@@ -86,6 +88,34 @@ func CreateSubmission(c echo.Context) error {
 	}
 	utils.PanicIfDBError(base.DB.Create(&submission), "could not create submission and runs")
 	return c.JSON(http.StatusCreated, response.CreateSubmissionResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.SubmissionDetail `json:"submission"`
+		}{
+			resource.GetSubmissionDetail(&submission),
+		},
+	})
+}
+
+func GetSubmission(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	submission := models.Submission{}
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if user.Can("read_problem_secret") {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+			} else {
+				return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+			}
+		} else {
+			panic(errors.Wrap(err, "could not find problem"))
+		}
+	}
+	if user.ID != submission.UserID && !user.Can("read_problem_secret", submission.Problem) && !user.Can("read_problem_secret") {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+	return c.JSON(http.StatusOK, response.GetSubmissionResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {

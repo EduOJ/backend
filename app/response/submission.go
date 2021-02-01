@@ -14,14 +14,6 @@ type GetSubmissionResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.Submission `json:"submission"`
-	} `json:"data"`
-}
-
-type GetSubmissionResponseForAdmin struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
 		*resource.SubmissionDetail `json:"submission"`
 	} `json:"data"`
 }

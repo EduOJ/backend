@@ -207,6 +207,7 @@ type fileContent struct {
 	key      string
 	fileName string
 	reader   io.ReadSeeker
+	size     int64
 }
 
 func (c *fieldContent) add(w *multipart.Writer) (err error) {
@@ -252,6 +253,7 @@ func newFileContent(key, fileName, base64Data string) *fileContent {
 		key:      key,
 		fileName: fileName,
 		reader:   bytes.NewReader(b),
+		size:     int64(len(b)),
 	}
 }
 
@@ -324,6 +326,9 @@ server:
 		panic(err)
 	}
 	if err := utils.CreateBucket("problems"); err != nil {
+		panic(err)
+	}
+	if err := utils.CreateBucket("submissions"); err != nil {
 		panic(err)
 	}
 

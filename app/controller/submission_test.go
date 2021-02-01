@@ -7,12 +7,61 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/minio/minio-go"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"strconv"
 	"testing"
 	"time"
 )
+
+func createSubmissionForTest(t *testing.T, name string, id int, code *fileContent, testCaseCount int) (submission models.Submission) {
+	problem, user := createProblemForTest(t, name, id, nil)
+	for i := 0; i < testCaseCount; i++ {
+		createTestCaseForTest(t, problem, testCaseData{
+			Score:      uint(i),
+			Sample:     i%3 == 0,
+			InputFile:  newFileContent("input", "input_file", b64Encode(fmt.Sprintf("problem_%d_test_case_%d_input", problem.ID, i))),
+			OutputFile: newFileContent("output", "output_file", b64Encode(fmt.Sprintf("problem_%d_test_case_%d_output", problem.ID, i))),
+		})
+	}
+	submission = models.Submission{
+		UserID:       user.ID,
+		ProblemID:    problem.ID,
+		ProblemSetId: 0,
+		Language:     fmt.Sprintf("test_%s_language_allowed_%d", name, id),
+		FileName:     fmt.Sprintf("test_%s_code_file_name_%d", name, id),
+		Priority:     models.PriorityDefault,
+		Judged:       false,
+		Score:        0,
+		Status:       "PENDING",
+		Runs:         make([]models.Run, len(problem.TestCases)),
+	}
+	for i, testCase := range problem.TestCases {
+		submission.Runs[i] = models.Run{
+			UserID:             user.ID,
+			ProblemID:          problem.ID,
+			ProblemSetId:       0,
+			TestCaseID:         testCase.ID,
+			Sample:             testCase.Sample,
+			Priority:           models.PriorityDefault,
+			Judged:             false,
+			Status:             "PENDING",
+			MemoryUsed:         0,
+			TimeUsed:           0,
+			OutputStrippedHash: "",
+		}
+	}
+	assert.Nil(t, base.DB.Create(&submission).Error)
+	if code != nil {
+		_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/code", submission.ID), code.reader, code.size, minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		_, err = code.reader.Seek(0, io.SeekStart)
+		assert.Nil(t, err)
+	}
+	return
+}
 
 func TestCreateSubmission(t *testing.T) {
 	// publicFalseProblem means a problem which "public" field is false
@@ -220,5 +269,83 @@ func TestCreateSubmission(t *testing.T) {
 		}
 
 	})
+}
 
+func TestGetSubmission(t *testing.T) {
+
+	failTests := []failTest{
+		{
+			// testGetSubmissionNormalUserNonExisting
+			name:   "NormalUserNonExisting",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmission", -1),
+			req:    request.GetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionAdminUserNonExisting
+			name:   "AdminUserNonExisting",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmission", -1),
+			req:    request.GetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetSubmissionPermissionDenied
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmission", -1),
+			req:    request.GetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	// testGetSubmissionFail
+	runFailTests(t, failTests, "GetSubmission")
+
+	successTests := []struct {
+		name          string
+		code          *fileContent
+		testCaseCount int
+	}{
+		{
+			// testGetSubmissionWithoutTestCases
+			name:          "WithoutTestCases",
+			code:          newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_0")),
+			testCaseCount: 0,
+		},
+		{
+			// testGetSubmissionWithTestCases
+			name:          "WithTestCases",
+			code:          newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_0")),
+			testCaseCount: 2,
+		},
+	}
+
+	t.Run("testGetSubmissionSuccess", func(t *testing.T) {
+		for i, test := range successTests {
+			i := i
+			test := test
+			t.Run("testGetSubmission"+test.name, func(t *testing.T) {
+				submission := createSubmissionForTest(t, "get_submission", i, test.code, test.testCaseCount)
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getSubmission", submission.ID), request.GetSubmissionRequest{}, applyAdminUser))
+				resp := response.GetSubmissionResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+				assert.Equal(t, resource.GetSubmissionDetail(&submission), resp.Data.SubmissionDetail)
+			})
+		}
+	})
 }
