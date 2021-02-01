@@ -196,3 +196,10 @@ Common return codes.
 |        NOT_FOUND        |     错误的problem     |
 |     INVALID_LANGUAGE    |       无效的语言       |
 |       INVALID_FILE      |        缺少文件       |
+
+### GetSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### GetSubmissions

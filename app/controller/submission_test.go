@@ -16,10 +16,16 @@ import (
 	"time"
 )
 
-func createSubmissionForTest(t *testing.T, name string, id int, code *fileContent, testCaseCount int) (submission models.Submission) {
-	problem, user := createProblemForTest(t, name, id, nil)
+const (
+	normalUser = iota
+	problemCreator
+	adminUser
+	submitter
+)
+
+func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) (submission models.Submission) {
 	for i := 0; i < testCaseCount; i++ {
-		createTestCaseForTest(t, problem, testCaseData{
+		createTestCaseForTest(t, *problem, testCaseData{
 			Score:      uint(i),
 			Sample:     i%3 == 0,
 			InputFile:  newFileContent("input", "input_file", b64Encode(fmt.Sprintf("problem_%d_test_case_%d_input", problem.ID, i))),
@@ -130,12 +136,6 @@ func TestCreateSubmission(t *testing.T) {
 	// testCreateSubmissionFail
 	runFailTests(t, failTests, "CreateSubmission")
 
-	const (
-		normalUser = iota
-		problemCreator
-		adminUser
-	)
-
 	successfulTests := []struct {
 		name          string
 		testCaseCount int
@@ -173,10 +173,12 @@ func TestCreateSubmission(t *testing.T) {
 		},
 	}
 	t.Run("testCreateSubmissionSuccess", func(t *testing.T) {
+		t.Parallel()
 		for i, test := range successfulTests {
 			i := i
 			test := test
 			t.Run("testCreateSubmission"+test.name, func(t *testing.T) {
+				t.Parallel()
 				problem, creator := createProblemForTest(t, "test_create_submission", i, nil)
 				assert.Nil(t, base.DB.Model(&problem).Update("language_allowed", "test_language,golang").Error)
 				for j := 0; j < test.testCaseCount; j++ {
@@ -323,32 +325,67 @@ func TestGetSubmission(t *testing.T) {
 		name          string
 		code          *fileContent
 		testCaseCount int
+		requestUser   uint
 	}{
 		{
 			// testGetSubmissionWithoutTestCases
 			name:          "WithoutTestCases",
 			code:          newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_0")),
 			testCaseCount: 0,
+			requestUser:   adminUser,
 		},
 		{
-			// testGetSubmissionWithTestCases
-			name:          "WithTestCases",
-			code:          newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_0")),
+			// testGetSubmissionAdminUser
+			name:          "AdminUser",
+			code:          newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_1")),
 			testCaseCount: 2,
+			requestUser:   adminUser,
+		},
+		{
+			// testGetSubmissionSubmitter
+			name:          "Submitter",
+			code:          newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_2")),
+			testCaseCount: 2,
+			requestUser:   submitter,
 		},
 	}
 
 	t.Run("testGetSubmissionSuccess", func(t *testing.T) {
+		t.Parallel()
 		for i, test := range successTests {
 			i := i
 			test := test
 			t.Run("testGetSubmission"+test.name, func(t *testing.T) {
-				submission := createSubmissionForTest(t, "get_submission", i, test.code, test.testCaseCount)
-				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getSubmission", submission.ID), request.GetSubmissionRequest{}, applyAdminUser))
+				t.Parallel()
+				problem, user := createProblemForTest(t, "get_submission", i, nil)
+				submission := createSubmissionForTest(t, "get_submission", i, &problem, &user, test.code, test.testCaseCount)
+				var applyUser reqOption
+				switch test.requestUser {
+				case adminUser:
+					applyUser = applyAdminUser
+				case submitter:
+					applyUser = headerOption{
+						"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+					}
+				default:
+					t.Fail()
+				}
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getSubmission", submission.ID),
+					request.GetSubmissionRequest{}, applyUser))
 				resp := response.GetSubmissionResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-				assert.Equal(t, resource.GetSubmissionDetail(&submission), resp.Data.SubmissionDetail)
+				expectedSubmissionDetail := resource.GetSubmissionDetail(&submission)
+				expectedSubmissionDetail.CreatedAt.UTC()
+				assert.Equal(t, response.GetSubmissionResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						*resource.SubmissionDetail `json:"submission"`
+					}{
+						expectedSubmissionDetail,
+					},
+				}, resp)
 			})
 		}
 	})
