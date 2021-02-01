@@ -107,7 +107,7 @@ func Register(e *echo.Echo) {
 
 	api.POST("/problem/:pid/submission", controller.CreateSubmission, middleware.Logged).Name = "submission.createSubmission"
 	api.GET("/submission/:id", controller.GetSubmission).Name = "submission.getSubmission"
-	api.GET("/submissions", controller.Todo).Name = "submission.getSubmissions"
+	api.GET("/submissions", controller.GetSubmissions).Name = "submission.getSubmissions"
 
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"

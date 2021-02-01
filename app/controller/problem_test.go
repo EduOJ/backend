@@ -522,6 +522,7 @@ func TestGetProblems(t *testing.T) {
 }
 
 func TestGetProblemAttachmentFile(t *testing.T) {
+	t.Parallel()
 	problemWithoutAttachmentFile := models.Problem{
 		Name:               "test_get_problem_attachment_file_0",
 		Description:        "test_get_problem_attachment_file_0_desc",
@@ -1418,6 +1419,7 @@ func TestDeleteProblem(t *testing.T) {
 }
 
 func TestCreateTestCase(t *testing.T) {
+	t.Parallel()
 	problem, user := createProblemForTest(t, "create_test_case", 0, nil)
 
 	failTests := []failTest{
@@ -1556,6 +1558,7 @@ func TestCreateTestCase(t *testing.T) {
 }
 
 func TestGetTestCaseInputFile(t *testing.T) {
+	t.Parallel()
 	problem, user := createProblemForTest(t, "get_test_case_input_file", 0, nil)
 	failTests := []failTest{
 		{
@@ -1619,6 +1622,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 }
 
 func TestGetTestCaseOutputFile(t *testing.T) {
+	t.Parallel()
 	problem, user := createProblemForTest(t, "get_test_case_output_file", 0, nil)
 	failTests := []failTest{
 		{
@@ -1682,6 +1686,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 }
 
 func TestUpdateTestCase(t *testing.T) {
+	t.Parallel()
 	problem, user := createProblemForTest(t, "update_test_case", 0, nil)
 	boolTrue := true
 
@@ -1901,6 +1906,7 @@ func TestUpdateTestCase(t *testing.T) {
 }
 
 func TestDeleteTestCase(t *testing.T) {
+	t.Parallel()
 	problem, user := createProblemForTest(t, "delete_test_case", 0, nil)
 
 	failTests := []failTest{
