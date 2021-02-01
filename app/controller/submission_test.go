@@ -265,6 +265,10 @@ func TestCreateSubmission(t *testing.T) {
 				}
 				assert.Equal(t, &expectedSubmission, databaseSubmissionDetail)
 				assert.Equal(t, expectedSubmission, responseSubmission)
+
+				storageContent := string(getObjectContent(t, "submissions", fmt.Sprintf("%d/code", databaseSubmissionDetail.ID)))
+				expectedContent := fmt.Sprintf("test_create_submission_%d_code", i)
+				assert.Equal(t, expectedContent, storageContent)
 			})
 		}
 
