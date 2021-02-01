@@ -233,5 +233,8 @@ func initStorage() {
 	if err := utils.CreateBucket("problems"); err != nil {
 		panic(err)
 	}
+	if err := utils.CreateBucket("submissions"); err != nil {
+		panic(err)
+	}
 	log.Debug("Storage client initialized.")
 }

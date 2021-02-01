@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -87,6 +88,9 @@ func CreateSubmission(c echo.Context) error {
 		}
 	}
 	utils.PanicIfDBError(base.DB.Create(&submission), "could not create submission and runs")
+
+	utils.MustPutObject(file, c.Request().Context(), "submissions", fmt.Sprintf("%d/code", submission.ID))
+
 	return c.JSON(http.StatusCreated, response.CreateSubmissionResponse{
 		Message: "SUCCESS",
 		Error:   nil,
