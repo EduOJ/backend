@@ -129,3 +129,47 @@ func GetSubmission(c echo.Context) error {
 		},
 	})
 }
+
+func GetSubmissions(c echo.Context) error {
+	req := request.GetSubmissionsRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+	query := base.DB.Model(&models.Submission{}).Where("problem_set_id = ?", 0).Order("id DESC") // Force order by id desc.
+
+	if req.ProblemId != 0 {
+		query = query.Where("problem_id = ?", req.ProblemId)
+	}
+	if req.UserId != 0 {
+		query = query.Where("user_id = ?", req.UserId)
+	}
+
+	var submissions []models.Submission
+	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &submissions)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
+		}
+		panic(err)
+	}
+	return c.JSON(http.StatusOK, response.GetSubmissionsResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			Submissions []resource.Submission `json:"submissions"`
+			Total       int                   `json:"total"`
+			Count       int                   `json:"count"`
+			Offset      int                   `json:"offset"`
+			Prev        *string               `json:"prev"`
+			Next        *string               `json:"next"`
+		}{
+			Submissions: resource.GetSubmissionSlice(submissions),
+			Total:       total,
+			Count:       len(submissions),
+			Offset:      req.Offset,
+			Prev:        prevUrl,
+			Next:        nextUrl,
+		},
+	})
+}

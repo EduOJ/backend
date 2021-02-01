@@ -70,6 +70,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 }
 
 func TestCreateSubmission(t *testing.T) {
+	t.Parallel()
 	// publicFalseProblem means a problem which "public" field is false
 	publicFalseProblem, _ := createProblemForTest(t, "test_create_submission_public_false", 0, nil)
 	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("public", false).Error)
@@ -278,7 +279,7 @@ func TestCreateSubmission(t *testing.T) {
 }
 
 func TestGetSubmission(t *testing.T) {
-
+	t.Parallel()
 	failTests := []failTest{
 		{
 			// testGetSubmissionNormalUserNonExisting
@@ -358,6 +359,7 @@ func TestGetSubmission(t *testing.T) {
 			t.Run("testGetSubmission"+test.name, func(t *testing.T) {
 				t.Parallel()
 				problem, user := createProblemForTest(t, "get_submission", i, nil)
+				base.DB.Model(&problem).Update("public", false)
 				submission := createSubmissionForTest(t, "get_submission", i, &problem, &user, test.code, test.testCaseCount)
 				var applyUser reqOption
 				switch test.requestUser {
@@ -384,6 +386,201 @@ func TestGetSubmission(t *testing.T) {
 						*resource.SubmissionDetail `json:"submission"`
 					}{
 						expectedSubmissionDetail,
+					},
+				}, resp)
+			})
+		}
+	})
+}
+
+func TestGetSubmissions(t *testing.T) {
+	// Not Parallel
+	assert.Nil(t, base.DB.Delete(models.Submission{}, "id > 0").Error)
+
+	problem1, problemCreator1 := createProblemForTest(t, "get_submissions", 1, nil)
+	problem2, problemCreator2 := createProblemForTest(t, "get_submissions", 2, nil)
+	problem3, problemCreator3 := createProblemForTest(t, "get_submissions", 3, nil)
+	base.DB.Model(&problem1).Update("public", false)
+	submissionRelations := []struct {
+		problem   *models.Problem
+		submitter *models.User
+	}{
+		0: {
+			problem:   &problem1,
+			submitter: &problemCreator1,
+		},
+		1: {
+			problem:   &problem2,
+			submitter: &problemCreator1,
+		},
+		2: {
+			problem:   &problem2,
+			submitter: &problemCreator2,
+		},
+		3: {
+			problem:   &problem2,
+			submitter: &problemCreator3,
+		},
+		4: {
+			problem:   &problem2,
+			submitter: &problemCreator2,
+		},
+		5: {
+			problem:   &problem3,
+			submitter: &problemCreator2,
+		},
+		6: {
+			problem:   &problem3,
+			submitter: &problemCreator3,
+		},
+	}
+	submissions := make([]models.Submission, len(submissionRelations))
+
+	for i := range submissions {
+		submissions[i] = createSubmissionForTest(t, "get_submissions", i, submissionRelations[i].problem, submissionRelations[i].submitter,
+			newFileContent("code", "code_file_name", b64Encode(fmt.Sprintf("test_get_submissions_code_%d", i))), 0)
+	}
+
+	base.DB.Model(submissions[5]).Update("problem_set_id", 1)
+
+	successTests := []struct {
+		name        string
+		req         request.GetSubmissionsRequest
+		submissions []models.Submission
+		Total       int
+		Offset      int
+		Prev        *string
+		Next        *string
+	}{
+		{
+			// testGetSubmissionsAll
+			name: "All",
+			req: request.GetSubmissionsRequest{
+				ProblemId: 0,
+				UserId:    0,
+				Limit:     0,
+				Offset:    0,
+			},
+			submissions: []models.Submission{
+				submissions[6],
+				submissions[4],
+				submissions[3],
+				submissions[2],
+				submissions[1],
+				submissions[0],
+			},
+			Total:  6,
+			Offset: 0,
+			Prev:   nil,
+			Next:   nil,
+		},
+		{
+			// testGetSubmissionsSelectUser
+			name: "SelectUser",
+			req: request.GetSubmissionsRequest{
+				ProblemId: 0,
+				UserId:    problemCreator3.ID,
+				Limit:     0,
+				Offset:    0,
+			},
+			submissions: []models.Submission{
+				submissions[6],
+				submissions[3],
+			},
+			Total:  2,
+			Offset: 0,
+			Prev:   nil,
+			Next:   nil,
+		},
+		{
+			// testGetSubmissionsSelectProblem
+			name: "SelectProblem",
+			req: request.GetSubmissionsRequest{
+				ProblemId: problem2.ID,
+				UserId:    0,
+				Limit:     0,
+				Offset:    0,
+			},
+			submissions: []models.Submission{
+				submissions[4],
+				submissions[3],
+				submissions[2],
+				submissions[1],
+			},
+			Total:  4,
+			Offset: 0,
+			Prev:   nil,
+			Next:   nil,
+		},
+		{
+			// testGetSubmissionsSelectUserAndProblem
+			name: "SelectUserAndProblem",
+			req: request.GetSubmissionsRequest{
+				ProblemId: problem2.ID,
+				UserId:    problemCreator2.ID,
+				Limit:     0,
+				Offset:    0,
+			},
+			submissions: []models.Submission{
+				submissions[4],
+				submissions[2],
+			},
+			Total:  2,
+			Offset: 0,
+			Prev:   nil,
+			Next:   nil,
+		},
+		{
+			// testGetSubmissionsPaginator
+			name: "Paginator",
+			req: request.GetSubmissionsRequest{
+				ProblemId: 0,
+				UserId:    0,
+				Limit:     3,
+				Offset:    1,
+			},
+			submissions: []models.Submission{
+				submissions[4],
+				submissions[3],
+				submissions[2],
+			},
+			Total:  6,
+			Offset: 1,
+			Prev:   nil,
+			Next: getUrlStringPointer("submission.getSubmissions", map[string]string{
+				"limit":  "3",
+				"offset": "4",
+			}),
+		},
+	}
+
+	t.Run("testGetSubmissionsSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			test := test
+			t.Run("testGetSubmissions"+test.name, func(t *testing.T) {
+				t.Parallel()
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getSubmissions"), test.req, applyNormalUser))
+				resp := response.GetSubmissionsResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+				assert.Equal(t, response.GetSubmissionsResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						Submissions []resource.Submission `json:"submissions"`
+						Total       int                   `json:"total"`
+						Count       int                   `json:"count"`
+						Offset      int                   `json:"offset"`
+						Prev        *string               `json:"prev"`
+						Next        *string               `json:"next"`
+					}{
+						Submissions: resource.GetSubmissionSlice(test.submissions),
+						Total:       test.Total,
+						Count:       len(test.submissions),
+						Offset:      test.Offset,
+						Prev:        test.Prev,
+						Next:        test.Next,
 					},
 				}, resp)
 			})
