@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -117,6 +118,7 @@ func GetSubmission(c echo.Context) error {
 	if user.ID != submission.UserID && !user.Can("read_problem_secret", submission.Problem) && !user.Can("read_problem_secret") {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
+	submission.LoadRuns()
 	return c.JSON(http.StatusOK, response.GetSubmissionResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -191,6 +193,154 @@ func GetSubmissionCode(c echo.Context) error {
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/code", submission.ID), submission.FileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
+}
+
+func GetRunCompilerOutput(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	submission := models.Submission{}
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if user.Can("read_problem_secret") {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
+			} else {
+				return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+			}
+		} else {
+			panic(errors.Wrap(err, "could not find problem"))
+		}
+	}
+	if user.ID != submission.UserID && !user.Can("read_problem_secret", submission.Problem) && !user.Can("read_problem_secret") {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+
+	submission.LoadRuns()
+	runID, err := strconv.ParseUint(c.Param("run_id"), 10, 64)
+	if err != nil {
+		submission.Runs = []models.Run{}
+		// Set slice to empty to skip the check below
+	}
+	foundRun := false
+	for _, run := range submission.Runs {
+		if run.ID == uint(runID) {
+			foundRun = true
+			break
+		}
+	}
+	if !foundRun {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, runID), submission.FileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
+}
+
+func GetRunOutput(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	submission := models.Submission{}
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if user.Can("read_problem_secret") {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
+			} else {
+				return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+			}
+		} else {
+			panic(errors.Wrap(err, "could not find problem"))
+		}
+	}
+
+	isAdmin := true
+
+	if !user.Can("read_problem_secret", submission.Problem) && !user.Can("read_problem_secret") {
+		if user.ID != submission.UserID {
+			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		} else {
+			isAdmin = false
+		}
+	}
+
+	submission.LoadRuns()
+	runID, err := strconv.ParseUint(c.Param("run_id"), 10, 64)
+	if err != nil {
+		submission.Runs = []models.Run{}
+		// Set slice to empty to skip the check below
+	}
+	foundRun := false
+	for _, run := range submission.Runs {
+		if run.ID == uint(runID) {
+			foundRun = isAdmin || run.Sample
+			break
+		}
+	}
+	if !foundRun {
+		if isAdmin {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		}
+	}
+
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, runID), submission.FileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
+}
+
+func GetRunComparerOutput(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	submission := models.Submission{}
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if user.Can("read_problem_secret") {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
+			} else {
+				return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+			}
+		} else {
+			panic(errors.Wrap(err, "could not find problem"))
+		}
+	}
+
+	isAdmin := true
+
+	if !user.Can("read_problem_secret", submission.Problem) && !user.Can("read_problem_secret") {
+		if user.ID != submission.UserID {
+			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		} else {
+			isAdmin = false
+		}
+	}
+
+	submission.LoadRuns()
+	runID, err := strconv.ParseUint(c.Param("run_id"), 10, 64)
+	if err != nil {
+		submission.Runs = []models.Run{}
+		// Set slice to empty to skip the check below
+	}
+	foundRun := false
+	for _, run := range submission.Runs {
+		if run.ID == uint(runID) {
+			foundRun = isAdmin || run.Sample
+			break
+		}
+	}
+	if !foundRun {
+		if isAdmin {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		}
+	}
+
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, runID), submission.FileName)
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))
 	}

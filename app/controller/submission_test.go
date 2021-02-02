@@ -27,11 +27,12 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 	for i := 0; i < testCaseCount; i++ {
 		createTestCaseForTest(t, *problem, testCaseData{
 			Score:      uint(i),
-			Sample:     i%3 == 0,
+			Sample:     false,
 			InputFile:  newFileContent("input", "input_file", b64Encodef("problem_%d_test_case_%d_input", problem.ID, i)),
 			OutputFile: newFileContent("output", "output_file", b64Encodef("problem_%d_test_case_%d_output", problem.ID, i)),
 		})
 	}
+	problem.LoadTestCases()
 	submission = models.Submission{
 		UserID:       user.ID,
 		ProblemID:    problem.ID,
@@ -617,7 +618,7 @@ func TestGetSubmissionCode(t *testing.T) {
 	// notPublicProblem means a problem which "public" field is false
 	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_submission_code_fail", 0, nil)
 	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
-	publicFalseSubmission := createSubmissionForTest(t, "get_submission_code_fail", 0, &notPublicProblem, &notPublicProblemCreator,
+	notPublicSubmission := createSubmissionForTest(t, "get_submission_code_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_0")), 2)
 
 	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission_code_fail", 1, nil)
@@ -653,7 +654,7 @@ func TestGetSubmissionCode(t *testing.T) {
 			// testGetSubmissionCodePublicFalse
 			name:   "PublicFalse",
 			method: "GET",
-			path:   base.Echo.Reverse("submission.getSubmissionCode", publicFalseSubmission.ID),
+			path:   base.Echo.Reverse("submission.getSubmissionCode", notPublicSubmission.ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -686,8 +687,500 @@ func TestGetSubmissionCode(t *testing.T) {
 		submission := createSubmissionForTest(t, "get_submission_code", 0, &problem, &user,
 			newFileContent("code", "code_file_name", b64Encode(content)), 2)
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getSubmissionCode", submission.ID),
-			request.GetSubmissionRequest{}, applyAdminUser))
+			nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, content, getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+}
+
+func TestGetRunCompilerOutput(t *testing.T) {
+	t.Parallel()
+
+	// notPublicProblem means a problem which "public" field is false
+	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_run_compiler_output_fail", 0, nil)
+	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	notPublicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 0, &notPublicProblem, &notPublicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_0")), 2)
+
+	publicProblem, publicProblemCreator := createProblemForTest(t, "get_run_compiler_output_fail", 1, nil)
+	publicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 1, &publicProblem, &publicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_1")), 2)
+
+	failTests := []failTest{
+		{
+			// testGetRunCompilerOutputNormalUserNonExistingSubmission
+			name:   "NormalUserNonExistingSubmission",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", -1, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionCodeAdminUserNonExisting
+			name:   "AdminUserNonExistingSubmission",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", -1, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("SUBMISSION_NOT_FOUND", nil),
+		},
+		{
+			// testGetRunCompilerOutputNonExistingRun
+			name:   "NonExistingRun",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", publicSubmission.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetRunCompilerOutputInvalidRunId
+			name:   "InvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", publicSubmission.ID, "InvalidRunId"),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetRunCompilerOutputPublicFalse
+			name:   "PublicFalse",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", notPublicSubmission.ID, notPublicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunCompilerOutputSubmittedByOthers
+			name:   "SubmittedByOthers",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", publicSubmission.ID, publicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	// testGetRunCompilerOutputFail
+	runFailTests(t, failTests, "GetRunCompilerOutput")
+
+	t.Run("testGetRunCompilerOutputSuccess", func(t *testing.T) {
+		t.Parallel()
+		content := "test_get_run_compiler_output_content"
+		problem, user := createProblemForTest(t, "get_run_compiler_output", 0, nil)
+		base.DB.Model(&problem).Update("public", false)
+		submission := createSubmissionForTest(t, "get_run_compiler_output", 0, &problem, &user,
+			newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
+		file := newFileContent("compiler_output", "compiler.out", b64Encode(content))
+		_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
+		assert.Nil(t, err)
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getRunCompilerOutput", submission.ID, submission.Runs[0].ID),
+			nil, applyAdminUser))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, content, getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+}
+
+func TestGetRunOutput(t *testing.T) {
+	t.Parallel()
+
+	// notPublicProblem means a problem which "public" field is false
+	notPublicProblem, _ := createProblemForTest(t, "get_run_output_fail", 0, nil)
+	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	notPublicProblemSubmitter := createUserForTest(t, "get_run_output_fail_submit", 0)
+	notPublicSubmission := createSubmissionForTest(t, "get_run_output_fail", 0, &notPublicProblem, &notPublicProblemSubmitter,
+		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_0")), 2)
+
+	publicProblem, _ := createProblemForTest(t, "get_run_output_fail", 1, nil)
+	publicProblemSubmitter := createUserForTest(t, "get_run_output_fail_submit", 1)
+	publicSubmission := createSubmissionForTest(t, "get_run_output_fail", 1, &publicProblem, &publicProblemSubmitter,
+		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_1")), 2)
+
+	failTests := []failTest{
+		{
+			// testGetRunOutputNormalUserNonExistingSubmission
+			name:   "NormalUserNonExistingSubmission",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", -1, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionCodeAdminUserNonExisting
+			name:   "AdminUserNonExistingSubmission",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", -1, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("SUBMISSION_NOT_FOUND", nil),
+		},
+		{
+			// testGetRunOutputSubmitterNonExistingRun
+			name:   "SubmitterNonExistingRun",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunOutputAdminUserNonExistingRun
+			name:   "AdminUserNonExistingRun",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetRunOutputSubmitterInvalidRunId
+			name:   "SubmitterInvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, "InvalidRunId"),
+			req:    nil,
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunOutputAdminUserInvalidRunId
+			name:   "AdminUserInvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, "InvalidRunId"),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetRunOutputNotSample
+			name:   "SubmitterInvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, publicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunOutputPublicFalse
+			name:   "PublicFalse",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", notPublicSubmission.ID, notPublicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunOutputSubmittedByOthers
+			name:   "SubmittedByOthers",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, publicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	// testGetRunOutputFail
+	runFailTests(t, failTests, "GetRunOutput")
+
+	successTests := []struct {
+		name        string
+		requestUser uint
+		sample      bool
+	}{
+		{
+			// testGetRunOutputAdminUser
+			name:        "AdminUser",
+			requestUser: adminUser,
+			sample:      false,
+		},
+		{
+			// testGetRunSubmitterSample
+			name:        "SubmitterSample",
+			requestUser: submitter,
+			sample:      true,
+		},
+	}
+
+	t.Run("testGetRunOutputSuccess", func(t *testing.T) {
+		for i, test := range successTests {
+			i := i
+			test := test
+			t.Run("testGetRunOutput"+test.name, func(t *testing.T) {
+				t.Parallel()
+				content := "test_get_run_output_content"
+				problem, _ := createProblemForTest(t, "get_run_output", i, nil)
+				base.DB.Model(&problem).Update("public", false)
+				submitterUser := createUserForTest(t, "get_run_output_submit", i)
+				submission := createSubmissionForTest(t, "get_run_output", i, &problem, &submitterUser,
+					newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
+				if test.sample {
+					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
+				}
+				file := newFileContent("output", fmt.Sprintf("%d.out", i), b64Encode(content))
+				_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
+				assert.Nil(t, err)
+				var applyUser reqOption
+				switch test.requestUser {
+				case submitter:
+					applyUser = headerOption{
+						"Set-User-For-Test": {fmt.Sprintf("%d", submitterUser.ID)},
+					}
+				case adminUser:
+					applyUser = applyAdminUser
+				default:
+					t.Fail()
+				}
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getRunOutput", submission.ID, submission.Runs[0].ID),
+					nil, applyUser))
+				assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+				assert.Equal(t, content, getPresignedURLContent(t, httpResp.Header.Get("Location")))
+			})
+		}
+	})
+}
+
+func TestGetRunComparerOutput(t *testing.T) {
+	t.Parallel()
+
+	// notPublicProblem means a problem which "public" field is false
+	notPublicProblem, _ := createProblemForTest(t, "get_run_comparer_output_fail", 0, nil)
+	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	notPublicProblemSubmitter := createUserForTest(t, "get_run_comparer_output_fail_submit", 0)
+	notPublicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 0, &notPublicProblem, &notPublicProblemSubmitter,
+		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_0")), 2)
+
+	publicProblem, _ := createProblemForTest(t, "get_run_comparer_output_fail", 1, nil)
+	publicProblemSubmitter := createUserForTest(t, "get_run_comparer_output_fail_submit", 1)
+	publicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 1, &publicProblem, &publicProblemSubmitter,
+		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_1")), 2)
+
+	failTests := []failTest{
+		{
+			// testGetRunComparerOutputNormalUserNonExistingSubmission
+			name:   "NormalUserNonExistingSubmission",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", -1, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionCodeAdminUserNonExisting
+			name:   "AdminUserNonExistingSubmission",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", -1, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("SUBMISSION_NOT_FOUND", nil),
+		},
+		{
+			// testGetRunComparerOutputSubmitterNonExistingRun
+			name:   "SubmitterNonExistingRun",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunComparerOutputAdminUserNonExistingRun
+			name:   "AdminUserNonExistingRun",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetRunComparerOutputSubmitterInvalidRunId
+			name:   "SubmitterInvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, "InvalidRunId"),
+			req:    nil,
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunComparerOutputAdminUserInvalidRunId
+			name:   "AdminUserInvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, "InvalidRunId"),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetRunComparerOutputNotSample
+			name:   "SubmitterInvalidRunId",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, publicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				headerOption{
+					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
+				},
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunComparerOutputPublicFalse
+			name:   "PublicFalse",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", notPublicSubmission.ID, notPublicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunComparerOutputSubmittedByOthers
+			name:   "SubmittedByOthers",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, publicSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	// testGetRunComparerOutputFail
+	runFailTests(t, failTests, "GetRunComparerOutput")
+
+	successTests := []struct {
+		name        string
+		requestUser uint
+		sample      bool
+	}{
+		{
+			// testGetRunComparerOutputAdminUser
+			name:        "AdminUser",
+			requestUser: adminUser,
+			sample:      false,
+		},
+		{
+			// testGetRunSubmitterSample
+			name:        "SubmitterSample",
+			requestUser: submitter,
+			sample:      true,
+		},
+	}
+
+	t.Run("testGetRunComparerOutputSuccess", func(t *testing.T) {
+		for i, test := range successTests {
+			i := i
+			test := test
+			t.Run("testGetRunComparerOutput"+test.name, func(t *testing.T) {
+				t.Parallel()
+				content := "test_get_run_comparer_output_content"
+				problem, _ := createProblemForTest(t, "get_run_comparer_output", i, nil)
+				base.DB.Model(&problem).Update("public", false)
+				submitterUser := createUserForTest(t, "get_run_comparer_output_submit", i)
+				submission := createSubmissionForTest(t, "get_run_comparer_output", i, &problem, &submitterUser,
+					newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
+				if test.sample {
+					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
+				}
+				file := newFileContent("comparer_output", "comparer.out", b64Encode(content))
+				_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
+				assert.Nil(t, err)
+				var applyUser reqOption
+				switch test.requestUser {
+				case submitter:
+					applyUser = headerOption{
+						"Set-User-For-Test": {fmt.Sprintf("%d", submitterUser.ID)},
+					}
+				case adminUser:
+					applyUser = applyAdminUser
+				default:
+					t.Fail()
+				}
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getRunComparerOutput", submission.ID, submission.Runs[0].ID),
+					nil, applyUser))
+				assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+				assert.Equal(t, content, getPresignedURLContent(t, httpResp.Header.Get("Location")))
+			})
+		}
 	})
 }

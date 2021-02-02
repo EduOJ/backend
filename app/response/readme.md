@@ -212,14 +212,17 @@ Common return codes.
 ### GetRunOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
+|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
+|        NOT_FOUND        |      无法找到run       |
 
 ### GetRunCompilerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
+|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
+|        NOT_FOUND        |      无法找到run       |
 
 ### GetRunComparerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
+|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
+|        NOT_FOUND        |      无法找到run       |
