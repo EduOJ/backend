@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/leoleoasd/EduOJBackend/base"
 	"time"
 )
 
@@ -61,4 +62,11 @@ type Run struct {
 
 	CreatedAt time.Time `sql:"index" json:"created_at"`
 	UpdatedAt time.Time `json:"-"`
+}
+
+func (s *Submission) LoadRuns() {
+	err := base.DB.Model(s).Association("Runs").Find(&s.Runs)
+	if err != nil {
+		panic(err)
+	}
 }

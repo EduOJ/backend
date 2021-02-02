@@ -109,9 +109,9 @@ func Register(e *echo.Echo) {
 	api.GET("/submissions", controller.GetSubmissions).Name = "submission.getSubmissions"
 
 	api.GET("/submission/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
-	api.GET("/submission/:id/run/:rid/output", controller.Todo, middleware.Logged).Name = "submission.getRunOutput"
-	api.GET("/submission/:id/run/:rid/compiler_output", controller.Todo, middleware.Logged).Name = "submission.getRunCompilerOutput"
-	api.GET("/submission/:id/run/:rid/comparer_output", controller.Todo, middleware.Logged).Name = "submission.getRunComparerOutput"
+	api.GET("/submission/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
+	api.GET("/submission/:id/run/:run_id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
+	api.GET("/submission/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
