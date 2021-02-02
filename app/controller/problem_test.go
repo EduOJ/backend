@@ -59,11 +59,7 @@ func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fil
 	user = createUserForTest(t, name, id)
 	user.GrantRole("problem_creator", problem)
 	if attachmentFile != nil {
-		attachmentBytes, err := ioutil.ReadAll(attachmentFile.reader)
-		assert.Nil(t, err)
-		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, int64(len(attachmentBytes)), minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, attachmentFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
@@ -90,21 +86,13 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, data testCaseDa
 	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase))
 
 	if data.InputFile != nil {
-		inputBytes, err := ioutil.ReadAll(data.InputFile.reader)
-		assert.Nil(t, err)
-		_, err = data.InputFile.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), data.InputFile.reader, int64(len(inputBytes)), minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), data.InputFile.reader, data.InputFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = data.InputFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
 	}
 	if data.OutputFile != nil {
-		outputBytes, err := ioutil.ReadAll(data.OutputFile.reader)
-		assert.Nil(t, err)
-		_, err = data.OutputFile.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
-		_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), data.OutputFile.reader, int64(len(outputBytes)), minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), data.OutputFile.reader, data.OutputFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = data.OutputFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
@@ -1164,11 +1152,7 @@ func TestUpdateProblem(t *testing.T) {
 					assert.Nil(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]))
 				}
 				if test.originalAttachment != nil {
-					b, err := ioutil.ReadAll(test.originalAttachment.reader)
-					assert.Nil(t, err)
-					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
-					assert.Nil(t, err)
-					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), test.originalAttachment.reader, int64(len(b)), minio.PutObjectOptions{})
+					_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
 					assert.Nil(t, err)
 					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
 					assert.Nil(t, err)
@@ -1386,11 +1370,7 @@ func TestDeleteProblem(t *testing.T) {
 					})
 				}
 				if test.originalAttachment != nil {
-					b, err := ioutil.ReadAll(test.originalAttachment.reader)
-					assert.Nil(t, err)
-					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
-					assert.Nil(t, err)
-					_, err = base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.problem.ID), test.originalAttachment.reader, int64(len(b)), minio.PutObjectOptions{})
+					_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.problem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
 					assert.Nil(t, err)
 					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
 					assert.Nil(t, err)

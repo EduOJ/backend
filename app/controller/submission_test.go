@@ -280,6 +280,17 @@ func TestCreateSubmission(t *testing.T) {
 
 func TestGetSubmission(t *testing.T) {
 	t.Parallel()
+
+	// publicFalseProblem means a problem which "public" field is false
+	publicFalseProblem, publicFalseProblemCreator := createProblemForTest(t, "get_submission", 0, nil)
+	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("public", false).Error)
+	publicFalseSubmission := createSubmissionForTest(t, "get_submission", 0, &publicFalseProblem, &publicFalseProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_submission_0")), 2)
+
+	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission", 1, nil)
+	publicSubmission := createSubmissionForTest(t, "get_submission", 1, &publicProblem, &publicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_submission_1")), 2)
+
 	failTests := []failTest{
 		{
 			// testGetSubmissionNormalUserNonExisting
@@ -306,10 +317,22 @@ func TestGetSubmission(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
-			// testGetSubmissionPermissionDenied
-			name:   "PermissionDenied",
+			// testGetSubmissionPublicFalse
+			name:   "PublicFalse",
 			method: "GET",
-			path:   base.Echo.Reverse("submission.getSubmission", -1),
+			path:   base.Echo.Reverse("submission.getSubmission", publicFalseSubmission.ID),
+			req:    request.GetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionSubmittedByOthers
+			name:   "SubmittedByOthers",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmission", publicSubmission.ID),
 			req:    request.GetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -358,9 +381,9 @@ func TestGetSubmission(t *testing.T) {
 			test := test
 			t.Run("testGetSubmission"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, user := createProblemForTest(t, "get_submission", i, nil)
+				problem, user := createProblemForTest(t, "get_submission", i+2, nil)
 				base.DB.Model(&problem).Update("public", false)
-				submission := createSubmissionForTest(t, "get_submission", i, &problem, &user, test.code, test.testCaseCount)
+				submission := createSubmissionForTest(t, "get_submission", i+2, &problem, &user, test.code, test.testCaseCount)
 				var applyUser reqOption
 				switch test.requestUser {
 				case adminUser:

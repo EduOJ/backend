@@ -56,8 +56,6 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
 
-	// TODO: save file
-
 	priority := models.PriorityDefault
 
 	submission := models.Submission{
@@ -136,7 +134,7 @@ func GetSubmissions(c echo.Context) error {
 		return err
 	}
 
-	query := base.DB.Model(&models.Submission{}).Where("problem_set_id = ?", 0).Order("id DESC") // Force order by id desc.
+	query := base.DB.Model(&models.Submission{}).Where("problem_set_id = 0").Order("id DESC") // Force order by id desc.
 
 	if req.ProblemId != 0 {
 		query = query.Where("problem_id = ?", req.ProblemId)
