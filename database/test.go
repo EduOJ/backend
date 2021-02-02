@@ -5,6 +5,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"sync"
 )
 
@@ -15,7 +16,9 @@ var testDatabaseLock = sync.Mutex{}
 func SetupDatabaseForTest() func() {
 	testDatabaseLock.Lock()
 	oldDB := base.DB
-	x, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	x, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 	if err != nil {
 		fmt.Print(err)
 		panic(err)

@@ -147,11 +147,17 @@ func initGorm(toMigrate ...bool) {
 	uri := databaseConf.MustGet("uri", "").Value().(string)
 	switch dialect {
 	case "mysql":
-		base.DB, err = gorm.Open(mysql.Open(uri), &gorm.Config{})
+		base.DB, err = gorm.Open(mysql.Open(uri), &gorm.Config{
+			Logger: log.GormLogger{},
+		})
 	case "postgres":
-		base.DB, err = gorm.Open(postgres.Open(uri), &gorm.Config{})
+		base.DB, err = gorm.Open(postgres.Open(uri), &gorm.Config{
+			Logger: log.GormLogger{},
+		})
 	case "sqlite":
-		base.DB, err = gorm.Open(sqlite.Open(uri), &gorm.Config{})
+		base.DB, err = gorm.Open(sqlite.Open(uri), &gorm.Config{
+			Logger: log.GormLogger{},
+		})
 	default:
 		log.Fatal("unsupported database dialect")
 		os.Exit(-1)
