@@ -203,3 +203,23 @@ Common return codes.
 |        NOT_FOUND        |   无法找到submission   |
 
 ### GetSubmissions
+
+### GetSubmissionCode
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### GetRunOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### GetRunCompilerOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### GetRunComparerOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |

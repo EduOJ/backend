@@ -291,6 +291,21 @@ func b64Encode(data string) string {
 	return base64.StdEncoding.EncodeToString([]byte(data))
 }
 
+func b64Encodef(format string, a ...interface{}) string {
+	return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(format, a...)))
+}
+
+func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) {
+	resp, err := http.Get(presignedUrl)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	length, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	assert.Nil(t, err)
+	body := make([]byte, length)
+	_, err = resp.Body.Read(body)
+	return string(body)
+}
+
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
@@ -314,7 +329,7 @@ server:
 	faker := gofakes3.New(s3mem.New()) // in-memory s3 server.
 	ts := httptest.NewServer(faker.Server())
 	defer ts.Close()
-	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "", "", false, "us-east-1")
+	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "accessKey", "secretAccessKey", false, "us-east-1")
 	if err != nil {
 		panic(err)
 	}

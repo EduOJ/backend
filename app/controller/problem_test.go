@@ -1532,8 +1532,8 @@ func TestCreateTestCase(t *testing.T) {
 				resource.GetTestCaseForAdmin(&databaseTestCase),
 			},
 		}, resp)
-		assert.Equal(t, "input text\n", string(getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID))))
-		assert.Equal(t, "output text\n", string(getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID))))
+		assert.Equal(t, []byte("input text\n"), getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID)))
+		assert.Equal(t, []byte("output text\n"), getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID)))
 	})
 }
 
@@ -1598,7 +1598,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 
 	respBytes, err := ioutil.ReadAll(httpResp.Body)
 	assert.Nil(t, err)
-	assert.Equal(t, "input text\n", string(respBytes))
+	assert.Equal(t, []byte("input text\n"), respBytes)
 }
 
 func TestGetTestCaseOutputFile(t *testing.T) {
@@ -1662,7 +1662,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 
 	respBytes, err := ioutil.ReadAll(httpResp.Body)
 	assert.Nil(t, err)
-	assert.Equal(t, "output text\n", string(respBytes))
+	assert.Equal(t, []byte("output text\n"), respBytes)
 }
 
 func TestUpdateTestCase(t *testing.T) {
@@ -1857,7 +1857,7 @@ func TestUpdateTestCase(t *testing.T) {
 				}
 				expectedInputContent, err := ioutil.ReadAll(expectedInputFileReader)
 				assert.Nil(t, err)
-				assert.Equal(t, expectedInputContent, getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID)))
+				assert.Equal(t, (expectedInputContent), (getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID))))
 
 				var expectedOutputFileReader io.Reader
 				if test.updatedData.OutputFile != nil {
@@ -1867,7 +1867,7 @@ func TestUpdateTestCase(t *testing.T) {
 				}
 				expectedOutputContent, err := ioutil.ReadAll(expectedOutputFileReader)
 				assert.Nil(t, err)
-				assert.Equal(t, expectedOutputContent, getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID)))
+				assert.Equal(t, (expectedOutputContent), (getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID))))
 
 				resp := response.UpdateTestCaseResponse{}
 				mustJsonDecode(httpResp, &resp)

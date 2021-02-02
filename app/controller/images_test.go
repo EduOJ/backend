@@ -70,7 +70,7 @@ func TestGetImage(t *testing.T) {
 	respbytes, err := ioutil.ReadAll(httpResp.Body)
 	assert.Nil(t, err)
 	assert.Equal(t, 200, httpResp.StatusCode)
-	assert.Equal(t, imageBytes, respbytes)
+	assert.Equal(t, imageBytes, []byte(respbytes))
 
 	// test not found
 	httpResp = makeResp(makeReq(t, "GET", base.Echo.Reverse("image.getImage", "-1"), nil))

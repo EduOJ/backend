@@ -171,3 +171,28 @@ func GetSubmissions(c echo.Context) error {
 		},
 	})
 }
+
+func GetSubmissionCode(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	submission := models.Submission{}
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if user.Can("read_problem_secret") {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+			} else {
+				return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+			}
+		} else {
+			panic(errors.Wrap(err, "could not find problem"))
+		}
+	}
+	if user.ID != submission.UserID && !user.Can("read_problem_secret", submission.Problem) && !user.Can("read_problem_secret") {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/code", submission.ID), submission.FileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
+}

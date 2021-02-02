@@ -490,7 +490,7 @@ func TestAdminDeleteUser(t *testing.T) {
 					Error:   nil,
 					Data:    nil,
 				}, resp)
-				assert.True(t, errors.Is(base.DB.First(models.User{}, test.user.ID).Error, gorm.ErrRecordNotFound))
+				assert.True(t, errors.Is(base.DB.First(&models.User{}, test.user.ID).Error, gorm.ErrRecordNotFound))
 			})
 		}
 	})
