@@ -281,15 +281,15 @@ func TestCreateSubmission(t *testing.T) {
 func TestGetSubmission(t *testing.T) {
 	t.Parallel()
 
-	// publicFalseProblem means a problem which "public" field is false
-	publicFalseProblem, publicFalseProblemCreator := createProblemForTest(t, "get_submission", 0, nil)
-	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("public", false).Error)
-	publicFalseSubmission := createSubmissionForTest(t, "get_submission", 0, &publicFalseProblem, &publicFalseProblemCreator,
-		newFileContent("code", "code_file_name", b64Encode("test_get_submission_0")), 2)
+	// notPublicProblem means a problem which "public" field is false
+	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_submission_fail", 0, nil)
+	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	publicFalseSubmission := createSubmissionForTest(t, "get_submission_fail", 0, &notPublicProblem, &notPublicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_submission_fail_0")), 2)
 
-	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission", 1, nil)
-	publicSubmission := createSubmissionForTest(t, "get_submission", 1, &publicProblem, &publicProblemCreator,
-		newFileContent("code", "code_file_name", b64Encode("test_get_submission_1")), 2)
+	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission_fail", 1, nil)
+	publicSubmission := createSubmissionForTest(t, "get_submission_fail", 1, &publicProblem, &publicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_submission_fail_1")), 2)
 
 	failTests := []failTest{
 		{
@@ -381,9 +381,9 @@ func TestGetSubmission(t *testing.T) {
 			test := test
 			t.Run("testGetSubmission"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, user := createProblemForTest(t, "get_submission", i+2, nil)
+				problem, user := createProblemForTest(t, "get_submission", i, nil)
 				base.DB.Model(&problem).Update("public", false)
-				submission := createSubmissionForTest(t, "get_submission", i+2, &problem, &user, test.code, test.testCaseCount)
+				submission := createSubmissionForTest(t, "get_submission", i, &problem, &user, test.code, test.testCaseCount)
 				var applyUser reqOption
 				switch test.requestUser {
 				case adminUser:
