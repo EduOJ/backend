@@ -28,8 +28,8 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		createTestCaseForTest(t, *problem, testCaseData{
 			Score:      uint(i),
 			Sample:     i%3 == 0,
-			InputFile:  newFileContent("input", "input_file", b64Encode(fmt.Sprintf("problem_%d_test_case_%d_input", problem.ID, i))),
-			OutputFile: newFileContent("output", "output_file", b64Encode(fmt.Sprintf("problem_%d_test_case_%d_output", problem.ID, i))),
+			InputFile:  newFileContent("input", "input_file", b64Encodef("problem_%d_test_case_%d_input", problem.ID, i)),
+			OutputFile: newFileContent("output", "output_file", b64Encodef("problem_%d_test_case_%d_output", problem.ID, i)),
 		})
 	}
 	submission = models.Submission{
@@ -187,9 +187,9 @@ func TestCreateSubmission(t *testing.T) {
 						Score:  0,
 						Sample: true,
 						InputFile: newFileContent("input", "input_file",
-							b64Encode(fmt.Sprintf("test_create_submission_%d_test_case_%d_input_content", i, j))),
+							b64Encodef("test_create_submission_%d_test_case_%d_input_content", i, j)),
 						OutputFile: newFileContent("output", "output_file",
-							b64Encode(fmt.Sprintf("test_create_submission_%d_test_case_%d_output_content", i, j))),
+							b64Encodef("test_create_submission_%d_test_case_%d_output_content", i, j)),
 					})
 				}
 				problem.LoadTestCases()
@@ -208,7 +208,7 @@ func TestCreateSubmission(t *testing.T) {
 				}
 				req := makeReq(t, "POST", base.Echo.Reverse("submission.createSubmission", problem.ID),
 					addFieldContentSlice([]reqContent{
-						newFileContent("code", "code_file_name", b64Encode(fmt.Sprintf("test_create_submission_%d_code", i))),
+						newFileContent("code", "code_file_name", b64Encodef("test_create_submission_%d_code", i)),
 					}, map[string]string{
 						"language": "test_language",
 					}), applyUser)
@@ -269,9 +269,9 @@ func TestCreateSubmission(t *testing.T) {
 				assert.Equal(t, &expectedSubmission, databaseSubmissionDetail)
 				assert.Equal(t, expectedSubmission, responseSubmission)
 
-				storageContent := string(getObjectContent(t, "submissions", fmt.Sprintf("%d/code", databaseSubmissionDetail.ID)))
+				storageContent := getObjectContent(t, "submissions", fmt.Sprintf("%d/code", databaseSubmissionDetail.ID))
 				expectedContent := fmt.Sprintf("test_create_submission_%d_code", i)
-				assert.Equal(t, expectedContent, storageContent)
+				assert.Equal(t, []byte(expectedContent), storageContent)
 			})
 		}
 
@@ -461,7 +461,7 @@ func TestGetSubmissions(t *testing.T) {
 
 	for i := range submissions {
 		submissions[i] = createSubmissionForTest(t, "get_submissions", i, submissionRelations[i].problem, submissionRelations[i].submitter,
-			newFileContent("code", "code_file_name", b64Encode(fmt.Sprintf("test_get_submissions_code_%d", i))), 0)
+			newFileContent("code", "code_file_name", b64Encodef("test_get_submissions_code_%d", i)), 0)
 	}
 
 	base.DB.Model(submissions[5]).Update("problem_set_id", 1)
@@ -608,5 +608,86 @@ func TestGetSubmissions(t *testing.T) {
 				}, resp)
 			})
 		}
+	})
+}
+
+func TestGetSubmissionCode(t *testing.T) {
+	t.Parallel()
+
+	// notPublicProblem means a problem which "public" field is false
+	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_submission_code_fail", 0, nil)
+	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	publicFalseSubmission := createSubmissionForTest(t, "get_submission_code_fail", 0, &notPublicProblem, &notPublicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_0")), 2)
+
+	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission_code_fail", 1, nil)
+	publicSubmission := createSubmissionForTest(t, "get_submission_code_fail", 1, &publicProblem, &publicProblemCreator,
+		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_1")), 2)
+
+	failTests := []failTest{
+		{
+			// testGetSubmissionCodeNormalUserNonExisting
+			name:   "NormalUserNonExisting",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmissionCode", -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionCodeAdminUserNonExisting
+			name:   "AdminUserNonExisting",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmissionCode", -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			// testGetSubmissionCodePublicFalse
+			name:   "PublicFalse",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmissionCode", publicFalseSubmission.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionCodeSubmittedByOthers
+			name:   "SubmittedByOthers",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmissionCode", publicSubmission.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	// testGetSubmissionCodeFail
+	runFailTests(t, failTests, "GetSubmissionCode")
+
+	t.Run("testGetSubmissionCodeSuccess", func(t *testing.T) {
+		t.Parallel()
+		content := "test_get_submission_code_content"
+		problem, user := createProblemForTest(t, "get_submission_code", 0, nil)
+		base.DB.Model(&problem).Update("public", false)
+		submission := createSubmissionForTest(t, "get_submission_code", 0, &problem, &user,
+			newFileContent("code", "code_file_name", b64Encode(content)), 2)
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getSubmissionCode", submission.ID),
+			request.GetSubmissionRequest{}, applyAdminUser))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, content, getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 }

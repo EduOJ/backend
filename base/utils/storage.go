@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/pkg/errors"
+	"net/url"
 	"sync"
+	"time"
 )
 
 var bucketsCreated sync.Map
@@ -26,4 +29,14 @@ func CreateBucket(name string) error {
 	}
 	bucketsCreated.Store(name, true)
 	return nil
+}
+
+func GetPresignedURL(bucket string, path string, fileName string) (string, error) {
+	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", fmt.Sprintf(`inline; filename="%s"`, fileName))
+	presignedURL, err := base.Storage.PresignedGetObject(bucket, path, time.Second*60, nil /*reqParams*/)
+	if err != nil {
+		return "", err
+	}
+	return presignedURL.String(), err
 }

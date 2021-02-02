@@ -37,7 +37,11 @@ server:
 	ts := httptest.NewServer(faker.Server())
 	defer ts.Close()
 	var err error
-	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "", "", false, "us-east-1")
+	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "accessKey", "secretAccessKey", false, "us-east-1")
+	if err != nil {
+		panic(err)
+	}
+	err = base.Storage.MakeBucket("test-bucket", config.MustGet("storage.region", "us-east-1").String())
 	if err != nil {
 		panic(err)
 	}
