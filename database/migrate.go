@@ -488,6 +488,25 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
+		{
+			ID: "add_scripts_table",
+			Migrate: func(tx *gorm.DB) error {
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+				return tx.AutoMigrate(&Script{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+				return tx.Migrator().DropTable(&Script{})
+			},
+		},
 	})
 }
 
