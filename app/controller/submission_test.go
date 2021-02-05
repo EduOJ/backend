@@ -1,13 +1,14 @@
 package controller_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -62,7 +63,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 	}
 	assert.Nil(t, base.DB.Create(&submission).Error)
 	if code != nil {
-		_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/code", submission.ID), code.reader, code.size, minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/code", submission.ID), code.reader, code.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = code.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
@@ -792,7 +793,7 @@ func TestGetRunCompilerOutput(t *testing.T) {
 		submission := createSubmissionForTest(t, "get_run_compiler_output", 0, &problem, &user,
 			newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
 		file := newFileContent("compiler_output", "compiler.out", b64Encode(content))
-		_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getRunCompilerOutput", submission.ID, submission.Runs[0].ID),
 			nil, applyAdminUser))
@@ -957,7 +958,7 @@ func TestGetRunOutput(t *testing.T) {
 					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
 				}
 				file := newFileContent("output", fmt.Sprintf("%d.out", i), b64Encode(content))
-				_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
+				_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
 				assert.Nil(t, err)
 				var applyUser reqOption
 				switch test.requestUser {
@@ -1149,7 +1150,7 @@ func TestGetRunComparerOutput(t *testing.T) {
 					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
 				}
 				file := newFileContent("comparer_output", "comparer.out", b64Encode(content))
-				_, err := base.Storage.PutObject("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
+				_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
 				assert.Nil(t, err)
 				var applyUser reqOption
 				switch test.requestUser {

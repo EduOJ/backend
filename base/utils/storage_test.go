@@ -2,9 +2,10 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strconv"
@@ -24,21 +25,23 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 
 func TestMustCreateBucket(t *testing.T) {
 	t.Run("testMustCreateBucketExistingBucket", func(t *testing.T) {
-		assert.Nil(t, base.Storage.MakeBucket("existing-bucket", config.MustGet("storage.region", "us-east-1").String()))
-		found, err := base.Storage.BucketExists("existing-bucket")
+		assert.Nil(t, base.Storage.MakeBucket(context.Background(), "existing-bucket", minio.MakeBucketOptions{
+			Region: config.MustGet("storage.region", "us-east-1").String(),
+		}))
+		found, err := base.Storage.BucketExists(context.Background(), "existing-bucket")
 		assert.True(t, found)
 		assert.Nil(t, err)
 		assert.Nil(t, CreateBucket("existing-bucket"))
-		found, err = base.Storage.BucketExists("existing-bucket")
+		found, err = base.Storage.BucketExists(context.Background(), "existing-bucket")
 		assert.True(t, found)
 		assert.Nil(t, err)
 	})
 	t.Run("testMustCreateBucketNonExistingBucket", func(t *testing.T) {
-		found, err := base.Storage.BucketExists("non-existing-bucket")
+		found, err := base.Storage.BucketExists(context.Background(), "non-existing-bucket")
 		assert.False(t, found)
 		assert.Nil(t, err)
 		assert.Nil(t, CreateBucket("non-existing-bucket"))
-		found, err = base.Storage.BucketExists("non-existing-bucket")
+		found, err = base.Storage.BucketExists(context.Background(), "non-existing-bucket")
 		assert.True(t, found)
 		assert.Nil(t, err)
 	})
@@ -47,9 +50,9 @@ func TestMustCreateBucket(t *testing.T) {
 func TestGetPresignedURL(t *testing.T) {
 	b := []byte("test_get_presigned_url")
 	reader := bytes.NewReader(b)
-	n, err := base.Storage.PutObject("test-bucket", "test_get_presigned_url_object", reader, int64(len(b)), minio.PutObjectOptions{})
-	assert.Equal(t, int64(len(b)), n)
+	info, err := base.Storage.PutObject(context.Background(), "test-bucket", "test_get_presigned_url_object", reader, int64(len(b)), minio.PutObjectOptions{})
 	assert.Nil(t, err)
+	assert.Equal(t, int64(len(b)), info.Size)
 	presignedUrl, err := GetPresignedURL("test-bucket", "test_get_presigned_url_object", "test_get_presigned_url_file_name")
 	assert.Nil(t, err)
 	resp, err := http.Get(presignedUrl)

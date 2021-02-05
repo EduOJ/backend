@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -18,7 +19,8 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -327,11 +329,14 @@ server:
 	faker := gofakes3.New(s3mem.New()) // in-memory s3 server.
 	ts := httptest.NewServer(faker.Server())
 	defer ts.Close()
-	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "accessKey", "secretAccessKey", false, "us-east-1")
+	base.Storage, err = minio.New(ts.URL[7:], &minio.Options{
+		Creds:  credentials.NewStaticV4("accessKey", "secretAccessKey", ""),
+		Secure: false,
+	})
 	if err != nil {
 		panic(err)
 	}
-	_, err = base.Storage.ListBuckets()
+	_, err = base.Storage.ListBuckets(context.Background())
 	if err != nil {
 		panic(err)
 	}

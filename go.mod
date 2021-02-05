@@ -6,7 +6,6 @@ require (
 	github.com/fatih/color v1.10.0
 	github.com/gabriel-vasile/mimetype v1.1.2
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
-	github.com/go-ini/ini v1.62.0 // indirect
 	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
@@ -23,8 +22,7 @@ require (
 	github.com/lib/pq v1.7.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/minio/md5-simd v1.1.1 // indirect
-	github.com/minio/minio-go v6.0.14+incompatible
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/minio/minio-go/v7 v7.0.8
 	github.com/pkg/errors v0.9.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.6.1
