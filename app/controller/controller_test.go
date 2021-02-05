@@ -299,11 +299,9 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 	resp, err := http.Get(presignedUrl)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	length, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	p, err := ioutil.ReadAll(resp.Body)
 	assert.Nil(t, err)
-	body := make([]byte, length)
-	_, err = resp.Body.Read(body)
-	return string(body)
+	return string(p)
 }
 
 func TestMain(m *testing.M) {

@@ -210,10 +210,11 @@ Common return codes.
 |        NOT_FOUND        |   无法找到submission   |
 
 ### GetRunOutput
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
-|        NOT_FOUND        |      无法找到run       |
+|       message        |       结果        |
+|:--------------------:|:----------------:|
+| SUBMISSION_NOT_FOUND | 无法找到submission |
+|      NOT_FOUND       |    无法找到run     |
+|      BAD_RUN_ID      |                  |
 
 ### GetRunCompilerOutput
 |         message         |         结果          |
