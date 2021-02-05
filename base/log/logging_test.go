@@ -1,12 +1,13 @@
 package log
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/kami-zh/go-capturer"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -147,45 +148,27 @@ func TestInitFromConfigFail(t *testing.T) {
 		logger0 = oldLogger
 	})
 	tests := []struct {
-		config.Node
+		s string
 		error
 	}{
 		{
-			&config.MapNode{}, errors.New("log configuration should be an array"),
-		},
-		{
-			nil, errors.New("log configuration should be an array"),
-		},
-		{
-			&config.SliceNode{S: []config.Node{
-				&config.MapNode{M: map[string]config.Node{
-					"name": config.StringNode("invalid_writer_name"),
-				}},
-			}}, errors.New("invalid writer name"),
-		},
-		{
-			&config.SliceNode{S: []config.Node{
-				&config.MapNode{M: map[string]config.Node{
-					"name": config.IntNode(123),
-				}},
-			}}, errors.New("invalid writer name"),
-		},
-		{
-			&config.SliceNode{S: []config.Node{
-				&config.MapNode{M: map[string]config.Node{}},
-			}}, errors.New("writer configuration should contain name"),
-		},
-		{
-			&config.SliceNode{S: []config.Node{
-				config.IntNode(123),
-			}}, errors.New("writer configuration should be a map"),
+			`{
+	"log": [{
+		"name": "blah",
+		"level": "blah"
+	}]
+}`,
+			errors.New("invalid writer name"),
 		},
 	}
 	for i, test := range tests {
 		t.Run(fmt.Sprint("testInit_", i), func(t *testing.T) {
 			l := &logger{}
 			logger0 = l
-			err := InitFromConfig(test.Node)
+			viper.SetConfigType("json")
+			err := viper.ReadConfig(bytes.NewBufferString(test.s))
+			assert.Nil(t, err)
+			err = InitFromConfig()
 			if test.error != nil && err != nil {
 				assert.Equal(t, test.error.Error(), err.Error())
 			} else {
@@ -205,24 +188,17 @@ func TestInitFromConfigSuccess(t *testing.T) {
 	l := &logger{}
 	logger0 = l
 	assert.Equal(t, false, l.ready)
-	err := InitFromConfig(
-		&config.SliceNode{S: []config.Node{
-			&config.MapNode{M: map[string]config.Node{
-				"name":  config.StringNode("console"),
-				"level": config.StringNode("InFO"),
-			}},
-			&config.MapNode{M: map[string]config.Node{
-				"name":  config.StringNode("database"),
-				"level": config.StringNode("InFO"),
-			}},
-			&config.MapNode{M: map[string]config.Node{
-				"name":  config.StringNode("event"),
-				"level": config.StringNode("InFO"),
-			}},
-		}})
+	viper.SetConfigType("yaml")
+	viper.ReadConfig(bytes.NewBufferString(`
+- name: console
+  level: debug
+- name: database
+  level: debug
+`))
+	err := InitFromConfig()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, l.ready)
-	err = InitFromConfig(&config.SliceNode{S: []config.Node{}})
+	err = InitFromConfig()
 	assert.EqualError(t, err, "already initialized")
 	exit.Close()
 	exit.QuitWG.Wait()

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/minio/minio-go/v7"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strconv"
@@ -26,7 +26,7 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 func TestMustCreateBucket(t *testing.T) {
 	t.Run("testMustCreateBucketExistingBucket", func(t *testing.T) {
 		assert.Nil(t, base.Storage.MakeBucket(context.Background(), "existing-bucket", minio.MakeBucketOptions{
-			Region: config.MustGet("storage.region", "us-east-1").String(),
+			Region: viper.GetString("storage.region"),
 		}))
 		found, err := base.Storage.BucketExists(context.Background(), "existing-bucket")
 		assert.True(t, found)

@@ -6,11 +6,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -105,6 +105,7 @@ func makeResp(req *http.Request, e *echo.Echo) *http.Response {
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
+	viper.SetConfigType("yaml")
 	configFile := bytes.NewBufferString(`debug: false
 server:
   port: 8080
@@ -114,7 +115,7 @@ auth:
   session_timeout: 1200
   remember_me_timeout: 604800
   session_count: 10`)
-	err := config.ReadConfig(configFile)
+	err := viper.ReadConfig(configFile)
 	if err != nil {
 		panic(err)
 	}

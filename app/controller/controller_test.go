@@ -12,7 +12,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
@@ -22,6 +21,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -309,13 +309,14 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
+	viper.SetConfigType("yaml")
 	configFile := bytes.NewBufferString(`debug: true
 server:
   port: 8080
   origin:
     - http://127.0.0.1:8000
 `)
-	err := config.ReadConfig(configFile)
+	err := viper.ReadConfig(configFile)
 	if err != nil {
 		panic(err)
 	}

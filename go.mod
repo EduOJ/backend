@@ -25,6 +25,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.8
 	github.com/pkg/errors v0.9.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/xlab/treeprint v1.0.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad

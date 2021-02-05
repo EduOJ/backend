@@ -3,9 +3,9 @@ package middleware
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"net/http"
 	"runtime/debug"
 )
@@ -19,7 +19,7 @@ func Recover(next echo.HandlerFunc) echo.HandlerFunc {
 				} else {
 					log.Error("controller panics: ", xx)
 				}
-				if config.MustGet("debug", false).Value().(bool) {
+				if viper.GetBool("debug") {
 					stack := debug.Stack()
 					err = c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", string(stack)))
 				} else {

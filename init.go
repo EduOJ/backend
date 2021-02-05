@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
@@ -17,6 +16,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -26,29 +26,21 @@ import (
 
 func readConfig() {
 	log.Debug("Reading config.")
-	configFile, err := open(opt.Config)
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not open config file "+opt.Config))
-		os.Exit(-1)
+	viper.SetConfigName("config")         // name of config file (without extension)
+	viper.AddConfigPath("/etc/eduoj/")    // path to look for the config file in
+	viper.AddConfigPath("$HOME/.appname") // call multiple times to add many search paths
+	viper.AddConfigPath(".")              // optionally look for config in the working directory
+	err := viper.ReadInConfig()           // Find and read the config file
+	if err != nil {                       // Handle errors reading the config file
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	err = config.ReadConfig(configFile)
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read config file "+opt.Config))
-		os.Exit(-1)
-	}
-	log.Debug("Config read.")
 }
 
 func initLog() {
 	log.Debug("Initializing log.")
-	loggingConf, err := config.Get("log")
+	err := log.InitFromConfig()
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read log config"))
-		os.Exit(-1)
-	}
-	err = log.InitFromConfig(loggingConf)
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not init log with config "+loggingConf.String()))
+		log.Fatal(errors.Wrap(err, "could not init log"))
 		os.Exit(-1)
 	}
 	log.Debug("Logging initialized.")
@@ -56,16 +48,7 @@ func initLog() {
 
 func startEcho() {
 	log.Debug("Starting echo server.")
-	echoConf, err := config.Get("server")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read http server config"))
-		os.Exit(-1)
-	}
-	if _, ok := echoConf.(*config.MapNode); !ok {
-		log.Fatal(errors.Wrap(errors.New("web server configuration should be a map"), "could not init http server with config "+echoConf.String()))
-		os.Exit(-1)
-	}
-	port := echoConf.MustGet("port", 8080).Value().(int)
+	port := viper.GetInt("server.port")
 	base.Echo = echo.New()
 	base.Echo.Logger = &log.EchoLogger{}
 	base.Echo.HideBanner = true
@@ -98,28 +81,15 @@ func startEcho() {
 
 func initRedis() {
 	log.Debug("Starting redis client.")
-	redisConf, err := config.Get("redis")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read redis config"))
-		os.Exit(-1)
-	}
-	if _, ok := redisConf.(*config.MapNode); !ok {
-		log.Fatal(errors.Wrap(errors.New("redis configuration should be a map"), "could not init http server with config "+redisConf.String()))
-		os.Exit(-1)
-	}
-	port := redisConf.MustGet("port", 6379).Value().(int)
-	host := redisConf.MustGet("host", "localhost").Value().(string)
-	username := redisConf.MustGet("username", "").Value().(string)
-	password := redisConf.MustGet("password", "").Value().(string)
 	base.Redis = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprint(host, ":", port),
-		Username: username,
-		Password: password,
+		Addr:     fmt.Sprint(viper.Get("redis.host"), ":", viper.GetInt("redis.port")),
+		Username: viper.GetString("redis.username"),
+		Password: viper.GetString("redis.password"),
 	})
 	// test connection.
-	_, err = base.Redis.Ping(context.Background()).Result()
+	_, err := base.Redis.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not init redis with config "+redisConf.String()))
+		log.Fatal(errors.Wrap(err, "could not init redis"))
 		os.Exit(-1)
 	}
 	log.Debug("Redis client started.")
@@ -135,28 +105,18 @@ func initRedis() {
 
 func initGorm(toMigrate ...bool) {
 	log.Debug("Starting database client.")
-	databaseConf, err := config.Get("database")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read database config"))
-		os.Exit(-1)
-	}
-	if _, ok := databaseConf.(*config.MapNode); !ok {
-		log.Fatal(errors.Wrap(errors.New("database configuration should be a map"), "could not init http server with config "+databaseConf.String()))
-		os.Exit(-1)
-	}
-	dialect := databaseConf.MustGet("dialect", "").Value().(string)
-	uri := databaseConf.MustGet("uri", "").Value().(string)
-	switch dialect {
+	var err error
+	switch viper.GetString("database.dialect") {
 	case "mysql":
-		base.DB, err = gorm.Open(mysql.Open(uri), &gorm.Config{
+		base.DB, err = gorm.Open(mysql.Open(viper.GetString("database.uri")), &gorm.Config{
 			Logger: log.GormLogger{},
 		})
 	case "postgres":
-		base.DB, err = gorm.Open(postgres.Open(uri), &gorm.Config{
+		base.DB, err = gorm.Open(postgres.Open(viper.GetString("database.uri")), &gorm.Config{
 			Logger: log.GormLogger{},
 		})
 	case "sqlite":
-		base.DB, err = gorm.Open(sqlite.Open(uri), &gorm.Config{
+		base.DB, err = gorm.Open(sqlite.Open(viper.GetString("database.uri")), &gorm.Config{
 			Logger: log.GormLogger{},
 		})
 	default:
@@ -164,7 +124,7 @@ func initGorm(toMigrate ...bool) {
 		os.Exit(-1)
 	}
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not init database with config "+databaseConf.String()))
+		log.Fatal(errors.Wrap(err, "could not init database"))
 		os.Exit(-1)
 	}
 	if len(toMigrate) == 0 || toMigrate[0] {
@@ -178,50 +138,11 @@ func initGorm(toMigrate ...bool) {
 
 func initStorage() {
 	log.Debug("Starting storage client.")
-	endpointN, err := config.Get("storage.endpoint")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read storage endpoint"))
-	}
-	endpoint, ok := endpointN.Value().(string)
-	if !ok {
-		log.Fatal(errors.Wrap(err, "could not read storage endpoint"))
-	}
-	accessKeyIDN, err := config.Get("storage.access_key_id")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read storage access key id"))
-	}
-	accessKeyID, ok := accessKeyIDN.Value().(string)
-	if !ok {
-		log.Fatal(errors.Wrap(err, "could not read storage access key id"))
-	}
-	accessKeySecretN, err := config.Get("storage.access_key_secret")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read storage access key secret"))
-	}
-	accessKeySecret, ok := accessKeySecretN.Value().(string)
-	if !ok {
-		log.Fatal(errors.Wrap(err, "could not read storage access key secret"))
-	}
-	sslN, err := config.Get("storage.ssl")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read storage ssl"))
-	}
-	ssl, ok := sslN.Value().(bool)
-	if !ok {
-		log.Fatal(errors.Wrap(err, "could not read storage ssl"))
-	}
-	regionN, err := config.Get("storage.region")
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "could not read storage region"))
-	}
-	region, ok := regionN.Value().(string)
-	if !ok {
-		log.Fatal(errors.Wrap(err, "could not read storage region"))
-	}
-	base.Storage, err = minio.New(endpoint, &minio.Options{
-		Region: region,
-		Creds:  credentials.NewStaticV4(accessKeyID, accessKeySecret, ""),
-		Secure: ssl,
+	var err error
+	base.Storage, err = minio.New(viper.GetString("storage.endpoint"), &minio.Options{
+		Region: viper.GetString("storage.region"),
+		Creds:  credentials.NewStaticV4(viper.GetString("storage.access_key_id"), viper.GetString("storage.access_key_secret"), ""),
+		Secure: viper.GetBool("storage.false"),
 	})
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
