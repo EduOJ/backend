@@ -20,10 +20,10 @@ running.
 
 # Roles
 
-|  Name   | Target | Permission |
-|:-------:|:------:|:----------:|
-|  admin  |  N/A   |    all     |
-| creator |  N/A   |    all     |
+|      Name       | Target  | Permission |
+|:---------------:|:-------:|:----------:|
+|      admin      |   N/A   |    all     |
+| problem_creator | problem |    all     |
 
 
 # Permissions
