@@ -2,13 +2,14 @@ package controller_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -47,17 +48,19 @@ func TestGetImage(t *testing.T) {
 		}
 		utils.PanicIfDBError(base.DB.Save(&illegalTypeModel), "could not save image")
 
-		found, err := base.Storage.BucketExists("images")
+		found, err := base.Storage.BucketExists(context.Background(), "images")
 		if err != nil {
 			panic(errors.Wrap(err, "could not query if bucket exists"))
 		}
 		if !found {
-			err = base.Storage.MakeBucket("images", config.MustGet("storage.region", "us-east-1").String())
+			err = base.Storage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{
+				Region: config.MustGet("storage.region", "us-east-1").String(),
+			})
 			if err != nil {
 				panic(errors.Wrap(err, "could not query if bucket exists"))
 			}
 		}
-		_, err = base.Storage.PutObject("images", "test_image_path", &imageBuffer, int64(imageBuffer.Len()), minio.PutObjectOptions{
+		_, err = base.Storage.PutObject(context.Background(), "images", "test_image_path", &imageBuffer, int64(imageBuffer.Len()), minio.PutObjectOptions{
 			ContentType: "image/png",
 		})
 		if err != nil {
@@ -177,7 +180,7 @@ func TestCreateImage(t *testing.T) {
 		imageModel := models.Image{}
 		base.DB.Model(models.Image{}).Where("file_path = ?", sepPath[len(sepPath)-1]).Find(&imageModel)
 		assert.Equal(t, imageModel.Filename, "baidu.png")
-		o, err := base.Storage.GetObject("images", sepPath[len(sepPath)-1], minio.GetObjectOptions{})
+		o, err := base.Storage.GetObject(context.Background(), "images", sepPath[len(sepPath)-1], minio.GetObjectOptions{})
 		assert.Nil(t, err)
 		buf := bytes.Buffer{}
 		_, err = io.Copy(&buf, o)

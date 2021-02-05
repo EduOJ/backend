@@ -14,7 +14,8 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -217,12 +218,16 @@ func initStorage() {
 	if !ok {
 		log.Fatal(errors.Wrap(err, "could not read storage region"))
 	}
-	base.Storage, err = minio.NewWithRegion(endpoint, accessKeyID, accessKeySecret, ssl, region)
+	base.Storage, err = minio.New(endpoint, &minio.Options{
+		Region: region,
+		Creds:  credentials.NewStaticV4(accessKeyID, accessKeySecret, ""),
+		Secure: ssl,
+	})
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
 		panic(err)
 	}
-	_, err = base.Storage.ListBuckets()
+	_, err = base.Storage.ListBuckets(context.Background())
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "could not connect to minio server."))
 		panic(err)

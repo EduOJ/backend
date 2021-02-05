@@ -8,7 +8,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"mime/multipart"
@@ -51,14 +51,14 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 		panic(err)
 	}
 	defer src.Close()
-	_, err = base.Storage.PutObjectWithContext(ctx, bucket, path, src, object.Size, minio.PutObjectOptions{})
+	_, err = base.Storage.PutObject(ctx, bucket, path, src, object.Size, minio.PutObjectOptions{})
 	if err != nil {
 		panic(errors.Wrap(err, "could write file to s3 storage."))
 	}
 }
 
-func MustGetObject(bucket string, path string) *minio.Object {
-	object, err := base.Storage.GetObject(bucket, path, minio.GetObjectOptions{})
+func MustGetObject(c echo.Context, bucket string, path string) *minio.Object {
+	object, err := base.Storage.GetObject(c.Request().Context(), bucket, path, minio.GetObjectOptions{})
 	if err != nil {
 		panic(err)
 	}

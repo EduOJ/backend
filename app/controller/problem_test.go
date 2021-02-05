@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
@@ -8,7 +9,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"io"
@@ -32,7 +33,7 @@ type testCaseData struct {
 }
 
 func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
-	obj, err := base.Storage.GetObject(bucketName, objectName, minio.GetObjectOptions{})
+	obj, err := base.Storage.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
 	assert.Nil(t, err)
 	content, err = ioutil.ReadAll(obj)
 	assert.Nil(t, err)
@@ -59,7 +60,7 @@ func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fil
 	user = createUserForTest(t, name, id)
 	user.GrantRole("problem_creator", problem)
 	if attachmentFile != nil {
-		_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, attachmentFile.size, minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, attachmentFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
@@ -86,13 +87,13 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, data testCaseDa
 	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase))
 
 	if data.InputFile != nil {
-		_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), data.InputFile.reader, data.InputFile.size, minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), data.InputFile.reader, data.InputFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = data.InputFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
 	}
 	if data.OutputFile != nil {
-		_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), data.OutputFile.reader, data.OutputFile.size, minio.PutObjectOptions{})
+		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), data.OutputFile.reader, data.OutputFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
 		_, err = data.OutputFile.reader.Seek(0, io.SeekStart)
 		assert.Nil(t, err)
@@ -578,19 +579,16 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 	runFailTests(t, failTests, "GetProblemAttachmentFile")
 
 	successTests := []struct {
-		name                   string
-		file                   *fileContent
-		respContentDisposition string
+		name string
+		file *fileContent
 	}{
 		{
-			name:                   "PDFFile",
-			file:                   newFileContent("", "test_get_problem_attachment.pdf", "cGRmIGNvbnRlbnQK"),
-			respContentDisposition: `inline; filename="test_get_problem_attachment.pdf"`,
+			name: "PDFFile",
+			file: newFileContent("", "test_get_problem_attachment.pdf", "cGRmIGNvbnRlbnQK"),
 		},
 		{
-			name:                   "NonPDFFile",
-			file:                   newFileContent("", "test_get_problem_attachment.txt", "dHh0IGNvbnRlbnQK"),
-			respContentDisposition: `attachment; filename="test_get_problem_attachment.txt"`,
+			name: "NonPDFFile",
+			file: newFileContent("", "test_get_problem_attachment.txt", "dHh0IGNvbnRlbnQK"),
 		},
 	}
 
@@ -603,12 +601,9 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 				t.Parallel()
 				problem, _ := createProblemForTest(t, "test_get_problem_attachment_file", i+2, test.file)
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblemAttachmentFile", problem.ID), nil, applyNormalUser))
-				assert.Equal(t, test.respContentDisposition, httpResp.Header.Get("Content-Disposition"))
-				assert.Equal(t, "public; max-age=31536000", httpResp.Header.Get("Cache-Control"))
-				respBytes, err := ioutil.ReadAll(httpResp.Body)
-				assert.Nil(t, err)
 				fileBytes, err := ioutil.ReadAll(test.file.reader)
-				assert.Equal(t, fileBytes, respBytes)
+				assert.Nil(t, err)
+				assert.Equal(t, string(fileBytes), getPresignedURLContent(t, httpResp.Header.Get("Location")))
 			})
 		}
 	})
@@ -1152,7 +1147,7 @@ func TestUpdateProblem(t *testing.T) {
 					assert.Nil(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]))
 				}
 				if test.originalAttachment != nil {
-					_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
+					_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
 					assert.Nil(t, err)
 					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
 					assert.Nil(t, err)
@@ -1370,7 +1365,7 @@ func TestDeleteProblem(t *testing.T) {
 					})
 				}
 				if test.originalAttachment != nil {
-					_, err := base.Storage.PutObject("problems", fmt.Sprintf("%d/attachment", test.problem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
+					_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", test.problem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
 					assert.Nil(t, err)
 					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
 					assert.Nil(t, err)
@@ -1595,10 +1590,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 	})
 	httpResp := makeResp(req)
-
-	respBytes, err := ioutil.ReadAll(httpResp.Body)
-	assert.Nil(t, err)
-	assert.Equal(t, []byte("input text\n"), respBytes)
+	assert.Equal(t, "input text\n", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 }
 
 func TestGetTestCaseOutputFile(t *testing.T) {
@@ -1659,10 +1651,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 	})
 	httpResp := makeResp(req)
-
-	respBytes, err := ioutil.ReadAll(httpResp.Body)
-	assert.Nil(t, err)
-	assert.Equal(t, []byte("output text\n"), respBytes)
+	assert.Equal(t, "output text\n", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 }
 
 func TestUpdateTestCase(t *testing.T) {

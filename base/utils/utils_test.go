@@ -2,13 +2,15 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/database"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"net/http/httptest"
 	"os"
@@ -37,11 +39,16 @@ server:
 	ts := httptest.NewServer(faker.Server())
 	defer ts.Close()
 	var err error
-	base.Storage, err = minio.NewWithRegion(ts.URL[7:], "accessKey", "secretAccessKey", false, "us-east-1")
+	base.Storage, err = minio.New(ts.URL[7:], &minio.Options{
+		Creds:  credentials.NewStaticV4("accessKey", "secretAccessKey", ""),
+		Secure: false,
+	})
 	if err != nil {
 		panic(err)
 	}
-	err = base.Storage.MakeBucket("test-bucket", config.MustGet("storage.region", "us-east-1").String())
+	err = base.Storage.MakeBucket(context.Background(), "test-bucket", minio.MakeBucketOptions{
+		Region: config.MustGet("storage.region", "us-east-1").String(),
+	})
 	if err != nil {
 		panic(err)
 	}

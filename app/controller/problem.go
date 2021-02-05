@@ -9,12 +9,11 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func GetProblem(c echo.Context) error {
@@ -127,19 +126,11 @@ func GetProblemAttachmentFile(c echo.Context) error { // TODO: use MustGetObject
 	if problem.AttachmentFileName == "" {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("ATTACHMENT_NOT_FOUND", nil))
 	}
-	object := utils.MustGetObject("problems", fmt.Sprintf("%d/attachment", problem.ID))
-	contentType := "application/octet-stream"
-	if strings.HasSuffix(problem.AttachmentFileName, ".pdf") {
-		// If attachment file is a pdf, render it in browser.
-		contentType = "application/pdf"
-		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, problem.AttachmentFileName))
-	} else {
-		// If else, download it as a file.
-		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, problem.AttachmentFileName))
+	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/attachment", problem.ID), problem.AttachmentFileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
 	}
-	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
-
-	return c.Stream(http.StatusOK, contentType, object)
+	return c.Redirect(http.StatusFound, presignedUrl)
 }
 
 func CreateProblem(c echo.Context) error {
@@ -226,7 +217,7 @@ func UpdateProblem(c echo.Context) error {
 			panic(err)
 		}
 		defer src.Close()
-		_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID), src, file.Size, minio.PutObjectOptions{})
+		_, err = base.Storage.PutObject(c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID), src, file.Size, minio.PutObjectOptions{})
 		if err != nil {
 			panic(errors.Wrap(err, "could write attachment file to s3 storage."))
 		}
@@ -353,11 +344,11 @@ func GetTestCaseInputFile(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
 	}
 
-	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
-	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.InputFileName))
-
-	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID)))
+	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), testCase.InputFileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
 }
 
 func GetTestCaseOutputFile(c echo.Context) error {
@@ -368,11 +359,11 @@ func GetTestCaseOutputFile(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
 	}
 
-	c.Response().Header().Set("Access-Control-Allow-Origin", strings.Join(utils.Origins, ", "))
-	c.Response().Header().Set("Cache-Control", "public; max-age=31536000")
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, testCase.OutputFileName))
-
-	return c.Stream(http.StatusOK, "", utils.MustGetObject("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID)))
+	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), testCase.OutputFileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
 }
 
 func UpdateTestCase(c echo.Context) error {

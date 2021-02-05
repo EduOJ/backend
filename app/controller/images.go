@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/labstack/echo/v4"
@@ -9,7 +10,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"io"
@@ -28,7 +29,7 @@ func GetImage(c echo.Context) error {
 	} else if err != nil {
 		panic(err)
 	}
-	object, err := base.Storage.GetObject("images", imageModel.FilePath, minio.GetObjectOptions{})
+	object, err := base.Storage.GetObject(context.Background(), "images", imageModel.FilePath, minio.GetObjectOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -96,7 +97,7 @@ func CreateImage(c echo.Context) error {
 		panic(errors.Wrap(err, "could not seek to file start"))
 	}
 
-	_, err = base.Storage.PutObjectWithContext(c.Request().Context(), "images", fileIndex, src, file.Size, minio.PutObjectOptions{
+	_, err = base.Storage.PutObject(c.Request().Context(), "images", fileIndex, src, file.Size, minio.PutObjectOptions{
 		ContentType: mime.String(),
 	})
 	if err != nil {
