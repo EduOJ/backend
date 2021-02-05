@@ -110,6 +110,7 @@ func Register(e *echo.Echo) {
 
 	api.GET("/submission/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
 	api.GET("/submission/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
+	api.GET("/submission/:id/run/:run_id/input", controller.GetRunInput, middleware.Logged).Name = "submission.getRunInput"
 	api.GET("/submission/:id/run/:run_id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
 	api.GET("/submission/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
