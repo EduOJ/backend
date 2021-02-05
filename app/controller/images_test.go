@@ -6,11 +6,11 @@ import (
 	"encoding/base64"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -54,7 +54,7 @@ func TestGetImage(t *testing.T) {
 		}
 		if !found {
 			err = base.Storage.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{
-				Region: config.MustGet("storage.region", "us-east-1").String(),
+				Region: viper.GetString("storage.region"),
 			})
 			if err != nil {
 				panic(errors.Wrap(err, "could not query if bucket exists"))

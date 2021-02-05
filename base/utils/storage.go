@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"net/url"
 	"sync"
 	"time"
@@ -25,7 +25,7 @@ func CreateBucket(name string) error {
 	}
 	if !found {
 		err = base.Storage.MakeBucket(context.Background(), name, minio.MakeBucketOptions{
-			Region: config.MustGet("storage.region", "us-east-1").String(),
+			Region: viper.GetString("storage.region"),
 		})
 		if err != nil {
 			return errors.Wrap(err, "could not create bucket")

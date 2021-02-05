@@ -2,9 +2,9 @@ package utils
 
 import (
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"sync"
 	"time"
 )
@@ -15,11 +15,14 @@ var RememberMeTimeout time.Duration
 var SessionCount int
 
 func initAuthConfig() {
-	sessionTimeoutInt := config.MustGet("auth.session_timeout", 1200).Value().(int)
+	viper.SetDefault("auth.session_timeout", 1200)
+	viper.SetDefault("auth.remember_me_timeout", 604800)
+	viper.SetDefault("auth.session_count", 10)
+	sessionTimeoutInt := viper.GetInt("auth.session_timeout")
 	SessionTimeout = time.Second * time.Duration(sessionTimeoutInt)
-	RememberMeTimeoutInt := config.MustGet("auth.remember_me_timeout", 604800).Value().(int)
+	RememberMeTimeoutInt := viper.GetInt("auth.session_timeout")
 	RememberMeTimeout = time.Second * time.Duration(RememberMeTimeoutInt)
-	SessionCount = config.MustGet("auth.session_count", 10).Value().(int)
+	SessionCount = viper.GetInt("auth.session_timeout")
 }
 
 func IsTokenExpired(token models.Token) bool {

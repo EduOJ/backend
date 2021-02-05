@@ -1,55 +1,48 @@
 package log
 
 import (
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"strings"
 )
 
 var logger0 _logger = &logger{}
 
-func InitFromConfig(logConf config.Node) (err error) {
+type logConf []struct {
+	Name  string
+	Level string
+}
+
+func InitFromConfig() (err error) {
 	if logger0.isReady() {
 		return errors.New("already initialized")
 	}
-	if sliceNode, ok := logConf.(*config.SliceNode); ok {
-		for _, _i := range sliceNode.S {
-			writerConf, ok := _i.(*config.MapNode)
-			if !ok {
-				return errors.New("writer configuration should be a map")
-			}
-			_name, err := writerConf.Get("name")
-			if err != nil {
-				return errors.New("writer configuration should contain name")
-			}
-			if name, ok := _name.(config.StringNode); ok {
-				switch name {
-				case "console":
-					logger0.addWriter(&consoleWriter{
-						Level: StringToLevel[strings.ToUpper(
-							writerConf.MustGet("level", "DEBUG").Value().(string))],
-					})
-				case "database":
-					w := &databaseWriter{
-						Level: StringToLevel[strings.ToUpper(
-							writerConf.MustGet("level", "DEBUG").Value().(string))],
-					}
-					w.init()
-					logger0.addWriter(w)
-				case "event":
-					// nothing to do.
-				default:
-					return errors.New("invalid writer name")
-				}
-			} else {
-				return errors.New("invalid writer name")
-			}
-		}
-		logger0.addWriter(&eventWriter{})
-		logger0.setReady()
-		return nil
+	var confSlice logConf
+	err = viper.UnmarshalKey("log", &confSlice)
+	if err != nil {
+		return errors.Wrap(err, "Wrong log conf")
 	}
-	return errors.New("log configuration should be an array")
+	for _, c := range confSlice {
+		switch c.Name {
+		case "console":
+			logger0.addWriter(&consoleWriter{
+				Level: StringToLevel[strings.ToUpper(c.Level)],
+			})
+		case "database":
+			w := &databaseWriter{
+				Level: StringToLevel[strings.ToUpper(c.Level)],
+			}
+			w.init()
+			logger0.addWriter(w)
+		case "event":
+			// nothing to do.
+		default:
+			return errors.New("invalid writer name")
+		}
+	}
+	logger0.addWriter(&eventWriter{})
+	logger0.setReady()
+	return nil
 }
 
 func Debug(items ...interface{}) {

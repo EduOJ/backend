@@ -5,9 +5,9 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/controller"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/http/pprof"
 )
@@ -117,7 +117,7 @@ func Register(e *echo.Echo) {
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
 
-	if config.MustGet("debug", false).Value().(bool) {
+	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")
 		e.Any("/debug/pprof/", func(c echo.Context) error {
 			pprof.Index(c.Response().Writer, c.Request())

@@ -6,12 +6,12 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/config"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -29,8 +29,8 @@ server:
   origin:
     - http://127.0.0.1:8000
 `)
-
-	if err := config.ReadConfig(configFile); err != nil {
+	viper.SetConfigType("yaml")
+	if err := viper.ReadConfig(configFile); err != nil {
 		panic(err)
 	}
 
@@ -47,7 +47,7 @@ server:
 		panic(err)
 	}
 	err = base.Storage.MakeBucket(context.Background(), "test-bucket", minio.MakeBucketOptions{
-		Region: config.MustGet("storage.region", "us-east-1").String(),
+		Region: viper.GetString("storage.region"),
 	})
 	if err != nil {
 		panic(err)
