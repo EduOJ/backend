@@ -41,7 +41,7 @@ func createSubmissionForTest(name string, id uint, runCount uint) (submission mo
 		ProblemID:    id,
 		Problem:      nil,
 		ProblemSetId: id,
-		Language:     fmt.Sprintf("test_%s_submission_%d_language", name, id),
+		LanguageName: fmt.Sprintf("test_%s_submission_%d_language", name, id),
 		FileName:     fmt.Sprintf("test_%s_submission_%d_file_name", name, id),
 		Priority:     127,
 		Judged:       false,

@@ -10,14 +10,15 @@ const PriorityDefault = uint8(127)
 type Submission struct {
 	ID uint `gorm:"primaryKey" json:"id"`
 
-	UserID       uint     `sql:"index" json:"user_id"`
-	User         *User    `json:"user"`
-	ProblemID    uint     `sql:"index" json:"problem_id"`
-	Problem      *Problem `json:"problem"`
-	ProblemSetId uint     `sql:"index" json:"problem_set_id"`
-	Language     string   `json:"language"`
-	FileName     string   `json:"file_name"`
-	Priority     uint8    `json:"priority"`
+	UserID       uint      `sql:"index" json:"user_id"`
+	User         *User     `json:"user"`
+	ProblemID    uint      `sql:"index" json:"problem_id"`
+	Problem      *Problem  `json:"problem"`
+	ProblemSetId uint      `sql:"index" json:"problem_set_id"`
+	LanguageName string    `json:"language_name"`
+	Language     *Language `json:"language"`
+	FileName     string    `json:"file_name"`
+	Priority     uint8     `json:"priority"`
 
 	Judged bool `json:"judged"`
 	Score  uint `json:"score"`

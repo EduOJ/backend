@@ -63,7 +63,7 @@ func CreateSubmission(c echo.Context) error {
 		UserID:       user.ID,
 		ProblemID:    problem.ID,
 		ProblemSetId: 0,
-		Language:     req.Language,
+		LanguageName: req.Language,
 		FileName:     file.Filename,
 		Priority:     priority,
 		Judged:       false,

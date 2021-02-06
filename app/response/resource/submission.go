@@ -25,7 +25,7 @@ func (s *Submission) convert(submission *models.Submission) {
 	s.UserID = submission.UserID
 	s.ProblemID = submission.ProblemID
 	s.ProblemSetId = submission.ProblemSetId
-	s.Language = submission.Language
+	s.Language = submission.LanguageName
 	s.Judged = submission.Judged
 	s.Score = submission.Score
 	s.Status = submission.Status
@@ -70,7 +70,7 @@ func (s *SubmissionDetail) convert(submission *models.Submission) {
 	s.UserID = submission.UserID
 	s.ProblemID = submission.ProblemID
 	s.ProblemSetId = submission.ProblemSetId
-	s.Language = submission.Language
+	s.Language = submission.LanguageName
 	s.FileName = submission.FileName
 	s.Priority = submission.Priority
 	s.Judged = submission.Judged

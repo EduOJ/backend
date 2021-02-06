@@ -38,7 +38,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		UserID:       user.ID,
 		ProblemID:    problem.ID,
 		ProblemSetId: 0,
-		Language:     fmt.Sprintf("test_%s_language_allowed_%d", name, id),
+		LanguageName: fmt.Sprintf("test_%s_language_allowed_%d", name, id),
 		FileName:     fmt.Sprintf("test_%s_code_file_name_%d", name, id),
 		Priority:     models.PriorityDefault,
 		Judged:       false,
