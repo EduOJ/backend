@@ -75,8 +75,21 @@ func TestCreateSubmission(t *testing.T) {
 	t.Parallel()
 	// publicFalseProblem means a problem which "public" field is false
 	publicFalseProblem, _ := createProblemForTest(t, "test_create_submission_public_false", 0, nil)
-	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("public", false).Error)
-	assert.Nil(t, base.DB.Model(&publicFalseProblem).Update("language_allowed", "test_language,golang").Error)
+	publicFalseProblem.Public = false
+	publicFalseProblem.LanguageAllowed = []string{"test_language", "golang"}
+	assert.Nil(t, base.DB.Save(&publicFalseProblem).Error)
+
+	languages := []models.Language{
+		{
+			Name:             "test_language",
+			ExtensionAllowed: []string{"test_language"},
+		},
+		{
+			Name:             "golang",
+			ExtensionAllowed: []string{"go"},
+		},
+	}
+	assert.Nil(t, base.DB.Save(&languages).Error)
 	failTests := []failTest{
 		{
 			// testCreateSubmissionNonExistingProblem
@@ -183,7 +196,8 @@ func TestCreateSubmission(t *testing.T) {
 			t.Run("testCreateSubmission"+test.name, func(t *testing.T) {
 				t.Parallel()
 				problem, creator := createProblemForTest(t, "test_create_submission", i, nil)
-				assert.Nil(t, base.DB.Model(&problem).Update("language_allowed", "test_language,golang").Error)
+				problem.LanguageAllowed = []string{"test_language", "golang"}
+				assert.Nil(t, base.DB.Save(&problem).Error)
 				for j := 0; j < test.testCaseCount; j++ {
 					createTestCaseForTest(t, problem, testCaseData{
 						Score:  0,
@@ -210,12 +224,13 @@ func TestCreateSubmission(t *testing.T) {
 				}
 				req := makeReq(t, "POST", base.Echo.Reverse("submission.createSubmission", problem.ID),
 					addFieldContentSlice([]reqContent{
-						newFileContent("code", "code_file_name", b64Encodef("test_create_submission_%d_code", i)),
+						newFileContent("code", "code_file_name.test_language", b64Encodef("test_create_submission_%d_code", i)),
 					}, map[string]string{
 						"language": "test_language",
 					}), applyUser)
 				httpResp := makeResp(req)
 				resp := response.CreateSubmissionResponse{}
+				assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 				mustJsonDecode(httpResp, &resp)
 				responseSubmission := *resp.Data.SubmissionDetail
 				databaseSubmission := models.Submission{}
@@ -260,7 +275,7 @@ func TestCreateSubmission(t *testing.T) {
 					ProblemID:    problem.ID,
 					ProblemSetId: 0,
 					Language:     "test_language",
-					FileName:     "code_file_name",
+					FileName:     "code_file_name.test_language",
 					Priority:     127,
 					Judged:       false,
 					Score:        0,

@@ -2,7 +2,6 @@ package resource
 
 import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
-	"strings"
 )
 
 type TestCaseForAdmin struct {
@@ -90,7 +89,7 @@ func (p *ProblemForAdmin) convert(problem *models.Problem) {
 	p.AttachmentFileName = problem.AttachmentFileName
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
-	p.LanguageAllowed = strings.Split(problem.LanguageAllowed, ",")
+	p.LanguageAllowed = problem.LanguageAllowed
 	p.CompareScriptID = problem.CompareScriptID
 
 	p.Public = problem.Public
@@ -110,7 +109,7 @@ func (p *Problem) convert(problem *models.Problem) {
 	p.AttachmentFileName = problem.AttachmentFileName
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
-	p.LanguageAllowed = strings.Split(problem.LanguageAllowed, ",")
+	p.LanguageAllowed = problem.LanguageAllowed
 	p.CompareScriptID = problem.CompareScriptID
 
 	p.TestCases = make([]TestCase, len(problem.TestCases))

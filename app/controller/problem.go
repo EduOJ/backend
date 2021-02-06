@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func GetProblem(c echo.Context) error {
@@ -163,7 +164,7 @@ func CreateProblem(c echo.Context) error {
 		Privacy:            privacy,
 		MemoryLimit:        req.MemoryLimit,
 		TimeLimit:          req.TimeLimit,
-		LanguageAllowed:    req.LanguageAllowed,
+		LanguageAllowed:    strings.Split(req.LanguageAllowed, ","),
 		CompileEnvironment: req.CompileEnvironment,
 		CompareScriptID:    req.CompareScriptID,
 	}
@@ -235,7 +236,7 @@ func UpdateProblem(c echo.Context) error {
 	}
 	problem.MemoryLimit = req.MemoryLimit
 	problem.TimeLimit = req.TimeLimit
-	problem.LanguageAllowed = req.LanguageAllowed
+	problem.LanguageAllowed = strings.Split(req.LanguageAllowed, ",")
 	problem.CompileEnvironment = req.CompileEnvironment
 	problem.CompareScriptID = req.CompareScriptID
 	utils.PanicIfDBError(base.DB.Save(&problem), "could not update problem")
