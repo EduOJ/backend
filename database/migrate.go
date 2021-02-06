@@ -304,11 +304,11 @@ func GetMigration() *gormigrate.Gormigrate {
 					Public             bool   `json:"public" gorm:"default:false;not null"`
 					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
 
-					MemoryLimit        uint64 `json:"memory_limit" gorm:"default:0;not null;type:bigint"`       // Byte
-					TimeLimit          uint   `json:"time_limit" gorm:"default:0;not null"`                     // ms
-					LanguageAllowed    string `json:"language_allowed" gorm:"size:255;default:'';not null"`     // E.g.    cpp,c,java,python
-					CompileEnvironment string `json:"compile_environment" gorm:"size:2047;default:'';not null"` // E.g.  O2=false
-					CompareScriptID    uint   `json:"compare_script_id" gorm:"default:0;not null"`
+					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
+					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
+					CompareScriptID    uint        `json:"compare_script_id" gorm:"default:0;not null"`
 
 					TestCases []TestCase `json:"test_cases"`
 
@@ -576,6 +576,23 @@ func GetMigration() *gormigrate.Gormigrate {
 					return err
 				}
 				return tx.Migrator().DropConstraint(&Submission{}, "fk_submissions_language")
+			},
+		},
+		{
+			ID: "add_extension_allowed_Field",
+			Migrate: func(tx *gorm.DB) error {
+				type Language struct {
+					Name             string      `gorm:"primaryKey"`
+					ExtensionAllowed StringArray `gorm:"type:string"`
+				}
+				return tx.AutoMigrate(&Language{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Language struct {
+					Name             string      `gorm:"primaryKey"`
+					ExtensionAllowed StringArray `gorm:"type:string"`
+				}
+				return tx.Migrator().DropColumn(&Language{}, "ExtensionAllowed")
 			},
 		},
 	})

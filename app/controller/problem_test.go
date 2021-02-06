@@ -15,6 +15,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -49,7 +50,7 @@ func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fil
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
-		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d", name, id),
+		LanguageAllowed:    []string{"test_language"},
 		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, id),
 		CompareScriptID:    1,
 	}
@@ -109,7 +110,7 @@ func TestGetProblem(t *testing.T) {
 	publicFalseProblem := models.Problem{
 		Name:               "test_get_problem_public_false",
 		AttachmentFileName: "test_get_problem_public_false_attachment_file_name",
-		LanguageAllowed:    "test_get_problem_public_false_language_allowed",
+		LanguageAllowed:    []string{"test_get_problem_public_false_language_allowed"},
 	}
 	assert.Nil(t, base.DB.Create(&publicFalseProblem).Error)
 
@@ -155,7 +156,7 @@ func TestGetProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_get_problem_1",
 				AttachmentFileName: "test_get_problem_1_attachment_file_name",
-				LanguageAllowed:    "test_get_problem_1_language_allowed",
+				LanguageAllowed:    []string{"test_get_problem_1_language_allowed"},
 				Public:             true,
 			},
 			isAdmin:   true,
@@ -168,7 +169,7 @@ func TestGetProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_get_problem_2",
 				AttachmentFileName: "test_get_problem_2_attachment_file_name",
-				LanguageAllowed:    "test_get_problem_2_language_allowed",
+				LanguageAllowed:    []string{"test_get_problem_2_language_allowed"},
 				Public:             true,
 			},
 			isAdmin:   false,
@@ -181,7 +182,7 @@ func TestGetProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_get_problem_3",
 				AttachmentFileName: "test_get_problem_3_attachment_file_name",
-				LanguageAllowed:    "test_get_problem_3_language_allowed",
+				LanguageAllowed:    []string{"test_get_problem_3_language_allowed"},
 				Public:             false,
 			},
 			isAdmin:   true,
@@ -194,7 +195,7 @@ func TestGetProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_admin_get_problem_4",
 				AttachmentFileName: "test_admin_get_problem_4_attachment_file_name",
-				LanguageAllowed:    "test_admin_get_problem_4_language_allowed",
+				LanguageAllowed:    []string{"test_get_problem_4_language_allowed"},
 				Public:             true,
 			},
 			isAdmin: true,
@@ -218,7 +219,7 @@ func TestGetProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_admin_get_problem_5",
 				AttachmentFileName: "test_admin_get_problem_5_attachment_file_name",
-				LanguageAllowed:    "test_admin_get_problem_5_language_allowed",
+				LanguageAllowed:    []string{"test_get_problem_5_language_allowed"},
 				Public:             true,
 			},
 			isAdmin: false,
@@ -295,25 +296,25 @@ func TestGetProblems(t *testing.T) {
 	problem1 := models.Problem{
 		Name:               "test_get_problems_1",
 		AttachmentFileName: "test_get_problems_1_attachment_file_name",
-		LanguageAllowed:    "test_get_problems_1_language_allowed",
+		LanguageAllowed:    []string{"test_get_problems_1_language_allowed"},
 		Public:             true,
 	}
 	problem2 := models.Problem{
 		Name:               "test_get_problems_2",
 		AttachmentFileName: "test_get_problems_2_attachment_file_name",
-		LanguageAllowed:    "test_get_problems_2_language_allowed",
+		LanguageAllowed:    []string{"test_get_problems_2_language_allowed"},
 		Public:             true,
 	}
 	problem3 := models.Problem{
 		Name:               "test_get_problems_3",
 		AttachmentFileName: "test_get_problems_3_attachment_file_name",
-		LanguageAllowed:    "test_get_problems_3_language_allowed",
+		LanguageAllowed:    []string{"test_get_problems_3_language_allowed"},
 		Public:             true,
 	}
 	problem4 := models.Problem{
 		Name:               "test_get_problems_4",
 		AttachmentFileName: "test_get_problems_4_attachment_file_name",
-		LanguageAllowed:    "test_get_problems_4_language_allowed",
+		LanguageAllowed:    []string{"test_get_problems_4_language_allowed"},
 		Public:             false,
 	}
 	assert.Nil(t, base.DB.Create(&problem1).Error)
@@ -520,7 +521,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
-		LanguageAllowed:    "test_get_problem_attachment_file_0_language_allowed",
+		LanguageAllowed:    []string{"test_get_problem_attachment_file_0_language_allowed"},
 		CompileEnvironment: "test_get_problem_attachment_file_0_compile_environment",
 		CompareScriptID:    1,
 	}
@@ -533,7 +534,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
-		LanguageAllowed:    "test_get_problem_attachment_file_1_language_allowed",
+		LanguageAllowed:    []string{"test_get_problem_attachment_file_1_language_allowed"},
 		CompileEnvironment: "test_get_problem_attachment_file_1_compile_environment",
 		CompareScriptID:    1,
 	}
@@ -767,7 +768,7 @@ func TestCreateProblem(t *testing.T) {
 				assert.Equal(t, test.req.Description, databaseProblem.Description)
 				assert.Equal(t, test.req.MemoryLimit, databaseProblem.MemoryLimit)
 				assert.Equal(t, test.req.TimeLimit, databaseProblem.TimeLimit)
-				assert.Equal(t, test.req.LanguageAllowed, databaseProblem.LanguageAllowed)
+				assert.Equal(t, strings.Split(test.req.LanguageAllowed, ","), []string(databaseProblem.LanguageAllowed))
 				assert.Equal(t, test.req.CompareScriptID, databaseProblem.CompareScriptID)
 				assert.Equal(t, *test.req.Public, databaseProblem.Public)
 				assert.Equal(t, *test.req.Privacy, databaseProblem.Privacy)
@@ -805,7 +806,7 @@ func TestUpdateProblem(t *testing.T) {
 	problem1 := models.Problem{
 		Name:               "test_update_problem_1",
 		AttachmentFileName: "test_update_problem_1_attachment_file_name",
-		LanguageAllowed:    "test_update_problem_1_language_allowed",
+		LanguageAllowed:    []string{"test_update_problem_1_language_allowed"},
 	}
 	assert.Nil(t, base.DB.Create(&problem1).Error)
 
@@ -938,7 +939,7 @@ func TestUpdateProblem(t *testing.T) {
 			originalProblem: models.Problem{
 				Name:            "test_update_problem_3",
 				Description:     "test_update_problem_3_desc",
-				LanguageAllowed: "test_update_problem_3_language_allowed",
+				LanguageAllowed: []string{"test_update_problem_3_language_allowed"},
 				Public:          false,
 				Privacy:         true,
 				MemoryLimit:     1024,
@@ -948,7 +949,7 @@ func TestUpdateProblem(t *testing.T) {
 			expectedProblem: models.Problem{
 				Name:            "test_update_problem_30",
 				Description:     "test_update_problem_30_desc",
-				LanguageAllowed: "test_update_problem_30_language_allowed",
+				LanguageAllowed: []string{"test_update_problem_30_language_allowed"},
 				Public:          true,
 				Privacy:         false,
 				MemoryLimit:     2048,
@@ -974,7 +975,7 @@ func TestUpdateProblem(t *testing.T) {
 			originalProblem: models.Problem{
 				Name:               "test_update_problem_4",
 				Description:        "test_update_problem_4_desc",
-				LanguageAllowed:    "test_update_problem_4_language_allowed",
+				LanguageAllowed:    []string{"test_update_problem_4_language_allowed"},
 				Public:             true,
 				Privacy:            true,
 				MemoryLimit:        1024,
@@ -985,7 +986,7 @@ func TestUpdateProblem(t *testing.T) {
 			expectedProblem: models.Problem{
 				Name:               "test_update_problem_40",
 				Description:        "test_update_problem_40_desc",
-				LanguageAllowed:    "test_update_problem_40_language_allowed",
+				LanguageAllowed:    []string{"test_update_problem_40_language_allowed"},
 				Public:             false,
 				Privacy:            false,
 				MemoryLimit:        2048,
@@ -1012,7 +1013,7 @@ func TestUpdateProblem(t *testing.T) {
 			originalProblem: models.Problem{
 				Name:               "test_update_problem_5",
 				Description:        "test_update_problem_5_desc",
-				LanguageAllowed:    "test_update_problem_5_language_allowed",
+				LanguageAllowed:    []string{"test_update_problem_5_language_allowed"},
 				Public:             true,
 				Privacy:            true,
 				MemoryLimit:        1024,
@@ -1023,7 +1024,7 @@ func TestUpdateProblem(t *testing.T) {
 			expectedProblem: models.Problem{
 				Name:               "test_update_problem_50",
 				Description:        "test_update_problem_50_desc",
-				LanguageAllowed:    "test_update_problem_50_language_allowed",
+				LanguageAllowed:    []string{"test_update_problem_50_language_allowed"},
 				Public:             false,
 				Privacy:            false,
 				MemoryLimit:        2048,
@@ -1051,7 +1052,7 @@ func TestUpdateProblem(t *testing.T) {
 			originalProblem: models.Problem{
 				Name:               "test_update_problem_6",
 				Description:        "test_update_problem_6_desc",
-				LanguageAllowed:    "test_update_problem_6_language_allowed",
+				LanguageAllowed:    []string{"test_update_problem_6_language_allowed"},
 				Public:             true,
 				Privacy:            true,
 				MemoryLimit:        1024,
@@ -1062,7 +1063,7 @@ func TestUpdateProblem(t *testing.T) {
 			expectedProblem: models.Problem{
 				Name:               "test_update_problem_60",
 				Description:        "test_update_problem_60_desc",
-				LanguageAllowed:    "test_update_problem_60_language_allowed",
+				LanguageAllowed:    []string{"test_update_problem_60_language_allowed"},
 				Public:             false,
 				Privacy:            false,
 				MemoryLimit:        2048,
@@ -1090,7 +1091,7 @@ func TestUpdateProblem(t *testing.T) {
 			originalProblem: models.Problem{
 				Name:            "test_update_problem_7",
 				Description:     "test_update_problem_7_desc",
-				LanguageAllowed: "test_update_problem_7_language_allowed",
+				LanguageAllowed: []string{"test_update_problem_7_language_allowed"},
 				Public:          false,
 				Privacy:         true,
 				MemoryLimit:     1024,
@@ -1100,7 +1101,7 @@ func TestUpdateProblem(t *testing.T) {
 			expectedProblem: models.Problem{
 				Name:            "test_update_problem_70",
 				Description:     "test_update_problem_70_desc",
-				LanguageAllowed: "test_update_problem_70_language_allowed",
+				LanguageAllowed: []string{"test_update_problem_70_language_allowed"},
 				Public:          true,
 				Privacy:         false,
 				MemoryLimit:     2048,
@@ -1261,7 +1262,7 @@ func TestDeleteProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_delete_problem_1",
 				AttachmentFileName: "",
-				LanguageAllowed:    "test_delete_problem_1_language_allowed",
+				LanguageAllowed:    []string{"test_delete_problem_1_language_allowed"},
 			},
 			originalAttachment: nil,
 			testCases:          nil,
@@ -1271,7 +1272,7 @@ func TestDeleteProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_delete_problem_2",
 				AttachmentFileName: "test_delete_problem_attachment_2",
-				LanguageAllowed:    "test_delete_problem_2_language_allowed",
+				LanguageAllowed:    []string{"test_delete_problem_2_language_allowed"},
 			},
 			originalAttachment: newFileContent("attachment_file", "test_delete_problem_attachment_2", attachmentFileBase64),
 			testCases:          nil,
@@ -1281,7 +1282,7 @@ func TestDeleteProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_delete_problem_3",
 				AttachmentFileName: "",
-				LanguageAllowed:    "test_delete_problem_3_language_allowed",
+				LanguageAllowed:    []string{"test_delete_problem_3_language_allowed"},
 			},
 			originalAttachment: nil,
 			testCases: []struct {
@@ -1316,7 +1317,7 @@ func TestDeleteProblem(t *testing.T) {
 			problem: models.Problem{
 				Name:               "test_delete_problem_4",
 				AttachmentFileName: "test_delete_problem_attachment_4",
-				LanguageAllowed:    "test_delete_problem_4_language_allowed",
+				LanguageAllowed:    []string{"test_delete_problem_4_language_allowed"},
 			},
 			originalAttachment: newFileContent("attachment_file", "test_delete_problem_attachment_4", attachmentFileBase64),
 			testCases: []struct {

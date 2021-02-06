@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/database"
 	"time"
 )
 
@@ -36,11 +37,11 @@ type Problem struct {
 	Public             bool   `json:"public" gorm:"default:false;not null"`
 	Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
 
-	MemoryLimit        uint64 `json:"memory_limit" gorm:"default:0;not null;type:bigint"`       // Byte
-	TimeLimit          uint   `json:"time_limit" gorm:"default:0;not null"`                     // ms
-	LanguageAllowed    string `json:"language_allowed" gorm:"size:255;default:'';not null"`     // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment" gorm:"size:2047;default:'';not null"` // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id" gorm:"default:0;not null"`
+	MemoryLimit        uint64               `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+	TimeLimit          uint                 `json:"time_limit" gorm:"default:0;not null"`                             // ms
+	LanguageAllowed    database.StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+	CompileEnvironment string               `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
+	CompareScriptID    uint                 `json:"compare_script_id" gorm:"default:0;not null"`
 
 	TestCases []TestCase `json:"test_cases"`
 

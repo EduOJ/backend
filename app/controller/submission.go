@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
+	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 func CreateSubmission(c echo.Context) error {
@@ -38,15 +38,14 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	languageAllow := false
-	for _, language := range strings.Split(problem.LanguageAllowed, ",") {
-		if language == req.Language {
-			languageAllow = true
-			break
-		}
-	}
-	if !languageAllow {
+	if !utils.Contain(req.Language, problem.LanguageAllowed) {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LANGUAGE", nil))
+	}
+
+	language := models.Language{}
+
+	if err := base.DB.First(&language, "name = ?", req.Language).Error; err != nil {
+		panic(errors.Wrap(err, "could not find language"))
 	}
 
 	file, err := c.FormFile("code")
@@ -57,13 +56,23 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
 
+	ext := filepath.Ext(file.Filename)
+
+	if ext != "" {
+		ext = ext[1:]
+	}
+
+	if !utils.Contain(ext, language.ExtensionAllowed) {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LANGUAGE", nil))
+	}
+
 	priority := models.PriorityDefault
 
 	submission := models.Submission{
 		UserID:       user.ID,
 		ProblemID:    problem.ID,
 		ProblemSetId: 0,
-		LanguageName: req.Language,
+		Language:     &language,
 		FileName:     file.Filename,
 		Priority:     priority,
 		Judged:       false,

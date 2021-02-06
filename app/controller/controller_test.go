@@ -13,7 +13,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
-	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
@@ -351,7 +350,7 @@ server:
 		panic(err)
 	}
 
-	log.Disable()
+	//log.Disable()
 
 	os.Exit(m.Run())
 }

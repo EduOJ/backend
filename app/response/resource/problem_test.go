@@ -33,7 +33,7 @@ func createProblemForTest(name string, id uint, testCaseCount uint) (problem mod
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
-		LanguageAllowed:    fmt.Sprintf("test_%s_language_allowed_%d,test_language", name, id),
+		LanguageAllowed:    []string{fmt.Sprintf("test_%s_language_allowed_%d", name, id), "test_language"},
 		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, id),
 		CompareScriptID:    1,
 		TestCases:          make([]models.TestCase, testCaseCount),

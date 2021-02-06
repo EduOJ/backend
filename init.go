@@ -117,7 +117,8 @@ func initGorm(toMigrate ...bool) {
 		})
 	case "sqlite":
 		base.DB, err = gorm.Open(sqlite.Open(viper.GetString("database.uri")), &gorm.Config{
-			Logger: log.GormLogger{},
+			Logger:                                   log.GormLogger{},
+			DisableForeignKeyConstraintWhenMigrating: true,
 		})
 	default:
 		log.Fatal("unsupported database dialect")
