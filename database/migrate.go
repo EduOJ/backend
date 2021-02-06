@@ -507,6 +507,77 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropTable(&Script{})
 			},
 		},
+		{
+			ID: "add_languages_table",
+			Migrate: func(tx *gorm.DB) error {
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+				type Language struct {
+					Name            string `gorm:"primaryKey"`
+					BuildScriptName string
+					BuildScript     *Script `gorm:"foreignKey:BuildScriptName"`
+					RunScriptName   string
+					RunScript       *Script `gorm:"foreignKey:RunScriptName"`
+					CreatedAt       time.Time
+					UpdatedAt       time.Time
+				}
+				return tx.AutoMigrate(&Language{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+				type Language struct {
+					Name            string `gorm:"primaryKey"`
+					BuildScriptName string
+					BuildScript     *Script `gorm:"foreignKey:BuildScriptName"`
+					RunScriptName   string
+					RunScript       *Script `gorm:"foreignKey:RunScriptName"`
+					CreatedAt       time.Time
+					UpdatedAt       time.Time
+				}
+				return tx.Migrator().DropTable(&Language{})
+			},
+		},
+		{
+			ID: "add_fk_submission_language_table",
+			Migrate: func(tx *gorm.DB) error {
+				type Language struct {
+					Name string `gorm:"primaryKey"`
+				}
+
+				type Submission struct {
+					ID           uint      `gorm:"primaryKey" json:"id"`
+					LanguageName string    `json:"language_name"`
+					Language     *Language `gorm:"foreignKey:LanguageName"`
+				}
+				err := tx.Migrator().RenameColumn(&Submission{}, "language", "language_name")
+				if err != nil {
+					return err
+				}
+				return tx.AutoMigrate(&Submission{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Language struct {
+					Name string `gorm:"primaryKey"`
+				}
+				type Submission struct {
+					ID           uint      `gorm:"primaryKey" json:"id"`
+					LanguageName string    `json:"language_name"`
+					Language     *Language `gorm:"foreignKey:LanguageName"`
+				}
+				err := tx.Migrator().RenameColumn(&Submission{}, "language_name", "language")
+				if err != nil {
+					return err
+				}
+				return tx.Migrator().DropConstraint(&Submission{}, "fk_submissions_language")
+			},
+		},
 	})
 }
 

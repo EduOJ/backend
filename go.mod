@@ -24,7 +24,6 @@ require (
 	github.com/minio/md5-simd v1.1.1 // indirect
 	github.com/minio/minio-go/v7 v7.0.8
 	github.com/pkg/errors v0.9.1
-	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/xlab/treeprint v1.0.0
@@ -37,7 +36,7 @@ require (
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.0.4
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/driver/sqlite v1.1.4

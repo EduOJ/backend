@@ -17,7 +17,8 @@ func SetupDatabaseForTest() func() {
 	testDatabaseLock.Lock()
 	oldDB := base.DB
 	x, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
+		Logger:                                   logger.Default.LogMode(logger.Silent),
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		fmt.Print(err)
