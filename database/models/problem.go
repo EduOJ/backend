@@ -17,7 +17,7 @@ type TestCase struct {
 	OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
 
 	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"-"`
+	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
