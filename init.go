@@ -157,6 +157,9 @@ func initStorage() {
 	if err := utils.CreateBucket("images"); err != nil {
 		panic(err)
 	}
+	if err := utils.CreateBucket("scripts"); err != nil {
+		panic(err)
+	}
 	if err := utils.CreateBucket("problems"); err != nil {
 		panic(err)
 	}

@@ -2,10 +2,10 @@ package resource_test
 
 import (
 	"fmt"
-	"github.com/go-playground/assert/v2"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -69,7 +69,7 @@ func TestGetPermission(t *testing.T) {
 		ID:   0,
 		Name: "test_get_permission_permission_0",
 	}
-	assert.Equal(t, expectedPermission, actualPermission)
+	assert.Equal(t, expectedPermission, *actualPermission)
 }
 
 func TestGetRoleAndGetRoleSlice(t *testing.T) {
@@ -91,7 +91,7 @@ func TestGetRoleAndGetRoleSlice(t *testing.T) {
 			},
 			TargetID: 1,
 		}
-		assert.Equal(t, expectedRole, actualRole)
+		assert.Equal(t, expectedRole, *actualRole)
 	})
 	t.Run("testGetRoleSlice", func(t *testing.T) {
 		actualRoleSlice := resource.GetRoleSlice(user.Roles)

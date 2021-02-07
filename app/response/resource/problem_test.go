@@ -2,9 +2,9 @@ package resource_test
 
 import (
 	"fmt"
-	"github.com/go-playground/assert/v2"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -57,7 +57,7 @@ func TestGetTestCaseAndGetTestCaseForAdmin(t *testing.T) {
 			Score:     0,
 			Sample:    true,
 		}
-		assert.Equal(t, expectedTestCase, actualTestCase)
+		assert.Equal(t, expectedTestCase, *actualTestCase)
 	})
 	t.Run("testGetTestCaseForAdmin", func(t *testing.T) {
 		actualTestCase := resource.GetTestCaseForAdmin(&testCase)
@@ -69,7 +69,7 @@ func TestGetTestCaseAndGetTestCaseForAdmin(t *testing.T) {
 			InputFileName:  "test_get_test_case_problem_0_test_case_0_input",
 			OutputFileName: "test_get_test_case_problem_0_test_case_0_output",
 		}
-		assert.Equal(t, expectedTestCase, actualTestCase)
+		assert.Equal(t, expectedTestCase, *actualTestCase)
 	})
 }
 
@@ -100,7 +100,7 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, &expectedProblem, actualProblem)
+		assert.Equal(t, expectedProblem, *actualProblem)
 	})
 	t.Run("testGetProblemForAdmin", func(t *testing.T) {
 		actualProblem := resource.GetProblemForAdmin(&problem)
@@ -134,7 +134,7 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, &expectedProblem, actualProblem)
+		assert.Equal(t, expectedProblem, *actualProblem)
 	})
 }
 

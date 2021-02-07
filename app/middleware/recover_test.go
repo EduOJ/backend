@@ -2,11 +2,11 @@ package middleware_test
 
 import (
 	"bytes"
-	"github.com/go-playground/assert/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
