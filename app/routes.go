@@ -117,9 +117,10 @@ func Register(e *echo.Echo) {
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
 
-	judger := api.Group("/judger", middleware.Judger)
+	judger := e.Group("/judger", middleware.Judger)
 
 	judger.GET("/script/:name", controller.GetScript).Name = "judger.getScript"
+	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")

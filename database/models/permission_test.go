@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"testing"
 	"time"
 )
@@ -80,7 +81,10 @@ func TestUserHasRoleMarshalJSON(t *testing.T) {
 
 		CreatedAt: baseTime.Add(time.Second),
 		UpdatedAt: baseTime.Add(time.Minute),
-		DeletedAt: &deleteTime,
+		DeletedAt: gorm.DeletedAt{
+			Valid: true,
+			Time:  deleteTime,
+		},
 	}
 	j, err := json.Marshal(user)
 	assert.Nil(t, err)

@@ -50,7 +50,9 @@ type Run struct {
 	Submission   *Submission `json:"submission"`
 	Priority     uint8       `json:"priority"`
 
-	Judged bool `json:"judged"`
+	Judged        bool `json:"judged"`
+	JudgerName    string
+	JudgerMessage string
 
 	/*
 		PENDING / JUDGING / JUDGEMENT_FAILED / NO_COMMENT

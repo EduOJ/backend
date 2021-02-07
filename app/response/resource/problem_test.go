@@ -5,6 +5,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"testing"
 	"time"
 )
@@ -19,7 +20,7 @@ func createTestCaseForTest(name string, problemId uint, id uint) models.TestCase
 		OutputFileName: fmt.Sprintf("test_%s_problem_%d_test_case_%d_output", name, problemId, id),
 		CreatedAt:      time.Date(int(problemId), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		UpdatedAt:      time.Date(int(problemId), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
-		DeletedAt:      nil,
+		DeletedAt:      gorm.DeletedAt{},
 	}
 }
 
@@ -39,7 +40,7 @@ func createProblemForTest(name string, id uint, testCaseCount uint) (problem mod
 		TestCases:          make([]models.TestCase, testCaseCount),
 		CreatedAt:          time.Date(int(id), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		UpdatedAt:          time.Date(int(id), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
-		DeletedAt:          nil,
+		DeletedAt:          gorm.DeletedAt{},
 	}
 	for i := range problem.TestCases {
 		problem.TestCases[i] = createTestCaseForTest(name, id, uint(i))

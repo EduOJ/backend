@@ -6,6 +6,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"testing"
 	"time"
 )
@@ -48,7 +49,7 @@ func createUserForTest(name string, id uint, roles ...roleWithTargetID) (user mo
 		RoleLoaded: true,
 		CreatedAt:  time.Date(int(id), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		UpdatedAt:  time.Date(int(id), 2, 2, 2, 2, 2, 2, time.FixedZone("test_zone", 0)),
-		DeletedAt:  nil,
+		DeletedAt:  gorm.DeletedAt{},
 	}
 	for i, role := range roles {
 		user.Roles[i] = models.UserHasRole{

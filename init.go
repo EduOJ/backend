@@ -57,6 +57,7 @@ func startEcho() {
 	base.Echo.Server.Addr = fmt.Sprintf(":%d", port)
 	base.Echo.Validator = validator.NewEchoValidator()
 	app.Register(base.Echo)
+	exit.QuitWG.Add(1)
 	go func() {
 		err := base.Echo.StartServer(base.Echo.Server)
 		if err != nil {
@@ -76,6 +77,7 @@ func startEcho() {
 				log.Fatal(err)
 			}
 		}
+		exit.QuitWG.Done()
 	}()
 }
 
@@ -93,14 +95,6 @@ func initRedis() {
 		os.Exit(-1)
 	}
 	log.Debug("Redis client started.")
-
-	// When server closes, closes this client.
-	exit.QuitWG.Add(1)
-	go func() {
-		<-exit.BaseContext.Done()
-		_ = base.Redis.Close()
-		exit.QuitWG.Done()
-	}()
 }
 
 func initGorm(toMigrate ...bool) {

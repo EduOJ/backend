@@ -61,7 +61,7 @@ func AllowGuest(next echo.HandlerFunc) echo.HandlerFunc {
 			Password:  "guest_user_pwd",
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
-			DeletedAt: nil,
+			DeletedAt: gorm.DeletedAt{},
 			// The above content is to filled for debug, and should not be used in formal applications.
 
 			Roles:      []models.UserHasRole{},

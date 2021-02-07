@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -16,9 +17,9 @@ type TestCase struct {
 	InputFileName  string `json:"input_file_name" gorm:"size:255;default:'';not null"`
 	OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 type ProblemTag struct {
@@ -45,9 +46,9 @@ type Problem struct {
 
 	TestCases []TestCase `json:"test_cases"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"-"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 func (p Problem) GetID() uint {

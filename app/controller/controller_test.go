@@ -43,7 +43,7 @@ func initGeneralTestingUsers() {
 		Target: nil,
 	}
 	base.DB.Create(&adminRole)
-	adminRole.AddPermission("all")
+	_ = adminRole.AddPermission("all")
 	adminUser := models.User{
 		Username: "test_admin_user",
 		Nickname: "test_admin_nickname",
@@ -65,6 +65,17 @@ func initGeneralTestingUsers() {
 	applyNormalUser = headerOption{
 		"Set-User-For-Test": {fmt.Sprintf("%d", normalUser.ID)},
 	}
+	languages := []models.Language{
+		{
+			Name:             "test_language",
+			ExtensionAllowed: []string{"test_language"},
+		},
+		{
+			Name:             "golang",
+			ExtensionAllowed: []string{"go"},
+		},
+	}
+	base.DB.Save(&languages)
 }
 
 func applyUser(user models.User) headerOption {
@@ -321,6 +332,7 @@ judger:
 	err := viper.ReadConfig(configFile)
 	judgerAuthorize = headerOption{
 		"Authorization": []string{viper.GetString("judger.token")},
+		"Judger-Name":   []string{"test_judger"},
 	}
 	if err != nil {
 		panic(err)

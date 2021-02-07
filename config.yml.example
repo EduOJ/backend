@@ -26,3 +26,4 @@ auth:
   session_count: 10 # The count of maximum active sessions for a user
 judger:
   token: REPLACE_THIS_WITH_RANDOM_STRING
+polling_timeout: 60 # seconds

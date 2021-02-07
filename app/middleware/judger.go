@@ -10,7 +10,7 @@ import (
 func Judger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if c.Request().Header.Get("Authorization") == viper.GetString("judger.token") {
-			if c.Request().Header.Get("Judger-Name") != "" {
+			if c.Request().Header.Get("Judger-Name") == "" {
 				return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGER_NAME_EXPECTED", nil))
 			} else {
 				return next(c)

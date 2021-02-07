@@ -17,9 +17,9 @@ type User struct {
 	Roles      []UserHasRole `json:"roles"`
 	RoleLoaded bool          `gorm:"-" json:"-"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"-"`
-	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `sql:"index" json:"deleted_at"`
 	// TODO: bio
 }
 
