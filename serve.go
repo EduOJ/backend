@@ -22,12 +22,15 @@ func serve() {
 		syscall.SIGQUIT)
 
 	<-s
+
+	go func() {
+		<-s
+		log.Fatal("Force quitting")
+		os.Exit(-1)
+	}()
+
 	log.Fatal("Server closing.")
 	log.Fatal("Hit ctrl+C again to force quit.")
 	exit.Close()
-	go func() {
-		<-s
-		os.Exit(-1)
-	}()
 	exit.QuitWG.Wait()
 }

@@ -21,11 +21,20 @@ func TestJudger(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		resp := makeResp(makeReq(t, "GET", "/", "", headerOption{
 			"Authorization": []string{"token_for_test_random_str_askudhoewiudhozSDjkfhqosuidfhasloihoase"},
+			"Judger-Name":   []string{"name"},
 		}), e)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		body, err := ioutil.ReadAll(resp.Body)
 		assert.Equal(t, "OK", string(body))
 		assert.Nil(t, err)
+	})
+
+	t.Run("NoName", func(t *testing.T) {
+		resp := makeResp(makeReq(t, "GET", "/", "", headerOption{
+			"Authorization": []string{"token_for_test_random_str_askudhoewiudhozSDjkfhqosuidfhasloihoase"},
+		}), e)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		jsonEQ(t, response.ErrorResp("JUDGER_NAME_EXPECTED", nil), resp)
 	})
 
 	t.Run("WrongToken", func(t *testing.T) {

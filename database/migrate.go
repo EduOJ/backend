@@ -48,9 +48,9 @@ func GetMigration() *gormigrate.Gormigrate {
 					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
 
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 				}
 				return tx.AutoMigrate(&User{})
 			},
@@ -69,9 +69,9 @@ func GetMigration() *gormigrate.Gormigrate {
 					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
 
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 				}
 				type Token struct {
 					ID     uint   `gorm:"primaryKey" json:"id"`
@@ -114,9 +114,9 @@ func GetMigration() *gormigrate.Gormigrate {
 					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
 
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 				}
 				type UserHasRole struct {
 					ID     uint `gorm:"primaryKey" json:"id"`
@@ -291,9 +291,9 @@ func GetMigration() *gormigrate.Gormigrate {
 					InputFileName  string `json:"input_file_name" gorm:"size:255;default:'';not null"`
 					OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
 
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `json:"deleted_at"`
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
 
 				type Problem struct {
@@ -308,13 +308,13 @@ func GetMigration() *gormigrate.Gormigrate {
 					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
 					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
 					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
-					CompareScriptID    uint        `json:"compare_script_id" gorm:"default:0;not null"`
+					CompareScriptName  string      `json:"compare_script_name" gorm:"default:'';not null"`
 
 					TestCases []TestCase `json:"test_cases"`
 
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `json:"deleted_at"`
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
 				err = tx.AutoMigrate(&Problem{}, &TestCase{})
 				if err != nil {
@@ -617,50 +617,25 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 		},
 		{
-			ID: "rename_compare_script_id_to_name",
+			ID: "add_judger_field_to_runs_table",
 			Migrate: func(tx *gorm.DB) error {
 
-				type Problem struct {
-					ID                 uint   `gorm:"primaryKey" json:"id"`
-					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
-					Description        string `json:"description"`
-					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
-					Public             bool   `json:"public" gorm:"default:false;not null"`
-					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
-
-					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
-					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
-					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
-					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
-					CompareScriptID    uint        `json:"compare_script_id" gorm:"default:0;not null"`
-
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `json:"deleted_at"`
+				type Run struct {
+					ID            uint `gorm:"primaryKey" json:"id"`
+					JudgerName    string
+					JudgerMessage string
 				}
-				return tx.Migrator().RenameColumn(&Problem{}, "compare_script_id", "compare_script_name")
+				return tx.AutoMigrate(&Run{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-
-				type Problem struct {
-					ID                 uint   `gorm:"primaryKey" json:"id"`
-					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
-					Description        string `json:"description"`
-					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
-					Public             bool   `json:"public" gorm:"default:false;not null"`
-					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
-
-					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
-					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
-					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
-					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
-					CompareScriptID    uint        `json:"compare_script_id" gorm:"default:0;not null"`
-
-					CreatedAt time.Time  `json:"created_at"`
-					UpdatedAt time.Time  `json:"-"`
-					DeletedAt *time.Time `json:"deleted_at"`
+				type Run struct {
+					ID         uint `gorm:"primaryKey" json:"id"`
+					JudgerName string
 				}
-				return tx.Migrator().RenameColumn(&Problem{}, "compare_script_name", "compare_script_id")
+				if err := tx.Migrator().DropColumn(&Run{}, "JudgerName"); err != nil {
+					return err
+				}
+				return tx.Migrator().DropColumn(&Run{}, "JudgerMessage")
 			},
 		},
 	})

@@ -38,8 +38,8 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		UserID:       user.ID,
 		ProblemID:    problem.ID,
 		ProblemSetId: 0,
-		LanguageName: fmt.Sprintf("test_%s_language_allowed_%d", name, id),
-		FileName:     fmt.Sprintf("test_%s_code_file_name_%d", name, id),
+		LanguageName: "test_language",
+		FileName:     fmt.Sprintf("test_%s_code_file_name_%d.test_language", name, id),
 		Priority:     models.PriorityDefault,
 		Judged:       false,
 		Score:        0,
@@ -79,17 +79,6 @@ func TestCreateSubmission(t *testing.T) {
 	publicFalseProblem.LanguageAllowed = []string{"test_language", "golang"}
 	assert.Nil(t, base.DB.Save(&publicFalseProblem).Error)
 
-	languages := []models.Language{
-		{
-			Name:             "test_language",
-			ExtensionAllowed: []string{"test_language"},
-		},
-		{
-			Name:             "golang",
-			ExtensionAllowed: []string{"go"},
-		},
-	}
-	assert.Nil(t, base.DB.Save(&languages).Error)
 	failTests := []failTest{
 		{
 			// testCreateSubmissionNonExistingProblem

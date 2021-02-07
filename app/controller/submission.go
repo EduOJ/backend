@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/request"
@@ -15,6 +16,8 @@ import (
 	"path/filepath"
 	"strconv"
 )
+
+var inTest bool
 
 func CreateSubmission(c echo.Context) error {
 	req := request.CreateSubmissionRequest{}
@@ -98,6 +101,10 @@ func CreateSubmission(c echo.Context) error {
 	utils.PanicIfDBError(base.DB.Create(&submission), "could not create submission and runs")
 
 	utils.MustPutObject(file, c.Request().Context(), "submissions", fmt.Sprintf("%d/code", submission.ID))
+
+	if !inTest {
+		base.Redis.Publish(context.Background(), "runs", nil)
+	}
 
 	return c.JSON(http.StatusCreated, response.CreateSubmissionResponse{
 		Message: "SUCCESS",

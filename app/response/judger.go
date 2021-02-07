@@ -9,7 +9,7 @@ type GetTaskResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		RunID              uint
+		RunID              uint            `json:"run_id"`
 		Language           models.Language `json:"language"`
 		TestCaseID         uint            `json:"test_case_id"`
 		InputFile          string          `json:"input_file"`  // pre-signed url

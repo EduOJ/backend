@@ -66,9 +66,9 @@ type TestObject struct {
 	StringAttribute  string `json:"string_attribute"`
 	IntegerAttribute int    `json:"integer_attribute"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"-"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 func limitQuery(query *gorm.DB, min, max int) *gorm.DB {
