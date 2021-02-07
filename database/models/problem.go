@@ -41,7 +41,7 @@ type Problem struct {
 	TimeLimit          uint                 `json:"time_limit" gorm:"default:0;not null"`                             // ms
 	LanguageAllowed    database.StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
 	CompileEnvironment string               `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
-	CompareScriptID    uint                 `json:"compare_script_id" gorm:"default:0;not null"`
+	CompareScriptName  string               `json:"compare_script_name" gorm:"default:0;not null"`
 
 	TestCases []TestCase `json:"test_cases"`
 

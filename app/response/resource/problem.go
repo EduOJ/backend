@@ -35,7 +35,7 @@ type ProblemForAdmin struct {
 	TimeLimit          uint     `json:"time_limit"`   // ms
 	LanguageAllowed    []string `json:"language_allowed"`
 	CompileEnvironment string   `json:"compile_environment"` // E.g.  O2=false
-	CompareScriptID    uint     `json:"compare_script_id"`
+	CompareScriptName  string   `json:"compare_script_name"`
 
 	TestCases []TestCaseForAdmin `json:"test_cases"`
 }
@@ -46,10 +46,10 @@ type Problem struct {
 	Description        string `json:"description"`
 	AttachmentFileName string `json:"attachment_file_name"`
 
-	MemoryLimit     uint64   `json:"memory_limit"` // Byte
-	TimeLimit       uint     `json:"time_limit"`   // ms
-	LanguageAllowed []string `json:"language_allowed"`
-	CompareScriptID uint     `json:"compare_script_id"`
+	MemoryLimit       uint64   `json:"memory_limit"` // Byte
+	TimeLimit         uint     `json:"time_limit"`   // ms
+	LanguageAllowed   []string `json:"language_allowed"`
+	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCase `json:"test_cases"`
 }
@@ -90,7 +90,7 @@ func (p *ProblemForAdmin) convert(problem *models.Problem) {
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
 	p.LanguageAllowed = problem.LanguageAllowed
-	p.CompareScriptID = problem.CompareScriptID
+	p.CompareScriptName = problem.CompareScriptName
 
 	p.Public = problem.Public
 	p.Privacy = problem.Privacy
@@ -110,7 +110,7 @@ func (p *Problem) convert(problem *models.Problem) {
 	p.MemoryLimit = problem.MemoryLimit
 	p.TimeLimit = problem.TimeLimit
 	p.LanguageAllowed = problem.LanguageAllowed
-	p.CompareScriptID = problem.CompareScriptID
+	p.CompareScriptName = problem.CompareScriptName
 
 	p.TestCases = make([]TestCase, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
