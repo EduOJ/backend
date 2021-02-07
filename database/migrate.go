@@ -595,6 +595,27 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropColumn(&Language{}, "ExtensionAllowed")
 			},
 		},
+		{
+			ID: "add_filename_field_to_scripts_table",
+			Migrate: func(tx *gorm.DB) error {
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					Filename  string
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+				return tx.AutoMigrate(&Script{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					Filename  string
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+				return tx.Migrator().DropColumn(&Script{}, "Filename")
+			},
+		},
 	})
 }
 

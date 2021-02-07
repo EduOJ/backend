@@ -35,6 +35,7 @@ import (
 
 var applyAdminUser headerOption
 var applyNormalUser headerOption
+var judgerAuthorize reqOption
 
 func initGeneralTestingUsers() {
 	adminRole := models.Role{
@@ -314,8 +315,13 @@ server:
   port: 8080
   origin:
     - http://127.0.0.1:8000
+judger:
+  token: judger_token
 `)
 	err := viper.ReadConfig(configFile)
+	judgerAuthorize = headerOption{
+		"Authorization": []string{viper.GetString("judger.token")},
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -341,6 +347,9 @@ server:
 		panic(err)
 	}
 	if err := utils.CreateBucket("images"); err != nil {
+		panic(err)
+	}
+	if err := utils.CreateBucket("scripts"); err != nil {
 		panic(err)
 	}
 	if err := utils.CreateBucket("problems"); err != nil {

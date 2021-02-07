@@ -2,9 +2,9 @@ package resource_test
 
 import (
 	"fmt"
-	"github.com/go-playground/assert/v2"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -131,7 +131,7 @@ func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
 			Status:       "test_get_submission_submission_1_status",
 			CreatedAt:    time.Date(1, 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
 		}
-		assert.Equal(t, expectedSubmission, actualSubmission)
+		assert.Equal(t, expectedSubmission, *actualSubmission)
 	})
 	t.Run("testGetSubmissionDetail", func(t *testing.T) {
 		actualSubmission := resource.GetSubmissionDetail(&submission)
