@@ -24,3 +24,5 @@ auth:
   session_timeout: 1200 # The valid duration of token without choosing "remember me"
   remember_me_timeout: 604800 # The valid duration of token with choosing "remember me"
   session_count: 10 # The count of maximum active sessions for a user
+judger:
+  token: REPLACE_THIS_WITH_RANDOM_STRING
