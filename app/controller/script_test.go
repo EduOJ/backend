@@ -19,7 +19,7 @@ func TestGetScript(t *testing.T) {
 		Name:     "test_get_script",
 		Filename: "test_get_script.zip",
 	}
-	assert.Nil(t, base.DB.Save(&script).Error)
+	assert.Nil(t, base.DB.Create(&script).Error)
 	file := newFileContent("test_get_script", "test_get_script.zip", b64Encode("test_get_script_zip_content"))
 	_, err := base.Storage.PutObject(context.Background(), "scripts", script.Name, file.reader, file.size, minio.PutObjectOptions{})
 	assert.Nil(t, err)
@@ -30,7 +30,7 @@ func TestGetScript(t *testing.T) {
 		Name:     "test_no_file_script",
 		Filename: "test_no_file_script",
 	}
-	assert.Nil(t, base.DB.Save(&noFileScript).Error)
+	assert.Nil(t, base.DB.Create(&noFileScript).Error)
 
 	t.Run("Success", func(t *testing.T) {
 		req := makeReq(t, "GET", base.Echo.Reverse("judger.getScript", script.Name), "", judgerAuthorize)
