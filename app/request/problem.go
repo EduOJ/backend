@@ -11,7 +11,7 @@ type CreateProblemRequest struct {
 	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
 	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
 	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
+	CompareScriptName  string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
 }
 
 type UpdateProblemRequest struct {
@@ -25,7 +25,7 @@ type UpdateProblemRequest struct {
 	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
 	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
 	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
-	CompareScriptID    uint   `json:"compare_script_id" form:"compare_script_id" query:"compare_script_id" validate:"required"`
+	CompareScriptName  string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
 }
 
 type DeleteProblemRequest struct {

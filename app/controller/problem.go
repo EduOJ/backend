@@ -166,7 +166,7 @@ func CreateProblem(c echo.Context) error {
 		TimeLimit:          req.TimeLimit,
 		LanguageAllowed:    strings.Split(req.LanguageAllowed, ","),
 		CompileEnvironment: req.CompileEnvironment,
-		CompareScriptID:    req.CompareScriptID,
+		CompareScriptName:  req.CompareScriptName,
 	}
 	if file != nil {
 		problem.AttachmentFileName = file.Filename
@@ -238,7 +238,7 @@ func UpdateProblem(c echo.Context) error {
 	problem.TimeLimit = req.TimeLimit
 	problem.LanguageAllowed = strings.Split(req.LanguageAllowed, ",")
 	problem.CompileEnvironment = req.CompileEnvironment
-	problem.CompareScriptID = req.CompareScriptID
+	problem.CompareScriptName = req.CompareScriptName
 	utils.PanicIfDBError(base.DB.Save(&problem), "could not update problem")
 	return c.JSON(http.StatusOK, response.UpdateProblemResponse{
 		Message: "SUCCESS",

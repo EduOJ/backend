@@ -19,6 +19,6 @@ type GetTaskResponse struct {
 		MemoryLimit        uint64          `json:"memory_limit"`        // Byte
 		TimeLimit          uint            `json:"time_limit"`          // ms
 		CompileEnvironment string          `json:"compile_environment"` // E.g.  O2=false
-		CompareScriptID    uint            `json:"compare_script_id"`
+		CompareScriptName  string          `json:"compare_script_name"`
 	} `json:"data"`
 }
