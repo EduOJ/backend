@@ -20,9 +20,8 @@ import (
 var taskLock sync.Mutex
 var runLock sync.Mutex
 
+// remember to lock taskLock when using this function
 func getRun() *models.Run {
-	//taskLock.Lock()
-	//defer taskLock.Unlock()
 	run := models.Run{}
 	err := base.DB.Order("priority desc").
 		Order("id asc").
