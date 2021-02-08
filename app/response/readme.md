@@ -1,5 +1,5 @@
 # API
-Common r    eturn codes.
+Common return codes.
 
 |        message         |         结果          |
 |:----------------------:|:--------------------:|
@@ -233,5 +233,5 @@ Common r    eturn codes.
 
 |      message      |                  结果                  |
 |:-----------------:|:-------------------------------------:|
-|   WRONG_RUN_ID    | 发起请求的judger与获取道当前run的judjer不同 |
+|   WRONG_RUN_ID    | 发起请求的judger与获取道当前run的judger不同 |
 | ALREADY_SUBMITTED |          一个run被提交了两次结果          |
