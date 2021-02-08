@@ -98,7 +98,7 @@ func TestLogWithLevelString(t *testing.T) {
 		l.logWithLevelString(level, "test")
 		assert.Equal(t, w.lastLog.Level, level)
 		assert.Equal(t, w.lastLog.Message, "test")
-		assert.Regexp(t, "^runtime\\.goexit:[0-9]+$", w.lastLog.Caller)
+		assert.Regexp(t, "^testing\\.tRunner:[0-9]+$", w.lastLog.Caller)
 	}
 }
 
