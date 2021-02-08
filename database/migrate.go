@@ -74,10 +74,10 @@ func GetMigration() *gormigrate.Gormigrate {
 					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 				}
 				type Token struct {
-					ID     uint   `gorm:"primaryKey" json:"id"`
-					Token  string `gorm:"unique_index;size:32" json:"token"`
-					UserID uint
-					User
+					ID        uint   `gorm:"primaryKey" json:"id"`
+					Token     string `gorm:"unique_index;size:32" json:"token"`
+					UserID    uint
+					User      User
 					CreatedAt time.Time `json:"created_at"`
 				}
 				return tx.AutoMigrate(&Token{})

@@ -1,5 +1,5 @@
 # API
-Common return codes.
+Common r    eturn codes.
 
 |        message         |         结果          |
 |:----------------------:|:--------------------:|
@@ -227,3 +227,11 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |  SUBMISSION_NOT_FOUND   |   无法找到submission   |
 |        NOT_FOUND        |      无法找到run       |
+
+# Judger
+## UpdateRun
+
+|      message      |                  结果                  |
+|:-----------------:|:-------------------------------------:|
+|   WRONG_RUN_ID    | 发起请求的judger与获取道当前run的judjer不同 |
+| ALREADY_SUBMITTED |          一个run被提交了两次结果          |

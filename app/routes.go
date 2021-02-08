@@ -121,6 +121,7 @@ func Register(e *echo.Echo) {
 
 	judger.GET("/script/:name", controller.GetScript).Name = "judger.getScript"
 	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
+	judger.PUT("/run/:id", controller.UpdateRun).Name = "judger.updateRun"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")

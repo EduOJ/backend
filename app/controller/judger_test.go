@@ -71,3 +71,598 @@ func TestGetTask(t *testing.T) {
 		Data:    nil,
 	}, httpResp)
 }
+
+func TestUpdateRun(t *testing.T) {
+
+	var compareScript = models.Script{
+		Name:     "update_run",
+		Filename: "test",
+	}
+	t.Run("SuccessWithNotAcceptedAnswers", func(t *testing.T) {
+		t.Parallel()
+		problem, user := createProblemForTest(t, "update_run", 1, nil)
+		submission := createSubmissionForTest(t, "update_run", 1, &problem, &user, newFileContent(
+			"", "code.test_language", b64Encode("balh"),
+		), 3)
+		var language models.Language
+		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		submission.Runs[0].Status = "JUDGING"
+		submission.Runs[0].JudgerName = "test_judger"
+		submission.Runs[1].Status = "JUDGING"
+		submission.Runs[1].JudgerName = "test_judger"
+		submission.Runs[2].Status = "JUDGING"
+		submission.Runs[2].JudgerName = "test_judger"
+		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
+		runIDs := []uint{
+			submission.Runs[0].ID,
+			submission.Runs[1].ID,
+			submission.Runs[2].ID,
+		}
+		_ = runIDs
+
+		output := newFileContent("output_file", "c", b64Encode("output"))
+		comparerOutput := newFileContent("comparer_output_file", "c", b64Encode("comparer_output"))
+		compilerOutput := newFileContent("compiler_output_file", "c", b64Encode("compiler_output"))
+
+		req := makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[0].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "123123",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp := makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(123123), submission.Runs[0].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[0].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[0].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[0].Status)
+		assert.Equal(t, true, submission.Runs[0].Judged)
+		assert.Equal(t, uint(33), submission.Score)
+		assert.Equal(t, false, submission.Judged)
+		assert.Equal(t, "PENDING", submission.Status)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[1].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "WRONG_ANSWER",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231235",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(1231235), submission.Runs[1].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[1].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[1].OutputStrippedHash)
+		assert.Equal(t, "WRONG_ANSWER", submission.Runs[1].Status)
+		assert.Equal(t, true, submission.Runs[1].Judged)
+		assert.Equal(t, uint(33), submission.Score)
+		assert.Equal(t, false, submission.Judged)
+		assert.Equal(t, "PENDING", submission.Status)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[2].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(1231233), submission.Runs[2].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[2].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[2].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[2].Status)
+		assert.Equal(t, true, submission.Runs[2].Judged)
+		assert.Equal(t, uint(66), submission.Score)
+		assert.Equal(t, true, submission.Judged)
+		assert.Equal(t, "WRONG_ANSWER", submission.Status)
+	})
+
+	t.Run("SuccessAccepted", func(t *testing.T) {
+		t.Parallel()
+		problem, user := createProblemForTest(t, "update_run", 2, nil)
+		submission := createSubmissionForTest(t, "update_run", 2, &problem, &user, newFileContent(
+			"", "code.test_language", b64Encode("balh"),
+		), 3)
+		var language models.Language
+		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		submission.Runs[0].Status = "JUDGING"
+		submission.Runs[0].JudgerName = "test_judger"
+		submission.Runs[1].Status = "JUDGING"
+		submission.Runs[1].JudgerName = "test_judger"
+		submission.Runs[2].Status = "JUDGING"
+		submission.Runs[2].JudgerName = "test_judger"
+		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
+		runIDs := []uint{
+			submission.Runs[0].ID,
+			submission.Runs[1].ID,
+			submission.Runs[2].ID,
+		}
+		_ = runIDs
+
+		output := newFileContent("output_file", "c", b64Encode("output"))
+		comparerOutput := newFileContent("comparer_output_file", "c", b64Encode("comparer_output"))
+		compilerOutput := newFileContent("compiler_output_file", "c", b64Encode("compiler_output"))
+
+		req := makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[0].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "123123",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp := makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(123123), submission.Runs[0].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[0].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[0].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[0].Status)
+		assert.Equal(t, true, submission.Runs[0].Judged)
+		assert.Equal(t, uint(33), submission.Score)
+		assert.Equal(t, false, submission.Judged)
+		assert.Equal(t, "PENDING", submission.Status)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[1].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231235",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(1231235), submission.Runs[1].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[1].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[1].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[1].Status)
+		assert.Equal(t, true, submission.Runs[1].Judged)
+		assert.Equal(t, uint(66), submission.Score)
+		assert.Equal(t, false, submission.Judged)
+		assert.Equal(t, "PENDING", submission.Status)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[2].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(1231233), submission.Runs[2].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[2].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[2].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[2].Status)
+		assert.Equal(t, true, submission.Runs[2].Judged)
+		assert.Equal(t, uint(100), submission.Score)
+		assert.Equal(t, true, submission.Judged)
+		assert.Equal(t, "ACCEPTED", submission.Status)
+
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "ALREADY_SUBMITTED",
+		}, httpResp)
+	})
+
+	t.Run("SuccessNotDefaultScore", func(t *testing.T) {
+		t.Parallel()
+		problem, user := createProblemForTest(t, "update_run", 3, nil)
+		submission := createSubmissionForTest(t, "update_run", 3, &problem, &user, newFileContent(
+			"", "code.test_language", b64Encode("balh"),
+		), 3)
+		var language models.Language
+		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		submission.Runs[0].Status = "JUDGING"
+		submission.Runs[0].JudgerName = "test_judger"
+		submission.Runs[1].Status = "JUDGING"
+		submission.Runs[1].JudgerName = "test_judger"
+		submission.Runs[2].Status = "JUDGING"
+		submission.Runs[2].JudgerName = "test_judger"
+		problem.TestCases[0].Score = 1
+		problem.TestCases[1].Score = 2
+		problem.TestCases[2].Score = 3
+
+		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
+		assert.Nil(t, base.DB.Save(&problem.TestCases[0]).Error)
+		assert.Nil(t, base.DB.Save(&problem.TestCases[1]).Error)
+		assert.Nil(t, base.DB.Save(&problem.TestCases[2]).Error)
+		runIDs := []uint{
+			submission.Runs[0].ID,
+			submission.Runs[1].ID,
+			submission.Runs[2].ID,
+		}
+		_ = runIDs
+
+		output := newFileContent("output_file", "c", b64Encode("output"))
+		comparerOutput := newFileContent("comparer_output_file", "c", b64Encode("comparer_output"))
+		compilerOutput := newFileContent("compiler_output_file", "c", b64Encode("compiler_output"))
+
+		req := makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[0].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "123123",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp := makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(123123), submission.Runs[0].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[0].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[0].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[0].Status)
+		assert.Equal(t, true, submission.Runs[0].Judged)
+		assert.Equal(t, uint(1), submission.Score)
+		assert.Equal(t, false, submission.Judged)
+		assert.Equal(t, "PENDING", submission.Status)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[1].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231235",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(1231235), submission.Runs[1].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[1].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[1].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[1].Status)
+		assert.Equal(t, true, submission.Runs[1].Judged)
+		assert.Equal(t, uint(3), submission.Score)
+		assert.Equal(t, false, submission.Judged)
+		assert.Equal(t, "PENDING", submission.Status)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[2].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "SUCCESS",
+		}, httpResp)
+		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.Equal(t, uint(1231233), submission.Runs[2].MemoryUsed)
+		assert.Equal(t, uint(1234), submission.Runs[2].TimeUsed)
+		assert.Equal(t, "2333", submission.Runs[2].OutputStrippedHash)
+		assert.Equal(t, "ACCEPTED", submission.Runs[2].Status)
+		assert.Equal(t, true, submission.Runs[2].Judged)
+		assert.Equal(t, uint(6), submission.Score)
+		assert.Equal(t, true, submission.Judged)
+		assert.Equal(t, "ACCEPTED", submission.Status)
+
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		jsonEQ(t, response.Response{
+			Message: "ALREADY_SUBMITTED",
+		}, httpResp)
+	})
+
+	t.Run("Fail", func(t *testing.T) {
+		t.Parallel()
+		problem, user := createProblemForTest(t, "update_run", 4, nil)
+		submission := createSubmissionForTest(t, "update_run", 4, &problem, &user, newFileContent(
+			"", "code.test_language", b64Encode("balh"),
+		), 3)
+		var language models.Language
+		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		submission.Runs[0].Status = "JUDGING"
+		submission.Runs[1].Status = "JUDGING"
+		submission.Runs[2].Status = "JUDGING"
+		submission.Runs[2].JudgerName = "test_judger"
+		problem.TestCases[0].Score = 1
+		problem.TestCases[1].Score = 2
+		problem.TestCases[2].Score = 3
+
+		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
+		assert.Nil(t, base.DB.Save(&problem.TestCases[0]).Error)
+		assert.Nil(t, base.DB.Save(&problem.TestCases[1]).Error)
+		assert.Nil(t, base.DB.Save(&problem.TestCases[2]).Error)
+		runIDs := []uint{
+			submission.Runs[0].ID,
+			submission.Runs[1].ID,
+			submission.Runs[2].ID,
+		}
+		_ = runIDs
+
+		output := newFileContent("output_file", "c", b64Encode("output"))
+		comparerOutput := newFileContent("comparer_output_file", "c", b64Encode("comparer_output"))
+		compilerOutput := newFileContent("compiler_output_file", "c", b64Encode("compiler_output"))
+
+		req := makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", 2147483647), []reqContent{
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp := makeResp(req)
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		jsonEQ(t, response.ErrorResp("NOT_FOUND", nil), httpResp)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[0].ID), []reqContent{
+			output,
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusForbidden, httpResp.StatusCode)
+		jsonEQ(t, response.ErrorResp("WRONG_RUN_ID", nil), httpResp)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[2].ID), []reqContent{
+			comparerOutput,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		jsonEQ(t, response.ErrorResp("MISSING_OUTPUT", nil), httpResp)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[2].ID), []reqContent{
+			output,
+			compilerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		jsonEQ(t, response.ErrorResp("MISSING_COMPARER_OUTPUT", nil), httpResp)
+
+		req = makeReq(t, "PUT", base.Echo.Reverse("judger.updateRun", submission.Runs[2].ID), []reqContent{
+			output,
+			comparerOutput,
+			&fieldContent{
+				key:   "status",
+				value: "ACCEPTED",
+			},
+			&fieldContent{
+				key:   "memory_used",
+				value: "1231233",
+			},
+			&fieldContent{
+				key:   "time_used",
+				value: "1234",
+			},
+			&fieldContent{
+				key:   "output_stripped_hash",
+				value: "2333",
+			},
+		}, judgerAuthorize)
+		httpResp = makeResp(req)
+		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		jsonEQ(t, response.ErrorResp("MISSING_COMPILER_OUTPUT", nil), httpResp)
+	})
+
+}

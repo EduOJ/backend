@@ -18,10 +18,8 @@ func initAuthConfig() {
 	viper.SetDefault("auth.session_timeout", 1200)
 	viper.SetDefault("auth.remember_me_timeout", 604800)
 	viper.SetDefault("auth.session_count", 10)
-	sessionTimeoutInt := viper.GetInt("auth.session_timeout")
-	SessionTimeout = time.Second * time.Duration(sessionTimeoutInt)
-	RememberMeTimeoutInt := viper.GetInt("auth.session_timeout")
-	RememberMeTimeout = time.Second * time.Duration(RememberMeTimeoutInt)
+	SessionTimeout = time.Second * viper.GetDuration("auth.session_timeout")
+	RememberMeTimeout = time.Second * viper.GetDuration("auth.remember_me_timeout")
 	SessionCount = viper.GetInt("auth.session_timeout")
 }
 

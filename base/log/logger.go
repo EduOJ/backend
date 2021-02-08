@@ -74,15 +74,17 @@ func (l *logger) logWithLevelString(level Level, message string) {
 	caller := "unknown"
 	{
 		// Find caller out of the log package.
-		pc := make([]uintptr, 5)
+		pc := make([]uintptr, 20)
 		runtime.Callers(1, pc)
 		frames := runtime.CallersFrames(pc)
 		more := true
 		for more {
 			var frame runtime.Frame
 			frame, more = frames.Next()
-			if !strings.Contains(frame.File, "github.com/leoleoasd/EduOJBackend/base/log") {
+			if !strings.Contains(frame.Function, "github.com/leoleoasd/EduOJBackend/base/log") &&
+				!strings.Contains(frame.Function, "gorm.io/gorm") {
 				caller = fmt.Sprint(frame.Func.Name(), ":", frame.Line)
+				break
 			}
 		}
 	}

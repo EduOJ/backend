@@ -35,6 +35,10 @@ var FieldTranslations = map[string]string{
 	"CompareScriptName":  "评测脚本",
 	"OldPassword":        "旧密码",
 	"NewPassword":        "新密码",
+	"Status":             "状态",
+	"MemoryUsed":         "内存占用",
+	"TimeUsed":           "时间占用",
+	"OutputStrippedHash": "输出哈希值",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

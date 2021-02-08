@@ -27,7 +27,7 @@ const (
 func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) (submission models.Submission) {
 	for i := 0; i < testCaseCount; i++ {
 		createTestCaseForTest(t, *problem, testCaseData{
-			Score:      uint(i),
+			Score:      0,
 			Sample:     false,
 			InputFile:  newFileContent("input", "input_file", b64Encodef("problem_%d_test_case_%d_input", problem.ID, i)),
 			OutputFile: newFileContent("output", "output_file", b64Encodef("problem_%d_test_case_%d_output", problem.ID, i)),
