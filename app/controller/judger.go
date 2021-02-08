@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
@@ -16,6 +18,7 @@ import (
 )
 
 var taskLock sync.Mutex
+var runLock sync.Mutex
 
 func getRun() *models.Run {
 	//taskLock.Lock()
@@ -147,4 +150,100 @@ poll:
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
 	return c.JSON(http.StatusOK, generateResponse(run))
+}
+
+func UpdateRun(c echo.Context) error {
+	runLock.Lock()
+	unlocked := false
+	defer func() {
+		if !unlocked {
+			runLock.Unlock()
+		}
+	}()
+	run := models.Run{}
+	err := base.DB.Preload("TestCase").Preload("Submission").First(&run, c.Param("id")).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not query run"))
+	}
+	if run.JudgerName != c.Request().Header.Get("Judger-Name") {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("WRONG_RUN_ID", nil))
+	}
+	if run.Judged {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("ALREADY_SUBMITTED", nil))
+	}
+	req := request.UpdateRunRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+	compiler, err := c.FormFile("compiler_output_file")
+	if err != nil {
+		if err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+			panic(errors.Wrap(err, "could not read input file"))
+		}
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("MISSING_COMPILER_OUTPUT", nil))
+	}
+	comparer, err := c.FormFile("comparer_output_file")
+	if err != nil {
+		if err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+			panic(errors.Wrap(err, "could not read input file"))
+		}
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("MISSING_COMPARER_OUTPUT", nil))
+	}
+	output, err := c.FormFile("output_file")
+	if err != nil {
+		if err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
+			panic(errors.Wrap(err, "could not read input file"))
+		}
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("MISSING_OUTPUT", nil))
+	}
+	testcaseCount := base.DB.Model(&run.Submission).Association("Runs").Count()
+	run.MemoryUsed = req.MemoryUsed
+	run.TimeUsed = req.TimeUsed
+	run.Status = req.Status
+	run.OutputStrippedHash = req.OutputStrippedHash
+	run.Judged = true
+	if req.Status == "ACCEPTED" {
+		if run.TestCase.Score != 0 {
+			run.Submission.Score += run.TestCase.Score
+		} else {
+			run.Submission.Score += uint(100 / testcaseCount)
+			if run.Submission.Score == uint(100-(100%testcaseCount)) {
+				run.Submission.Score = 100
+			}
+		}
+	}
+	utils.PanicIfDBError(base.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&run), "could not save run")
+	if base.DB.Model(&run.Submission).Where("status IN ? AND id <> ?", []string{"PENDING", "JUDGING"}, run.ID).Association("Runs").Count() == 0 {
+		// this is the last judged run
+		run.Submission.Judged = true
+		var runs []models.Run
+		if err := base.DB.Model(&run.Submission).Association("Runs").Find(&runs); err != nil {
+			panic(errors.Wrap(err, "could not query runs"))
+		}
+		for _, r := range runs {
+			if r.Status != "ACCEPTED" {
+				run.Submission.Status = r.Status
+				break
+			}
+		}
+		if run.Submission.Status == "PENDING" {
+			run.Submission.Status = "ACCEPTED"
+		}
+	}
+	utils.PanicIfDBError(base.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&run), "could not save run")
+	unlocked = true
+	runLock.Unlock()
+
+	utils.MustPutObject(output, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/output", run.Submission.ID, run.ID))
+	utils.MustPutObject(comparer, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/comparer_output", run.Submission.ID, run.ID))
+	utils.MustPutObject(compiler, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/compiler_output", run.Submission.ID, run.ID))
+	if !inTest {
+		base.Redis.Publish(context.Background(), fmt.Sprintf("runs:%d", run.ID), nil)
+	}
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+	})
 }

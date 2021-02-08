@@ -3,8 +3,10 @@ package log
 import (
 	"context"
 	"errors"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	logger2 "gorm.io/gorm/logger"
+	"strings"
 	"time"
 )
 
@@ -41,5 +43,7 @@ func (GormLogger) Trace(_ context.Context, begin time.Time, fc func() (string, i
 	sql, rows := fc()
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		Errorf("%v, SQL: %s, rows: %v", err, sql, rows)
+	} else if viper.GetBool("debug") && !strings.Contains(sql, "INSERT INTO \"logs\"") {
+		Debugf("SQL: %s, rows: %v", sql, rows)
 	}
 }

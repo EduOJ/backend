@@ -41,3 +41,32 @@ Here are the permissions and their descriptions.
 | read_problem_secrets |                                read sensitive information such as test case.                                |
 |      read_logs       |                                                 read logs.                                                  |
 
+# Buckets:
+## images:
+images with their "path" as filename.
+## problems
+```
+problems
+└── problemID
+    ├── attachment
+    ├── input
+    │   └── testcase_id.in
+    └── output
+        └── testcase_id.out
+```
+## scripts
+```
+scripts
+└── script_name
+```
+## submissions
+```
+submissions
+└── submissionID
+    ├── run
+    |   └── runID
+    |       ├── output
+    |       ├── compiler_output
+    |       └── comparer_output
+    └── code
+```
