@@ -69,6 +69,14 @@ func initGeneralTestingUsers() {
 		{
 			Name:             "test_language",
 			ExtensionAllowed: []string{"test_language"},
+			RunScript: &models.Script{
+				Name:     "test_language_run",
+				Filename: "test_language_run",
+			},
+			BuildScript: &models.Script{
+				Name:     "test_language_build",
+				Filename: "test_language_build",
+			},
 		},
 		{
 			Name:             "golang",

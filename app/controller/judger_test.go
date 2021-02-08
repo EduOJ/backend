@@ -19,8 +19,12 @@ func TestGetTask(t *testing.T) {
 		"", "code.test_language", b64Encode("balh"),
 	), 1)
 	var language models.Language
-	assert.Nil(t, base.DB.Model(&submission.Runs[0]).Association("TestCase").Error)
-	assert.Nil(t, base.DB.Model(&submission).Association("Language").Find(&language))
+	var compareScript = models.Script{
+		Name:     "test_get_task",
+		Filename: "test",
+	}
+	assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+	assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
 	req := makeReq(t, "GET", base.Echo.Reverse("judger.getTask"), "", judgerAuthorize)
 	httpResp := makeResp(req)
 	assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -29,7 +33,7 @@ func TestGetTask(t *testing.T) {
 	var resp response.GetTaskResponse
 	mustJsonDecode(buf.String(), &resp)
 	t.Log(buf.String())
-	assert.Equal(t, response.GetTaskResponse{
+	jsonEQ(t, response.GetTaskResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -43,7 +47,7 @@ func TestGetTask(t *testing.T) {
 			MemoryLimit        uint64          `json:"memory_limit"`
 			TimeLimit          uint            `json:"time_limit"`
 			CompileEnvironment string          `json:"compile_environment"`
-			CompareScriptName  string          `json:"compare_script_name"`
+			CompareScript      models.Script   `json:"compare_script"`
 		}{
 			submission.Runs[0].ID,
 			language,
@@ -55,7 +59,7 @@ func TestGetTask(t *testing.T) {
 			problem.MemoryLimit,
 			problem.TimeLimit,
 			problem.CompileEnvironment,
-			problem.CompareScriptName,
+			compareScript,
 		},
 	}, resp)
 	req = makeReq(t, "GET", base.Echo.Reverse("judger.getTask"), "", judgerAuthorize)

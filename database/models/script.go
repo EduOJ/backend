@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Script struct {
-	Name      string `gorm:"primaryKey"`
-	Filename  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Name      string    `gorm:"primaryKey" json:"name"`
+	Filename  string    `json:"file_name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

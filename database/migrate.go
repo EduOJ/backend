@@ -638,6 +638,99 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropColumn(&Run{}, "JudgerMessage")
 			},
 		},
+		{
+			ID: "add_fk_script_problem",
+			Migrate: func(tx *gorm.DB) error {
+				type TestCase struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					ProblemID uint `sql:"index" json:"problem_id" gorm:"not null"`
+					Score     uint `json:"score" gorm:"default:0;not null"` // 0 for 平均分配
+					Sample    bool `json:"sample" gorm:"default:false;not null"`
+
+					InputFileName  string `json:"input_file_name" gorm:"size:255;default:'';not null"`
+					OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"updated_at"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					Filename  string
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+
+				type Problem struct {
+					ID                 uint   `gorm:"primaryKey" json:"id"`
+					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
+					Description        string `json:"description"`
+					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
+					Public             bool   `json:"public" gorm:"default:false;not null"`
+					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
+
+					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
+					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
+					CompareScriptName  string      `json:"compare_script_name" gorm:"default:0;not null"`
+					CompareScript      Script      `json:"compare_script"`
+
+					TestCases []TestCase `json:"test_cases"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Problem{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type TestCase struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					ProblemID uint `sql:"index" json:"problem_id" gorm:"not null"`
+					Score     uint `json:"score" gorm:"default:0;not null"` // 0 for 平均分配
+					Sample    bool `json:"sample" gorm:"default:false;not null"`
+
+					InputFileName  string `json:"input_file_name" gorm:"size:255;default:'';not null"`
+					OutputFileName string `json:"output_file_name" gorm:"size:255;default:'';not null"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"updated_at"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Script struct {
+					Name      string `gorm:"primaryKey"`
+					Filename  string
+					CreatedAt time.Time
+					UpdatedAt time.Time
+				}
+
+				type Problem struct {
+					ID                 uint   `gorm:"primaryKey" json:"id"`
+					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
+					Description        string `json:"description"`
+					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
+					Public             bool   `json:"public" gorm:"default:false;not null"`
+					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
+
+					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
+					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
+					CompareScriptName  string      `json:"compare_script_name" gorm:"default:0;not null"`
+					CompareScript      Script      `json:"compare_script"`
+
+					TestCases []TestCase `json:"test_cases"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().DropConstraint(&Problem{}, "fk_submissions_language")
+			},
+		},
 	})
 }
 
