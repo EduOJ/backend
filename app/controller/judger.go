@@ -23,9 +23,10 @@ func getRun() *models.Run {
 	run := models.Run{}
 	err := base.DB.Order("priority desc").
 		Order("id asc").
-		Preload("Problem").
+		Preload("Problem.CompareScript").
 		Preload("TestCase").
-		Preload("Submission.Language").
+		Preload("Submission.Language.RunScript").
+		Preload("Submission.Language.BuildScript").
 		First(&run, "status = 'PENDING'").Error
 
 	if err != nil {
@@ -65,7 +66,7 @@ func generateResponse(run *models.Run) response.GetTaskResponse {
 			MemoryLimit        uint64          `json:"memory_limit"`
 			TimeLimit          uint            `json:"time_limit"`
 			CompileEnvironment string          `json:"compile_environment"`
-			CompareScriptName  string          `json:"compare_script_name"`
+			CompareScript      models.Script   `json:"compare_script"`
 		}{
 			RunID:              run.ID,
 			Language:           *run.Submission.Language,
@@ -77,7 +78,7 @@ func generateResponse(run *models.Run) response.GetTaskResponse {
 			MemoryLimit:        run.Problem.MemoryLimit,
 			TimeLimit:          run.Problem.TimeLimit,
 			CompileEnvironment: run.Problem.CompileEnvironment,
-			CompareScriptName:  run.Problem.CompareScriptName,
+			CompareScript:      run.Problem.CompareScript,
 		},
 	}
 }

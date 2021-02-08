@@ -43,6 +43,7 @@ type Problem struct {
 	LanguageAllowed    database.StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
 	CompileEnvironment string               `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
 	CompareScriptName  string               `json:"compare_script_name" gorm:"default:0;not null"`
+	CompareScript      Script               `json:"compare_script"`
 
 	TestCases []TestCase `json:"test_cases"`
 
