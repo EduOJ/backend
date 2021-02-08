@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database/models"
@@ -214,6 +215,14 @@ func TestUpdateRun(t *testing.T) {
 		assert.Equal(t, uint(66), submission.Score)
 		assert.Equal(t, true, submission.Judged)
 		assert.Equal(t, "WRONG_ANSWER", submission.Status)
+
+		storageContent := getObjectContent(t, "submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, submission.Runs[0].ID))
+		assert.Equal(t, []byte("output"), storageContent)
+		storageContent = getObjectContent(t, "submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, submission.Runs[0].ID))
+		assert.Equal(t, []byte("comparer_output"), storageContent)
+		storageContent = getObjectContent(t, "submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, submission.Runs[0].ID))
+		assert.Equal(t, []byte("compiler_output"), storageContent)
+
 	})
 
 	t.Run("SuccessAccepted", func(t *testing.T) {
