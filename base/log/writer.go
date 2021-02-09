@@ -54,7 +54,7 @@ func (w *consoleWriter) log(l Log) {
 
 func (w *databaseWriter) log(l Log) {
 	// avoid blocking the main thread.
-	if l.Level >= w.Level && strings.Index(l.Caller, "gorm.io/gorm") != 0 {
+	if l.Level >= w.Level && !strings.HasPrefix(l.Caller, "gorm.io/gorm") {
 		select {
 		case w.queue <- l:
 		default:

@@ -81,8 +81,8 @@ func (l *logger) logWithLevelString(level Level, message string) {
 		for more {
 			var frame runtime.Frame
 			frame, more = frames.Next()
-			if !strings.Contains(frame.Function, "github.com/leoleoasd/EduOJBackend/base/log") &&
-				!strings.Contains(frame.Function, "gorm.io/gorm") {
+			if !strings.HasPrefix(frame.Function, "github.com/leoleoasd/EduOJBackend/base/log") &&
+				!strings.HasPrefix(frame.Function, "gorm.io/gorm") {
 				caller = fmt.Sprint(frame.Func.Name(), ":", frame.Line)
 				break
 			}
