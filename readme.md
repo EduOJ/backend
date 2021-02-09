@@ -34,6 +34,7 @@ Here are the permissions and their descriptions.
 |:--------------------:|:-----------------------------------------------------------------------------------------------------------:|
 |      read_user       |                                        the permission to read users                                         |
 |     manage_user      |                                       the permission to manage users                                        |
+|   manage_problem    |                  无实际意义，但是有可能有update_problem / delete_problem权限的人必须拥有此全局权限。                  |
 |    create_problem    |                                               create problem                                                |
 |   read_submission    |                    read submission of a certain problem. unscoped can read all problems.                    |
 |    update_problem    | update problem. A scoped update_problem can only update selected problem. unscoped can update all problems. |

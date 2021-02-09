@@ -56,7 +56,7 @@ func GetProblems(c echo.Context) error {
 	query := base.DB.Model(&models.Problem{}).Order("id ASC") // Force order by id asc.
 
 	user := c.Get("user").(models.User)
-	isAdmin := user.Can("read_problem")
+	isAdmin := user.Can("manage_problem")
 	if !isAdmin {
 		query = query.Where("public = ?", true)
 	}
