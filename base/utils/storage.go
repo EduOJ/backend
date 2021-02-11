@@ -37,7 +37,7 @@ func CreateBucket(name string) error {
 
 func GetPresignedURL(bucket string, path string, fileName string) (string, error) {
 	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf(`inline; filename="%s"`, fileName))
+	reqParams.Set("response-content-disposition", fmt.Sprintf(`attachment; filename="%s";  filename*=utf-8''%s`, fileName, url.QueryEscape(fileName)))
 	presignedURL, err := base.Storage.PresignedGetObject(context.Background(), bucket, path, time.Second*60, reqParams)
 	if err != nil {
 		return "", err
