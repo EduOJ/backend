@@ -65,7 +65,7 @@ func Register(e *echo.Echo) {
 	api.GET("/problem/:id", controller.GetProblem).Name = "problem.getProblem"
 	api.GET("/problems", controller.GetProblems, middleware.AllowGuest).Name = "problem.getProblems"
 
-	api.GET("/problem/:id/attachment_file", controller.GetProblemAttachmentFile).Name = "problem.getProblemAttachmentFile"
+	api.GET("/problem/:id/attachment_file", controller.GetProblemAttachmentFile, middleware.AllowGuest).Name = "problem.getProblemAttachmentFile"
 
 	admin.POST("/problem/:id/test_case",
 		controller.CreateTestCase,
