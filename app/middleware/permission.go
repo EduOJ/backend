@@ -94,11 +94,10 @@ func HasPermission(p PermissionOption) func(next echo.HandlerFunc) echo.HandlerF
 }
 
 func IsTestCaseSample(c echo.Context) (result bool) {
-	result = false
 	user := c.Get("user").(models.User)
 	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), &user)
 	if testCase != nil {
-		result = testCase.Sample
+		result = testCase.Sample && err == nil
 	}
 	c.Set("test_case", testCase)
 	c.Set("problem", problem)
