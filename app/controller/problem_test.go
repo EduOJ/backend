@@ -41,7 +41,7 @@ func getObjectContent(t *testing.T, bucketName, objectName string) (content []by
 	return
 }
 
-func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fileContent) (problem models.Problem, user models.User) {
+func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fileContent, creator models.User) (problem models.Problem) {
 	problem = models.Problem{
 		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, id),
 		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, id),
@@ -58,8 +58,7 @@ func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fil
 		problem.AttachmentFileName = attachmentFile.fileName
 	}
 	assert.Nil(t, base.DB.Create(&problem).Error)
-	user = createUserForTest(t, name, id)
-	user.GrantRole("problem_creator", problem)
+	creator.GrantRole("problem_creator", problem)
 	if attachmentFile != nil {
 		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, attachmentFile.size, minio.PutObjectOptions{})
 		assert.Nil(t, err)
@@ -600,7 +599,8 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 			test := test
 			t.Run("testGetProblemAttachmentFile"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, _ := createProblemForTest(t, "test_get_problem_attachment_file", i+2, test.file)
+				user := createUserForTest(t, "test_get_problem_attachment_file", i+2)
+				problem := createProblemForTest(t, "test_get_problem_attachment_file", i+2, test.file, user)
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblemAttachmentFile", problem.ID), nil, applyNormalUser))
 				fileBytes, err := ioutil.ReadAll(test.file.reader)
 				assert.Nil(t, err)
@@ -1396,7 +1396,8 @@ func TestDeleteProblem(t *testing.T) {
 
 func TestCreateTestCase(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "create_test_case", 0, nil)
+	user := createUserForTest(t, "create_test_case", 0)
+	problem := createProblemForTest(t, "create_test_case", 0, nil, user)
 
 	failTests := []failTest{
 		{
@@ -1535,7 +1536,8 @@ func TestCreateTestCase(t *testing.T) {
 
 func TestGetTestCaseInputFile(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "get_test_case_input_file", 0, nil)
+	user := createUserForTest(t, "get_test_case_input_file", 0)
+	problem := createProblemForTest(t, "get_test_case_input_file", 0, nil, user)
 	testCase := createTestCaseForTest(t, problem, testCaseData{
 		Score:      0,
 		Sample:     false,
@@ -1634,7 +1636,8 @@ func TestGetTestCaseInputFile(t *testing.T) {
 
 func TestGetTestCaseOutputFile(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "get_test_case_output_file", 0, nil)
+	user := createUserForTest(t, "get_test_case_output_file", 0)
+	problem := createProblemForTest(t, "get_test_case_output_file", 0, nil, user)
 	testCase := createTestCaseForTest(t, problem, testCaseData{
 		Score:      0,
 		Sample:     false,
@@ -1733,7 +1736,8 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 
 func TestUpdateTestCase(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "update_test_case", 0, nil)
+	user := createUserForTest(t, "update_test_case", 0)
+	problem := createProblemForTest(t, "update_test_case", 0, nil, user)
 	boolTrue := true
 
 	failTests := []failTest{
@@ -1953,7 +1957,8 @@ func TestUpdateTestCase(t *testing.T) {
 
 func TestDeleteTestCase(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "delete_test_case", 0, nil)
+	user := createUserForTest(t, "delete_test_case", 0)
+	problem := createProblemForTest(t, "delete_test_case", 0, nil, user)
 
 	failTests := []failTest{
 		{
@@ -2028,7 +2033,8 @@ func TestDeleteTestCase(t *testing.T) {
 
 func TestDeleteTestCases(t *testing.T) {
 	t.Parallel()
-	problem, user := createProblemForTest(t, "delete_test_cases", 0, nil)
+	user := createUserForTest(t, "delete_test_cases", 0)
+	problem := createProblemForTest(t, "delete_test_cases", 0, nil, user)
 
 	failTests := []failTest{
 		{

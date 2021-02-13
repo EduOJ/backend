@@ -15,7 +15,8 @@ import (
 func TestGetTask(t *testing.T) {
 	// Not parallel
 	assert.Nil(t, base.DB.Delete(models.Run{}, "id > 0").Error)
-	problem, user := createProblemForTest(t, "get_task", 1, nil)
+	user := createUserForTest(t, "get_task", 1)
+	problem := createProblemForTest(t, "get_task", 1, nil, user)
 	submission := createSubmissionForTest(t, "test_task", 1, &problem, &user, newFileContent(
 		"", "code.test_language", b64Encode("balh"),
 	), 1)
@@ -81,7 +82,8 @@ func TestUpdateRun(t *testing.T) {
 	}
 	t.Run("SuccessWithNotAcceptedAnswers", func(t *testing.T) {
 		t.Parallel()
-		problem, user := createProblemForTest(t, "update_run", 1, nil)
+		user := createUserForTest(t, "update_run", 1)
+		problem := createProblemForTest(t, "update_run", 1, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 1, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
@@ -227,7 +229,8 @@ func TestUpdateRun(t *testing.T) {
 
 	t.Run("SuccessAccepted", func(t *testing.T) {
 		t.Parallel()
-		problem, user := createProblemForTest(t, "update_run", 2, nil)
+		user := createUserForTest(t, "update_run", 2)
+		problem := createProblemForTest(t, "update_run", 2, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 2, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
@@ -371,7 +374,8 @@ func TestUpdateRun(t *testing.T) {
 
 	t.Run("SuccessNotDefaultScore", func(t *testing.T) {
 		t.Parallel()
-		problem, user := createProblemForTest(t, "update_run", 3, nil)
+		user := createUserForTest(t, "update_run", 3)
+		problem := createProblemForTest(t, "update_run", 3, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 3, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
@@ -522,7 +526,8 @@ func TestUpdateRun(t *testing.T) {
 
 	t.Run("Fail", func(t *testing.T) {
 		t.Parallel()
-		problem, user := createProblemForTest(t, "update_run", 4, nil)
+		user := createUserForTest(t, "update_run", 4)
+		problem := createProblemForTest(t, "update_run", 4, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 4, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
