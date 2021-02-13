@@ -111,13 +111,10 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	query := base.DB
 	err := query.Where("id = ?", id).First(&problem).Error
 	if err != nil {
-		err = query.Where("name = ?", id).First(&problem).Error
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, err
-			} else {
-				return nil, errors.Wrap(err, "could not query problem")
-			}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		} else {
+			return nil, errors.Wrap(err, "could not query problem")
 		}
 	}
 	if !problem.Public && user != nil && !user.Can("read_problem", problem) {
