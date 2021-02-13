@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base/log"
@@ -21,7 +22,7 @@ func Recover(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 				if viper.GetBool("debug") {
 					stack := debug.Stack()
-					err = c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", string(stack)))
+					err = c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", fmt.Sprintf("%+v\n%s\n", xx, stack)))
 				} else {
 					err = response.InternalErrorResp(c)
 				}

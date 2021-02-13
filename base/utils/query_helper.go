@@ -142,7 +142,7 @@ func FindTestCase(problemId string, testCaseIdStr string, user *models.User) (*m
 			return &t, problem, err
 		}
 	}
-	return nil, problem, err
+	return nil, problem, gorm.ErrRecordNotFound
 }
 
 func FindSubmission(id uint, includeProblemSet bool) (*models.Submission, error) {
