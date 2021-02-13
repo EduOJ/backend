@@ -341,7 +341,6 @@ func GetTestCaseInputFile(c echo.Context) error {
 	testCase := c.Get("test_case").(*models.TestCase)
 	problem := c.Get("problem").(*models.Problem)
 	var err error
-	err = nil
 	// ferr finding error
 	if ferr := c.Get("find_test_case_err"); ferr != nil {
 		err = ferr.(error)
@@ -367,7 +366,6 @@ func GetTestCaseOutputFile(c echo.Context) error {
 	testCase := c.Get("test_case").(*models.TestCase)
 	problem := c.Get("problem").(*models.Problem)
 	var err error
-	err = nil
 	// ferr finding error
 	if ferr := c.Get("find_test_case_err"); ferr != nil {
 		err = ferr.(error)
