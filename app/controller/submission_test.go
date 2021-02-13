@@ -73,8 +73,9 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 
 func TestCreateSubmission(t *testing.T) {
 	t.Parallel()
+	user := createUserForTest(t, "test_create_submission_public_false", 0)
 	// publicFalseProblem means a problem which "public" field is false
-	publicFalseProblem, _ := createProblemForTest(t, "test_create_submission_public_false", 0, nil)
+	publicFalseProblem := createProblemForTest(t, "test_create_submission_public_false", 0, nil, user)
 	publicFalseProblem.Public = false
 	publicFalseProblem.LanguageAllowed = []string{"test_language", "golang"}
 	assert.Nil(t, base.DB.Save(&publicFalseProblem).Error)
@@ -184,7 +185,8 @@ func TestCreateSubmission(t *testing.T) {
 			test := test
 			t.Run("testCreateSubmission"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, creator := createProblemForTest(t, "test_create_submission", i, nil)
+				creator := createUserForTest(t, "test_create_submission", i)
+				problem := createProblemForTest(t, "test_create_submission", i, nil, creator)
 				problem.LanguageAllowed = []string{"test_language", "golang"}
 				assert.Nil(t, base.DB.Save(&problem).Error)
 				for j := 0; j < test.testCaseCount; j++ {
@@ -288,12 +290,13 @@ func TestGetSubmission(t *testing.T) {
 	t.Parallel()
 
 	// notPublicProblem means a problem which "public" field is false
-	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_submission_fail", 0, nil)
+	notPublicProblemCreator := createUserForTest(t, "get_submission_fail", 0)
+	notPublicProblem := createProblemForTest(t, "get_submission_fail", 0, nil, notPublicProblemCreator)
 	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	publicFalseSubmission := createSubmissionForTest(t, "get_submission_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_fail_0")), 2)
-
-	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission_fail", 1, nil)
+	publicProblemCreator := createUserForTest(t, "get_submission_fail", 1)
+	publicProblem := createProblemForTest(t, "get_submission_fail", 1, nil, publicProblemCreator)
 	publicSubmission := createSubmissionForTest(t, "get_submission_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_fail_1")), 2)
 
@@ -387,7 +390,8 @@ func TestGetSubmission(t *testing.T) {
 			test := test
 			t.Run("testGetSubmission"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, user := createProblemForTest(t, "get_submission", i, nil)
+				user := createUserForTest(t, "get_submission", i)
+				problem := createProblemForTest(t, "get_submission", i, nil, user)
 				base.DB.Model(&problem).Update("public", false)
 				submission := createSubmissionForTest(t, "get_submission", i, &problem, &user, test.code, test.testCaseCount)
 				var applyUser reqOption
@@ -426,9 +430,12 @@ func TestGetSubmissions(t *testing.T) {
 	// Not Parallel
 	assert.Nil(t, base.DB.Delete(models.Submission{}, "id > 0").Error)
 
-	problem1, problemCreator1 := createProblemForTest(t, "get_submissions", 1, nil)
-	problem2, problemCreator2 := createProblemForTest(t, "get_submissions", 2, nil)
-	problem3, problemCreator3 := createProblemForTest(t, "get_submissions", 3, nil)
+	problemCreator1 := createUserForTest(t, "get_submissions", 1)
+	problemCreator2 := createUserForTest(t, "get_submissions", 2)
+	problemCreator3 := createUserForTest(t, "get_submissions", 3)
+	problem1 := createProblemForTest(t, "get_submissions", 1, nil, problemCreator1)
+	problem2 := createProblemForTest(t, "get_submissions", 2, nil, problemCreator2)
+	problem3 := createProblemForTest(t, "get_submissions", 3, nil, problemCreator3)
 	base.DB.Model(&problem1).Update("public", false)
 	submissionRelations := []struct {
 		problem   *models.Problem
@@ -621,12 +628,13 @@ func TestGetSubmissionCode(t *testing.T) {
 	t.Parallel()
 
 	// notPublicProblem means a problem which "public" field is false
-	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_submission_code_fail", 0, nil)
+	notPublicProblemCreator := createUserForTest(t, "get_submission_code_fail", 0)
+	notPublicProblem := createProblemForTest(t, "get_submission_code_fail", 0, nil, notPublicProblemCreator)
 	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicSubmission := createSubmissionForTest(t, "get_submission_code_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_0")), 2)
-
-	publicProblem, publicProblemCreator := createProblemForTest(t, "get_submission_code_fail", 1, nil)
+	publicProblemCreator := createUserForTest(t, "get_submission_code_fail", 1)
+	publicProblem := createProblemForTest(t, "get_submission_code_fail", 1, nil, publicProblemCreator)
 	publicSubmission := createSubmissionForTest(t, "get_submission_code_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_1")), 2)
 
@@ -687,7 +695,8 @@ func TestGetSubmissionCode(t *testing.T) {
 	t.Run("testGetSubmissionCodeSuccess", func(t *testing.T) {
 		t.Parallel()
 		content := "test_get_submission_code_content"
-		problem, user := createProblemForTest(t, "get_submission_code", 0, nil)
+		user := createUserForTest(t, "get_submission_code", 0)
+		problem := createProblemForTest(t, "get_submission_code", 0, nil, user)
 		base.DB.Model(&problem).Update("public", false)
 		submission := createSubmissionForTest(t, "get_submission_code", 0, &problem, &user,
 			newFileContent("code", "code_file_name", b64Encode(content)), 2)
@@ -702,12 +711,14 @@ func TestGetRunCompilerOutput(t *testing.T) {
 	t.Parallel()
 
 	// notPublicProblem means a problem which "public" field is false
-	notPublicProblem, notPublicProblemCreator := createProblemForTest(t, "get_run_compiler_output_fail", 0, nil)
+	notPublicProblemCreator := createUserForTest(t, "get_run_compiler_output_fail", 0)
+	notPublicProblem := createProblemForTest(t, "get_run_compiler_output_fail", 0, nil, notPublicProblemCreator)
 	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_0")), 2)
 
-	publicProblem, publicProblemCreator := createProblemForTest(t, "get_run_compiler_output_fail", 1, nil)
+	publicProblemCreator := createUserForTest(t, "get_run_compiler_output_fail", 1)
+	publicProblem := createProblemForTest(t, "get_run_compiler_output_fail", 1, nil, publicProblemCreator)
 	publicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_1")), 2)
 
@@ -792,7 +803,8 @@ func TestGetRunCompilerOutput(t *testing.T) {
 	t.Run("testGetRunCompilerOutputSuccess", func(t *testing.T) {
 		t.Parallel()
 		content := "test_get_run_compiler_output_content"
-		problem, user := createProblemForTest(t, "get_run_compiler_output", 0, nil)
+		user := createUserForTest(t, "get_run_compiler_output", 0)
+		problem := createProblemForTest(t, "get_run_compiler_output", 0, nil, user)
 		base.DB.Model(&problem).Update("public", false)
 		submission := createSubmissionForTest(t, "get_run_compiler_output", 0, &problem, &user,
 			newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
@@ -810,13 +822,15 @@ func TestGetRunOutput(t *testing.T) {
 	t.Parallel()
 
 	// notPublicProblem means a problem which "public" field is false
-	notPublicProblem, _ := createProblemForTest(t, "get_run_output_fail", 0, nil)
+	notPublicProblemCreator := createUserForTest(t, "get_run_output_fail", 0)
+	notPublicProblem := createProblemForTest(t, "get_run_output_fail", 0, nil, notPublicProblemCreator)
 	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicProblemSubmitter := createUserForTest(t, "get_run_output_fail_submit", 0)
 	notPublicSubmission := createSubmissionForTest(t, "get_run_output_fail", 0, &notPublicProblem, &notPublicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_0")), 2)
 
-	publicProblem, _ := createProblemForTest(t, "get_run_output_fail", 1, nil)
+	publicProblemCreator := createUserForTest(t, "get_run_output_fail", 1)
+	publicProblem := createProblemForTest(t, "get_run_output_fail", 1, nil, publicProblemCreator)
 	publicProblemSubmitter := createUserForTest(t, "get_run_output_fail_submit", 1)
 	publicSubmission := createSubmissionForTest(t, "get_run_output_fail", 1, &publicProblem, &publicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_1")), 2)
@@ -953,7 +967,8 @@ func TestGetRunOutput(t *testing.T) {
 			t.Run("testGetRunOutput"+test.name, func(t *testing.T) {
 				t.Parallel()
 				content := "test_get_run_output_content"
-				problem, _ := createProblemForTest(t, "get_run_output", i, nil)
+				user := createUserForTest(t, "get_run_output", i)
+				problem := createProblemForTest(t, "get_run_output", i, nil, user)
 				base.DB.Model(&problem).Update("public", false)
 				submitterUser := createUserForTest(t, "get_run_output_submit", i)
 				submission := createSubmissionForTest(t, "get_run_output", i, &problem, &submitterUser,
@@ -988,13 +1003,15 @@ func TestGetRunComparerOutput(t *testing.T) {
 	t.Parallel()
 
 	// notPublicProblem means a problem which "public" field is false
-	notPublicProblem, _ := createProblemForTest(t, "get_run_comparer_output_fail", 0, nil)
+	notPublicProblemCreator := createUserForTest(t, "get_run_comparer_output_fail", 0)
+	notPublicProblem := createProblemForTest(t, "get_run_comparer_output_fail", 0, nil, notPublicProblemCreator)
 	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicProblemSubmitter := createUserForTest(t, "get_run_comparer_output_fail_submit", 0)
 	notPublicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 0, &notPublicProblem, &notPublicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_0")), 2)
 
-	publicProblem, _ := createProblemForTest(t, "get_run_comparer_output_fail", 1, nil)
+	publicProblemCreator := createUserForTest(t, "get_run_comparer_output_fail", 1)
+	publicProblem := createProblemForTest(t, "get_run_comparer_output_fail", 1, nil, publicProblemCreator)
 	publicProblemSubmitter := createUserForTest(t, "get_run_comparer_output_fail_submit", 1)
 	publicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 1, &publicProblem, &publicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_1")), 2)
@@ -1145,7 +1162,8 @@ func TestGetRunComparerOutput(t *testing.T) {
 			t.Run("testGetRunComparerOutput"+test.name, func(t *testing.T) {
 				t.Parallel()
 				content := "test_get_run_comparer_output_content"
-				problem, _ := createProblemForTest(t, "get_run_comparer_output", i, nil)
+				user := createUserForTest(t, "get_run_comparer_output", i)
+				problem := createProblemForTest(t, "get_run_comparer_output", i, nil, user)
 				base.DB.Model(&problem).Update("public", false)
 				submitterUser := createUserForTest(t, "get_run_comparer_output_submit", i)
 				submission := createSubmissionForTest(t, "get_run_comparer_output", i, &problem, &submitterUser,
@@ -1179,7 +1197,8 @@ func TestGetRunComparerOutput(t *testing.T) {
 func TestGetRunInput(t *testing.T) {
 	t.Parallel()
 
-	problem, _ := createProblemForTest(t, "get_run_input_fail", 1, nil)
+	user := createUserForTest(t, "get_run_input_fail", 1)
+	problem := createProblemForTest(t, "get_run_input_fail", 1, nil, user)
 	problemSubmitter := createUserForTest(t, "get_run_input_fail_submit", 1)
 	submission := createSubmissionForTest(t, "get_run_input_fail", 1, &problem, &problemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_input_fail_1")), 2)
@@ -1317,7 +1336,8 @@ func TestGetRunInput(t *testing.T) {
 			test := test
 			t.Run("testGetRunComparerOutput"+test.name, func(t *testing.T) {
 				t.Parallel()
-				problem, _ := createProblemForTest(t, "get_run_input", i, nil)
+				user := createUserForTest(t, "get_run_input", i)
+				problem := createProblemForTest(t, "get_run_input", i, nil, user)
 				base.DB.Model(&problem).Update("public", false)
 				submitterUser := createUserForTest(t, "get_run_input_submit", i)
 				submission := createSubmissionForTest(t, "get_run_input", i, &problem, &submitterUser,
