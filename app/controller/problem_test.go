@@ -1536,11 +1536,17 @@ func TestCreateTestCase(t *testing.T) {
 func TestGetTestCaseInputFile(t *testing.T) {
 	t.Parallel()
 	problem, user := createProblemForTest(t, "get_test_case_input_file", 0, nil)
+	testCase := createTestCaseForTest(t, problem, testCaseData{
+		Score:      0,
+		Sample:     false,
+		InputFile:  nil,
+		OutputFile: nil,
+	})
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
 			method: "GET",
-			path:   base.Echo.Reverse("problem.getTestCaseInputFile", -1, 1),
+			path:   base.Echo.Reverse("problem.getTestCaseInputFile", -1, testCase.ID),
 			req:    request.GetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1568,7 +1574,7 @@ func TestGetTestCaseInputFile(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problem.getTestCaseInputFile", problem.ID, 1),
+			path:   base.Echo.Reverse("problem.getTestCaseInputFile", problem.ID, testCase.ID),
 			req:    request.GetTestCaseInputFileRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1580,28 +1586,66 @@ func TestGetTestCaseInputFile(t *testing.T) {
 
 	runFailTests(t, failTests, "GetTestCaseInputFile")
 
-	testCase := createTestCaseForTest(t, problem, testCaseData{
-		Score:      100,
-		Sample:     true,
-		InputFile:  newFileContent("", "test_get_test_case_input_file_success.in", inputTextBase64),
-		OutputFile: nil,
-	})
+	successTests := []struct {
+		name    string
+		data    testCaseData
+		reqUser reqOption
+	}{
+		{
+			// testGetTestCaseInputSample
+			name: "Sample",
+			data: testCaseData{
+				Score:      0,
+				Sample:     true,
+				InputFile:  newFileContent("", "test_get_test_case_input_file_success.in", inputTextBase64),
+				OutputFile: nil,
+			},
+			reqUser: applyNormalUser,
+		},
+		{
+			// testGetTestCaseInputAdmin
+			name: "Admin",
+			data: testCaseData{
+				Score:      0,
+				Sample:     false,
+				InputFile:  newFileContent("", "test_get_test_case_input_file_success.in", inputTextBase64),
+				OutputFile: nil,
+			},
+			reqUser: applyAdminUser,
+		},
+	}
 
-	req := makeReq(t, "GET", base.Echo.Reverse("problem.getTestCaseInputFile", problem.ID, testCase.ID), request.GetTestCaseInputFileRequest{}, headerOption{
-		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+	t.Run("testGetTestCaseInputSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			test := test
+			t.Run("testGetTestCase"+test.name, func(t *testing.T) {
+				t.Parallel()
+				testCase := createTestCaseForTest(t, problem, test.data)
+				req := makeReq(t, "GET", base.Echo.Reverse("problem.getTestCaseInputFile", problem.ID, testCase.ID), request.GetTestCaseInputFileRequest{},
+					test.reqUser,
+				)
+				httpResp := makeResp(req)
+				assert.Equal(t, "input text\n", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+			})
+		}
 	})
-	httpResp := makeResp(req)
-	assert.Equal(t, "input text\n", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 }
 
 func TestGetTestCaseOutputFile(t *testing.T) {
 	t.Parallel()
 	problem, user := createProblemForTest(t, "get_test_case_output_file", 0, nil)
+	testCase := createTestCaseForTest(t, problem, testCaseData{
+		Score:      0,
+		Sample:     false,
+		InputFile:  nil,
+		OutputFile: nil,
+	})
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
 			method: "GET",
-			path:   base.Echo.Reverse("problem.getTestCaseOutputFile", -1, 1),
+			path:   base.Echo.Reverse("problem.getTestCaseOutputFile", -1, testCase.ID),
 			req:    request.GetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1629,7 +1673,7 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problem.getTestCaseOutputFile", problem.ID, 1),
+			path:   base.Echo.Reverse("problem.getTestCaseOutputFile", problem.ID, testCase.ID),
 			req:    request.GetTestCaseOutputFileRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1641,18 +1685,50 @@ func TestGetTestCaseOutputFile(t *testing.T) {
 
 	runFailTests(t, failTests, "GetTestCaseOutputFile")
 
-	testCase := createTestCaseForTest(t, problem, testCaseData{
-		Score:      0,
-		Sample:     true,
-		InputFile:  nil,
-		OutputFile: newFileContent("", "test_get_test_case_output_file_success.out", outputTextBase64),
-	})
+	successTests := []struct {
+		name    string
+		data    testCaseData
+		reqUser reqOption
+	}{
+		{
+			// testGetTestCaseOutputSample
+			name: "Sample",
+			data: testCaseData{
+				Score:      0,
+				Sample:     true,
+				InputFile:  nil,
+				OutputFile: newFileContent("", "test_get_test_case_output_file_success.out", outputTextBase64),
+			},
+			reqUser: applyNormalUser,
+		},
+		{
+			// testGetTestCaseOutputAdmin
+			name: "Admin",
+			data: testCaseData{
+				Score:      0,
+				Sample:     false,
+				InputFile:  nil,
+				OutputFile: newFileContent("", "test_get_test_case_output_file_success.out", outputTextBase64),
+			},
+			reqUser: applyAdminUser,
+		},
+	}
 
-	req := makeReq(t, "GET", base.Echo.Reverse("problem.getTestCaseOutputFile", problem.ID, testCase.ID), request.GetTestCaseOutputFileRequest{}, headerOption{
-		"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
+	t.Run("testGetTestCaseOutputSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			test := test
+			t.Run("testGetTestCase"+test.name, func(t *testing.T) {
+				t.Parallel()
+				testCase := createTestCaseForTest(t, problem, test.data)
+				req := makeReq(t, "GET", base.Echo.Reverse("problem.getTestCaseOutputFile", problem.ID, testCase.ID), request.GetTestCaseOutputFileRequest{},
+					test.reqUser,
+				)
+				httpResp := makeResp(req)
+				assert.Equal(t, "output text\n", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+			})
+		}
 	})
-	httpResp := makeResp(req)
-	assert.Equal(t, "output text\n", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 }
 
 func TestUpdateTestCase(t *testing.T) {

@@ -7,7 +7,6 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/middleware"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
-	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/spf13/viper"
 	"net/http"
 	"net/http/pprof"
@@ -95,13 +94,10 @@ func Register(e *echo.Echo) {
 
 	api.GET("/problem/:id/test_case/:test_case_id/input_file",
 		controller.GetTestCaseInputFile,
-		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.CustomPermission{F: func(c echo.Context) bool {
-				user := c.Get("user").(models.User)
-				testCase, _, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), &user)
-				return err == nil && testCase.Sample
-			}},
+			A: middleware.CustomPermission{
+				F: middleware.IsTestCaseSample,
+			},
 			B: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "read_problem_secret", T: "problem"},
 				B: middleware.UnscopedPermission{P: "read_problem_secret"},
@@ -109,13 +105,10 @@ func Register(e *echo.Echo) {
 		})).Name = "problem.getTestCaseInputFile"
 	api.GET("/problem/:id/test_case/:test_case_id/output_file",
 		controller.GetTestCaseOutputFile,
-		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.CustomPermission{F: func(c echo.Context) bool {
-				user := c.Get("user").(models.User)
-				testCase, _, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), &user)
-				return err == nil && testCase.Sample
-			}},
+			A: middleware.CustomPermission{
+				F: middleware.IsTestCaseSample,
+			},
 			B: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "read_problem_secret", T: "problem"},
 				B: middleware.UnscopedPermission{P: "read_problem_secret"},

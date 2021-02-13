@@ -139,7 +139,7 @@ func FindTestCase(problemId string, testCaseIdStr string, user *models.User) (*m
 	}
 	for _, t := range problem.TestCases {
 		if uint64(t.ID) == testCaseId {
-			return &t, problem, err
+			return &t, problem, nil
 		}
 	}
 	return nil, problem, gorm.ErrRecordNotFound
