@@ -338,11 +338,22 @@ func CreateTestCase(c echo.Context) error {
 }
 
 func GetTestCaseInputFile(c echo.Context) error {
-	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
+	testCase := c.Get("test_case").(*models.TestCase)
+	problem := c.Get("problem").(*models.Problem)
+	var err error
+	err = nil
+	// ferr finding error
+	if ferr := c.Get("find_test_case_err"); ferr != nil {
+		err = ferr.(error)
+	}
 	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-	} else if testCase == nil {
+	}
+	if testCase == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
+	}
+	if err != nil {
+		panic(errors.Wrap(err, "could not find test case"))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), testCase.InputFileName)
@@ -353,11 +364,22 @@ func GetTestCaseInputFile(c echo.Context) error {
 }
 
 func GetTestCaseOutputFile(c echo.Context) error {
-	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
+	testCase := c.Get("test_case").(*models.TestCase)
+	problem := c.Get("problem").(*models.Problem)
+	var err error
+	err = nil
+	// ferr finding error
+	if ferr := c.Get("find_test_case_err"); ferr != nil {
+		err = ferr.(error)
+	}
 	if problem == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-	} else if testCase == nil {
+	}
+	if testCase == nil {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
+	}
+	if err != nil {
+		panic(errors.Wrap(err, "could not find test case"))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), testCase.OutputFileName)

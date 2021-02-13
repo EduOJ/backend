@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/leoleoasd/EduOJBackend/app/response"
+	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"net/http"
 	"strconv"
@@ -90,4 +91,17 @@ func HasPermission(p PermissionOption) func(next echo.HandlerFunc) echo.HandlerF
 			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 		}
 	}
+}
+
+func IsTestCaseSample(c echo.Context) (result bool) {
+	result = false
+	user := c.Get("user").(models.User)
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), &user)
+	if testCase != nil {
+		result = testCase.Sample
+	}
+	c.Set("test_case", testCase)
+	c.Set("problem", problem)
+	c.Set("find_test_case_err", err)
+	return
 }
