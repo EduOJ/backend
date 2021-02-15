@@ -9,11 +9,11 @@ import (
 func TestUsernameValidator(t *testing.T) {
 	v := New()
 	t.Run("testUsernameValidatorSuccess", func(t *testing.T) {
-		assert.Nil(t, v.Var("abcdefghijklmnopqrstuvwxyz", "username"))
-		assert.Nil(t, v.Var("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "username"))
-		assert.Nil(t, v.Var("1234567890", "username"))
-		assert.Nil(t, v.Var("_____", "username"))
-		assert.Nil(t, v.Var("abcABC123_", "username"))
+		assert.NoError(t, v.Var("abcdefghijklmnopqrstuvwxyz", "username"))
+		assert.NoError(t, v.Var("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "username"))
+		assert.NoError(t, v.Var("1234567890", "username"))
+		assert.NoError(t, v.Var("_____", "username"))
+		assert.NoError(t, v.Var("abcABC123_", "username"))
 	})
 	tests := []struct {
 		field string

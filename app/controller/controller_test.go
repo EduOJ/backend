@@ -145,7 +145,7 @@ func createUserForTest(t *testing.T, name string, id int) (user models.User) {
 		Email:    fmt.Sprintf("test_%s_user_%d@e.e", name, id),
 		Password: utils.HashPassword(fmt.Sprintf("test_%s_user_%d_pwd", name, id)),
 	}
-	assert.Nil(t, base.DB.Create(&user).Error)
+	assert.NoError(t, base.DB.Create(&user).Error)
 	return
 }
 
@@ -176,14 +176,14 @@ func mustJsonEncode(t *testing.T, data interface{}) string {
 	var err error
 	if dataResp, ok := data.(*http.Response); ok {
 		data, err = ioutil.ReadAll(dataResp.Body)
-		assert.Equal(t, nil, err)
+		assert.NoError(t, err)
 	}
 	if dataString, ok := data.(string); ok {
 		data = []byte(dataString)
 	}
 	if dataBytes, ok := data.([]byte); ok {
 		err := json.Unmarshal(dataBytes, &data)
-		assert.Equal(t, nil, err)
+		assert.NoError(t, err)
 	}
 	j, err := json.Marshal(data)
 	if err != nil {
@@ -284,15 +284,15 @@ func makeReq(t *testing.T, method string, path string, data interface{}, options
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
 		for _, c := range content {
-			assert.Nil(t, c.add(w))
+			assert.NoError(t, c.add(w))
 		}
 		err := w.Close()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		req = httptest.NewRequest(method, path, &b)
 		req.Header.Set("Content-Type", w.FormDataContentType())
 	} else {
 		j, err := json.Marshal(data)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		req = httptest.NewRequest(method, path, bytes.NewReader(j))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	}
@@ -318,10 +318,10 @@ func b64Encodef(format string, a ...interface{}) string {
 
 func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) {
 	resp, err := http.Get(presignedUrl)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	p, err := ioutil.ReadAll(resp.Body)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	return string(p)
 }
 

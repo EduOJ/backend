@@ -167,7 +167,7 @@ func TestInitFromConfigFail(t *testing.T) {
 			logger0 = l
 			viper.SetConfigType("json")
 			err := viper.ReadConfig(bytes.NewBufferString(test.s))
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			err = InitFromConfig()
 			if test.error != nil && err != nil {
 				assert.Equal(t, test.error.Error(), err.Error())
@@ -196,7 +196,7 @@ func TestInitFromConfigSuccess(t *testing.T) {
   level: debug
 `))
 	err := InitFromConfig()
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, true, l.ready)
 	err = InitFromConfig()
 	assert.EqualError(t, err, "already initialized")

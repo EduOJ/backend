@@ -14,7 +14,7 @@ import (
 
 func TestGetTask(t *testing.T) {
 	// Not parallel
-	assert.Nil(t, base.DB.Delete(models.Run{}, "id > 0").Error)
+	assert.NoError(t, base.DB.Delete(models.Run{}, "id > 0").Error)
 	user := createUserForTest(t, "get_task", 1)
 	problem := createProblemForTest(t, "get_task", 1, nil, user)
 	submission := createSubmissionForTest(t, "test_task", 1, &problem, &user, newFileContent(
@@ -25,8 +25,8 @@ func TestGetTask(t *testing.T) {
 		Name:     "test_get_task",
 		Filename: "test",
 	}
-	assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
-	assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+	assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+	assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
 	req := makeReq(t, "GET", base.Echo.Reverse("judger.getTask"), "", judgerAuthorize)
 	httpResp := makeResp(req)
 	assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -88,17 +88,17 @@ func TestUpdateRun(t *testing.T) {
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
 		var language models.Language
-		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
-		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
 		submission.Runs[0].Status = "JUDGING"
 		submission.Runs[0].JudgerName = "test_judger"
 		submission.Runs[1].Status = "JUDGING"
 		submission.Runs[1].JudgerName = "test_judger"
 		submission.Runs[2].Status = "JUDGING"
 		submission.Runs[2].JudgerName = "test_judger"
-		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[2]).Error)
 		runIDs := []uint{
 			submission.Runs[0].ID,
 			submission.Runs[1].ID,
@@ -136,7 +136,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(123123), submission.Runs[0].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[0].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[0].OutputStrippedHash)
@@ -172,7 +172,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(1231235), submission.Runs[1].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[1].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[1].OutputStrippedHash)
@@ -208,7 +208,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(1231233), submission.Runs[2].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[2].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[2].OutputStrippedHash)
@@ -235,17 +235,17 @@ func TestUpdateRun(t *testing.T) {
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
 		var language models.Language
-		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
-		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
 		submission.Runs[0].Status = "JUDGING"
 		submission.Runs[0].JudgerName = "test_judger"
 		submission.Runs[1].Status = "JUDGING"
 		submission.Runs[1].JudgerName = "test_judger"
 		submission.Runs[2].Status = "JUDGING"
 		submission.Runs[2].JudgerName = "test_judger"
-		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[2]).Error)
 		runIDs := []uint{
 			submission.Runs[0].ID,
 			submission.Runs[1].ID,
@@ -283,7 +283,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(123123), submission.Runs[0].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[0].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[0].OutputStrippedHash)
@@ -319,7 +319,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(1231235), submission.Runs[1].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[1].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[1].OutputStrippedHash)
@@ -355,7 +355,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(1231233), submission.Runs[2].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[2].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[2].OutputStrippedHash)
@@ -380,8 +380,8 @@ func TestUpdateRun(t *testing.T) {
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
 		var language models.Language
-		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
-		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
 		submission.Runs[0].Status = "JUDGING"
 		submission.Runs[0].JudgerName = "test_judger"
 		submission.Runs[1].Status = "JUDGING"
@@ -392,12 +392,12 @@ func TestUpdateRun(t *testing.T) {
 		problem.TestCases[1].Score = 2
 		problem.TestCases[2].Score = 3
 
-		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
-		assert.Nil(t, base.DB.Save(&problem.TestCases[0]).Error)
-		assert.Nil(t, base.DB.Save(&problem.TestCases[1]).Error)
-		assert.Nil(t, base.DB.Save(&problem.TestCases[2]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[2]).Error)
+		assert.NoError(t, base.DB.Save(&problem.TestCases[0]).Error)
+		assert.NoError(t, base.DB.Save(&problem.TestCases[1]).Error)
+		assert.NoError(t, base.DB.Save(&problem.TestCases[2]).Error)
 		runIDs := []uint{
 			submission.Runs[0].ID,
 			submission.Runs[1].ID,
@@ -435,7 +435,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(123123), submission.Runs[0].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[0].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[0].OutputStrippedHash)
@@ -471,7 +471,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(1231235), submission.Runs[1].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[1].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[1].OutputStrippedHash)
@@ -507,7 +507,7 @@ func TestUpdateRun(t *testing.T) {
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
 		}, httpResp)
-		assert.Nil(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
+		assert.NoError(t, base.DB.Preload("Runs").First(&submission, submission.ID).Error)
 		assert.Equal(t, uint(1231233), submission.Runs[2].MemoryUsed)
 		assert.Equal(t, uint(1234), submission.Runs[2].TimeUsed)
 		assert.Equal(t, "2333", submission.Runs[2].OutputStrippedHash)
@@ -532,8 +532,8 @@ func TestUpdateRun(t *testing.T) {
 			"", "code.test_language", b64Encode("balh"),
 		), 3)
 		var language models.Language
-		assert.Nil(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
-		assert.Nil(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
+		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
+		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
 		submission.Runs[0].Status = "JUDGING"
 		submission.Runs[1].Status = "JUDGING"
 		submission.Runs[2].Status = "JUDGING"
@@ -542,12 +542,12 @@ func TestUpdateRun(t *testing.T) {
 		problem.TestCases[1].Score = 2
 		problem.TestCases[2].Score = 3
 
-		assert.Nil(t, base.DB.Save(&submission.Runs[0]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[1]).Error)
-		assert.Nil(t, base.DB.Save(&submission.Runs[2]).Error)
-		assert.Nil(t, base.DB.Save(&problem.TestCases[0]).Error)
-		assert.Nil(t, base.DB.Save(&problem.TestCases[1]).Error)
-		assert.Nil(t, base.DB.Save(&problem.TestCases[2]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[0]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[1]).Error)
+		assert.NoError(t, base.DB.Save(&submission.Runs[2]).Error)
+		assert.NoError(t, base.DB.Save(&problem.TestCases[0]).Error)
+		assert.NoError(t, base.DB.Save(&problem.TestCases[1]).Error)
+		assert.NoError(t, base.DB.Save(&problem.TestCases[2]).Error)
 		runIDs := []uint{
 			submission.Runs[0].ID,
 			submission.Runs[1].ID,

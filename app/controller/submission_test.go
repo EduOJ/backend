@@ -61,12 +61,12 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 			OutputStrippedHash: "",
 		}
 	}
-	assert.Nil(t, base.DB.Create(&submission).Error)
+	assert.NoError(t, base.DB.Create(&submission).Error)
 	if code != nil {
 		_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/code", submission.ID), code.reader, code.size, minio.PutObjectOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = code.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}
 	return
 }
@@ -78,7 +78,7 @@ func TestCreateSubmission(t *testing.T) {
 	publicFalseProblem := createProblemForTest(t, "test_create_submission_public_false", 0, nil, user)
 	publicFalseProblem.Public = false
 	publicFalseProblem.LanguageAllowed = []string{"test_language", "golang"}
-	assert.Nil(t, base.DB.Save(&publicFalseProblem).Error)
+	assert.NoError(t, base.DB.Save(&publicFalseProblem).Error)
 
 	failTests := []failTest{
 		{
@@ -188,7 +188,7 @@ func TestCreateSubmission(t *testing.T) {
 				creator := createUserForTest(t, "test_create_submission", i)
 				problem := createProblemForTest(t, "test_create_submission", i, nil, creator)
 				problem.LanguageAllowed = []string{"test_language", "golang"}
-				assert.Nil(t, base.DB.Save(&problem).Error)
+				assert.NoError(t, base.DB.Save(&problem).Error)
 				for j := 0; j < test.testCaseCount; j++ {
 					createTestCaseForTest(t, problem, testCaseData{
 						Score:  0,
@@ -226,8 +226,8 @@ func TestCreateSubmission(t *testing.T) {
 				responseSubmission := *resp.Data.SubmissionDetail
 				databaseSubmission := models.Submission{}
 				reqUserID, err := strconv.ParseUint(req.Header.Get("Set-User-For-Test"), 10, 64)
-				assert.Nil(t, err)
-				assert.Nil(t, base.DB.Preload("Runs").First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
+				assert.NoError(t, err)
+				assert.NoError(t, base.DB.Preload("Runs").First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
 				databaseSubmissionDetail := resource.GetSubmissionDetail(&databaseSubmission)
 				databaseRunData := map[uint]struct {
 					ID        uint
@@ -292,7 +292,7 @@ func TestGetSubmission(t *testing.T) {
 	// notPublicProblem means a problem which "public" field is false
 	notPublicProblemCreator := createUserForTest(t, "get_submission_fail", 0)
 	notPublicProblem := createProblemForTest(t, "get_submission_fail", 0, nil, notPublicProblemCreator)
-	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	assert.NoError(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	publicFalseSubmission := createSubmissionForTest(t, "get_submission_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_fail_0")), 2)
 	publicProblemCreator := createUserForTest(t, "get_submission_fail", 1)
@@ -428,7 +428,7 @@ func TestGetSubmission(t *testing.T) {
 
 func TestGetSubmissions(t *testing.T) {
 	// Not Parallel
-	assert.Nil(t, base.DB.Delete(models.Submission{}, "id > 0").Error)
+	assert.NoError(t, base.DB.Delete(models.Submission{}, "id > 0").Error)
 
 	problemCreator1 := createUserForTest(t, "get_submissions", 1)
 	problemCreator2 := createUserForTest(t, "get_submissions", 2)
@@ -630,7 +630,7 @@ func TestGetSubmissionCode(t *testing.T) {
 	// notPublicProblem means a problem which "public" field is false
 	notPublicProblemCreator := createUserForTest(t, "get_submission_code_fail", 0)
 	notPublicProblem := createProblemForTest(t, "get_submission_code_fail", 0, nil, notPublicProblemCreator)
-	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	assert.NoError(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicSubmission := createSubmissionForTest(t, "get_submission_code_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_0")), 2)
 	publicProblemCreator := createUserForTest(t, "get_submission_code_fail", 1)
@@ -713,7 +713,7 @@ func TestGetRunCompilerOutput(t *testing.T) {
 	// notPublicProblem means a problem which "public" field is false
 	notPublicProblemCreator := createUserForTest(t, "get_run_compiler_output_fail", 0)
 	notPublicProblem := createProblemForTest(t, "get_run_compiler_output_fail", 0, nil, notPublicProblemCreator)
-	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	assert.NoError(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 0, &notPublicProblem, &notPublicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_0")), 2)
 
@@ -810,7 +810,7 @@ func TestGetRunCompilerOutput(t *testing.T) {
 			newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
 		file := newFileContent("compiler_output", "compiler.out", b64Encode(content))
 		_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("submission.getRunCompilerOutput", submission.ID, submission.Runs[0].ID),
 			nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
@@ -824,7 +824,7 @@ func TestGetRunOutput(t *testing.T) {
 	// notPublicProblem means a problem which "public" field is false
 	notPublicProblemCreator := createUserForTest(t, "get_run_output_fail", 0)
 	notPublicProblem := createProblemForTest(t, "get_run_output_fail", 0, nil, notPublicProblemCreator)
-	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	assert.NoError(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicProblemSubmitter := createUserForTest(t, "get_run_output_fail_submit", 0)
 	notPublicSubmission := createSubmissionForTest(t, "get_run_output_fail", 0, &notPublicProblem, &notPublicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_0")), 2)
@@ -974,11 +974,11 @@ func TestGetRunOutput(t *testing.T) {
 				submission := createSubmissionForTest(t, "get_run_output", i, &problem, &submitterUser,
 					newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
 				if test.sample {
-					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
+					assert.NoError(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
 				}
 				file := newFileContent("output", fmt.Sprintf("%d.out", i), b64Encode(content))
 				_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				var applyUser reqOption
 				switch test.requestUser {
 				case submitter:
@@ -1005,7 +1005,7 @@ func TestGetRunComparerOutput(t *testing.T) {
 	// notPublicProblem means a problem which "public" field is false
 	notPublicProblemCreator := createUserForTest(t, "get_run_comparer_output_fail", 0)
 	notPublicProblem := createProblemForTest(t, "get_run_comparer_output_fail", 0, nil, notPublicProblemCreator)
-	assert.Nil(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
+	assert.NoError(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
 	notPublicProblemSubmitter := createUserForTest(t, "get_run_comparer_output_fail_submit", 0)
 	notPublicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 0, &notPublicProblem, &notPublicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_0")), 2)
@@ -1169,11 +1169,11 @@ func TestGetRunComparerOutput(t *testing.T) {
 				submission := createSubmissionForTest(t, "get_run_comparer_output", i, &problem, &submitterUser,
 					newFileContent("code", "code_file_name", b64Encode("code_content")), 2)
 				if test.sample {
-					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
+					assert.NoError(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
 				}
 				file := newFileContent("comparer_output", "comparer.out", b64Encode(content))
 				_, err := base.Storage.PutObject(context.Background(), "submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, submission.Runs[0].ID), file.reader, file.size, minio.PutObjectOptions{})
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				var applyUser reqOption
 				switch test.requestUser {
 				case submitter:
@@ -1343,7 +1343,7 @@ func TestGetRunInput(t *testing.T) {
 				submission := createSubmissionForTest(t, "get_run_input", i, &problem, &submitterUser,
 					newFileContent("code", "code_file_name", b64Encode("code_content")), 1)
 				if test.sample {
-					assert.Nil(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
+					assert.NoError(t, base.DB.Model(&submission.Runs[0]).Update("sample", true).Error)
 				}
 				var applyUser reqOption
 				switch test.requestUser {

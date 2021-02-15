@@ -35,9 +35,9 @@ type testCaseData struct {
 
 func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
 	obj, err := base.Storage.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	content, err = ioutil.ReadAll(obj)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	return
 }
 
@@ -57,13 +57,13 @@ func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fil
 	if attachmentFile != nil {
 		problem.AttachmentFileName = attachmentFile.fileName
 	}
-	assert.Nil(t, base.DB.Create(&problem).Error)
+	assert.NoError(t, base.DB.Create(&problem).Error)
 	creator.GrantRole("problem_creator", problem)
 	if attachmentFile != nil {
 		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", problem.ID), attachmentFile.reader, attachmentFile.size, minio.PutObjectOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = attachmentFile.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}
 	return
 }
@@ -84,19 +84,19 @@ func createTestCaseForTest(t *testing.T, problem models.Problem, data testCaseDa
 		InputFileName:  inputFileName,
 		OutputFileName: outputFileName,
 	}
-	assert.Nil(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase))
+	assert.NoError(t, base.DB.Model(&problem).Association("TestCases").Append(&testCase))
 
 	if data.InputFile != nil {
 		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), data.InputFile.reader, data.InputFile.size, minio.PutObjectOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = data.InputFile.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}
 	if data.OutputFile != nil {
 		_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), data.OutputFile.reader, data.OutputFile.size, minio.PutObjectOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = data.OutputFile.reader.Seek(0, io.SeekStart)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}
 
 	return
@@ -111,7 +111,7 @@ func TestGetProblem(t *testing.T) {
 		AttachmentFileName: "test_get_problem_public_false_attachment_file_name",
 		LanguageAllowed:    []string{"test_get_problem_public_false_language_allowed"},
 	}
-	assert.Nil(t, base.DB.Create(&publicFalseProblem).Error)
+	assert.NoError(t, base.DB.Create(&publicFalseProblem).Error)
 
 	failTests := []failTest{
 		{
@@ -246,9 +246,9 @@ func TestGetProblem(t *testing.T) {
 			test := test
 			t.Run("testGetProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.problem).Error)
+				assert.NoError(t, base.DB.Create(&test.problem).Error)
 				for j := range test.testCases {
-					assert.Nil(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]))
+					assert.NoError(t, base.DB.Model(&test.problem).Association("TestCases").Append(&test.testCases[j]))
 				}
 				user := createUserForTest(t, "get_problem", i)
 				if test.isAdmin {
@@ -316,10 +316,10 @@ func TestGetProblems(t *testing.T) {
 		LanguageAllowed:    []string{"test_get_problems_4_language_allowed"},
 		Public:             false,
 	}
-	assert.Nil(t, base.DB.Create(&problem1).Error)
-	assert.Nil(t, base.DB.Create(&problem2).Error)
-	assert.Nil(t, base.DB.Create(&problem3).Error)
-	assert.Nil(t, base.DB.Create(&problem4).Error)
+	assert.NoError(t, base.DB.Create(&problem1).Error)
+	assert.NoError(t, base.DB.Create(&problem2).Error)
+	assert.NoError(t, base.DB.Create(&problem3).Error)
+	assert.NoError(t, base.DB.Create(&problem4).Error)
 
 	type respData struct {
 		Problems []models.Problem `json:"problems"`
@@ -537,8 +537,8 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 		CompileEnvironment: "test_get_problem_attachment_file_1_compile_environment",
 		CompareScriptName:  "cmp1",
 	}
-	assert.Nil(t, base.DB.Create(&problemWithoutAttachmentFile).Error)
-	assert.Nil(t, base.DB.Create(&publicFalseProblem).Error)
+	assert.NoError(t, base.DB.Create(&problemWithoutAttachmentFile).Error)
+	assert.NoError(t, base.DB.Create(&publicFalseProblem).Error)
 
 	failTests := []failTest{
 		{
@@ -603,7 +603,7 @@ func TestGetProblemAttachmentFile(t *testing.T) {
 				problem := createProblemForTest(t, "test_get_problem_attachment_file", i+2, test.file, user)
 				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getProblemAttachmentFile", problem.ID), nil, applyNormalUser))
 				fileBytes, err := ioutil.ReadAll(test.file.reader)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				assert.Equal(t, string(fileBytes), getPresignedURLContent(t, httpResp.Header.Get("Location")))
 			})
 		}
@@ -762,7 +762,7 @@ func TestCreateProblem(t *testing.T) {
 				httpResp := makeResp(httpReq)
 				assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 				databaseProblem := models.Problem{}
-				assert.Nil(t, base.DB.Where("name = ?", test.req.Name).First(&databaseProblem).Error)
+				assert.NoError(t, base.DB.Where("name = ?", test.req.Name).First(&databaseProblem).Error)
 				// request == database
 				assert.Equal(t, test.req.Name, databaseProblem.Name)
 				assert.Equal(t, test.req.Description, databaseProblem.Description)
@@ -788,7 +788,7 @@ func TestCreateProblem(t *testing.T) {
 				if test.attachment != nil {
 					storageContent := getObjectContent(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
 					expectedContent, err := ioutil.ReadAll(test.attachment.reader)
-					assert.Nil(t, err)
+					assert.NoError(t, err)
 					assert.Equal(t, expectedContent, storageContent)
 					assert.Equal(t, test.attachment.fileName, databaseProblem.AttachmentFileName)
 				} else {
@@ -808,7 +808,7 @@ func TestUpdateProblem(t *testing.T) {
 		AttachmentFileName: "test_update_problem_1_attachment_file_name",
 		LanguageAllowed:    []string{"test_update_problem_1_language_allowed"},
 	}
-	assert.Nil(t, base.DB.Create(&problem1).Error)
+	assert.NoError(t, base.DB.Create(&problem1).Error)
 
 	userWithProblem1Perm := models.User{
 		Username: "test_update_problem_user_p1",
@@ -816,7 +816,7 @@ func TestUpdateProblem(t *testing.T) {
 		Email:    "test_update_problem_user_p1@e.e",
 		Password: utils.HashPassword("test_update_problem_user_p1"),
 	}
-	assert.Nil(t, base.DB.Create(&userWithProblem1Perm).Error)
+	assert.NoError(t, base.DB.Create(&userWithProblem1Perm).Error)
 	userWithProblem1Perm.GrantRole("problem_creator", problem1)
 
 	FailTests := []failTest{
@@ -1143,15 +1143,15 @@ func TestUpdateProblem(t *testing.T) {
 			test := test
 			t.Run("TestUpdateProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.originalProblem).Error)
+				assert.NoError(t, base.DB.Create(&test.originalProblem).Error)
 				for j := range test.testCases {
-					assert.Nil(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]))
+					assert.NoError(t, base.DB.Model(&test.originalProblem).Association("TestCases").Append(&test.testCases[j]))
 				}
 				if test.originalAttachment != nil {
 					_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", test.originalProblem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
-					assert.Nil(t, err)
+					assert.NoError(t, err)
 					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
-					assert.Nil(t, err)
+					assert.NoError(t, err)
 				}
 				path := base.Echo.Reverse("problem.updateProblem", test.originalProblem.ID)
 				user := createUserForTest(t, "update_problem", i)
@@ -1177,14 +1177,14 @@ func TestUpdateProblem(t *testing.T) {
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				}))
 				databaseProblem := models.Problem{}
-				assert.Nil(t, base.DB.First(&databaseProblem, test.originalProblem.ID).Error)
+				assert.NoError(t, base.DB.First(&databaseProblem, test.originalProblem.ID).Error)
 				// ignore other fields
 				test.expectedProblem.ID = databaseProblem.ID
 				test.expectedProblem.CreatedAt = databaseProblem.CreatedAt
 				test.expectedProblem.UpdatedAt = databaseProblem.UpdatedAt
 				test.expectedProblem.DeletedAt = databaseProblem.DeletedAt
 				assert.Equal(t, test.expectedProblem, databaseProblem)
-				assert.Nil(t, base.DB.Set("gorm:auto_preload", true).Model(databaseProblem).Association("TestCases").Find(&databaseProblem.TestCases))
+				assert.NoError(t, base.DB.Set("gorm:auto_preload", true).Model(databaseProblem).Association("TestCases").Find(&databaseProblem.TestCases))
 				if test.testCases != nil {
 					jsonEQ(t, test.testCases, databaseProblem.TestCases)
 				} else {
@@ -1209,7 +1209,7 @@ func TestUpdateProblem(t *testing.T) {
 					} else {
 						expectedContent, err = ioutil.ReadAll(test.originalAttachment.reader)
 					}
-					assert.Nil(t, err)
+					assert.NoError(t, err)
 					assert.Equal(t, expectedContent, storageContent)
 				}
 			})
@@ -1356,7 +1356,7 @@ func TestDeleteProblem(t *testing.T) {
 			test := test
 			t.Run("TestDeleteProblem"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.problem).Error)
+				assert.NoError(t, base.DB.Create(&test.problem).Error)
 				for j := range test.testCases {
 					createTestCaseForTest(t, test.problem, testCaseData{
 						Score:      test.testCases[j].testcase.Score,
@@ -1367,9 +1367,9 @@ func TestDeleteProblem(t *testing.T) {
 				}
 				if test.originalAttachment != nil {
 					_, err := base.Storage.PutObject(context.Background(), "problems", fmt.Sprintf("%d/attachment", test.problem.ID), test.originalAttachment.reader, test.originalAttachment.size, minio.PutObjectOptions{})
-					assert.Nil(t, err)
+					assert.NoError(t, err)
 					_, err = test.originalAttachment.reader.Seek(0, io.SeekStart)
-					assert.Nil(t, err)
+					assert.NoError(t, err)
 				}
 				user := createUserForTest(t, "delete_problem", i)
 				user.GrantRole("problem_creator", test.problem)
@@ -1511,7 +1511,7 @@ func TestCreateTestCase(t *testing.T) {
 			OutputFileName: "test_create_test_case_success.out",
 		}
 		databaseTestCase := models.TestCase{}
-		assert.Nil(t, base.DB.Where("problem_id = ? and input_file_name = ?", problem.ID, "test_create_test_case_success.in").First(&databaseTestCase).Error)
+		assert.NoError(t, base.DB.Where("problem_id = ? and input_file_name = ?", problem.ID, "test_create_test_case_success.in").First(&databaseTestCase).Error)
 		assert.Equal(t, expectedTestCase.ProblemID, databaseTestCase.ProblemID)
 		assert.Equal(t, expectedTestCase.InputFileName, databaseTestCase.InputFileName)
 		assert.Equal(t, expectedTestCase.OutputFileName, databaseTestCase.OutputFileName)
@@ -1926,7 +1926,7 @@ func TestUpdateTestCase(t *testing.T) {
 					expectedInputFileReader = test.originalData.InputFile.reader
 				}
 				expectedInputContent, err := ioutil.ReadAll(expectedInputFileReader)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				assert.Equal(t, (expectedInputContent), (getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID))))
 
 				var expectedOutputFileReader io.Reader
@@ -1936,7 +1936,7 @@ func TestUpdateTestCase(t *testing.T) {
 					expectedOutputFileReader = test.originalData.OutputFile.reader
 				}
 				expectedOutputContent, err := ioutil.ReadAll(expectedOutputFileReader)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				assert.Equal(t, (expectedOutputContent), (getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID))))
 
 				resp := response.UpdateTestCaseResponse{}
@@ -2080,7 +2080,7 @@ func TestDeleteTestCases(t *testing.T) {
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
 		var databaseTestCases []models.TestCase
-		assert.Nil(t, base.DB.Find(&databaseTestCases, "problem_id = ?", problem.ID).Error)
+		assert.NoError(t, base.DB.Find(&databaseTestCases, "problem_id = ?", problem.ID).Error)
 		assert.Equal(t, 0, len(databaseTestCases))
 	})
 }

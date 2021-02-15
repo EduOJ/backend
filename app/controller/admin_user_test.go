@@ -129,7 +129,7 @@ func TestAdminCreateUser(t *testing.T) {
 		Email:    "test_create_user_conflict@mail.com",
 		Password: utils.HashPassword("test_create_user_conflict_pwd"),
 	}
-	assert.Nil(t, base.DB.Create(&dummyUserForConflict).Error)
+	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
 	runFailTests(t, FailTests, "AdminCreateUser")
 
 	t.Run("testAdminCreateUserSuccess", func(t *testing.T) {
@@ -143,7 +143,7 @@ func TestAdminCreateUser(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("admin.user.createUser"), req, applyAdminUser))
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 		databaseUser := models.User{}
-		assert.Nil(t, base.DB.Where("email = ?", req.Email).First(&databaseUser).Error)
+		assert.NoError(t, base.DB.Where("email = ?", req.Email).First(&databaseUser).Error)
 		// request == database
 		assert.Equal(t, req.Username, databaseUser.Username)
 		assert.Equal(t, req.Nickname, databaseUser.Nickname)
@@ -176,8 +176,8 @@ func TestAdminUpdateUser(t *testing.T) {
 		Email:    "test_update_user_conflict@mail.com",
 		Password: utils.HashPassword("test_update_user_conflict_pwd"),
 	}
-	assert.Nil(t, base.DB.Create(&user1).Error)
-	assert.Nil(t, base.DB.Create(&dummyUserForConflict).Error)
+	assert.NoError(t, base.DB.Create(&user1).Error)
+	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
 
 	FailTests := []failTest{
 		{
@@ -377,13 +377,13 @@ func TestAdminUpdateUser(t *testing.T) {
 			test := test
 			t.Run("testAdminUpdateUser"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.originalUser).Error)
+				assert.NoError(t, base.DB.Create(&test.originalUser).Error)
 				if test.path == "id" {
 					test.path = base.Echo.Reverse("admin.user.updateUser", test.originalUser.ID)
 				}
 				httpResp := makeResp(makeReq(t, "PUT", test.path, test.req, applyAdminUser))
 				databaseUser := models.User{}
-				assert.Nil(t, base.DB.First(&databaseUser, test.originalUser.ID).Error)
+				assert.NoError(t, base.DB.First(&databaseUser, test.originalUser.ID).Error)
 				assert.Equal(t, test.expectedUser.Username, databaseUser.Username)
 				assert.Equal(t, test.expectedUser.Nickname, databaseUser.Nickname)
 				assert.Equal(t, test.expectedUser.Email, databaseUser.Email)
@@ -477,7 +477,7 @@ func TestAdminDeleteUser(t *testing.T) {
 			test := test
 			t.Run("testAdminDeleteUser"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&test.user).Error)
 				if test.path == "id" {
 					test.path = base.Echo.Reverse("admin.user.deleteUser", test.user.ID)
 				}
@@ -601,7 +601,7 @@ func TestAdminGetUser(t *testing.T) {
 			test := test
 			t.Run("testAdminGetUser"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&test.user).Error)
 				if test.roleName != nil {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
@@ -612,7 +612,7 @@ func TestAdminGetUser(t *testing.T) {
 				httpResp := makeResp(makeReq(t, "GET", test.path, test.req, applyAdminUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				databaseUser := models.User{}
-				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
 				assert.Equal(t, test.user.Username, databaseUser.Username)
 				assert.Equal(t, test.user.Nickname, databaseUser.Nickname)
 				assert.Equal(t, test.user.Email, databaseUser.Email)
@@ -657,10 +657,10 @@ func TestAdminGetUsers(t *testing.T) {
 		Password: "test_admin_get_users_4_passwd",
 	}
 	DLUsers := make([]models.User, 25) // DL: Default Limit
-	assert.Nil(t, base.DB.Create(&user1).Error)
-	assert.Nil(t, base.DB.Create(&user2).Error)
-	assert.Nil(t, base.DB.Create(&user3).Error)
-	assert.Nil(t, base.DB.Create(&user4).Error)
+	assert.NoError(t, base.DB.Create(&user1).Error)
+	assert.NoError(t, base.DB.Create(&user2).Error)
+	assert.NoError(t, base.DB.Create(&user3).Error)
+	assert.NoError(t, base.DB.Create(&user4).Error)
 
 	for i := 0; i < 25; i++ {
 		DLUsers[i] = models.User{
@@ -669,7 +669,7 @@ func TestAdminGetUsers(t *testing.T) {
 			Email:    fmt.Sprintf("test_DL_admin_get_users_%d@e.e", i),
 			Password: fmt.Sprintf("test_DL_admin_get_users_pwd_%d", i),
 		}
-		assert.Nil(t, base.DB.Create(&DLUsers[i]).Error)
+		assert.NoError(t, base.DB.Create(&DLUsers[i]).Error)
 	}
 
 	type respData struct {

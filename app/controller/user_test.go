@@ -107,7 +107,7 @@ func TestGetUser(t *testing.T) {
 			test := test
 			t.Run("testGetUser"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&test.user).Error)
 				if test.roleName != nil {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				} else {
@@ -119,7 +119,7 @@ func TestGetUser(t *testing.T) {
 				httpResp := makeResp(makeReq(t, "GET", test.path, test.req, applyNormalUser))
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				databaseUser := models.User{}
-				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
 				assert.Equal(t, test.user.Username, databaseUser.Username)
 				assert.Equal(t, test.user.Nickname, databaseUser.Nickname)
 				assert.Equal(t, test.user.Email, databaseUser.Email)
@@ -164,10 +164,10 @@ func TestGetUsers(t *testing.T) {
 		Password: "test_get_users_4_passwd",
 	}
 	DLUsers := make([]models.User, 25) // DL: Default Limit
-	assert.Nil(t, base.DB.Create(&user1).Error)
-	assert.Nil(t, base.DB.Create(&user2).Error)
-	assert.Nil(t, base.DB.Create(&user3).Error)
-	assert.Nil(t, base.DB.Create(&user4).Error)
+	assert.NoError(t, base.DB.Create(&user1).Error)
+	assert.NoError(t, base.DB.Create(&user2).Error)
+	assert.NoError(t, base.DB.Create(&user3).Error)
+	assert.NoError(t, base.DB.Create(&user4).Error)
 
 	for i := 0; i < 25; i++ {
 		DLUsers[i] = models.User{
@@ -176,7 +176,7 @@ func TestGetUsers(t *testing.T) {
 			Email:    fmt.Sprintf("test_DL_get_users_%d@e.e", i),
 			Password: fmt.Sprintf("test_DL_get_users_pwd_%d", i),
 		}
-		assert.Nil(t, base.DB.Create(&DLUsers[i]).Error)
+		assert.NoError(t, base.DB.Create(&DLUsers[i]).Error)
 	}
 
 	type respData struct {
@@ -649,7 +649,7 @@ func TestGetUserMe(t *testing.T) {
 			test := test
 			t.Run("testGetMe"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&test.user).Error)
 				if test.roleName != nil {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
@@ -662,7 +662,7 @@ func TestGetUserMe(t *testing.T) {
 				assert.Equal(t, test.user.Email, resp.Data.Email)
 				assert.Equal(t, resource.GetRoleSlice(test.user.Roles), resp.Data.Roles)
 				databaseUser := models.User{}
-				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
 				databaseUser.LoadRoles()
 				assert.Equal(t, test.user.Username, databaseUser.Username)
 				assert.Equal(t, test.user.Nickname, databaseUser.Nickname)
@@ -700,10 +700,10 @@ func TestUpdateUserMe(t *testing.T) {
 		Email:    "test_update_me_conflict@mail.com",
 		Password: utils.HashPassword("test_update_me_conflict_pwd"),
 	}
-	assert.Nil(t, base.DB.Create(&user1).Error)
-	assert.Nil(t, base.DB.Create(&user2).Error)
-	assert.Nil(t, base.DB.Create(&user3).Error)
-	assert.Nil(t, base.DB.Create(&dummyUserForConflict).Error)
+	assert.NoError(t, base.DB.Create(&user1).Error)
+	assert.NoError(t, base.DB.Create(&user2).Error)
+	assert.NoError(t, base.DB.Create(&user3).Error)
+	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
 
 	failTests := []failTest{
 		{
@@ -831,7 +831,7 @@ func TestUpdateUserMe(t *testing.T) {
 			test := test
 			t.Run("testUpdateMe"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&test.user).Error)
 				if test.roleName != nil {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
@@ -844,7 +844,7 @@ func TestUpdateUserMe(t *testing.T) {
 				assert.Equal(t, test.req.Email, resp.Data.Email)
 				assert.Equal(t, resource.GetRoleSlice(test.user.Roles), resp.Data.Roles)
 				databaseUser := models.User{}
-				assert.Nil(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
 				databaseUser.LoadRoles()
 				assert.Equal(t, test.req.Username, databaseUser.Username)
 				assert.Equal(t, test.req.Nickname, databaseUser.Nickname)
@@ -891,7 +891,7 @@ func TestChangePassword(t *testing.T) {
 			Email:    "test_change_passwd_1@mail.com",
 			Password: utils.HashPassword("test_change_passwd_old_passwd"),
 		}
-		assert.Nil(t, base.DB.Create(&user).Error)
+		assert.NoError(t, base.DB.Create(&user).Error)
 		token1 := models.Token{
 			Token: utils.RandStr(32),
 			User:  user,
@@ -904,9 +904,9 @@ func TestChangePassword(t *testing.T) {
 			Token: utils.RandStr(32),
 			User:  user,
 		}
-		assert.Nil(t, base.DB.Create(&token1).Error)
-		assert.Nil(t, base.DB.Create(&token2).Error)
-		assert.Nil(t, base.DB.Create(&token3).Error)
+		assert.NoError(t, base.DB.Create(&token1).Error)
+		assert.NoError(t, base.DB.Create(&token2).Error)
+		assert.NoError(t, base.DB.Create(&token3).Error)
 		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.changePassword"), request.ChangePasswordRequest{
 			OldPassword: "test_change_passwd_old_passwd",
 			NewPassword: "test_change_passwd_new_passwd",
@@ -915,13 +915,13 @@ func TestChangePassword(t *testing.T) {
 		}))
 		var tokens []models.Token
 		var updatedUser models.User
-		assert.Nil(t, base.DB.Preload("User").Where("user_id = ?", user.ID).Find(&tokens).Error)
+		assert.NoError(t, base.DB.Preload("User").Where("user_id = ?", user.ID).Find(&tokens).Error)
 		token1, _ = utils.GetToken(token1.Token)
 		assert.Equal(t, []models.Token{
 			token1,
 		}, tokens)
 
-		assert.Nil(t, base.DB.First(&updatedUser, user.ID).Error)
+		assert.NoError(t, base.DB.First(&updatedUser, user.ID).Error)
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		jsonEQ(t, response.Response{
 			Message: "SUCCESS",
@@ -939,12 +939,12 @@ func TestChangePassword(t *testing.T) {
 			Email:    "test_change_passwd_2@mail.com",
 			Password: utils.HashPassword("test_change_passwd_old_passwd"),
 		}
-		assert.Nil(t, base.DB.Create(&user).Error)
+		assert.NoError(t, base.DB.Create(&user).Error)
 		mainToken := models.Token{
 			Token: utils.RandStr(32),
 			User:  user,
 		}
-		assert.Nil(t, base.DB.Create(&mainToken).Error)
+		assert.NoError(t, base.DB.Create(&mainToken).Error)
 		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.changePassword"), request.ChangePasswordRequest{
 			OldPassword: "test_change_passwd_wrong",
 			NewPassword: "test_change_passwd_new_passwd",
