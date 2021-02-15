@@ -80,8 +80,10 @@ func TestUpdateRun(t *testing.T) {
 		Name:     "update_run",
 		Filename: "test",
 	}
+	assert.NoError(t, base.DB.Create(&compareScript).Error)
 	t.Run("SuccessWithNotAcceptedAnswers", func(t *testing.T) {
 		t.Parallel()
+		compareScript := compareScript
 		user := createUserForTest(t, "update_run", 1)
 		problem := createProblemForTest(t, "update_run", 1, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 1, &problem, &user, newFileContent(
@@ -229,6 +231,7 @@ func TestUpdateRun(t *testing.T) {
 
 	t.Run("SuccessAccepted", func(t *testing.T) {
 		t.Parallel()
+		compareScript := compareScript
 		user := createUserForTest(t, "update_run", 2)
 		problem := createProblemForTest(t, "update_run", 2, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 2, &problem, &user, newFileContent(
@@ -374,6 +377,7 @@ func TestUpdateRun(t *testing.T) {
 
 	t.Run("SuccessNotDefaultScore", func(t *testing.T) {
 		t.Parallel()
+		compareScript := compareScript
 		user := createUserForTest(t, "update_run", 3)
 		problem := createProblemForTest(t, "update_run", 3, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 3, &problem, &user, newFileContent(
@@ -526,6 +530,7 @@ func TestUpdateRun(t *testing.T) {
 
 	t.Run("Fail", func(t *testing.T) {
 		t.Parallel()
+		compareScript := compareScript
 		user := createUserForTest(t, "update_run", 4)
 		problem := createProblemForTest(t, "update_run", 4, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 4, &problem, &user, newFileContent(
