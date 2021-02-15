@@ -94,10 +94,10 @@ func TestDatabaseWriter(t *testing.T) {
 	exit.QuitWG.Wait()
 	lm := models.Log{}
 	count := int64(-1)
-	assert.Equal(t, nil, base.DB.Table("logs").Count(&count).Error)
+	assert.NoError(t, base.DB.Table("logs").Count(&count).Error)
 	assert.LessOrEqual(t, int64(100), count)
 
-	assert.Equal(t, nil, base.DB.First(&lm).Error)
+	assert.NoError(t, base.DB.First(&lm).Error)
 	ll := int(DEBUG)
 	assert.Equal(t, models.Log{
 		ID:        lm.ID,

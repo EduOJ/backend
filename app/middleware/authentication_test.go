@@ -70,7 +70,7 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 		Email:    "testAuthenticationMiddle@e.com",
 		Password: "",
 	}
-	assert.Equal(t, nil, base.DB.Save(&testUser).Error)
+	assert.NoError(t, base.DB.Save(&testUser).Error)
 
 	activeToken := models.Token{
 		Token: utils.RandStr(32),
@@ -92,10 +92,10 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 		UpdatedAt:  time.Now().Add(-1 * time.Second * time.Duration(720000)),
 		RememberMe: true,
 	}
-	assert.Equal(t, nil, base.DB.Save(&activeToken).Error)
-	assert.Equal(t, nil, base.DB.Save(&expiredToken).Error)
-	assert.Equal(t, nil, base.DB.Save(&activeRememberMeToken).Error)
-	assert.Equal(t, nil, base.DB.Save(&expiredRememberMeToken).Error)
+	assert.NoError(t, base.DB.Save(&activeToken).Error)
+	assert.NoError(t, base.DB.Save(&expiredToken).Error)
+	assert.NoError(t, base.DB.Save(&activeRememberMeToken).Error)
+	assert.NoError(t, base.DB.Save(&expiredRememberMeToken).Error)
 
 	failTests := []struct {
 		name        string

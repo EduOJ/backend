@@ -34,7 +34,7 @@ func TestLogin(t *testing.T) {
 		Email:    "test_login_wrong_password@e.e",
 		Password: utils.HashPassword("test_login_password"),
 	}
-	assert.Nil(t, base.DB.Create(&userTestingWrongPassword).Error)
+	assert.NoError(t, base.DB.Create(&userTestingWrongPassword).Error)
 
 	failTests := []failTest{
 		{
@@ -179,7 +179,7 @@ func TestLogin(t *testing.T) {
 			test := test
 			t.Run("testLogin"+test.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Nil(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&test.user).Error)
 				if test.roleName != nil {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
@@ -191,7 +191,7 @@ func TestLogin(t *testing.T) {
 				assert.Nil(t, resp.Error)
 				jsonEQ(t, resource.GetUserForAdmin(&test.user), resp.Data.User)
 				token := models.Token{}
-				assert.Nil(t, base.DB.Preload("User").Where("token = ?", resp.Data.Token).First(&token).Error)
+				assert.NoError(t, base.DB.Preload("User").Where("token = ?", resp.Data.Token).First(&token).Error)
 				token.User.LoadRoles()
 				jsonEQ(t, test.user, token.User)
 				assert.Equal(t, test.req.RememberMe, token.RememberMe)
@@ -208,7 +208,7 @@ func TestRegister(t *testing.T) {
 		Email:    "test_register_conflict@mail.com",
 		Password: utils.HashPassword("test_register_conflict_pwd"),
 	}
-	assert.Nil(t, base.DB.Create(&dummyUserForConflict).Error)
+	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
 
 	failTests := []failTest{
 		{
@@ -306,11 +306,11 @@ func TestRegister(t *testing.T) {
 		assert.Equal(t, reqUser.Nickname, resp.Data.User.Nickname)
 		assert.Equal(t, reqUser.Email, resp.Data.User.Email)
 		databaseUser := models.User{}
-		assert.Nil(t, base.DB.Where("email = ?", "test_register_3@mail.com").First(&databaseUser).Error)
+		assert.NoError(t, base.DB.Where("email = ?", "test_register_3@mail.com").First(&databaseUser).Error)
 		// resp == database
 		jsonEQ(t, resp.Data.User, resource.GetUserForAdmin(&databaseUser))
 		token := models.Token{}
-		assert.Nil(t, base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error)
+		assert.NoError(t, base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error)
 		// token == database
 		assert.Equal(t, databaseUser.ID, token.UserID)
 	})

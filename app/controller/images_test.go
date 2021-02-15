@@ -26,7 +26,7 @@ func TestGetImage(t *testing.T) {
 	imageBlob := "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"
 	imageBuffer := bytes.Buffer{}
 	_, err := io.Copy(&imageBuffer, base64.NewDecoder(base64.StdEncoding, strings.NewReader(imageBlob)))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	imageBytes := imageBuffer.Bytes()
 	{
 		// Write image to database and storage.
@@ -71,7 +71,7 @@ func TestGetImage(t *testing.T) {
 	// test found
 	httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("image.getImage", "test_image_path"), nil))
 	respbytes, err := ioutil.ReadAll(httpResp.Body)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 200, httpResp.StatusCode)
 	assert.Equal(t, imageBytes, []byte(respbytes))
 
@@ -103,7 +103,7 @@ func TestCreateImage(t *testing.T) {
 		t.Parallel()
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
-		assert.Nil(t, w.Close())
+		assert.NoError(t, w.Close())
 		req := httptest.NewRequest("POST", base.Echo.Reverse("image.createImage"), &b)
 		req.Header.Set("Set-User-For-Test", applyNormalUser["Set-User-For-Test"][0])
 		req.Header.Set("Content-Type", w.FormDataContentType())
@@ -120,10 +120,10 @@ func TestCreateImage(t *testing.T) {
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
 		fw, err := w.CreateFormFile("file", "baidu.png")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = io.Copy(fw, base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64)))
-		assert.Nil(t, err)
-		assert.Nil(t, w.Close())
+		assert.NoError(t, err)
+		assert.NoError(t, w.Close())
 		req := httptest.NewRequest("POST", base.Echo.Reverse("image.createImage"), &b)
 		req.Header.Set("Set-User-For-Test", applyNormalUser["Set-User-For-Test"][0])
 		req.Header.Set("Content-Type", w.FormDataContentType())
@@ -140,10 +140,10 @@ func TestCreateImage(t *testing.T) {
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
 		fw, err := w.CreateFormFile("file", "baidu.jpg")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = io.Copy(fw, base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64)))
-		assert.Nil(t, err)
-		assert.Nil(t, w.Close())
+		assert.NoError(t, err)
+		assert.NoError(t, w.Close())
 		req := httptest.NewRequest("POST", base.Echo.Reverse("image.createImage"), &b)
 		req.Header.Set("Set-User-For-Test", applyNormalUser["Set-User-For-Test"][0])
 		req.Header.Set("Content-Type", w.FormDataContentType())
@@ -160,10 +160,10 @@ func TestCreateImage(t *testing.T) {
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
 		fw, err := w.CreateFormFile("file", "baidu.png")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		_, err = io.Copy(fw, base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64)))
-		assert.Nil(t, err)
-		assert.Nil(t, w.Close())
+		assert.NoError(t, err)
+		assert.NoError(t, w.Close())
 		req := httptest.NewRequest("POST", base.Echo.Reverse("image.createImage"), &b)
 		req.Header.Set("Set-User-For-Test", applyNormalUser["Set-User-For-Test"][0])
 		req.Header.Set("Content-Type", w.FormDataContentType())
@@ -181,13 +181,13 @@ func TestCreateImage(t *testing.T) {
 		base.DB.Model(models.Image{}).Where("file_path = ?", sepPath[len(sepPath)-1]).Find(&imageModel)
 		assert.Equal(t, imageModel.Filename, "baidu.png")
 		o, err := base.Storage.GetObject(context.Background(), "images", sepPath[len(sepPath)-1], minio.GetObjectOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		buf := bytes.Buffer{}
 		_, err = io.Copy(&buf, o)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		imgBuf := bytes.Buffer{}
 		_, err = io.Copy(&imgBuf, base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64)))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, imgBuf.Bytes(), buf.Bytes())
 	})
 }

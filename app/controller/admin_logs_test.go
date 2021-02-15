@@ -73,7 +73,7 @@ func TestAdminGetLogs(t *testing.T) {
 			Message: fmt.Sprintf("test_admin_get_logs_%s_message", ll.String()),
 			Caller:  fmt.Sprintf("test_admin_get_logs_%s_caller", ll.String()),
 		}
-		assert.Nil(t, base.DB.Create(&l).Error)
+		assert.NoError(t, base.DB.Create(&l).Error)
 		logs[ll] = l
 	}
 

@@ -37,12 +37,12 @@ func TestFindUser(t *testing.T) {
 			Email:    "test_find_user_id@mail.com",
 			Password: "test_find_user_id_password",
 		}
-		assert.Nil(t, base.DB.Create(&user).Error)
+		assert.NoError(t, base.DB.Create(&user).Error)
 		foundUser, err := FindUser(fmt.Sprintf("%d", user.ID))
 		if foundUser != nil {
 			assert.Equal(t, user, *foundUser)
 		}
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 	t.Run("findUserSuccessWithUsername", func(t *testing.T) {
 		user := models.User{
@@ -51,12 +51,12 @@ func TestFindUser(t *testing.T) {
 			Email:    "test_find_user_name@mail.com",
 			Password: "test_find_user_name_password",
 		}
-		assert.Nil(t, base.DB.Create(&user).Error)
+		assert.NoError(t, base.DB.Create(&user).Error)
 		foundUser, err := FindUser(user.Username)
 		if foundUser != nil {
 			assert.Equal(t, user, *foundUser)
 		}
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 }
 
@@ -77,7 +77,7 @@ func limitQuery(query *gorm.DB, min, max int) *gorm.DB {
 
 func getQuery(t *testing.T, search string) *gorm.DB {
 	query := base.DB.Model(&TestObject{}).Where("name like ?", "%"+search+"%")
-	assert.Nil(t, query.Error)
+	assert.NoError(t, query.Error)
 	return query
 }
 
@@ -89,11 +89,11 @@ func TestPaginator(t *testing.T) {
 			StringAttribute:  fmt.Sprintf("tpo%d", i),
 			IntegerAttribute: i,
 		}
-		assert.Nil(t, base.DB.Create(&testObjects[i]).Error)
+		assert.NoError(t, base.DB.Create(&testObjects[i]).Error)
 	}
 
 	requestURL, err := url.Parse("http://test.paginator.request.url/testing/path?test_para1=tp1&test_para2=tp2")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	tests := []struct {
 		name    string
@@ -307,7 +307,7 @@ func TestPaginator(t *testing.T) {
 			t.Parallel()
 			var output []TestObject
 			reqURL, err := url.Parse("http://test.paginator.request.url/testing/path?test_para1=tp1&test_para2=tp2")
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			total, prevUrl, nextUrl, err := Paginator(test.query, test.limit, test.offset, reqURL, &output)
 			assert.Equal(t, test.err, err)
 			if err == nil {
@@ -353,10 +353,10 @@ func TestSorter(t *testing.T) {
 		StringAttribute:  "B_tso_4",
 		IntegerAttribute: 3,
 	}
-	assert.Nil(t, base.DB.Create(&testObject1).Error)
-	assert.Nil(t, base.DB.Create(&testObject2).Error)
-	assert.Nil(t, base.DB.Create(&testObject3).Error)
-	assert.Nil(t, base.DB.Create(&testObject4).Error)
+	assert.NoError(t, base.DB.Create(&testObject1).Error)
+	assert.NoError(t, base.DB.Create(&testObject2).Error)
+	assert.NoError(t, base.DB.Create(&testObject3).Error)
+	assert.NoError(t, base.DB.Create(&testObject4).Error)
 
 	invalidError := HttpError{
 		Code:    400,
@@ -531,7 +531,7 @@ func TestSorter(t *testing.T) {
 			resultQuery, err := Sorter(base.DB.Model(&TestObject{}).Where("name like ?", "%test_sorter_object_%"), test.orderBy, test.columnAllowed...)
 			assert.Equal(t, test.err, err)
 			if err == nil {
-				assert.Nil(t, resultQuery.Find(&output).Error)
+				assert.NoError(t, resultQuery.Find(&output).Error)
 				assert.Equal(t, len(test.output), len(output))
 				for i := range output {
 					output[i].UpdatedAt = test.output[i].UpdatedAt

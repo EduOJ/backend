@@ -26,7 +26,7 @@ func TestJudger(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		body, err := ioutil.ReadAll(resp.Body)
 		assert.Equal(t, "OK", string(body))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("NoName", func(t *testing.T) {
