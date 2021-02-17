@@ -31,7 +31,7 @@ var FieldTranslations = map[string]string{
 	"MemoryLimit":        "内存限制",
 	"TimeLimit":          "运行时间限制",
 	"LanguageAllowed":    "可用语言",
-	"CompileEnvironment": "编译环境",
+	"BuildArg":           "编译环境",
 	"CompareScriptName":  "评测脚本",
 	"OldPassword":        "旧密码",
 	"NewPassword":        "新密码",

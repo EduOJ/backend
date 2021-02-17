@@ -731,6 +731,52 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropConstraint(&Problem{}, "fk_submissions_language")
 			},
 		},
+		{
+			ID: "rename_problem_compile_envirionment",
+			Migrate: func(tx *gorm.DB) error {
+
+				type Problem struct {
+					ID                 uint   `gorm:"primaryKey" json:"id"`
+					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
+					Description        string `json:"description"`
+					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
+					Public             bool   `json:"public" gorm:"default:false;not null"`
+					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
+
+					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
+					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
+					CompareScriptName  string      `json:"compare_script_name" gorm:"default:0;not null"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().RenameColumn(&Problem{}, "compile_environment", "build_arg")
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Problem struct {
+					ID                 uint   `gorm:"primaryKey" json:"id"`
+					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
+					Description        string `json:"description"`
+					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
+					Public             bool   `json:"public" gorm:"default:false;not null"`
+					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
+
+					MemoryLimit        uint64      `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+					TimeLimit          uint        `json:"time_limit" gorm:"default:0;not null"`                             // ms
+					LanguageAllowed    StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+					CompileEnvironment string      `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
+					CompareScriptName  string      `json:"compare_script_name" gorm:"default:0;not null"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().RenameColumn(&Problem{}, "build_arg", "compile_environment")
+			},
+		},
 	})
 }
 

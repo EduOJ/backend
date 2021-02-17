@@ -38,12 +38,12 @@ type Problem struct {
 	Public             bool   `json:"public" gorm:"default:false;not null"`
 	Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
 
-	MemoryLimit        uint64               `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
-	TimeLimit          uint                 `json:"time_limit" gorm:"default:0;not null"`                             // ms
-	LanguageAllowed    database.StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
-	CompileEnvironment string               `json:"compile_environment" gorm:"size:2047;default:'';not null"`         // E.g.  O2=false
-	CompareScriptName  string               `json:"compare_script_name" gorm:"default:0;not null"`
-	CompareScript      Script               `json:"compare_script"`
+	MemoryLimit       uint64               `json:"memory_limit" gorm:"default:0;not null;type:bigint"`               // Byte
+	TimeLimit         uint                 `json:"time_limit" gorm:"default:0;not null"`                             // ms
+	LanguageAllowed   database.StringArray `json:"language_allowed" gorm:"size:255;default:'';not null;type:string"` // E.g.    cpp,c,java,python
+	BuildArg          string               `json:"build_arg" gorm:"size:2047;default:'';not null"`                   // E.g.  O2=false
+	CompareScriptName string               `json:"compare_script_name" gorm:"default:0;not null"`
+	CompareScript     Script               `json:"compare_script"`
 
 	TestCases []TestCase `json:"test_cases"`
 

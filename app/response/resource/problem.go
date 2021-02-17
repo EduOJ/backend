@@ -31,11 +31,11 @@ type ProblemForAdmin struct {
 	Public             bool   `json:"public"`
 	Privacy            bool   `json:"privacy"`
 
-	MemoryLimit        uint64   `json:"memory_limit"` // Byte
-	TimeLimit          uint     `json:"time_limit"`   // ms
-	LanguageAllowed    []string `json:"language_allowed"`
-	CompileEnvironment string   `json:"compile_environment"` // E.g.  O2=false
-	CompareScriptName  string   `json:"compare_script_name"`
+	MemoryLimit       uint64   `json:"memory_limit"` // Byte
+	TimeLimit         uint     `json:"time_limit"`   // ms
+	LanguageAllowed   []string `json:"language_allowed"`
+	BuildArg          string   `json:"build_arg"` // E.g.  O2=false
+	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCaseForAdmin `json:"test_cases"`
 }
@@ -94,7 +94,7 @@ func (p *ProblemForAdmin) convert(problem *models.Problem) {
 
 	p.Public = problem.Public
 	p.Privacy = problem.Privacy
-	p.CompileEnvironment = problem.CompileEnvironment
+	p.BuildArg = problem.BuildArg
 
 	p.TestCases = make([]TestCaseForAdmin, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
