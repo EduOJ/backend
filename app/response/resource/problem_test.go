@@ -35,7 +35,7 @@ func createProblemForTest(name string, id uint, testCaseCount uint) (problem mod
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
 		LanguageAllowed:    []string{fmt.Sprintf("test_%s_language_allowed_%d", name, id), "test_language"},
-		CompileEnvironment: fmt.Sprintf("test_%s_compile_environment_%d", name, id),
+		BuildArg:           fmt.Sprintf("test_%s_build_arg_%d", name, id),
 		CompareScriptName:  "cmp1",
 		TestCases:          make([]models.TestCase, testCaseCount),
 		CreatedAt:          time.Date(int(id), 1, 1, 1, 1, 1, 1, time.FixedZone("test_zone", 0)),
@@ -115,7 +115,7 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 			MemoryLimit:        1024,
 			TimeLimit:          1000,
 			LanguageAllowed:    []string{"test_get_problem_language_allowed_0", "test_language"},
-			CompileEnvironment: "test_get_problem_compile_environment_0",
+			BuildArg:           "test_get_problem_build_arg_0",
 			CompareScriptName:  "cmp1",
 			TestCases: []resource.TestCaseForAdmin{
 				{
@@ -201,7 +201,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				MemoryLimit:        1024,
 				TimeLimit:          1000,
 				LanguageAllowed:    []string{"test_get_problem_slice_language_allowed_1", "test_language"},
-				CompileEnvironment: "test_get_problem_slice_compile_environment_1",
+				BuildArg:           "test_get_problem_slice_build_arg_1",
 				CompareScriptName:  "cmp1",
 				TestCases: []resource.TestCaseForAdmin{
 					{
@@ -223,7 +223,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				MemoryLimit:        1024,
 				TimeLimit:          1000,
 				LanguageAllowed:    []string{"test_get_problem_slice_language_allowed_2", "test_language"},
-				CompileEnvironment: "test_get_problem_slice_compile_environment_2",
+				BuildArg:           "test_get_problem_slice_build_arg_2",
 				CompareScriptName:  "cmp1",
 				TestCases: []resource.TestCaseForAdmin{
 					{

@@ -39,17 +39,17 @@ func TestGetTask(t *testing.T) {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			RunID              uint            `json:"run_id"`
-			Language           models.Language `json:"language"`
-			TestCaseID         uint            `json:"test_case_id"`
-			InputFile          string          `json:"input_file"`
-			OutputFile         string          `json:"output_file"`
-			CodeFile           string          `json:"code_file"`
-			TestCaseUpdatedAt  time.Time       `json:"test_case_updated_at"`
-			MemoryLimit        uint64          `json:"memory_limit"`
-			TimeLimit          uint            `json:"time_limit"`
-			CompileEnvironment string          `json:"compile_environment"`
-			CompareScript      models.Script   `json:"compare_script"`
+			RunID             uint            `json:"run_id"`
+			Language          models.Language `json:"language"`
+			TestCaseID        uint            `json:"test_case_id"`
+			InputFile         string          `json:"input_file"`
+			OutputFile        string          `json:"output_file"`
+			CodeFile          string          `json:"code_file"`
+			TestCaseUpdatedAt time.Time       `json:"test_case_updated_at"`
+			MemoryLimit       uint64          `json:"memory_limit"`
+			TimeLimit         uint            `json:"time_limit"`
+			BuildArg          string          `json:"build_arg"`
+			CompareScript     models.Script   `json:"compare_script"`
 		}{
 			submission.Runs[0].ID,
 			language,
@@ -60,7 +60,7 @@ func TestGetTask(t *testing.T) {
 			problem.TestCases[0].UpdatedAt,
 			problem.MemoryLimit,
 			problem.TimeLimit,
-			problem.CompileEnvironment,
+			problem.BuildArg,
 			compareScript,
 		},
 	}, resp)

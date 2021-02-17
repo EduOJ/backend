@@ -58,29 +58,29 @@ func generateResponse(run *models.Run) response.GetTaskResponse {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			RunID              uint            `json:"run_id"`
-			Language           models.Language `json:"language"`
-			TestCaseID         uint            `json:"test_case_id"`
-			InputFile          string          `json:"input_file"`
-			OutputFile         string          `json:"output_file"`
-			CodeFile           string          `json:"code_file"`
-			TestCaseUpdatedAt  time.Time       `json:"test_case_updated_at"`
-			MemoryLimit        uint64          `json:"memory_limit"`
-			TimeLimit          uint            `json:"time_limit"`
-			CompileEnvironment string          `json:"compile_environment"`
-			CompareScript      models.Script   `json:"compare_script"`
+			RunID             uint            `json:"run_id"`
+			Language          models.Language `json:"language"`
+			TestCaseID        uint            `json:"test_case_id"`
+			InputFile         string          `json:"input_file"`
+			OutputFile        string          `json:"output_file"`
+			CodeFile          string          `json:"code_file"`
+			TestCaseUpdatedAt time.Time       `json:"test_case_updated_at"`
+			MemoryLimit       uint64          `json:"memory_limit"`
+			TimeLimit         uint            `json:"time_limit"`
+			BuildArg          string          `json:"build_arg"`
+			CompareScript     models.Script   `json:"compare_script"`
 		}{
-			RunID:              run.ID,
-			Language:           *run.Submission.Language,
-			TestCaseID:         run.TestCaseID,
-			InputFile:          inputUrl,
-			OutputFile:         outputUrl,
-			CodeFile:           codeUrl,
-			TestCaseUpdatedAt:  run.TestCase.UpdatedAt,
-			MemoryLimit:        run.Problem.MemoryLimit,
-			TimeLimit:          run.Problem.TimeLimit,
-			CompileEnvironment: run.Problem.CompileEnvironment,
-			CompareScript:      run.Problem.CompareScript,
+			RunID:             run.ID,
+			Language:          *run.Submission.Language,
+			TestCaseID:        run.TestCaseID,
+			InputFile:         inputUrl,
+			OutputFile:        outputUrl,
+			CodeFile:          codeUrl,
+			TestCaseUpdatedAt: run.TestCase.UpdatedAt,
+			MemoryLimit:       run.Problem.MemoryLimit,
+			TimeLimit:         run.Problem.TimeLimit,
+			BuildArg:          run.Problem.BuildArg,
+			CompareScript:     run.Problem.CompareScript,
 		},
 	}
 }

@@ -7,11 +7,11 @@ type CreateProblemRequest struct {
 	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
-	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
-	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
-	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
-	CompareScriptName  string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
+	MemoryLimit       uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
+	TimeLimit         uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
+	LanguageAllowed   string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
+	BuildArg          string `json:"build_arg" form:"build_arg" query:"build_arg" validate:"max=255"`                               // E.g.  O2=false
+	CompareScriptName string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
 }
 
 type UpdateProblemRequest struct {
@@ -21,11 +21,11 @@ type UpdateProblemRequest struct {
 	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
-	MemoryLimit        uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
-	TimeLimit          uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
-	LanguageAllowed    string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
-	CompileEnvironment string `json:"compile_environment" form:"compile_environment" query:"compile_environment" validate:"max=255"` // E.g.  O2=false
-	CompareScriptName  string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
+	MemoryLimit       uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
+	TimeLimit         uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
+	LanguageAllowed   string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
+	BuildArg          string `json:"build_arg" form:"build_arg" query:"build_arg" validate:"max=255"`                               // E.g.  O2=false
+	CompareScriptName string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
 }
 
 type DeleteProblemRequest struct {

@@ -158,15 +158,15 @@ func CreateProblem(c echo.Context) error {
 	}
 
 	problem := models.Problem{
-		Name:               req.Name,
-		Description:        req.Description,
-		Public:             public,
-		Privacy:            privacy,
-		MemoryLimit:        req.MemoryLimit,
-		TimeLimit:          req.TimeLimit,
-		LanguageAllowed:    strings.Split(req.LanguageAllowed, ","),
-		CompileEnvironment: req.CompileEnvironment,
-		CompareScriptName:  req.CompareScriptName,
+		Name:              req.Name,
+		Description:       req.Description,
+		Public:            public,
+		Privacy:           privacy,
+		MemoryLimit:       req.MemoryLimit,
+		TimeLimit:         req.TimeLimit,
+		LanguageAllowed:   strings.Split(req.LanguageAllowed, ","),
+		BuildArg:          req.BuildArg,
+		CompareScriptName: req.CompareScriptName,
 	}
 	if file != nil {
 		problem.AttachmentFileName = file.Filename
@@ -237,7 +237,7 @@ func UpdateProblem(c echo.Context) error {
 	problem.MemoryLimit = req.MemoryLimit
 	problem.TimeLimit = req.TimeLimit
 	problem.LanguageAllowed = strings.Split(req.LanguageAllowed, ",")
-	problem.CompileEnvironment = req.CompileEnvironment
+	problem.BuildArg = req.BuildArg
 	problem.CompareScriptName = req.CompareScriptName
 	utils.PanicIfDBError(base.DB.Save(&problem), "could not update problem")
 	return c.JSON(http.StatusOK, response.UpdateProblemResponse{
