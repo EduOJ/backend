@@ -17,7 +17,7 @@ func Register(e *echo.Echo) {
 	e.Use(middleware.Recover)
 	e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
 		AllowOrigins: utils.Origins,
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodOptions},
 	}))
 
 	api := e.Group("/api", middleware.Authentication)
