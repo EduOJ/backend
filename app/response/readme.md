@@ -235,3 +235,14 @@ Common return codes.
 |:-----------------:|:-------------------------------------:|
 |   WRONG_RUN_ID    | 发起请求的judger与获取道当前run的judger不同 |
 | ALREADY_SUBMITTED |          一个run被提交了两次结果          |
+
+## Class
+
+### CreateClass
+
+### GetClass
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+

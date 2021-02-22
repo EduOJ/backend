@@ -9,3 +9,11 @@ type Class struct {
 	Managers    []User `json:"managers" gorm:"many2many:user_manage_classes"`
 	Students    []User `json:"students" gorm:"many2many:user_in_classes"`
 }
+
+func (c Class) GetID() uint {
+	return c.ID
+}
+
+func (c Class) TypeName() string {
+	return "class"
+}

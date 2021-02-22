@@ -10,9 +10,13 @@ type GetClassRequest struct {
 }
 
 type GetClassesRequest struct {
+	Limit  int `json:"limit" form:"limit" query:"limit" validate:"max=100,min=0"`
+	Offset int `json:"offset" form:"offset" query:"offset" validate:"min=0"`
 }
 
 type GetMyClassesRequest struct {
+	Limit  int `json:"limit" form:"limit" query:"limit" validate:"max=100,min=0"`
+	Offset int `json:"offset" form:"offset" query:"offset" validate:"min=0"`
 }
 
 type UpdateClassRequest struct {

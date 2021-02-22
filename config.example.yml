@@ -33,3 +33,4 @@ webauthn:
   domain: localhost
   origin: http://localhost
   icon: http://localhost/favicon.ico
+invite_code_length: 6
