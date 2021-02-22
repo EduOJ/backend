@@ -199,10 +199,10 @@ func UpdateRun(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("MISSING_OUTPUT", nil))
 	}
 	testcaseCount := base.DB.Model(&run.Submission).Association("Runs").Count()
-	run.MemoryUsed = req.MemoryUsed
-	run.TimeUsed = req.TimeUsed
+	run.MemoryUsed = *req.MemoryUsed
+	run.TimeUsed = *req.TimeUsed
 	run.Status = req.Status
-	run.OutputStrippedHash = req.OutputStrippedHash
+	run.OutputStrippedHash = *req.OutputStrippedHash
 	run.Judged = true
 	if req.Status == "ACCEPTED" {
 		if run.TestCase.Score != 0 {
