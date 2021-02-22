@@ -138,6 +138,23 @@ func Register(e *echo.Echo) {
 	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
 	judger.PUT("/run/:id", controller.UpdateRun).Name = "judger.updateRun"
 
+	api.POST("/class",
+		controller.Todo, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
+	api.GET("/class/:id",
+		controller.Todo, middleware.HasPermission(middleware.ScopedPermission{P: "read_class", T: "class"})).Name = "class.getClass"
+	api.GET("/classes",
+		controller.Todo, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.getClasses"
+	api.GET("/user/me/classes",
+		controller.Todo).Name = "class.getMyClasses"
+	api.PUT("/class/:id",
+		controller.Todo, middleware.HasPermission(middleware.ScopedPermission{P: "manage_class", T: "class"})).Name = "class.updateClass"
+	api.POST("/class/:id/students",
+		controller.Todo, middleware.HasPermission(middleware.ScopedPermission{P: "manage_students", T: "class"})).Name = "class.addStudents"
+	api.DELETE("/class/:id/students",
+		controller.Todo, middleware.HasPermission(middleware.ScopedPermission{P: "manage_students", T: "class"})).Name = "class.removeStudents"
+	api.DELETE("/class/:id",
+		controller.Todo, middleware.HasPermission(middleware.ScopedPermission{P: "manage_class", T: "class"})).Name = "class.removeClass"
+
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")
 		e.Any("/debug/pprof/", func(c echo.Context) error {

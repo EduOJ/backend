@@ -778,6 +778,64 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 		},
 		{
+			// add classes
+			ID: "add_classes_table",
+			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
+					Password string `json:"-"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+				}
+				type Class struct {
+					ID          uint   `gorm:"primaryKey" json:"id"`
+					Name        string `json:"name" gorm:"size:255;default:'';not null"`
+					CourseName  string `json:"course_name" gorm:"size:255;default:'';not null"`
+					Description string `json:"description"`
+					InviteCode  string `json:"invite_code" gorm:"size:255;default:'';not null"`
+					Managers    []User `json:"managers" gorm:"many2many:user_manage_classes"`
+					Students    []User `json:"students" gorm:"many2many:user_in_classes"`
+				}
+				return tx.AutoMigrate(&Class{})
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
+					Password string `json:"-"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+				}
+				type Class struct {
+					ID          uint   `gorm:"primaryKey" json:"id"`
+					Name        string `json:"name" gorm:"size:255;default:'';not null"`
+					CourseName  string `json:"course_name" gorm:"size:255;default:'';not null"`
+					Description string `json:"description"`
+					InviteCode  string `json:"invite_code" gorm:"size:255;default:'';not null"`
+					Managers    []User `json:"managers" gorm:"many2many:user_manage_classes"`
+					Students    []User `json:"students" gorm:"many2many:user_in_classes"`
+				}
+				err = tx.Migrator().DropTable("user_manage_classes")
+				if err != nil {
+					return
+				}
+				err = tx.Migrator().DropTable("user_in_classes")
+				if err != nil {
+					return
+				}
+				return tx.Migrator().DropTable(&Class{})
+			},
+		},
+		{
 			ID: "add_WebauthnCredential_table",
 			Migrate: func(tx *gorm.DB) error {
 				type WebauthnCredential struct {
