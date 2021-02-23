@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -161,4 +162,23 @@ func initStorage() {
 		panic(err)
 	}
 	log.Debug("Storage client initialized.")
+}
+
+func initWebAuthn() {
+	var err error
+	base.WebAuthn, err = webauthn.New(&webauthn.Config{
+		RPDisplayName: viper.GetString("webauthn.display_name"),
+		RPID:          viper.GetString("webauthn.domain"),
+		RPOrigin:      viper.GetString("webauthn.origin"),
+		RPIcon:        viper.GetString("webauthn.icon"),
+	})
+	log.Debug(webauthn.Config{
+		RPDisplayName: viper.GetString("webauthn.display_name"),
+		RPID:          viper.GetString("webauthn.domain"),
+		RPOrigin:      viper.GetString("webauthn.origin"),
+		RPIcon:        viper.GetString("webauthn.icon"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }

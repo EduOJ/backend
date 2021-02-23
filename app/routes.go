@@ -16,10 +16,10 @@ func Register(e *echo.Echo) {
 	utils.InitOrigin()
 	e.Use(middleware.Recover)
 	e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
-		AllowOrigins: utils.Origins,
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowOrigins:     utils.Origins,
+		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowCredentials: true,
 	}))
-
 	api := e.Group("/api", middleware.Authentication)
 
 	auth := api.Group("/auth", middleware.Auth)
@@ -43,6 +43,9 @@ func Register(e *echo.Echo) {
 	api.PUT("/user/me", controller.UpdateMe, middleware.Logged).Name = "user.updateMe"
 	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
 	api.GET("/users", controller.GetUsers).Name = "user.getUsers"
+
+	api.GET("/webauthn/register", controller.BeginRegistration, middleware.Logged).Name = "webauthn.BeginRegister"
+	api.POST("/webauthn/register", controller.FinishRegistration, middleware.Logged).Name = "webauthn.FinishRegister"
 
 	api.POST("/user/change_password", controller.ChangePassword, middleware.Logged).Name = "user.changePassword"
 

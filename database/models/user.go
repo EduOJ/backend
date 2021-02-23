@@ -1,6 +1,9 @@
 package models
 
 import (
+	"encoding/binary"
+	"encoding/json"
+	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -21,6 +24,41 @@ type User struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `sql:"index" json:"deleted_at"`
 	// TODO: bio
+
+	Credentials []WebauthnCredential
+}
+
+func (u *User) WebAuthnID() (ret []byte) {
+	ret = make([]byte, 8)
+	binary.LittleEndian.PutUint64(ret, uint64(u.ID))
+	return
+}
+
+func (u *User) WebAuthnName() string {
+	return u.Username
+}
+
+func (u *User) WebAuthnDisplayName() string {
+	return u.Nickname
+}
+
+func (u *User) WebAuthnIcon() string {
+	return ""
+}
+
+func (u *User) WebAuthnCredentials() []webauthn.Credential {
+	err := base.DB.Model(u).Association("Credentials").Find(&u.Credentials)
+	if err != nil {
+		panic(errors.Wrap(err, "could not query user credentials"))
+	}
+	ret := make([]webauthn.Credential, len(u.Credentials))
+	for i, v := range u.Credentials {
+		err := json.Unmarshal([]byte(v.Content), &ret[i])
+		if err != nil {
+			panic(errors.Wrap(err, "wrong json in user's credential"))
+		}
+	}
+	return ret
 }
 
 func (u *User) GrantRole(name string, target ...HasRole) {
