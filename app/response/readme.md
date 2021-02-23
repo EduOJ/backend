@@ -245,4 +245,27 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到class      |
 
+### GetClassesIManage
+
+### GetClassesITake
+
+### AddStudents
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### DeleteStudents
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### RefreshInviteCode
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### DeleteClass
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
 

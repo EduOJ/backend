@@ -26,16 +26,19 @@ type GetClassResponseForAdmin struct {
 	} `json:"data"`
 }
 
-type GetClassesResponse struct {
+type GetClassesIManageResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
 		Classes []resource.Class `json:"classes"`
-		Total   int              `json:"total"`
-		Count   int              `json:"count"`
-		Offset  int              `json:"offset"`
-		Prev    *string          `json:"prev"`
-		Next    *string          `json:"next"`
+	} `json:"data"`
+}
+
+type GetClassesITakeResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		Classes []resource.Class `json:"classes"`
 	} `json:"data"`
 }
 
@@ -55,7 +58,15 @@ type AddStudentsResponse struct {
 	} `json:"data"`
 }
 
-type RemoveStudentsResponse struct {
+type DeleteStudentsResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.ClassDetail `json:"class"`
+	} `json:"data"`
+}
+
+type RefreshInviteCodeResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {

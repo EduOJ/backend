@@ -336,6 +336,7 @@ server:
     - http://127.0.0.1:8000
 judger:
   token: judger_token
+invite_code_length: 6
 `)
 	err := viper.ReadConfig(configFile)
 	judgerAuthorize = headerOption{
