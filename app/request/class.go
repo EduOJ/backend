@@ -22,14 +22,18 @@ type UpdateClassRequest struct {
 }
 
 type AddStudentsRequest struct {
-	UserIds []uint
+	UserIds []uint `json:"user_ids" form:"user_ids" query:"user_ids" validate:"required"`
 }
 
 type DeleteStudentsRequest struct {
-	UserIds []uint
+	UserIds []uint `json:"user_ids" form:"user_ids" query:"user_ids" validate:"required"`
 }
 
 type RefreshInviteCodeRequest struct {
+}
+
+type JoinClassRequest struct {
+	InviteCode string `json:"invite_code" form:"invite_code" query:"invite_code" validate:"required,alpha,max=255"`
 }
 
 type DeleteClassRequest struct {

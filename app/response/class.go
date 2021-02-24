@@ -73,3 +73,11 @@ type RefreshInviteCodeResponse struct {
 		*resource.ClassDetail `json:"class"`
 	} `json:"data"`
 }
+
+type JoinClassResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.Class `json:"class"`
+	} `json:"data"`
+}

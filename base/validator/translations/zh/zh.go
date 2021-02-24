@@ -24,7 +24,7 @@ var FieldTranslations = map[string]string{
 	"Offset":             "起始编号",
 	"OrderBy":            "排序方式",
 	"Name":               "名称",
-	"Description":        "题目描述",
+	"Description":        "描述",
 	"AttachmentFileName": "附件名称",
 	"Public":             "是否公开",
 	"Privacy":            "是否可以看到详细评测结果",
@@ -39,6 +39,9 @@ var FieldTranslations = map[string]string{
 	"MemoryUsed":         "内存占用",
 	"TimeUsed":           "时间占用",
 	"OutputStrippedHash": "输出哈希值",
+	"CourseName":         "课程名称",
+	"UserIds":            "用户ID数组",
+	"InviteCode":         "邀请码",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

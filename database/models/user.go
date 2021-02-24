@@ -176,3 +176,13 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 	}
 	return false
 }
+
+// In just compare ID to judge if a user is in a user slice
+func (u *User) In(users []User) bool {
+	for _, user := range users {
+		if u.ID == user.ID {
+			return true
+		}
+	}
+	return false
+}

@@ -249,6 +249,16 @@ Common return codes.
 
 ### GetClassesITake
 
+### UpdateClass
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### RefreshInviteCode
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
 ### AddStudents
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
@@ -259,13 +269,11 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到class      |
 
-### RefreshInviteCode
+### JoinClass
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |     无法找到class      |
+|    WRONG_INVITE_CODE    |      错误的邀请码       |
+|    ALREADY_IN_CLASS     |   用户已是该class学生   |
 
 ### DeleteClass
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
-

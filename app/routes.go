@@ -141,21 +141,37 @@ func Register(e *echo.Echo) {
 	api.POST("/class",
 		controller.CreateClass, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
 	api.GET("/class/:id",
-		controller.GetClass, middleware.HasPermission(middleware.ScopedPermission{P: "read_class", T: "class"})).Name = "class.getClass"
+		controller.GetClass).Name = "class.getClass"
 	api.GET("/user/me/managing_classes",
 		controller.GetClassesIManage).Name = "class.getClassesIManage"
 	api.GET("/user/me/taking_classes",
 		controller.GetClassesITake).Name = "class.getClassesITake"
 	api.PUT("/class/:id",
-		controller.UpdateClass, middleware.HasPermission(middleware.ScopedPermission{P: "manage_class", T: "class"})).Name = "class.updateClass"
-	api.POST("/class/:id/students",
-		controller.AddStudents, middleware.HasPermission(middleware.ScopedPermission{P: "manage_students", T: "class"})).Name = "class.addStudents"
-	api.DELETE("/class/:id/students",
-		controller.DeleteStudents, middleware.HasPermission(middleware.ScopedPermission{P: "manage_students", T: "class"})).Name = "class.deleteStudents"
+		controller.UpdateClass, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.updateClass"
 	api.PUT("/class/:id/invite_code",
-		controller.RefreshInviteCode, middleware.HasPermission(middleware.ScopedPermission{P: "manage_class", T: "class"})).Name = "class.refreshInviteCode"
+		controller.RefreshInviteCode, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.refreshInviteCode"
+	api.POST("/class/:id/students",
+		controller.AddStudents, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.addStudents"
+	api.DELETE("/class/:id/students",
+		controller.DeleteStudents, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.deleteStudents"
+	api.POST("/class/:id/join", controller.JoinClass).Name = "class.joinClass"
 	api.DELETE("/class/:id",
-		controller.DeleteClass, middleware.HasPermission(middleware.ScopedPermission{P: "manage_class", T: "class"})).Name = "class.deleteClass"
+		controller.DeleteClass, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.deleteClass"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")
