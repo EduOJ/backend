@@ -11,5 +11,6 @@ func testConfig() {
 	initLog()
 	initRedis()
 	initStorage()
+	initWebAuthn()
 	log.Fatalf("should success.")
 }

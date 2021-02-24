@@ -203,6 +203,7 @@ func UpdateRun(c echo.Context) error {
 	run.TimeUsed = *req.TimeUsed
 	run.Status = req.Status
 	run.OutputStrippedHash = *req.OutputStrippedHash
+	run.JudgerMessage = req.Message
 	run.Judged = true
 	if req.Status == "ACCEPTED" {
 		if run.TestCase.Score != 0 {

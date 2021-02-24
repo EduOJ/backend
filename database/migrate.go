@@ -777,6 +777,27 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().RenameColumn(&Problem{}, "build_arg", "compile_environment")
 			},
 		},
+		{
+			ID: "add_WebauthnCredential_table",
+			Migrate: func(tx *gorm.DB) error {
+				type WebauthnCredential struct {
+					ID        uint `gorm:"primaryKey" json:"id"`
+					UserID    uint
+					Content   string
+					CreatedAt time.Time `json:"created_at"`
+				}
+				return tx.AutoMigrate(WebauthnCredential{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type WebauthnCredential struct {
+					ID        uint `gorm:"primaryKey" json:"id"`
+					UserID    uint
+					Content   string
+					CreatedAt time.Time `json:"created_at"`
+				}
+				return tx.Migrator().DropTable(WebauthnCredential{})
+			},
+		},
 	})
 }
 

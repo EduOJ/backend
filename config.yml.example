@@ -27,3 +27,9 @@ auth:
 judger:
   token: REPLACE_THIS_WITH_RANDOM_STRING
 polling_timeout: 60 # seconds
+authentication: change_this_to_random_string
+webauthn:
+  display_name: EduOJ
+  domain: localhost
+  origin: http://localhost
+  icon: http://localhost/favicon.ico

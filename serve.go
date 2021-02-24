@@ -14,6 +14,7 @@ func serve() {
 	initLog()
 	initRedis()
 	initStorage()
+	initWebAuthn()
 	startEcho()
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGHUP,
