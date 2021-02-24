@@ -24,6 +24,8 @@ func Register(e *echo.Echo) {
 
 	auth := api.Group("/auth", middleware.Auth)
 	auth.POST("/login", controller.Login).Name = "auth.login"
+	auth.GET("/login/webauthn", controller.BeginLogin).Name = "auth.webauthn.beginLogin"
+	auth.POST("/login/webauthn", controller.FinishLogin).Name = "auth.webauthn.finishLogin"
 	auth.POST("/register", controller.Register).Name = "auth.register"
 	auth.GET("/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
 
