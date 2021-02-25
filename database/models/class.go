@@ -29,8 +29,12 @@ func (c Class) TypeName() string {
 }
 
 func (c *Class) AddStudents(ids []uint) error {
+	existingIds := make([]uint, len(c.Students))
+	for i, s := range c.Students {
+		existingIds[i] = s.ID
+	}
 	var users []User
-	if err := base.DB.Find(&users, ids).Error; err != nil {
+	if err := base.DB.Not("id in ?", existingIds).Find(&users, ids).Error; err != nil {
 		return err
 	}
 	return base.DB.Model(c).Association("Students").Append(&users)

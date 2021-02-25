@@ -74,6 +74,40 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 			DeletedAt: gorm.DeletedAt{},
 		}, class)
 	})
+	t.Run("AddExistingInClass", func(t *testing.T) {
+		class := Class{
+			Name:        "test_add_students_existing_in_class_name",
+			CourseName:  "test_add_students_existing_in_class_course_name",
+			Description: "test_add_students_existing_in_class_description",
+			InviteCode:  "test_add_students_existing_in_class_invite_code",
+			Managers:    []User{},
+			Students: []User{
+				user1,
+				user2,
+			},
+		}
+		assert.NoError(t, base.DB.Create(&class).Error)
+		assert.NoError(t, class.AddStudents([]uint{
+			user2.ID,
+			user3.ID,
+		}))
+		assert.Equal(t, Class{
+			ID:          class.ID,
+			Name:        "test_add_students_existing_in_class_name",
+			CourseName:  "test_add_students_existing_in_class_course_name",
+			Description: "test_add_students_existing_in_class_description",
+			InviteCode:  "test_add_students_existing_in_class_invite_code",
+			Managers:    []User{},
+			Students: []User{
+				user1,
+				user2,
+				user3,
+			},
+			CreatedAt: class.CreatedAt,
+			UpdatedAt: class.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}, class)
+	})
 	t.Run("AddNonExist", func(t *testing.T) {
 		class := Class{
 			Name:        "test_add_students_non_exist_class_name",

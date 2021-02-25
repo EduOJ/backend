@@ -19,19 +19,15 @@ var inviteCodeLock sync.Mutex
 func GenerateInviteCode() (code string) {
 	inviteCodeLock.Lock()
 	defer inviteCodeLock.Unlock()
-	var classes []models.Class
-	utils.PanicIfDBError(base.DB.Select("invite_code").Find(&classes), "could not find classes for generating invite codes")
 	crashed := true
 	for crashed {
 		// 5: Fixed invite code length
 		code = utils.RandStr(5)
 		crashed = false
-		for _, c := range classes {
-			if c.InviteCode == code {
-				crashed = true
-				continue
-			}
-		}
+		var count int64
+		utils.PanicIfDBError(base.DB.Model(models.Class{}).Where("invite_code = ?", code).Count(&count),
+			"could not check if invite code crashed for generating invite code")
+		crashed = count >= 1
 	}
 	return
 }
@@ -85,25 +81,28 @@ func GetClass(c echo.Context) error {
 				resource.GetClassDetail(&class),
 			},
 		})
-	} else if user.In(class.Students) {
-		return c.JSON(http.StatusOK, response.GetClassResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.Class `json:"class"`
-			}{
-				resource.GetClass(&class),
-			},
-		})
 	} else {
-		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		count := base.DB.Model(&class).Where("id = ?", user.ID).Association("Students").Count()
+		if count > 0 {
+			return c.JSON(http.StatusOK, response.GetClassResponse{
+				Message: "SUCCESS",
+				Error:   nil,
+				Data: struct {
+					*resource.Class `json:"class"`
+				}{
+					resource.GetClass(&class),
+				},
+			})
+		} else {
+			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		}
 	}
 }
 
 func GetClassesIManage(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	var classes []models.Class
-	if err := base.DB.Model(&user).Preload("Managers").Preload("Students").Association("ClassesManaging").Find(&classes); err != nil {
+	if err := base.DB.Model(&user).Association("ClassesManaging").Find(&classes); err != nil {
 		panic(errors.Wrap(err, "could not find class managing"))
 	}
 	return c.JSON(http.StatusOK, response.GetClassesIManageResponse{
@@ -120,7 +119,7 @@ func GetClassesIManage(c echo.Context) error {
 func GetClassesITake(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	var classes []models.Class
-	if err := base.DB.Model(&user).Preload("Managers").Preload("Students").Association("ClassesTaking").Find(&classes); err != nil {
+	if err := base.DB.Model(&user).Association("ClassesTaking").Find(&classes); err != nil {
 		panic(errors.Wrap(err, "could not find class taking"))
 	}
 	return c.JSON(http.StatusOK, response.GetClassesITakeResponse{
@@ -199,12 +198,7 @@ func AddStudents(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find class for adding students"))
 		}
 	}
-	databaseIds := make([]uint, len(class.Students))
-	for i, s := range class.Students {
-		databaseIds[i] = s.ID
-	}
-	ids := utils.IdUniqueInA(req.UserIds, databaseIds)
-	if err := class.AddStudents(ids); err != nil {
+	if err := class.AddStudents(req.UserIds); err != nil {
 		panic(errors.Wrap(err, "could not add students"))
 	}
 	return c.JSON(http.StatusOK, response.AddStudentsResponse{
@@ -264,7 +258,8 @@ func JoinClass(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("WRONG_INVITE_CODE", nil))
 	}
 	user := c.Get("user").(models.User)
-	if user.In(class.Students) {
+	count := base.DB.Model(&class).Where("id = ?", user.ID).Association("Students").Count()
+	if count > 0 {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("ALREADY_IN_CLASS", nil))
 	}
 	if err := base.DB.Model(&class).Association("Students").Append(&user); err != nil {

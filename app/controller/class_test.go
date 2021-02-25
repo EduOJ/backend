@@ -241,6 +241,13 @@ func TestGetClassesIManageAndTake(t *testing.T) {
 		assert.NoError(t, base.DB.First(&users[i], users[i].ID).Error)
 	}
 
+	class1.Students = nil
+	class1.Managers = nil
+	class2.Students = nil
+	class2.Managers = nil
+	class3.Students = nil
+	class3.Managers = nil
+
 	manageClasses := map[int][]models.Class{
 		0: {},
 		1: {

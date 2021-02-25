@@ -52,21 +52,3 @@ func Contain(obj interface{}, target interface{}) bool {
 
 	return false
 }
-
-// IdUniqueInA returns IDs that in a but not in b
-// Reference: https://stackoverflow.com/questions/52120488/what-is-the-most-efficient-way-to-get-the-intersection-and-exclusions-from-two-a
-func IdUniqueInA(a []uint, b []uint) (uniqueA []uint) {
-	m := make(map[uint]uint8)
-	for _, v := range a {
-		m[v] |= 1 << 0
-	}
-	for _, v := range b {
-		m[v] |= 1 << 1
-	}
-	for v, sel := range m {
-		if sel == 1<<0 {
-			uniqueA = append(uniqueA, v)
-		}
-	}
-	return
-}
