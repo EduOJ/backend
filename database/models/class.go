@@ -15,6 +15,8 @@ type Class struct {
 	Managers    []User `json:"managers" gorm:"many2many:user_manage_classes"`
 	Students    []User `json:"students" gorm:"many2many:user_in_classes"`
 
+	ProblemSets []ProblemSet `json:"problem_sets"`
+
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
