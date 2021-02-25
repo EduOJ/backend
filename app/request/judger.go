@@ -9,7 +9,7 @@ type GetTaskRequest struct {
 type UpdateRunRequest struct {
 	/*
 		PENDING / JUDGING / JUDGEMENT_FAILED / NO_COMMENT
-		ACCEPTED / WRONG_ANSWER / RUNTIME_ERROR / TIME_LIMIT_EXCEEDED / MEMORY_LIMIT_EXCEEDED / DANGEROUS_SYSCALLS
+		ACCEPTED / WRONG_ANSWER / RUNTIME_ERROR / TIME_LIMIT_EXCEEDED / MEMORY_LIMIT_EXCEEDED / DANGEROUS_SYSTEM_CALLS
 	*/
 	Status     string `json:"status" form:"status" query:"status" validate:"required"`
 	MemoryUsed *uint  `json:"memory_used" form:"memory_used" query:"memory_used" validate:"required"` // Byte

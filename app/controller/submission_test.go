@@ -24,7 +24,7 @@ const (
 	submitter
 )
 
-func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) (submission models.Submission) {
+func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) models.Submission {
 	for i := 0; i < testCaseCount; i++ {
 		createTestCaseForTest(t, *problem, testCaseData{
 			Score:      0,
@@ -34,7 +34,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		})
 	}
 	problem.LoadTestCases()
-	submission = models.Submission{
+	submission := models.Submission{
 		UserID:       user.ID,
 		User:         user,
 		ProblemID:    problem.ID,
@@ -73,7 +73,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		_, err = code.reader.Seek(0, io.SeekStart)
 		assert.NoError(t, err)
 	}
-	return
+	return submission
 }
 
 func TestCreateSubmission(t *testing.T) {
