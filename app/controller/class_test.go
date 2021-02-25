@@ -2,11 +2,11 @@ package controller_test
 
 import (
 	"fmt"
-	"github.com/leoleoasd/EduOJBackend/app/controller"
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -16,14 +16,14 @@ import (
 )
 
 func checkInviteCode(t *testing.T, code string) {
-	assert.Regexp(t, regexp.MustCompile("^[a-zA-Z]{5}$"), code)
+	assert.Regexp(t, regexp.MustCompile("^[a-zA-Z2-9]{5}$"), code)
 	var count int64
 	assert.NoError(t, base.DB.Model(models.Class{}).Where("invite_code = ?", code).Count(&count).Error)
 	assert.Equal(t, int64(1), count)
 }
 
 func createClassForTest(t *testing.T, name string, id int, managers, students []models.User) models.Class {
-	inviteCode := controller.GenerateInviteCode()
+	inviteCode := utils.GenerateInviteCode()
 	class := models.Class{
 		Name:        fmt.Sprintf("test_%s_%d_name", name, id),
 		CourseName:  fmt.Sprintf("test_%s_%d_course_name", name, id),
@@ -34,12 +34,6 @@ func createClassForTest(t *testing.T, name string, id int, managers, students []
 	}
 	assert.NoError(t, base.DB.Create(&class).Error)
 	return class
-}
-
-func TestGenerateInviteCode(t *testing.T) {
-	t.Parallel()
-	class := createClassForTest(t, "test_generate_invite_code_success", 0, nil, nil)
-	checkInviteCode(t, class.InviteCode)
 }
 
 func TestCreateClass(t *testing.T) {
@@ -733,7 +727,7 @@ func TestJoinClass(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("class.joinClass", -1),
 			req: request.JoinClassRequest{
-				InviteCode: controller.GenerateInviteCode(),
+				InviteCode: utils.GenerateInviteCode(),
 			},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusNotFound,
@@ -745,7 +739,7 @@ func TestJoinClass(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("class.joinClass", class1.ID),
 			req: request.JoinClassRequest{
-				InviteCode: controller.GenerateInviteCode(),
+				InviteCode: utils.GenerateInviteCode(),
 			},
 			reqOptions: []reqOption{applyNormalUser},
 			statusCode: http.StatusForbidden,

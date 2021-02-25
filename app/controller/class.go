@@ -11,26 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
-	"sync"
 )
-
-var inviteCodeLock sync.Mutex
-
-func GenerateInviteCode() (code string) {
-	inviteCodeLock.Lock()
-	defer inviteCodeLock.Unlock()
-	crashed := true
-	for crashed {
-		// 5: Fixed invite code length
-		code = utils.RandStr(5)
-		crashed = false
-		var count int64
-		utils.PanicIfDBError(base.DB.Model(models.Class{}).Where("invite_code = ?", code).Count(&count),
-			"could not check if invite code crashed for generating invite code")
-		crashed = count >= 1
-	}
-	return
-}
 
 func CreateClass(c echo.Context) error {
 	user := c.Get("user").(models.User)
@@ -43,7 +24,7 @@ func CreateClass(c echo.Context) error {
 		Name:        req.Name,
 		CourseName:  req.CourseName,
 		Description: req.Description,
-		InviteCode:  GenerateInviteCode(),
+		InviteCode:  utils.GenerateInviteCode(),
 		Managers: []models.User{
 			user,
 		},
@@ -171,7 +152,7 @@ func RefreshInviteCode(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find class for refreshing invite code"))
 		}
 	}
-	class.InviteCode = GenerateInviteCode()
+	class.InviteCode = utils.GenerateInviteCode()
 	utils.PanicIfDBError(base.DB.Save(&class), "could not update class for refreshing invite code")
 	return c.JSON(http.StatusOK, response.RefreshInviteCodeResponse{
 		Message: "SUCCESS",

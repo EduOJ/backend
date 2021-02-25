@@ -33,7 +33,7 @@ type RefreshInviteCodeRequest struct {
 }
 
 type JoinClassRequest struct {
-	InviteCode string `json:"invite_code" form:"invite_code" query:"invite_code" validate:"required,alpha,max=255"`
+	InviteCode string `json:"invite_code" form:"invite_code" query:"invite_code" validate:"required,max=255"`
 }
 
 type DeleteClassRequest struct {
