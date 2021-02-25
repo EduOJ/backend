@@ -73,8 +73,11 @@ func CreateSubmission(c echo.Context) error {
 
 	submission := models.Submission{
 		UserID:       user.ID,
+		User:         &user,
 		ProblemID:    problem.ID,
+		Problem:      &problem,
 		ProblemSetId: 0,
+		LanguageName: language.Name,
 		Language:     &language,
 		FileName:     file.Filename,
 		Priority:     priority,

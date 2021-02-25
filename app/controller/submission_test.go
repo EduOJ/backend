@@ -228,11 +228,13 @@ func TestCreateSubmission(t *testing.T) {
 				resp := response.CreateSubmissionResponse{}
 				assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 				mustJsonDecode(httpResp, &resp)
+
 				responseSubmission := *resp.Data.SubmissionDetail
 				databaseSubmission := models.Submission{}
 				reqUserID, err := strconv.ParseUint(req.Header.Get("Set-User-For-Test"), 10, 64)
 				assert.NoError(t, err)
-				assert.NoError(t, base.DB.Preload("Runs").First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
+				assert.NoError(t, base.DB.Preload("Runs").Preload("User").Preload("Problem").
+					First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
 				databaseSubmissionDetail := resource.GetSubmissionDetail(&databaseSubmission)
 				databaseRunData := map[uint]struct {
 					ID        uint
@@ -265,10 +267,14 @@ func TestCreateSubmission(t *testing.T) {
 						CreatedAt:    databaseRunData[testCase.ID].CreatedAt,
 					}
 				}
+				reqUser := models.User{}
+				assert.NoError(t, base.DB.First(&reqUser, reqUserID).Error)
 				expectedSubmission := resource.SubmissionDetail{
 					ID:           databaseSubmissionDetail.ID,
 					UserID:       uint(reqUserID),
+					User:         resource.GetUser(&reqUser),
 					ProblemID:    problem.ID,
+					ProblemName:  problem.Name,
 					ProblemSetId: 0,
 					Language:     "test_language",
 					FileName:     "code_file_name.test_language",
