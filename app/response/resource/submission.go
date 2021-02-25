@@ -9,7 +9,9 @@ type Submission struct {
 	ID uint `json:"id"`
 
 	UserID       uint   `json:"user_id"`
+	User         *User  `json:"user"`
 	ProblemID    uint   `json:"problem_id"`
+	ProblemName  string `json:"problem_name"`
 	ProblemSetId uint   `json:"problem_set_id"` // 0 means not in problem set
 	Language     string `json:"language"`
 
@@ -23,7 +25,9 @@ type Submission struct {
 func (s *Submission) convert(submission *models.Submission) {
 	s.ID = submission.ID
 	s.UserID = submission.UserID
+	s.User = GetUser(submission.User)
 	s.ProblemID = submission.ProblemID
+	s.ProblemName = submission.Problem.Name
 	s.ProblemSetId = submission.ProblemSetId
 	s.Language = submission.LanguageName
 	s.Judged = submission.Judged
@@ -50,7 +54,9 @@ type SubmissionDetail struct {
 	ID uint `json:"id"`
 
 	UserID       uint   `json:"user_id"`
+	User         *User  `json:"user"`
 	ProblemID    uint   `json:"problem_id"`
+	ProblemName  string `json:"problem_name"`
 	ProblemSetId uint   `json:"problem_set_id"`
 	Language     string `json:"language"`
 	FileName     string `json:"file_name"`
@@ -68,7 +74,9 @@ type SubmissionDetail struct {
 func (s *SubmissionDetail) convert(submission *models.Submission) {
 	s.ID = submission.ID
 	s.UserID = submission.UserID
+	s.User = GetUser(submission.User)
 	s.ProblemID = submission.ProblemID
+	s.ProblemName = submission.Problem.Name
 	s.ProblemSetId = submission.ProblemSetId
 	s.Language = submission.LanguageName
 	s.FileName = submission.FileName

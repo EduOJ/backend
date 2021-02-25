@@ -36,15 +36,20 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 	problem.LoadTestCases()
 	submission = models.Submission{
 		UserID:       user.ID,
+		User:         user,
 		ProblemID:    problem.ID,
+		Problem:      problem,
 		ProblemSetId: 0,
 		LanguageName: "test_language",
+		Language:     nil,
 		FileName:     fmt.Sprintf("test_%s_code_file_name_%d.test_language", name, id),
 		Priority:     models.PriorityDefault,
 		Judged:       false,
 		Score:        0,
 		Status:       "PENDING",
 		Runs:         make([]models.Run, len(problem.TestCases)),
+		CreatedAt:    time.Time{},
+		UpdatedAt:    time.Time{},
 	}
 	for i, testCase := range problem.TestCases {
 		submission.Runs[i] = models.Run{
@@ -463,12 +468,9 @@ func TestGetSubmissions(t *testing.T) {
 		},
 		5: {
 			problem:   &problem3,
-			submitter: &problemCreator2,
-		},
-		6: {
-			problem:   &problem3,
 			submitter: &problemCreator3,
 		},
+		// TODO: test submission in problem sets
 	}
 	submissions := make([]models.Submission, len(submissionRelations))
 
@@ -476,8 +478,6 @@ func TestGetSubmissions(t *testing.T) {
 		submissions[i] = createSubmissionForTest(t, "get_submissions", i, submissionRelations[i].problem, submissionRelations[i].submitter,
 			newFileContent("code", "code_file_name", b64Encodef("test_get_submissions_code_%d", i)), 0)
 	}
-
-	base.DB.Model(submissions[5]).Update("problem_set_id", 1)
 
 	successTests := []struct {
 		name        string
@@ -498,7 +498,7 @@ func TestGetSubmissions(t *testing.T) {
 				Offset:    0,
 			},
 			submissions: []models.Submission{
-				submissions[6],
+				submissions[5],
 				submissions[4],
 				submissions[3],
 				submissions[2],
@@ -520,7 +520,7 @@ func TestGetSubmissions(t *testing.T) {
 				Offset:    0,
 			},
 			submissions: []models.Submission{
-				submissions[6],
+				submissions[5],
 				submissions[3],
 			},
 			Total:  2,
