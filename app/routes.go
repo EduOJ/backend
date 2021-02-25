@@ -173,6 +173,45 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.deleteClass"
 
+	api.POST("/class/:id/problem_set",
+		controller.Todo, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.CreateProblemSet"
+	api.POST("/class/:id/problem_set",
+		controller.Todo, middleware.HasPermission(middleware.AndPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
+				B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+			},
+			B: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "clone_problem_sets", T: "class"},
+				B: middleware.UnscopedPermission{P: "clone_problem_sets"},
+			},
+		})).Name = "problemSet.cloneProblemSet"
+	api.GET("/class/:class_id/problem_set/:id",
+		controller.Todo).Name = "problemSet.getProblemSet"
+	api.PUT("/class/:class_id/problem_set/:id",
+		controller.Todo, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.updateProblemSet"
+	api.POST("/class/:class_id/problem_set/:id/problems",
+		controller.Todo, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.addProblemInSet"
+	api.DELETE("/class/:class_id/problem_set/:id/problems",
+		controller.Todo, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.deleteProblemInSet"
+	api.DELETE("/class/:class_id/problem_set/:id",
+		controller.Todo, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.deleteProblemSet"
+
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")
 		e.Any("/debug/pprof/", func(c echo.Context) error {
