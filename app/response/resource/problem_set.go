@@ -42,7 +42,7 @@ type Grade struct {
 	TotalScore  int    `json:"total_score"`
 }
 
-func (p *ProblemSetDetail) convert(problemSet models.ProblemSet) {
+func (p *ProblemSetDetail) convert(problemSet *models.ProblemSet) {
 	p.ID = problemSet.ID
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
@@ -53,7 +53,7 @@ func (p *ProblemSetDetail) convert(problemSet models.ProblemSet) {
 	p.EndAt = problemSet.EndAt
 }
 
-func (p *ProblemSet) convert(problemSet models.ProblemSet) {
+func (p *ProblemSet) convert(problemSet *models.ProblemSet) {
 	p.ID = problemSet.ID
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
@@ -63,13 +63,13 @@ func (p *ProblemSet) convert(problemSet models.ProblemSet) {
 	p.EndAt = problemSet.EndAt
 }
 
-func GetProblemSet(problemSet models.ProblemSet) *ProblemSet {
+func GetProblemSet(problemSet *models.ProblemSet) *ProblemSet {
 	p := ProblemSet{}
 	p.convert(problemSet)
 	return &p
 }
 
-func GetProblemSetDetail(problemSet models.ProblemSet) *ProblemSetDetail {
+func GetProblemSetDetail(problemSet *models.ProblemSet) *ProblemSetDetail {
 	p := ProblemSetDetail{}
 	p.convert(problemSet)
 	return &p
@@ -78,12 +78,12 @@ func GetProblemSetDetail(problemSet models.ProblemSet) *ProblemSetDetail {
 func GetProblemSetSlice(problemSetSlice []models.ProblemSet) (ps []ProblemSet) {
 	ps = make([]ProblemSet, len(problemSetSlice))
 	for i, problemSet := range problemSetSlice {
-		ps[i].convert(problemSet)
+		ps[i].convert(&problemSet)
 	}
 	return
 }
 
-func (g *Grade) convert(grade models.Grade) {
+func (g *Grade) convert(grade *models.Grade) {
 	g.ID = grade.ID
 	g.UserID = grade.UserID
 	g.ProblemSetID = grade.ProblemSetID
@@ -91,7 +91,7 @@ func (g *Grade) convert(grade models.Grade) {
 	g.TotalScore = grade.TotalScore
 }
 
-func GetGrade(grade models.Grade) *Grade {
+func GetGrade(grade *models.Grade) *Grade {
 	g := Grade{}
 	g.convert(grade)
 	return &g
@@ -100,7 +100,7 @@ func GetGrade(grade models.Grade) *Grade {
 func GetGradeSlice(grades []models.Grade) (g []Grade) {
 	g = make([]Grade, len(grades))
 	for i, grade := range grades {
-		g[i].convert(grade)
+		g[i].convert(&grade)
 	}
 	return
 }
