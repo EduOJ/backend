@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -39,7 +40,7 @@ type Grade struct {
 	ProblemSetID uint `json:"problem_set_id"`
 
 	ScoreDetail string `json:"score_detail"`
-	TotalScore  int    `json:"total_score"`
+	TotalScore  uint   `json:"total_score"`
 }
 
 func (p *ProblemSetDetail) convert(problemSet *models.ProblemSet) {
@@ -87,7 +88,11 @@ func (g *Grade) convert(grade *models.Grade) {
 	g.ID = grade.ID
 	g.UserID = grade.UserID
 	g.ProblemSetID = grade.ProblemSetID
-	g.ScoreDetail = grade.ScoreDetail
+	b, err := grade.ScoreDetail.MarshalJSON()
+	if err != nil {
+		panic(errors.Wrap(err, "could not marshal json for converting grade"))
+	}
+	g.ScoreDetail = string(b)
 	g.TotalScore = grade.TotalScore
 }
 

@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"hash/fnv"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -31,6 +32,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 var applyAdminUser headerOption
@@ -107,6 +109,14 @@ func setUserForTest(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set("user", user)
 		return next(c)
 	}
+}
+
+func hashStringToTime(s string) time.Time {
+	h := fnv.New32()
+	if _, err := h.Write([]byte(s)); err != nil {
+		panic(err)
+	}
+	return time.Unix(int64(h.Sum32()), 0).UTC()
 }
 
 type failTest struct {

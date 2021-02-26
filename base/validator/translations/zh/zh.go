@@ -42,6 +42,10 @@ var FieldTranslations = map[string]string{
 	"CourseName":         "课程名称",
 	"UserIds":            "用户ID数组",
 	"InviteCode":         "邀请码",
+	"StartAt":            "开始时间",
+	"EndAt":              "结束时间",
+	"SourceClassID":      "复制源班级ID",
+	"SourceProblemSetID": "复制源题目组ID",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

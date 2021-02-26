@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
 )
@@ -973,8 +974,8 @@ func GetMigration() *gormigrate.Gormigrate {
 					UserID       uint `json:"user_id"`
 					ProblemSetID uint `json:"problem_set_id"`
 
-					ScoreDetail string `json:"score_detail"`
-					TotalScore  int    `json:"total_score"`
+					ScoreDetail datatypes.JSON `json:"score_detail"`
+					TotalScore  uint           `json:"total_score"`
 				}
 				type ProblemSet struct {
 					ID uint `gorm:"primaryKey" json:"id"`
@@ -1013,8 +1014,8 @@ func GetMigration() *gormigrate.Gormigrate {
 					UserID       uint `json:"user_id"`
 					ProblemSetID uint `json:"problem_set_id"`
 
-					ScoreDetail string `json:"score_detail"`
-					TotalScore  int    `json:"total_score"`
+					ScoreDetail datatypes.JSON `json:"score_detail"`
+					TotalScore  uint           `json:"total_score"`
 				}
 				type ProblemSet struct {
 					ID uint `gorm:"primaryKey" json:"id"`

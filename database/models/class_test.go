@@ -2,14 +2,14 @@ package models
 
 import (
 	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"testing"
 )
 
 func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
-	defer database.SetupDatabaseForTest()()
+	t.Parallel()
+
 	user1 := User{
 		Username: "test_add_and_delete_students_1_username",
 		Nickname: "test_add_and_delete_students_1_nickname",
@@ -40,6 +40,7 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&user4).Error)
 
 	t.Run("AddSuccess", func(t *testing.T) {
+		t.Parallel()
 		class := Class{
 			Name:        "test_add_students_success_class_name",
 			CourseName:  "test_add_students_success_class_course_name",
@@ -75,6 +76,7 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 		}, class)
 	})
 	t.Run("AddExistingInClass", func(t *testing.T) {
+		t.Parallel()
 		class := Class{
 			Name:        "test_add_students_existing_in_class_name",
 			CourseName:  "test_add_students_existing_in_class_course_name",
@@ -109,6 +111,7 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 		}, class)
 	})
 	t.Run("AddNonExist", func(t *testing.T) {
+		t.Parallel()
 		class := Class{
 			Name:        "test_add_students_non_exist_class_name",
 			CourseName:  "test_add_students_non_exist_class_course_name",
@@ -143,6 +146,7 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 		}, class)
 	})
 	t.Run("DeleteSuccess", func(t *testing.T) {
+		t.Parallel()
 		class := Class{
 			Name:        "test_delete_students_success_class_name",
 			CourseName:  "test_delete_students_success_class_course_name",
@@ -176,6 +180,7 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 		}, class)
 	})
 	t.Run("DeleteNotBelongTo", func(t *testing.T) {
+		t.Parallel()
 		class := Class{
 			Name:        "test_delete_students_not_belong_to_class_name",
 			CourseName:  "test_delete_students_not_belong_to_class_course_name",

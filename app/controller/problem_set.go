@@ -72,14 +72,21 @@ func CloneProblemSet(c echo.Context) error {
 		}
 	}
 	// TODO: maybe Preload("ProblemSets") + for instead of Association?
-	if err := base.DB.Model(&sourceClass).Association("ProblemSets").
+	if err := base.DB.Model(&sourceClass).Preload("Problems").Association("ProblemSets").
 		Find(&sourceProblemSets, req.SourceProblemSetID); err != nil {
 		panic(errors.Wrap(err, "could not find source problem set when cloning problem set"))
 	}
 	if len(sourceProblemSets) == 0 {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("SOURCE_PROBLEM_SET_NOT_FOUND", nil))
 	}
-	problemSet := sourceProblemSets[0]
+	problemSet := models.ProblemSet{
+		Name:        sourceProblemSets[0].Name,
+		Description: sourceProblemSets[0].Description,
+		Problems:    sourceProblemSets[0].Problems,
+		Scores:      nil,
+		StartAt:     sourceProblemSets[0].StartAt,
+		EndAt:       sourceProblemSets[0].EndAt,
+	}
 	if err := base.DB.Model(&class).Association("ProblemSets").Append(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not add problem set for class when cloning problem set"))
 	}

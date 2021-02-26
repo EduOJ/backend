@@ -232,6 +232,7 @@ func UpdateRun(c echo.Context) error {
 		if run.Submission.Status == "PENDING" {
 			run.Submission.Status = "ACCEPTED"
 		}
+		//TODO: Fire event here with argument submission
 	}
 	utils.PanicIfDBError(base.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&run), "could not save run")
 	unlocked = true

@@ -174,12 +174,12 @@ func Register(e *echo.Echo) {
 		})).Name = "class.deleteClass"
 
 	api.POST("/class/:id/problem_set",
-		controller.Todo, middleware.HasPermission(middleware.OrPermission{
+		controller.CreateProblemSet, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
-		})).Name = "problemSet.CreateProblemSet"
-	api.POST("/class/:id/problem_set",
-		controller.Todo, middleware.HasPermission(middleware.AndPermission{
+		})).Name = "problemSet.createProblemSet"
+	api.POST("/class/:id/problem_set/clone",
+		controller.CloneProblemSet, middleware.HasPermission(middleware.AndPermission{
 			A: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
 				B: middleware.UnscopedPermission{P: "manage_problem_sets"},
@@ -190,7 +190,7 @@ func Register(e *echo.Echo) {
 			},
 		})).Name = "problemSet.cloneProblemSet"
 	api.GET("/class/:class_id/problem_set/:id",
-		controller.Todo).Name = "problemSet.getProblemSet"
+		controller.GetProblemSet).Name = "problemSet.getProblemSet"
 	api.PUT("/class/:class_id/problem_set/:id",
 		controller.Todo, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
