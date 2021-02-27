@@ -833,6 +833,7 @@ func TestDeleteClass(t *testing.T) {
 		user := createUserForTest(t, "delete_class", 0)
 		class := createClassForTest(t, "delete_class", 0, []*models.User{&user}, []*models.User{&user})
 		user.GrantRole("class_creator", class)
+		createProblemSetForTest(t, "delete_class", 0, &class, nil)
 
 		httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("class.deleteClass", class.ID),
 			request.DeleteClassRequest{}, applyUser(user)))
@@ -846,5 +847,7 @@ func TestDeleteClass(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, databaseUser.ClassesTaking)
 		assert.Empty(t, databaseUser.ClassesManaging)
+		err = base.DB.First(&models.ProblemSet{}, "class_id = ?", class.ID).Error
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 	})
 }

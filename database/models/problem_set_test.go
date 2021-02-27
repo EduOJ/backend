@@ -364,11 +364,13 @@ func TestUpdateGrade(t *testing.T) {
 		EndTime:   hashStringToTime("test_update_grade_end_time"),
 	}
 	assert.NoError(t, base.DB.Create(&problemSet).Error)
-	assert.NoError(t, problemSet.UpdateGrade(Submission{
-		UserID:    user1.ID,
-		ProblemID: problem2.ID,
-		Score:     120,
+	assert.NoError(t, UpdateGrade(Submission{
+		ProblemSetId: problemSet.ID,
+		UserID:       user1.ID,
+		ProblemID:    problem2.ID,
+		Score:        120,
 	}))
+	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
 	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Grades[0].ID,
@@ -378,14 +380,18 @@ func TestUpdateGrade(t *testing.T) {
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			Total: 131,
+			Total:     131,
+			CreatedAt: problemSet.Grades[0].CreatedAt,
+			UpdatedAt: problemSet.Grades[0].UpdatedAt,
 		},
 	}, problemSet.Grades)
-	assert.NoError(t, problemSet.UpdateGrade(Submission{
-		UserID:    user2.ID,
-		ProblemID: problem1.ID,
-		Score:     21,
+	assert.NoError(t, UpdateGrade(Submission{
+		ProblemSetId: problemSet.ID,
+		UserID:       user2.ID,
+		ProblemID:    problem1.ID,
+		Score:        21,
 	}))
+	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
 	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Grades[0].ID,
@@ -395,7 +401,9 @@ func TestUpdateGrade(t *testing.T) {
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			Total: 131,
+			Total:     131,
+			CreatedAt: problemSet.Grades[0].CreatedAt,
+			UpdatedAt: problemSet.Grades[0].UpdatedAt,
 		},
 		{
 			ID:           problemSet.Grades[1].ID,
@@ -404,14 +412,18 @@ func TestUpdateGrade(t *testing.T) {
 			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 21,
 			}),
-			Total: 21,
+			Total:     21,
+			CreatedAt: problemSet.Grades[1].CreatedAt,
+			UpdatedAt: problemSet.Grades[1].UpdatedAt,
 		},
 	}, problemSet.Grades)
-	assert.NoError(t, problemSet.UpdateGrade(Submission{
-		UserID:    user2.ID,
-		ProblemID: problem2.ID,
-		Score:     22,
+	assert.NoError(t, UpdateGrade(Submission{
+		ProblemSetId: problemSet.ID,
+		UserID:       user2.ID,
+		ProblemID:    problem2.ID,
+		Score:        22,
 	}))
+	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
 	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Grades[0].ID,
@@ -421,7 +433,9 @@ func TestUpdateGrade(t *testing.T) {
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			Total: 131,
+			Total:     131,
+			CreatedAt: problemSet.Grades[0].CreatedAt,
+			UpdatedAt: problemSet.Grades[0].UpdatedAt,
 		},
 		{
 			ID:           problemSet.Grades[1].ID,
@@ -431,14 +445,18 @@ func TestUpdateGrade(t *testing.T) {
 				problem1.ID: 21,
 				problem2.ID: 22,
 			}),
-			Total: 43,
+			Total:     43,
+			CreatedAt: problemSet.Grades[1].CreatedAt,
+			UpdatedAt: problemSet.Grades[1].UpdatedAt,
 		},
 	}, problemSet.Grades)
-	assert.NoError(t, problemSet.UpdateGrade(Submission{
-		UserID:    user2.ID,
-		ProblemID: problem2.ID,
-		Score:     220,
+	assert.NoError(t, UpdateGrade(Submission{
+		ProblemSetId: problemSet.ID,
+		UserID:       user2.ID,
+		ProblemID:    problem2.ID,
+		Score:        220,
 	}))
+	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
 	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Grades[0].ID,
@@ -448,7 +466,9 @@ func TestUpdateGrade(t *testing.T) {
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			Total: 131,
+			Total:     131,
+			CreatedAt: problemSet.Grades[0].CreatedAt,
+			UpdatedAt: problemSet.Grades[0].UpdatedAt,
 		},
 		{
 			ID:           problemSet.Grades[1].ID,
@@ -458,7 +478,9 @@ func TestUpdateGrade(t *testing.T) {
 				problem1.ID: 21,
 				problem2.ID: 220,
 			}),
-			Total: 241,
+			Total:     241,
+			CreatedAt: problemSet.Grades[1].CreatedAt,
+			UpdatedAt: problemSet.Grades[1].UpdatedAt,
 		},
 	}, problemSet.Grades)
 }

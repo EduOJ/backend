@@ -49,3 +49,7 @@ func (c *Class) DeleteStudents(ids []uint) error {
 	}
 	return base.DB.Model(c).Association("Students").Delete(&users)
 }
+
+func (c *Class) AfterDelete(tx *gorm.DB) (err error) {
+	return tx.Delete(&ProblemSet{}, "class_id = ?", c.ID).Error
+}

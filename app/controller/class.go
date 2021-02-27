@@ -259,9 +259,10 @@ func JoinClass(c echo.Context) error {
 
 func DeleteClass(c echo.Context) error {
 	class := models.Class{}
-	if err := base.DB.Delete(&class, c.Param("id")).Error; err != nil {
+	if err := base.DB.First(&class, c.Param("id")).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		panic(errors.Wrap(err, "could not find class for deleting"))
 	}
+	utils.PanicIfDBError(base.DB.Delete(&class), "could not delete class for deleting")
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,

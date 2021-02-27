@@ -976,6 +976,10 @@ func GetMigration() *gormigrate.Gormigrate {
 
 					Detail datatypes.JSON `json:"detail"`
 					Total  uint           `json:"total"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
 				type ProblemSet struct {
 					ID uint `gorm:"primaryKey" json:"id"`
@@ -1016,6 +1020,10 @@ func GetMigration() *gormigrate.Gormigrate {
 
 					Detail datatypes.JSON `json:"detail"`
 					Total  uint           `json:"total"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
 				type ProblemSet struct {
 					ID uint `gorm:"primaryKey" json:"id"`

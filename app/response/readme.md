@@ -288,9 +288,8 @@ Common return codes.
 ### CloneProblemSet
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
-|      CLASS_NOT_FOUND         |       无法找到class      |
-|    SOURCE_CLASS_NOT_FOUND    |     无法找到复制源class   |
-| SOURCE_PROBLEM_SET_NOT_FOUND | 无法找到复制源problem set |
+|       CLASS_NOT_FOUND        |       无法找到class      |
+|      SOURCE_NOT_FOUND        | 无法找到复制源problem set |
 
 ### GetProblemSet
 |            message           |          结果           |
@@ -302,19 +301,16 @@ Common return codes.
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
 |           NOT_FOUND          |    无法找到problem set   |
-|        CLASS_NOT_FOUND       |        无法找到class     |
 
 ### AddProblemsToSet
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
 |           NOT_FOUND          |    无法找到problem set   |
-|        CLASS_NOT_FOUND       |        无法找到class     |
 
 ### DeleteProblemsFromSet
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
 |           NOT_FOUND          |    无法找到problem set   |
-|        CLASS_NOT_FOUND       |        无法找到class     |
 
 ### DeleteProblemSet
 |         message         |         结果          |
