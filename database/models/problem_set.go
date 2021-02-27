@@ -37,6 +37,26 @@ type Grade struct {
 	TotalScore  uint           `json:"total_score"`
 }
 
+func (p *ProblemSet) AddProblems(ids []uint) error {
+	existingIds := make([]uint, len(p.Problems))
+	for i, problem := range p.Problems {
+		existingIds[i] = problem.ID
+	}
+	var problems []Problem
+	if err := base.DB.Not("id in ?", existingIds).Preload("TestCases").Find(&problems, ids).Error; err != nil {
+		return err
+	}
+	return base.DB.Model(p).Association("Problems").Append(&problems)
+}
+
+func (p *ProblemSet) DeleteProblems(ids []uint) error {
+	var problems []Problem
+	if err := base.DB.Find(&problems, ids).Error; err != nil {
+		return err
+	}
+	return base.DB.Model(p).Association("Problems").Delete(&problems)
+}
+
 // TODO: register this function for event submission_judge_finished\
 func UpdateGrade(submission Submission) error {
 	problemSet := ProblemSet{}

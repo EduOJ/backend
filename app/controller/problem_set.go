@@ -20,6 +20,13 @@ func CreateProblemSet(c echo.Context) error {
 	if !ok {
 		return err
 	}
+	class := models.Class{}
+	if err := base.DB.First(&class, c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class while creating problem set"))
+	}
 	problemSet := models.ProblemSet{
 		Name:        req.Name,
 		Description: req.Description,
@@ -27,13 +34,6 @@ func CreateProblemSet(c echo.Context) error {
 		Scores:      nil,
 		StartAt:     req.StartAt,
 		EndAt:       req.EndAt,
-	}
-	class := models.Class{}
-	if err := base.DB.First(&class, c.Param("id")).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-		}
-		panic(errors.Wrap(err, "could not get class while creating problem set"))
 	}
 	if err := base.DB.Model(&class).Association("ProblemSets").Append(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not add problem set for class when creating problem set"))
@@ -58,7 +58,7 @@ func CloneProblemSet(c echo.Context) error {
 	class := models.Class{}
 	if err := base.DB.First(&class, c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
 		}
 		panic(errors.Wrap(err, "could not get class while cloning problem set"))
 	}
@@ -71,7 +71,6 @@ func CloneProblemSet(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find source class when cloning problem set"))
 		}
 	}
-	// TODO: maybe Preload("ProblemSets") + for instead of Association?
 	if err := base.DB.Model(&sourceClass).Preload("Problems").Association("ProblemSets").
 		Find(&sourceProblemSets, req.SourceProblemSetID); err != nil {
 		panic(errors.Wrap(err, "could not find source problem set when cloning problem set"))
@@ -104,15 +103,20 @@ func CloneProblemSet(c echo.Context) error {
 func GetProblemSet(c echo.Context) error {
 	class := models.Class{}
 	var problemSets []models.ProblemSet
-	if err := base.DB.Preload("Problems").First(&class, c.Param("class_id")).
-		Association("ProblemSets").Find(&problemSets, c.Param("id")); err != nil {
+	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
 		}
-		panic(errors.Wrap(err, "could not get class or problem set while getting problem set"))
+		panic(errors.Wrap(err, "could not get class for getting problem set"))
+	}
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not get problem set for getting problem set"))
 	}
 	if len(problemSets) == 0 {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	} else if len(problemSets) > 1 {
+		panic("there are two problem sets that have same id")
 	}
 	user := c.Get("user").(models.User)
 	if user.Can("manage_problem_sets", class) || user.Can("manage_problem_sets") {
@@ -126,12 +130,12 @@ func GetProblemSet(c echo.Context) error {
 			},
 		})
 	}
-	// TODO: maybe Preload("Students") + for instead of Association?
-	if err := base.DB.Model(&class).Association("Students").Find(&models.User{}, user.ID); err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
-		}
+	var users []models.User
+	if err := base.DB.Model(&class).Association("Students").Find(&users, user.ID); err != nil {
 		panic(errors.Wrap(err, "could not check student in class for getting problem set"))
+	}
+	if len(users) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
 	}
 	if time.Now().Before(problemSets[0].StartAt) || time.Now().After(problemSets[0].EndAt) {
 		problemSets[0].Problems = nil
@@ -144,5 +148,145 @@ func GetProblemSet(c echo.Context) error {
 		}{
 			resource.GetProblemSet(&problemSets[0]),
 		},
+	})
+}
+
+func UpdateProblemSet(c echo.Context) error {
+	req := request.UpdateProblemSetRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	class := models.Class{}
+	var problemSets []models.ProblemSet
+	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class for updating problem set"))
+	}
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not get problem set for updating problem set"))
+	}
+	if len(problemSets) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	} else if len(problemSets) > 1 {
+		panic("there are two problem sets that have same id")
+	}
+
+	problemSets[0].Name = req.Name
+	problemSets[0].Description = req.Description
+	problemSets[0].StartAt = req.StartAt
+	problemSets[0].EndAt = req.EndAt
+	utils.PanicIfDBError(base.DB.Save(&problemSets[0]), "could not update problem set for updating problem set")
+	return c.JSON(http.StatusOK, response.UpdateProblemSetResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.ProblemSetDetail `json:"problem_set"`
+		}{
+			resource.GetProblemSetDetail(&problemSets[0]),
+		},
+	})
+}
+
+func AddProblemsInSet(c echo.Context) error {
+	req := request.AddProblemsInSetRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+
+	class := models.Class{}
+	var problemSets []models.ProblemSet
+	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class for adding problems in set"))
+	}
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not get problem set for adding problems in set"))
+	}
+	if len(problemSets) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	} else if len(problemSets) > 1 {
+		panic("there are two problem sets that have same id")
+	}
+
+	if err := problemSets[0].AddProblems(req.ProblemIDs); err != nil {
+		panic(errors.Wrap(err, "could not add problems for problem set"))
+	}
+	return c.JSON(http.StatusOK, response.AddProblemsInSetResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.ProblemSetDetail `json:"problem_set"`
+		}{
+			resource.GetProblemSetDetail(&problemSets[0]),
+		},
+	})
+}
+
+func DeleteProblemsInSet(c echo.Context) error {
+	req := request.DeleteProblemsInSetRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+
+	class := models.Class{}
+	var problemSets []models.ProblemSet
+	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class for deleting problems in set"))
+	}
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not get problem set for deleting problems in set"))
+	}
+	if len(problemSets) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	} else if len(problemSets) > 1 {
+		panic("there are two problem sets that have same id")
+	}
+
+	if err := problemSets[0].DeleteProblems(req.ProblemIDs); err != nil {
+		panic(errors.Wrap(err, "could not delete problems for problem set"))
+	}
+	return c.JSON(http.StatusOK, response.DeleteProblemsInSetResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.ProblemSetDetail `json:"problem_set"`
+		}{
+			resource.GetProblemSetDetail(&problemSets[0]),
+		},
+	})
+}
+
+func DeleteProblemSet(c echo.Context) error {
+	class := models.Class{}
+	var problemSets []models.ProblemSet
+	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class for deleting problems in set"))
+	}
+	if err := base.DB.Model(&class).Association("ProblemSets").
+		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not get problem set for deleting problems in set"))
+	}
+	utils.PanicIfDBError(base.DB.Delete(&problemSets), "could not delete problem set for deleting problem set")
+
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
 	})
 }

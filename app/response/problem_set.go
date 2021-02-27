@@ -42,7 +42,7 @@ type UpdateProblemSetResponse struct {
 	} `json:"data"`
 }
 
-type AddProblemInSetResponse struct {
+type AddProblemsInSetResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
@@ -50,7 +50,7 @@ type AddProblemInSetResponse struct {
 	} `json:"data"`
 }
 
-type DeleteProblemInSetResponse struct {
+type DeleteProblemsInSetResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {

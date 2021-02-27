@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/datatypes"
 	"hash/fnv"
@@ -24,6 +25,250 @@ func createJSONForTest(t *testing.T, in interface{}) datatypes.JSON {
 	assert.NoError(t, err)
 	assert.NoError(t, j.UnmarshalJSON(b))
 	return j
+}
+
+func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
+	t.Parallel()
+	problem1 := Problem{
+		Name:        "test_add_and_delete_problems_1_name",
+		Description: "test_add_and_delete_problems_1_description",
+		TestCases: []TestCase{
+			{
+				Score:          10,
+				Sample:         true,
+				InputFileName:  "test_add_and_delete_problems_1_test_case_1.in",
+				OutputFileName: "test_add_and_delete_problems_1_test_case_1.out",
+			},
+			{
+				Score:          20,
+				Sample:         false,
+				InputFileName:  "test_add_and_delete_problems_1_test_case_2.in",
+				OutputFileName: "test_add_and_delete_problems_1_test_case_2.out",
+			},
+		},
+		LanguageAllowed: database.StringArray([]string{""}),
+	}
+	problem2 := Problem{
+		Name:        "test_add_and_delete_problems_2_name",
+		Description: "test_add_and_delete_problems_2_description",
+		TestCases: []TestCase{
+			{
+				Score:          10,
+				Sample:         true,
+				InputFileName:  "test_add_and_delete_problems_2_test_case_1.in",
+				OutputFileName: "test_add_and_delete_problems_2_test_case_1.out",
+			},
+			{
+				Score:          20,
+				Sample:         false,
+				InputFileName:  "test_add_and_delete_problems_2_test_case_2.in",
+				OutputFileName: "test_add_and_delete_problems_2_test_case_2.out",
+			},
+		},
+		LanguageAllowed: database.StringArray([]string{""}),
+	}
+	problem3 := Problem{
+		Name:        "test_add_and_delete_problems_3_name",
+		Description: "test_add_and_delete_problems_3_description",
+		TestCases: []TestCase{
+			{
+				Score:          10,
+				Sample:         true,
+				InputFileName:  "test_add_and_delete_problems_3_test_case_1.in",
+				OutputFileName: "test_add_and_delete_problems_3_test_case_1.out",
+			},
+			{
+				Score:          20,
+				Sample:         false,
+				InputFileName:  "test_add_and_delete_problems_3_test_case_2.in",
+				OutputFileName: "test_add_and_delete_problems_3_test_case_2.out",
+			},
+		},
+		LanguageAllowed: database.StringArray([]string{""}),
+	}
+	problem4 := Problem{
+		Name:        "test_add_and_delete_problems_4_name",
+		Description: "test_add_and_delete_problems_4_description",
+		TestCases: []TestCase{
+			{
+				Score:          10,
+				Sample:         true,
+				InputFileName:  "test_add_and_delete_problems_4_test_case_1.in",
+				OutputFileName: "test_add_and_delete_problems_4_test_case_1.out",
+			},
+			{
+				Score:          20,
+				Sample:         false,
+				InputFileName:  "test_add_and_delete_problems_4_test_case_2.in",
+				OutputFileName: "test_add_and_delete_problems_4_test_case_2.out",
+			},
+		},
+		LanguageAllowed: database.StringArray([]string{""}),
+	}
+	assert.NoError(t, base.DB.Create(&problem1).Error)
+	assert.NoError(t, base.DB.Create(&problem2).Error)
+	assert.NoError(t, base.DB.Create(&problem3).Error)
+	assert.NoError(t, base.DB.Create(&problem4).Error)
+
+	t.Run("AddSuccess", func(t *testing.T) {
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_add_students_success_problem_set_name",
+			Description: "test_add_students_success_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+			},
+			StartAt: hashStringToTime("test_add_students_success_problem_set_start_at"),
+			EndAt:   hashStringToTime("test_add_students_success_problem_set_end_at"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.AddProblems([]uint{
+			problem3.ID,
+			problem4.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_add_students_success_problem_set_name",
+			Description: "test_add_students_success_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+				problem3,
+				problem4,
+			},
+			StartAt:   hashStringToTime("test_add_students_success_problem_set_start_at"),
+			EndAt:     hashStringToTime("test_add_students_success_problem_set_end_at"),
+			CreatedAt: problemSet.CreatedAt,
+			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
+	t.Run("AddExistingInSet", func(t *testing.T) {
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_add_students_existing_in_set_problem_set_name",
+			Description: "test_add_students_existing_in_set_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+			},
+			StartAt: hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
+			EndAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.AddProblems([]uint{
+			problem2.ID,
+			problem3.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_add_students_existing_in_set_problem_set_name",
+			Description: "test_add_students_existing_in_set_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+				problem3,
+			},
+			StartAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
+			EndAt:     hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
+			CreatedAt: problemSet.CreatedAt,
+			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
+	t.Run("AddNonExisting", func(t *testing.T) {
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_add_students_non_existing_problem_set_name",
+			Description: "test_add_students_non_existing_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+			},
+			StartAt: hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
+			EndAt:   hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.AddProblems([]uint{
+			0,
+			problem3.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_add_students_non_existing_problem_set_name",
+			Description: "test_add_students_non_existing_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+				problem3,
+			},
+			StartAt:   hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
+			EndAt:     hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
+			CreatedAt: problemSet.CreatedAt,
+			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
+	t.Run("DeleteSuccess", func(t *testing.T) {
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_delete_students_success_problem_set_name",
+			Description: "test_delete_students_success_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+				problem3,
+			},
+			StartAt: hashStringToTime("test_delete_students_success_problem_set_start_at"),
+			EndAt:   hashStringToTime("test_delete_students_success_problem_set_end_at"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.DeleteProblems([]uint{
+			problem2.ID,
+			problem3.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_delete_students_success_problem_set_name",
+			Description: "test_delete_students_success_problem_set_description",
+			Problems: []Problem{
+				problem1,
+			},
+			StartAt:   hashStringToTime("test_delete_students_success_problem_set_start_at"),
+			EndAt:     hashStringToTime("test_delete_students_success_problem_set_end_at"),
+			CreatedAt: problemSet.CreatedAt,
+			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
+	t.Run("DeleteNotBelongTo", func(t *testing.T) {
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_delete_students_not_belong_to_problem_set_name",
+			Description: "test_delete_students_not_belong_to_problem_set_description",
+			Problems: []Problem{
+				problem1,
+				problem2,
+			},
+			StartAt: hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
+			EndAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.DeleteProblems([]uint{
+			problem2.ID,
+			problem3.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_delete_students_not_belong_to_problem_set_name",
+			Description: "test_delete_students_not_belong_to_problem_set_description",
+			Problems: []Problem{
+				problem1,
+			},
+			StartAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
+			EndAt:     hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
+			CreatedAt: problemSet.CreatedAt,
+			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
+
 }
 
 func TestUpdateGrade(t *testing.T) {
