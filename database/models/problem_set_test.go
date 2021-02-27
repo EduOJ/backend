@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/leoleoasd/EduOJBackend/database"
 	"github.com/stretchr/testify/assert"
@@ -27,97 +28,125 @@ func createJSONForTest(t *testing.T, in interface{}) datatypes.JSON {
 	return j
 }
 
+func createProblemForTest(t *testing.T, name string, id uint) *Problem {
+	problem := Problem{
+		Name:        fmt.Sprintf("%s_%d_name", name, id),
+		Description: fmt.Sprintf("%s_%d_description", name, id),
+		TestCases: []TestCase{
+			{
+				Score:          10,
+				Sample:         true,
+				InputFileName:  fmt.Sprintf("%s_%d_1.in", name, id),
+				OutputFileName: fmt.Sprintf("%s_%d_1.out", name, id),
+			},
+			{
+				Score:          20,
+				Sample:         false,
+				InputFileName:  fmt.Sprintf("%s_%d_2.in", name, id),
+				OutputFileName: fmt.Sprintf("%s_%d_2.out", name, id),
+			},
+		},
+		LanguageAllowed: database.StringArray([]string{""}),
+	}
+	assert.NoError(t, base.DB.Create(&problem).Error)
+	return &problem
+}
+
 func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 	t.Parallel()
-	problem1 := Problem{
-		Name:        "test_add_and_delete_problems_1_name",
-		Description: "test_add_and_delete_problems_1_description",
-		TestCases: []TestCase{
-			{
-				Score:          10,
-				Sample:         true,
-				InputFileName:  "test_add_and_delete_problems_1_test_case_1.in",
-				OutputFileName: "test_add_and_delete_problems_1_test_case_1.out",
-			},
-			{
-				Score:          20,
-				Sample:         false,
-				InputFileName:  "test_add_and_delete_problems_1_test_case_2.in",
-				OutputFileName: "test_add_and_delete_problems_1_test_case_2.out",
-			},
-		},
-		LanguageAllowed: database.StringArray([]string{""}),
-	}
-	problem2 := Problem{
-		Name:        "test_add_and_delete_problems_2_name",
-		Description: "test_add_and_delete_problems_2_description",
-		TestCases: []TestCase{
-			{
-				Score:          10,
-				Sample:         true,
-				InputFileName:  "test_add_and_delete_problems_2_test_case_1.in",
-				OutputFileName: "test_add_and_delete_problems_2_test_case_1.out",
-			},
-			{
-				Score:          20,
-				Sample:         false,
-				InputFileName:  "test_add_and_delete_problems_2_test_case_2.in",
-				OutputFileName: "test_add_and_delete_problems_2_test_case_2.out",
-			},
-		},
-		LanguageAllowed: database.StringArray([]string{""}),
-	}
-	problem3 := Problem{
-		Name:        "test_add_and_delete_problems_3_name",
-		Description: "test_add_and_delete_problems_3_description",
-		TestCases: []TestCase{
-			{
-				Score:          10,
-				Sample:         true,
-				InputFileName:  "test_add_and_delete_problems_3_test_case_1.in",
-				OutputFileName: "test_add_and_delete_problems_3_test_case_1.out",
-			},
-			{
-				Score:          20,
-				Sample:         false,
-				InputFileName:  "test_add_and_delete_problems_3_test_case_2.in",
-				OutputFileName: "test_add_and_delete_problems_3_test_case_2.out",
-			},
-		},
-		LanguageAllowed: database.StringArray([]string{""}),
-	}
-	problem4 := Problem{
-		Name:        "test_add_and_delete_problems_4_name",
-		Description: "test_add_and_delete_problems_4_description",
-		TestCases: []TestCase{
-			{
-				Score:          10,
-				Sample:         true,
-				InputFileName:  "test_add_and_delete_problems_4_test_case_1.in",
-				OutputFileName: "test_add_and_delete_problems_4_test_case_1.out",
-			},
-			{
-				Score:          20,
-				Sample:         false,
-				InputFileName:  "test_add_and_delete_problems_4_test_case_2.in",
-				OutputFileName: "test_add_and_delete_problems_4_test_case_2.out",
-			},
-		},
-		LanguageAllowed: database.StringArray([]string{""}),
-	}
-	assert.NoError(t, base.DB.Create(&problem1).Error)
-	assert.NoError(t, base.DB.Create(&problem2).Error)
-	assert.NoError(t, base.DB.Create(&problem3).Error)
-	assert.NoError(t, base.DB.Create(&problem4).Error)
+	//problem1 := Problem{
+	//	Name:        "test_add_and_delete_problems_1_name",
+	//	Description: "test_add_and_delete_problems_1_description",
+	//	TestCases: []TestCase{
+	//		{
+	//			Score:          10,
+	//			Sample:         true,
+	//			InputFileName:  "test_add_and_delete_problems_1_test_case_1.in",
+	//			OutputFileName: "test_add_and_delete_problems_1_test_case_1.out",
+	//		},
+	//		{
+	//			Score:          20,
+	//			Sample:         false,
+	//			InputFileName:  "test_add_and_delete_problems_1_test_case_2.in",
+	//			OutputFileName: "test_add_and_delete_problems_1_test_case_2.out",
+	//		},
+	//	},
+	//	LanguageAllowed: database.StringArray([]string{""}),
+	//}
+	//problem2 := Problem{
+	//	Name:        "test_add_and_delete_problems_2_name",
+	//	Description: "test_add_and_delete_problems_2_description",
+	//	TestCases: []TestCase{
+	//		{
+	//			Score:          10,
+	//			Sample:         true,
+	//			InputFileName:  "test_add_and_delete_problems_2_test_case_1.in",
+	//			OutputFileName: "test_add_and_delete_problems_2_test_case_1.out",
+	//		},
+	//		{
+	//			Score:          20,
+	//			Sample:         false,
+	//			InputFileName:  "test_add_and_delete_problems_2_test_case_2.in",
+	//			OutputFileName: "test_add_and_delete_problems_2_test_case_2.out",
+	//		},
+	//	},
+	//	LanguageAllowed: database.StringArray([]string{""}),
+	//}
+	//problem3 := Problem{
+	//	Name:        "test_add_and_delete_problems_3_name",
+	//	Description: "test_add_and_delete_problems_3_description",
+	//	TestCases: []TestCase{
+	//		{
+	//			Score:          10,
+	//			Sample:         true,
+	//			InputFileName:  "test_add_and_delete_problems_3_test_case_1.in",
+	//			OutputFileName: "test_add_and_delete_problems_3_test_case_1.out",
+	//		},
+	//		{
+	//			Score:          20,
+	//			Sample:         false,
+	//			InputFileName:  "test_add_and_delete_problems_3_test_case_2.in",
+	//			OutputFileName: "test_add_and_delete_problems_3_test_case_2.out",
+	//		},
+	//	},
+	//	LanguageAllowed: database.StringArray([]string{""}),
+	//}
+	//problem4 := Problem{
+	//	Name:        "test_add_and_delete_problems_4_name",
+	//	Description: "test_add_and_delete_problems_4_description",
+	//	TestCases: []TestCase{
+	//		{
+	//			Score:          10,
+	//			Sample:         true,
+	//			InputFileName:  "test_add_and_delete_problems_4_test_case_1.in",
+	//			OutputFileName: "test_add_and_delete_problems_4_test_case_1.out",
+	//		},
+	//		{
+	//			Score:          20,
+	//			Sample:         false,
+	//			InputFileName:  "test_add_and_delete_problems_4_test_case_2.in",
+	//			OutputFileName: "test_add_and_delete_problems_4_test_case_2.out",
+	//		},
+	//	},
+	//	LanguageAllowed: database.StringArray([]string{""}),
+	//}
+	//assert.NoError(t, base.DB.Create(&problem1).Error)
+	//assert.NoError(t, base.DB.Create(&problem2).Error)
+	//assert.NoError(t, base.DB.Create(&problem3).Error)
+	//assert.NoError(t, base.DB.Create(&problem4).Error)
 
 	t.Run("AddSuccess", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "add_success", 1)
+		problem2 := createProblemForTest(t, "add_success", 2)
+		problem3 := createProblemForTest(t, "add_success", 3)
+		problem4 := createProblemForTest(t, "add_success", 4)
 		t.Parallel()
 		problemSet := ProblemSet{
 			Name:        "test_add_students_success_problem_set_name",
 			Description: "test_add_students_success_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
+				*problem1,
+				*problem2,
 			},
 			StartAt: hashStringToTime("test_add_students_success_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_add_students_success_problem_set_end_at"),
@@ -132,10 +161,10 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Name:        "test_add_students_success_problem_set_name",
 			Description: "test_add_students_success_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
-				problem3,
-				problem4,
+				*problem1,
+				*problem2,
+				*problem3,
+				*problem4,
 			},
 			StartAt:   hashStringToTime("test_add_students_success_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_add_students_success_problem_set_end_at"),
@@ -144,13 +173,16 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		}, problemSet)
 	})
 	t.Run("AddExistingInSet", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "add_existing_in_set", 1)
+		problem2 := createProblemForTest(t, "add_existing_in_set", 2)
+		problem3 := createProblemForTest(t, "add_existing_in_set", 3)
 		t.Parallel()
 		problemSet := ProblemSet{
 			Name:        "test_add_students_existing_in_set_problem_set_name",
 			Description: "test_add_students_existing_in_set_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
+				*problem1,
+				*problem2,
 			},
 			StartAt: hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
@@ -165,9 +197,9 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Name:        "test_add_students_existing_in_set_problem_set_name",
 			Description: "test_add_students_existing_in_set_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
-				problem3,
+				*problem1,
+				*problem2,
+				*problem3,
 			},
 			StartAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
@@ -176,13 +208,16 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		}, problemSet)
 	})
 	t.Run("AddNonExisting", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "add_non_exist", 1)
+		problem2 := createProblemForTest(t, "add_non_exist", 2)
+		problem3 := createProblemForTest(t, "add_non_exist", 3)
 		t.Parallel()
 		problemSet := ProblemSet{
 			Name:        "test_add_students_non_existing_problem_set_name",
 			Description: "test_add_students_non_existing_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
+				*problem1,
+				*problem2,
 			},
 			StartAt: hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
@@ -197,9 +232,9 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Name:        "test_add_students_non_existing_problem_set_name",
 			Description: "test_add_students_non_existing_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
-				problem3,
+				*problem1,
+				*problem2,
+				*problem3,
 			},
 			StartAt:   hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
@@ -208,14 +243,17 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		}, problemSet)
 	})
 	t.Run("DeleteSuccess", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "delete_success", 1)
+		problem2 := createProblemForTest(t, "delete_success", 2)
+		problem3 := createProblemForTest(t, "delete_success", 3)
 		t.Parallel()
 		problemSet := ProblemSet{
 			Name:        "test_delete_students_success_problem_set_name",
 			Description: "test_delete_students_success_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
-				problem3,
+				*problem1,
+				*problem2,
+				*problem3,
 			},
 			StartAt: hashStringToTime("test_delete_students_success_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_delete_students_success_problem_set_end_at"),
@@ -230,7 +268,7 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Name:        "test_delete_students_success_problem_set_name",
 			Description: "test_delete_students_success_problem_set_description",
 			Problems: []Problem{
-				problem1,
+				*problem1,
 			},
 			StartAt:   hashStringToTime("test_delete_students_success_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_delete_students_success_problem_set_end_at"),
@@ -239,13 +277,16 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		}, problemSet)
 	})
 	t.Run("DeleteNotBelongTo", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "delete_not_belong_to", 1)
+		problem2 := createProblemForTest(t, "delete_not_belong_to", 2)
+		problem3 := createProblemForTest(t, "delete_not_belong_to", 3)
 		t.Parallel()
 		problemSet := ProblemSet{
 			Name:        "test_delete_students_not_belong_to_problem_set_name",
 			Description: "test_delete_students_not_belong_to_problem_set_description",
 			Problems: []Problem{
-				problem1,
-				problem2,
+				*problem1,
+				*problem2,
 			},
 			StartAt: hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
@@ -260,7 +301,7 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Name:        "test_delete_students_not_belong_to_problem_set_name",
 			Description: "test_delete_students_not_belong_to_problem_set_description",
 			Problems: []Problem{
-				problem1,
+				*problem1,
 			},
 			StartAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
