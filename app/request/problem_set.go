@@ -6,8 +6,8 @@ type CreateProblemSetRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 
-	StartAt time.Time `json:"start_at" form:"start_at" query:"start_at" validate:"required"`
-	EndAt   time.Time `json:"end_at" form:"end_at" query:"end_at" validate:"required,gtefield=StartAt"`
+	StartTime time.Time `json:"start_time" form:"start_time" query:"start_time" validate:"required"`
+	EndTime   time.Time `json:"end_time" form:"end_time" query:"end_time" validate:"required,gtefield=StartTime"`
 }
 
 type CloneProblemSetRequest struct {
@@ -22,15 +22,15 @@ type UpdateProblemSetRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 
-	StartAt time.Time `json:"start_at" form:"start_at" query:"start_at" validate:"required"`
-	EndAt   time.Time `json:"end_at" form:"end_at" query:"end_at" validate:"required,gtefield=StartAt"`
+	StartTime time.Time `json:"start_time" form:"start_time" query:"start_time" validate:"required"`
+	EndTime   time.Time `json:"end_time" form:"end_time" query:"end_time" validate:"required,gtefield=StartTime"`
 }
 
-type AddProblemsInSetRequest struct {
+type AddProblemsToSetRequest struct {
 	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required"`
 }
 
-type DeleteProblemsInSetRequest struct {
+type DeleteProblemsFromSetRequest struct {
 	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required"`
 }
 

@@ -31,9 +31,9 @@ func CreateProblemSet(c echo.Context) error {
 		Name:        req.Name,
 		Description: req.Description,
 		Problems:    nil,
-		Scores:      nil,
-		StartAt:     req.StartAt,
-		EndAt:       req.EndAt,
+		Grades:      nil,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
 	}
 	if err := base.DB.Model(&class).Association("ProblemSets").Append(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not add problem set for class when creating problem set"))
@@ -82,9 +82,9 @@ func CloneProblemSet(c echo.Context) error {
 		Name:        sourceProblemSets[0].Name,
 		Description: sourceProblemSets[0].Description,
 		Problems:    sourceProblemSets[0].Problems,
-		Scores:      nil,
-		StartAt:     sourceProblemSets[0].StartAt,
-		EndAt:       sourceProblemSets[0].EndAt,
+		Grades:      nil,
+		StartTime:   sourceProblemSets[0].StartTime,
+		EndTime:     sourceProblemSets[0].EndTime,
 	}
 	if err := base.DB.Model(&class).Association("ProblemSets").Append(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not add problem set for class when cloning problem set"))
@@ -109,7 +109,7 @@ func GetProblemSet(c echo.Context) error {
 		}
 		panic(errors.Wrap(err, "could not get class for getting problem set"))
 	}
-	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Grades").Association("ProblemSets").
 		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
 		panic(errors.Wrap(err, "could not get problem set for getting problem set"))
 	}
@@ -137,7 +137,7 @@ func GetProblemSet(c echo.Context) error {
 	if len(users) == 0 {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
 	}
-	if time.Now().Before(problemSets[0].StartAt) || time.Now().After(problemSets[0].EndAt) {
+	if time.Now().Before(problemSets[0].StartTime) || time.Now().After(problemSets[0].EndTime) {
 		problemSets[0].Problems = nil
 	}
 	return c.JSON(http.StatusOK, response.GetProblemSetResponse{
@@ -165,7 +165,7 @@ func UpdateProblemSet(c echo.Context) error {
 		}
 		panic(errors.Wrap(err, "could not get class for updating problem set"))
 	}
-	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Grades").Association("ProblemSets").
 		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
 		panic(errors.Wrap(err, "could not get problem set for updating problem set"))
 	}
@@ -177,8 +177,8 @@ func UpdateProblemSet(c echo.Context) error {
 
 	problemSets[0].Name = req.Name
 	problemSets[0].Description = req.Description
-	problemSets[0].StartAt = req.StartAt
-	problemSets[0].EndAt = req.EndAt
+	problemSets[0].StartTime = req.StartTime
+	problemSets[0].EndTime = req.EndTime
 	utils.PanicIfDBError(base.DB.Save(&problemSets[0]), "could not update problem set for updating problem set")
 	return c.JSON(http.StatusOK, response.UpdateProblemSetResponse{
 		Message: "SUCCESS",
@@ -191,8 +191,8 @@ func UpdateProblemSet(c echo.Context) error {
 	})
 }
 
-func AddProblemsInSet(c echo.Context) error {
-	req := request.AddProblemsInSetRequest{}
+func AddProblemsToSet(c echo.Context) error {
+	req := request.AddProblemsToSetRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
@@ -206,7 +206,7 @@ func AddProblemsInSet(c echo.Context) error {
 		}
 		panic(errors.Wrap(err, "could not get class for adding problems in set"))
 	}
-	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Grades").Association("ProblemSets").
 		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
 		panic(errors.Wrap(err, "could not get problem set for adding problems in set"))
 	}
@@ -219,7 +219,7 @@ func AddProblemsInSet(c echo.Context) error {
 	if err := problemSets[0].AddProblems(req.ProblemIDs); err != nil {
 		panic(errors.Wrap(err, "could not add problems for problem set"))
 	}
-	return c.JSON(http.StatusOK, response.AddProblemsInSetResponse{
+	return c.JSON(http.StatusOK, response.AddProblemsToSetResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
@@ -230,8 +230,8 @@ func AddProblemsInSet(c echo.Context) error {
 	})
 }
 
-func DeleteProblemsInSet(c echo.Context) error {
-	req := request.DeleteProblemsInSetRequest{}
+func DeleteProblemsFromSet(c echo.Context) error {
+	req := request.DeleteProblemsFromSetRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
@@ -245,7 +245,7 @@ func DeleteProblemsInSet(c echo.Context) error {
 		}
 		panic(errors.Wrap(err, "could not get class for deleting problems in set"))
 	}
-	if err := base.DB.Model(&class).Preload("Problems").Preload("Scores").Association("ProblemSets").
+	if err := base.DB.Model(&class).Preload("Problems").Preload("Grades").Association("ProblemSets").
 		Find(&problemSets, "id = ?", c.Param("id")); err != nil {
 		panic(errors.Wrap(err, "could not get problem set for deleting problems in set"))
 	}
@@ -258,7 +258,7 @@ func DeleteProblemsInSet(c echo.Context) error {
 	if err := problemSets[0].DeleteProblems(req.ProblemIDs); err != nil {
 		panic(errors.Wrap(err, "could not delete problems for problem set"))
 	}
-	return c.JSON(http.StatusOK, response.DeleteProblemsInSetResponse{
+	return c.JSON(http.StatusOK, response.DeleteProblemsFromSetResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {

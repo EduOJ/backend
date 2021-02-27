@@ -14,10 +14,10 @@ type ProblemSetDetail struct {
 	Description string `json:"description"`
 
 	Problems []Problem `json:"problems"`
-	Scores   []Grade   `json:"scores"`
+	Grades   []Grade   `json:"grades"`
 
-	StartAt time.Time `json:"start_at"`
-	EndAt   time.Time `json:"end_at"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 type ProblemSet struct {
@@ -29,8 +29,8 @@ type ProblemSet struct {
 
 	Problems []Problem `json:"problems"`
 
-	StartAt time.Time `json:"start_at"`
-	EndAt   time.Time `json:"end_at"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 type Grade struct {
@@ -39,8 +39,8 @@ type Grade struct {
 	UserID       uint `json:"user_id"`
 	ProblemSetID uint `json:"problem_set_id"`
 
-	ScoreDetail string `json:"score_detail"`
-	TotalScore  uint   `json:"total_score"`
+	Detail string `json:"detail"`
+	Total  uint   `json:"total"`
 }
 
 func (p *ProblemSetDetail) convert(problemSet *models.ProblemSet) {
@@ -49,9 +49,9 @@ func (p *ProblemSetDetail) convert(problemSet *models.ProblemSet) {
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
 	p.Problems = GetProblemSlice(problemSet.Problems)
-	p.Scores = GetGradeSlice(problemSet.Scores)
-	p.StartAt = problemSet.StartAt
-	p.EndAt = problemSet.EndAt
+	p.Grades = GetGradeSlice(problemSet.Grades)
+	p.StartTime = problemSet.StartTime
+	p.EndTime = problemSet.EndTime
 }
 
 func (p *ProblemSet) convert(problemSet *models.ProblemSet) {
@@ -60,8 +60,8 @@ func (p *ProblemSet) convert(problemSet *models.ProblemSet) {
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
 	p.Problems = GetProblemSlice(problemSet.Problems)
-	p.StartAt = problemSet.StartAt
-	p.EndAt = problemSet.EndAt
+	p.StartTime = problemSet.StartTime
+	p.EndTime = problemSet.EndTime
 }
 
 func GetProblemSet(problemSet *models.ProblemSet) *ProblemSet {
@@ -88,12 +88,12 @@ func (g *Grade) convert(grade *models.Grade) {
 	g.ID = grade.ID
 	g.UserID = grade.UserID
 	g.ProblemSetID = grade.ProblemSetID
-	b, err := grade.ScoreDetail.MarshalJSON()
+	b, err := grade.Detail.MarshalJSON()
 	if err != nil {
 		panic(errors.Wrap(err, "could not marshal json for converting grade"))
 	}
-	g.ScoreDetail = string(b)
-	g.TotalScore = grade.TotalScore
+	g.Detail = string(b)
+	g.Total = grade.Total
 }
 
 func GetGrade(grade *models.Grade) *Grade {

@@ -304,13 +304,13 @@ Common return codes.
 |           NOT_FOUND          |    无法找到problem set   |
 |        CLASS_NOT_FOUND       |        无法找到class     |
 
-### AddProblemsInSet
+### AddProblemsToSet
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
 |           NOT_FOUND          |    无法找到problem set   |
 |        CLASS_NOT_FOUND       |        无法找到class     |
 
-### DeleteProblemsInSet
+### DeleteProblemsFromSet
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
 |           NOT_FOUND          |    无法找到problem set   |

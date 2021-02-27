@@ -59,7 +59,7 @@ func TestGetUserGetUserForAdminAndGetUserSlice(t *testing.T) {
 					TargetID: 2,
 				},
 			},
-			Scores: []resource.Grade{},
+			Grades: []resource.Grade{},
 		}
 		assert.Equal(t, expectedUser, *actualUser)
 	})

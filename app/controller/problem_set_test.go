@@ -39,12 +39,12 @@ func TestCreateProblemSet(t *testing.T) {
 					"translation": "描述为必填字段",
 				},
 				map[string]interface{}{
-					"field":       "StartAt",
+					"field":       "StartTime",
 					"reason":      "required",
 					"translation": "开始时间为必填字段",
 				},
 				map[string]interface{}{
-					"field":       "EndAt",
+					"field":       "EndTime",
 					"reason":      "required",
 					"translation": "结束时间为必填字段",
 				},
@@ -57,8 +57,8 @@ func TestCreateProblemSet(t *testing.T) {
 			req: request.CreateProblemSetRequest{
 				Name:        "test_create_problem_set_non_existing_class_name",
 				Description: "test_create_problem_set_non_existing_class_description",
-				StartAt:     hashStringToTime("test_create_problem_set_non_existing_class_time"),
-				EndAt:       hashStringToTime("test_create_problem_set_non_existing_class_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_create_problem_set_non_existing_class_time"),
+				EndTime:     hashStringToTime("test_create_problem_set_non_existing_class_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusNotFound,
@@ -71,8 +71,8 @@ func TestCreateProblemSet(t *testing.T) {
 			req: request.CreateProblemSetRequest{
 				Name:        "test_create_problem_set_permission_denied_name",
 				Description: "test_create_problem_set_permission_denied_description",
-				StartAt:     hashStringToTime("test_create_problem_set_permission_denied_time"),
-				EndAt:       hashStringToTime("test_create_problem_set_permission_denied_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_create_problem_set_permission_denied_time"),
+				EndTime:     hashStringToTime("test_create_problem_set_permission_denied_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyNormalUser},
 			statusCode: http.StatusForbidden,
@@ -90,22 +90,22 @@ func TestCreateProblemSet(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("problemSet.createProblemSet", class.ID), request.CreateProblemSetRequest{
 			Name:        "test_create_problem_set_success_name",
 			Description: "test_create_problem_set_success_description",
-			StartAt:     hashStringToTime("test_create_problem_set_success_time"),
-			EndAt:       hashStringToTime("test_create_problem_set_success_time").Add(time.Hour),
+			StartTime:   hashStringToTime("test_create_problem_set_success_time"),
+			EndTime:     hashStringToTime("test_create_problem_set_success_time").Add(time.Hour),
 		}, applyUser(user)))
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 
 		databaseProblemSet := models.ProblemSet{}
-		assert.NoError(t, base.DB.Preload("Problems").Preload("Scores").First(&databaseProblemSet, "name = ?", "test_create_problem_set_success_name").Error)
+		assert.NoError(t, base.DB.Preload("Problems").Preload("Grades").First(&databaseProblemSet, "name = ?", "test_create_problem_set_success_name").Error)
 		expectedProblemSet := models.ProblemSet{
 			ID:          databaseProblemSet.ID,
 			ClassID:     class.ID,
 			Name:        "test_create_problem_set_success_name",
 			Description: "test_create_problem_set_success_description",
 			Problems:    []*models.Problem{},
-			Scores:      []*models.Grade{},
-			StartAt:     hashStringToTime("test_create_problem_set_success_time"),
-			EndAt:       hashStringToTime("test_create_problem_set_success_time").Add(time.Hour),
+			Grades:      []*models.Grade{},
+			StartTime:   hashStringToTime("test_create_problem_set_success_time"),
+			EndTime:     hashStringToTime("test_create_problem_set_success_time").Add(time.Hour),
 			CreatedAt:   databaseProblemSet.CreatedAt,
 			UpdatedAt:   databaseProblemSet.UpdatedAt,
 			DeletedAt:   gorm.DeletedAt{},
@@ -131,9 +131,9 @@ func createProblemSetForTest(t *testing.T, name string, id int, class *models.Cl
 		Name:        fmt.Sprintf("test_%s_%d_name", name, id),
 		Description: fmt.Sprintf("test_%s_%d_description", name, id),
 		Problems:    []*models.Problem{},
-		Scores:      []*models.Grade{},
-		StartAt:     hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)),
-		EndAt:       hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)).Add(time.Hour),
+		Grades:      []*models.Grade{},
+		StartTime:   hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)),
+		EndTime:     hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)).Add(time.Hour),
 	}
 	assert.NoError(t, base.DB.Model(&class).Association("ProblemSets").Append(&problemSet))
 	assert.NoError(t, base.DB.Model(&problemSet).Association("Problems").Append(problems))
@@ -250,7 +250,7 @@ func TestCloneProblemSet(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 
 		databaseProblemSet := models.ProblemSet{}
-		assert.NoError(t, base.DB.Preload("Problems").Preload("Scores").
+		assert.NoError(t, base.DB.Preload("Problems").Preload("Grades").
 			First(&databaseProblemSet, "name = ? and class_id = ?", "test_clone_problem_set_success_source_0_name", class.ID).Error)
 		expectedProblemSet := models.ProblemSet{
 			ID:          databaseProblemSet.ID,
@@ -261,9 +261,9 @@ func TestCloneProblemSet(t *testing.T) {
 				&problem1,
 				&problem2,
 			},
-			Scores:    []*models.Grade{},
-			StartAt:   hashStringToTime("test_clone_problem_set_success_source_0_time"),
-			EndAt:     hashStringToTime("test_clone_problem_set_success_source_0_time").Add(time.Hour),
+			Grades:    []*models.Grade{},
+			StartTime: hashStringToTime("test_clone_problem_set_success_source_0_time"),
+			EndTime:   hashStringToTime("test_clone_problem_set_success_source_0_time").Add(time.Hour),
 			CreatedAt: databaseProblemSet.CreatedAt,
 			UpdatedAt: databaseProblemSet.UpdatedAt,
 			DeletedAt: gorm.DeletedAt{},
@@ -336,8 +336,8 @@ func TestGetProblemSet(t *testing.T) {
 		ProblemID: problem2.ID,
 		Score:     20,
 	}))
-	problemSetInProgress.StartAt = time.Now().Add(-1 * time.Hour)
-	problemSetInProgress.EndAt = time.Now().Add(time.Hour)
+	problemSetInProgress.StartTime = time.Now().Add(-1 * time.Hour)
+	problemSetInProgress.EndTime = time.Now().Add(time.Hour)
 	assert.NoError(t, base.DB.Save(&problemSetInProgress).Error)
 	problemSetNotYetStarted := createProblemSetForTest(t, "get_problem_set_success_not_yet_started", 0, &class, []models.Problem{problem1, problem2})
 	assert.NoError(t, problemSetNotYetStarted.UpdateGrade(models.Submission{
@@ -350,8 +350,8 @@ func TestGetProblemSet(t *testing.T) {
 		ProblemID: problem2.ID,
 		Score:     60,
 	}))
-	problemSetNotYetStarted.StartAt = time.Now().Add(time.Hour)
-	problemSetNotYetStarted.EndAt = time.Now().Add(2 * time.Hour)
+	problemSetNotYetStarted.StartTime = time.Now().Add(time.Hour)
+	problemSetNotYetStarted.EndTime = time.Now().Add(2 * time.Hour)
 	assert.NoError(t, base.DB.Save(&problemSetNotYetStarted).Error)
 	user.GrantRole("class_creator", class)
 
@@ -439,12 +439,12 @@ func TestUpdateProblemSet(t *testing.T) {
 					"translation": "描述为必填字段",
 				},
 				map[string]interface{}{
-					"field":       "StartAt",
+					"field":       "StartTime",
 					"reason":      "required",
 					"translation": "开始时间为必填字段",
 				},
 				map[string]interface{}{
-					"field":       "EndAt",
+					"field":       "EndTime",
 					"reason":      "required",
 					"translation": "结束时间为必填字段",
 				},
@@ -457,8 +457,8 @@ func TestUpdateProblemSet(t *testing.T) {
 			req: request.UpdateProblemSetRequest{
 				Name:        "test_update_problem_set_non_existing_class_name",
 				Description: "test_update_problem_set_non_existing_class_description",
-				StartAt:     hashStringToTime("test_update_problem_set_non_existing_class_time"),
-				EndAt:       hashStringToTime("test_update_problem_set_non_existing_class_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_update_problem_set_non_existing_class_time"),
+				EndTime:     hashStringToTime("test_update_problem_set_non_existing_class_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusNotFound,
@@ -471,8 +471,8 @@ func TestUpdateProblemSet(t *testing.T) {
 			req: request.UpdateProblemSetRequest{
 				Name:        "test_update_problem_set_non_existing_problem_set_name",
 				Description: "test_update_problem_set_non_existing_problem_set_description",
-				StartAt:     hashStringToTime("test_update_problem_set_non_existing_problem_set_time"),
-				EndAt:       hashStringToTime("test_update_problem_set_non_existing_problem_set_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_update_problem_set_non_existing_problem_set_time"),
+				EndTime:     hashStringToTime("test_update_problem_set_non_existing_problem_set_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusNotFound,
@@ -485,8 +485,8 @@ func TestUpdateProblemSet(t *testing.T) {
 			req: request.UpdateProblemSetRequest{
 				Name:        "test_update_problem_set_permission_denied_name",
 				Description: "test_update_problem_set_permission_denied_description",
-				StartAt:     hashStringToTime("test_update_problem_set_permission_denied_time"),
-				EndAt:       hashStringToTime("test_update_problem_set_permission_denied_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_update_problem_set_permission_denied_time"),
+				EndTime:     hashStringToTime("test_update_problem_set_permission_denied_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyNormalUser},
 			statusCode: http.StatusForbidden,
@@ -518,22 +518,22 @@ func TestUpdateProblemSet(t *testing.T) {
 			request.UpdateProblemSetRequest{
 				Name:        "test_update_problem_set_success_00_name",
 				Description: "test_update_problem_set_success_00_description",
-				StartAt:     hashStringToTime("test_update_problem_set_success_00_time"),
-				EndAt:       hashStringToTime("test_update_problem_set_success_00_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_update_problem_set_success_00_time"),
+				EndTime:     hashStringToTime("test_update_problem_set_success_00_time").Add(time.Hour),
 			}, applyUser(user)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 
 		databaseProblemSet := models.ProblemSet{}
-		assert.NoError(t, base.DB.Preload("Problems").Preload("Scores").First(&databaseProblemSet, problemSet.ID).Error)
+		assert.NoError(t, base.DB.Preload("Problems").Preload("Grades").First(&databaseProblemSet, problemSet.ID).Error)
 		expectedProblemSet := models.ProblemSet{
 			ID:          databaseProblemSet.ID,
 			ClassID:     class.ID,
 			Name:        "test_update_problem_set_success_00_name",
 			Description: "test_update_problem_set_success_00_description",
 			Problems:    problemSet.Problems,
-			Scores:      problemSet.Scores,
-			StartAt:     hashStringToTime("test_update_problem_set_success_00_time"),
-			EndAt:       hashStringToTime("test_update_problem_set_success_00_time").Add(time.Hour),
+			Grades:      problemSet.Grades,
+			StartTime:   hashStringToTime("test_update_problem_set_success_00_time"),
+			EndTime:     hashStringToTime("test_update_problem_set_success_00_time").Add(time.Hour),
 			CreatedAt:   databaseProblemSet.CreatedAt,
 			UpdatedAt:   databaseProblemSet.UpdatedAt,
 			DeletedAt:   gorm.DeletedAt{},
@@ -553,17 +553,17 @@ func TestUpdateProblemSet(t *testing.T) {
 	})
 }
 
-func TestAddProblemsInSetProblemSet(t *testing.T) {
+func TestAddProblemsToSetProblemSet(t *testing.T) {
 	t.Parallel()
 
-	failClass := createClassForTest(t, "add_problems_in_set_fail", 0, nil, nil)
-	failProblemSet := createProblemSetForTest(t, "add_problems_in_set_fail", 0, &failClass, nil)
+	failClass := createClassForTest(t, "add_problems_to_set_fail", 0, nil, nil)
+	failProblemSet := createProblemSetForTest(t, "add_problems_to_set_fail", 0, &failClass, nil)
 	failTests := []failTest{
 		{
 			name:       "WithoutParams",
 			method:     "POST",
-			path:       base.Echo.Reverse("problemSet.addProblemsInSet", failClass.ID),
-			req:        request.AddProblemsInSetRequest{},
+			path:       base.Echo.Reverse("problemSet.addProblemsToSet", failClass.ID),
+			req:        request.AddProblemsToSetRequest{},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusBadRequest,
 			resp: response.ErrorResp("VALIDATION_ERROR", []interface{}{
@@ -577,8 +577,8 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 		{
 			name:   "NonExistingClass",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.addProblemsInSet", -1, failProblemSet.ID),
-			req: request.AddProblemsInSetRequest{
+			path:   base.Echo.Reverse("problemSet.addProblemsToSet", -1, failProblemSet.ID),
+			req: request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{0},
 			},
 			reqOptions: []reqOption{applyAdminUser},
@@ -588,8 +588,8 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 		{
 			name:   "NonExistingProblemSet",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.addProblemsInSet", failClass.ID, -1),
-			req: request.AddProblemsInSetRequest{
+			path:   base.Echo.Reverse("problemSet.addProblemsToSet", failClass.ID, -1),
+			req: request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{0},
 			},
 			reqOptions: []reqOption{applyAdminUser},
@@ -599,8 +599,8 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.addProblemsInSet", failClass.ID, failProblemSet.ID),
-			req: request.AddProblemsInSetRequest{
+			path:   base.Echo.Reverse("problemSet.addProblemsToSet", failClass.ID, failProblemSet.ID),
+			req: request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{0},
 			},
 			reqOptions: []reqOption{applyNormalUser},
@@ -611,12 +611,12 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 	runFailTests(t, failTests, "")
 
 	t.Run("Success", func(t *testing.T) {
-		user := createUserForTest(t, "add_problems_in_set_success", 0)
-		problem1 := createProblemForTest(t, "add_problems_in_set_success", 1, nil, user)
-		problem2 := createProblemForTest(t, "add_problems_in_set_success", 2, nil, user)
-		problem3 := createProblemForTest(t, "add_problems_in_set_success", 3, nil, user)
-		class := createClassForTest(t, "add_problems_in_set_success", 0, nil, nil)
-		problemSet := createProblemSetForTest(t, "add_problems_in_set_success", 0, &class, []models.Problem{problem1})
+		user := createUserForTest(t, "add_problems_to_set_success", 0)
+		problem1 := createProblemForTest(t, "add_problems_to_set_success", 1, nil, user)
+		problem2 := createProblemForTest(t, "add_problems_to_set_success", 2, nil, user)
+		problem3 := createProblemForTest(t, "add_problems_to_set_success", 3, nil, user)
+		class := createClassForTest(t, "add_problems_to_set_success", 0, nil, nil)
+		problemSet := createProblemSetForTest(t, "add_problems_to_set_success", 0, &class, []models.Problem{problem1})
 		assert.NoError(t, problemSet.UpdateGrade(models.Submission{
 			UserID:    user.ID,
 			ProblemID: problem1.ID,
@@ -630,8 +630,8 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 		assert.NoError(t, base.DB.Save(&problemSet).Error)
 		user.GrantRole("class_creator", class)
 
-		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("problemSet.addProblemsInSet", class.ID, problemSet.ID),
-			request.AddProblemsInSetRequest{
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("problemSet.addProblemsToSet", class.ID, problemSet.ID),
+			request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{
 					problem1.ID,
 					problem2.ID,
@@ -642,28 +642,28 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 
 		databaseProblemSet := models.ProblemSet{}
-		assert.NoError(t, base.DB.Preload("Problems").Preload("Scores").First(&databaseProblemSet, problemSet.ID).Error)
+		assert.NoError(t, base.DB.Preload("Problems").Preload("Grades").First(&databaseProblemSet, problemSet.ID).Error)
 		expectedProblemSet := models.ProblemSet{
 			ID:          databaseProblemSet.ID,
 			ClassID:     class.ID,
-			Name:        "test_add_problems_in_set_success_0_name",
-			Description: "test_add_problems_in_set_success_0_description",
+			Name:        "test_add_problems_to_set_success_0_name",
+			Description: "test_add_problems_to_set_success_0_description",
 			Problems: []*models.Problem{
 				&problem1,
 				&problem2,
 				&problem3,
 			},
-			Scores:    problemSet.Scores,
-			StartAt:   hashStringToTime("test_add_problems_in_set_success_0_time"),
-			EndAt:     hashStringToTime("test_add_problems_in_set_success_0_time").Add(time.Hour),
+			Grades:    problemSet.Grades,
+			StartTime: hashStringToTime("test_add_problems_to_set_success_0_time"),
+			EndTime:   hashStringToTime("test_add_problems_to_set_success_0_time").Add(time.Hour),
 			CreatedAt: databaseProblemSet.CreatedAt,
 			UpdatedAt: databaseProblemSet.UpdatedAt,
 			DeletedAt: gorm.DeletedAt{},
 		}
 		assert.Equal(t, expectedProblemSet, databaseProblemSet)
-		resp := response.AddProblemsInSetResponse{}
+		resp := response.AddProblemsToSetResponse{}
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.AddProblemsInSetResponse{
+		assert.Equal(t, response.AddProblemsToSetResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -675,17 +675,17 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 	})
 }
 
-func TestDeleteProblemsInSetProblemSet(t *testing.T) {
+func TestDeleteProblemsFromSetProblemSet(t *testing.T) {
 	t.Parallel()
 
-	failClass := createClassForTest(t, "delete_problems_in_set_fail", 0, nil, nil)
-	failProblemSet := createProblemSetForTest(t, "delete_problems_in_set_fail", 0, &failClass, nil)
+	failClass := createClassForTest(t, "delete_problems_from_set_fail", 0, nil, nil)
+	failProblemSet := createProblemSetForTest(t, "delete_problems_from_set_fail", 0, &failClass, nil)
 	failTests := []failTest{
 		{
 			name:       "WithoutParams",
 			method:     "DELETE",
-			path:       base.Echo.Reverse("problemSet.deleteProblemsInSet", failClass.ID),
-			req:        request.DeleteProblemsInSetRequest{},
+			path:       base.Echo.Reverse("problemSet.deleteProblemsFromSet", failClass.ID),
+			req:        request.DeleteProblemsFromSetRequest{},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusBadRequest,
 			resp: response.ErrorResp("VALIDATION_ERROR", []interface{}{
@@ -699,8 +699,8 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 		{
 			name:   "NonExistingClass",
 			method: "DELETE",
-			path:   base.Echo.Reverse("problemSet.deleteProblemsInSet", -1, failProblemSet.ID),
-			req: request.AddProblemsInSetRequest{
+			path:   base.Echo.Reverse("problemSet.deleteProblemsFromSet", -1, failProblemSet.ID),
+			req: request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{0},
 			},
 			reqOptions: []reqOption{applyAdminUser},
@@ -710,8 +710,8 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 		{
 			name:   "NonExistingProblemSet",
 			method: "DELETE",
-			path:   base.Echo.Reverse("problemSet.deleteProblemsInSet", failClass.ID, -1),
-			req: request.AddProblemsInSetRequest{
+			path:   base.Echo.Reverse("problemSet.deleteProblemsFromSet", failClass.ID, -1),
+			req: request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{0},
 			},
 			reqOptions: []reqOption{applyAdminUser},
@@ -721,8 +721,8 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "DELETE",
-			path:   base.Echo.Reverse("problemSet.deleteProblemsInSet", failClass.ID, failProblemSet.ID),
-			req: request.AddProblemsInSetRequest{
+			path:   base.Echo.Reverse("problemSet.deleteProblemsFromSet", failClass.ID, failProblemSet.ID),
+			req: request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{0},
 			},
 			reqOptions: []reqOption{applyNormalUser},
@@ -733,12 +733,12 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 	runFailTests(t, failTests, "")
 
 	t.Run("Success", func(t *testing.T) {
-		user := createUserForTest(t, "delete_problems_in_set_success", 0)
-		problem1 := createProblemForTest(t, "delete_problems_in_set_success", 1, nil, user)
-		problem2 := createProblemForTest(t, "delete_problems_in_set_success", 2, nil, user)
-		problem3 := createProblemForTest(t, "delete_problems_in_set_success", 3, nil, user)
-		class := createClassForTest(t, "delete_problems_in_set_success", 0, nil, nil)
-		problemSet := createProblemSetForTest(t, "delete_problems_in_set_success", 0, &class, []models.Problem{problem1, problem2})
+		user := createUserForTest(t, "delete_problems_from_set_success", 0)
+		problem1 := createProblemForTest(t, "delete_problems_from_set_success", 1, nil, user)
+		problem2 := createProblemForTest(t, "delete_problems_from_set_success", 2, nil, user)
+		problem3 := createProblemForTest(t, "delete_problems_from_set_success", 3, nil, user)
+		class := createClassForTest(t, "delete_problems_from_set_success", 0, nil, nil)
+		problemSet := createProblemSetForTest(t, "delete_problems_from_set_success", 0, &class, []models.Problem{problem1, problem2})
 		assert.NoError(t, problemSet.UpdateGrade(models.Submission{
 			UserID:    user.ID,
 			ProblemID: problem1.ID,
@@ -752,8 +752,8 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 		assert.NoError(t, base.DB.Save(&problemSet).Error)
 		user.GrantRole("class_creator", class)
 
-		httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("problemSet.deleteProblemsInSet", class.ID, problemSet.ID),
-			request.AddProblemsInSetRequest{
+		httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("problemSet.deleteProblemsFromSet", class.ID, problemSet.ID),
+			request.AddProblemsToSetRequest{
 				ProblemIDs: []uint{
 					problem2.ID,
 					problem3.ID,
@@ -763,26 +763,26 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 
 		databaseProblemSet := models.ProblemSet{}
-		assert.NoError(t, base.DB.Preload("Problems").Preload("Scores").First(&databaseProblemSet, problemSet.ID).Error)
+		assert.NoError(t, base.DB.Preload("Problems").Preload("Grades").First(&databaseProblemSet, problemSet.ID).Error)
 		expectedProblemSet := models.ProblemSet{
 			ID:          databaseProblemSet.ID,
 			ClassID:     class.ID,
-			Name:        "test_delete_problems_in_set_success_0_name",
-			Description: "test_delete_problems_in_set_success_0_description",
+			Name:        "test_delete_problems_from_set_success_0_name",
+			Description: "test_delete_problems_from_set_success_0_description",
 			Problems: []*models.Problem{
 				&problem1,
 			},
-			Scores:    problemSet.Scores,
-			StartAt:   hashStringToTime("test_delete_problems_in_set_success_0_time"),
-			EndAt:     hashStringToTime("test_delete_problems_in_set_success_0_time").Add(time.Hour),
+			Grades:    problemSet.Grades,
+			StartTime: hashStringToTime("test_delete_problems_from_set_success_0_time"),
+			EndTime:   hashStringToTime("test_delete_problems_from_set_success_0_time").Add(time.Hour),
 			CreatedAt: databaseProblemSet.CreatedAt,
 			UpdatedAt: databaseProblemSet.UpdatedAt,
 			DeletedAt: gorm.DeletedAt{},
 		}
 		assert.Equal(t, expectedProblemSet, databaseProblemSet)
-		resp := response.AddProblemsInSetResponse{}
+		resp := response.AddProblemsToSetResponse{}
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.AddProblemsInSetResponse{
+		assert.Equal(t, response.AddProblemsToSetResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -807,8 +807,8 @@ func TestDeleteProblemSet(t *testing.T) {
 			req: request.UpdateProblemSetRequest{
 				Name:        "test_delete_problem_set_non_existing_class_name",
 				Description: "test_delete_problem_set_non_existing_class_description",
-				StartAt:     hashStringToTime("test_delete_problem_set_non_existing_class_time"),
-				EndAt:       hashStringToTime("test_delete_problem_set_non_existing_class_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_delete_problem_set_non_existing_class_time"),
+				EndTime:     hashStringToTime("test_delete_problem_set_non_existing_class_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusNotFound,
@@ -821,8 +821,8 @@ func TestDeleteProblemSet(t *testing.T) {
 			req: request.UpdateProblemSetRequest{
 				Name:        "test_delete_problem_set_permission_denied_name",
 				Description: "test_delete_problem_set_permission_denied_description",
-				StartAt:     hashStringToTime("test_delete_problem_set_permission_denied_time"),
-				EndAt:       hashStringToTime("test_delete_problem_set_permission_denied_time").Add(time.Hour),
+				StartTime:   hashStringToTime("test_delete_problem_set_permission_denied_time"),
+				EndTime:     hashStringToTime("test_delete_problem_set_permission_denied_time").Add(time.Hour),
 			},
 			reqOptions: []reqOption{applyNormalUser},
 			statusCode: http.StatusForbidden,

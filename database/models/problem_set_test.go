@@ -148,8 +148,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem1,
 				problem2,
 			},
-			StartAt: hashStringToTime("test_add_students_success_problem_set_start_at"),
-			EndAt:   hashStringToTime("test_add_students_success_problem_set_end_at"),
+			StartTime: hashStringToTime("test_add_students_success_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_success_problem_set_end_time"),
 		}
 		assert.NoError(t, base.DB.Create(&problemSet).Error)
 		assert.NoError(t, problemSet.AddProblems([]uint{
@@ -166,8 +166,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem3,
 				problem4,
 			},
-			StartAt:   hashStringToTime("test_add_students_success_problem_set_start_at"),
-			EndAt:     hashStringToTime("test_add_students_success_problem_set_end_at"),
+			StartTime: hashStringToTime("test_add_students_success_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_success_problem_set_end_time"),
 			CreatedAt: problemSet.CreatedAt,
 			UpdatedAt: problemSet.UpdatedAt,
 		}, problemSet)
@@ -184,8 +184,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem1,
 				problem2,
 			},
-			StartAt: hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
-			EndAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
+			StartTime: hashStringToTime("test_add_students_existing_in_set_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_existing_in_set_problem_set_end_time"),
 		}
 		assert.NoError(t, base.DB.Create(&problemSet).Error)
 		assert.NoError(t, problemSet.AddProblems([]uint{
@@ -201,8 +201,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem2,
 				problem3,
 			},
-			StartAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
-			EndAt:     hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
+			StartTime: hashStringToTime("test_add_students_existing_in_set_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_existing_in_set_problem_set_end_time"),
 			CreatedAt: problemSet.CreatedAt,
 			UpdatedAt: problemSet.UpdatedAt,
 		}, problemSet)
@@ -219,8 +219,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem1,
 				problem2,
 			},
-			StartAt: hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
-			EndAt:   hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
+			StartTime: hashStringToTime("test_add_students_non_existing_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_non_existing_problem_set_end_time"),
 		}
 		assert.NoError(t, base.DB.Create(&problemSet).Error)
 		assert.NoError(t, problemSet.AddProblems([]uint{
@@ -236,8 +236,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem2,
 				problem3,
 			},
-			StartAt:   hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
-			EndAt:     hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
+			StartTime: hashStringToTime("test_add_students_non_existing_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_non_existing_problem_set_end_time"),
 			CreatedAt: problemSet.CreatedAt,
 			UpdatedAt: problemSet.UpdatedAt,
 		}, problemSet)
@@ -255,8 +255,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem2,
 				problem3,
 			},
-			StartAt: hashStringToTime("test_delete_students_success_problem_set_start_at"),
-			EndAt:   hashStringToTime("test_delete_students_success_problem_set_end_at"),
+			StartTime: hashStringToTime("test_delete_students_success_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_delete_students_success_problem_set_end_time"),
 		}
 		assert.NoError(t, base.DB.Create(&problemSet).Error)
 		assert.NoError(t, problemSet.DeleteProblems([]uint{
@@ -270,8 +270,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Problems: []*Problem{
 				problem1,
 			},
-			StartAt:   hashStringToTime("test_delete_students_success_problem_set_start_at"),
-			EndAt:     hashStringToTime("test_delete_students_success_problem_set_end_at"),
+			StartTime: hashStringToTime("test_delete_students_success_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_delete_students_success_problem_set_end_time"),
 			CreatedAt: problemSet.CreatedAt,
 			UpdatedAt: problemSet.UpdatedAt,
 		}, problemSet)
@@ -288,8 +288,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 				problem1,
 				problem2,
 			},
-			StartAt: hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
-			EndAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
+			StartTime: hashStringToTime("test_delete_students_not_belong_to_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_delete_students_not_belong_to_problem_set_end_time"),
 		}
 		assert.NoError(t, base.DB.Create(&problemSet).Error)
 		assert.NoError(t, problemSet.DeleteProblems([]uint{
@@ -303,8 +303,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			Problems: []*Problem{
 				problem1,
 			},
-			StartAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
-			EndAt:     hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
+			StartTime: hashStringToTime("test_delete_students_not_belong_to_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_delete_students_not_belong_to_problem_set_end_time"),
 			CreatedAt: problemSet.CreatedAt,
 			UpdatedAt: problemSet.UpdatedAt,
 		}, problemSet)
@@ -350,18 +350,18 @@ func TestUpdateGrade(t *testing.T) {
 			&problem1,
 			&problem2,
 		},
-		Scores: []*Grade{
+		Grades: []*Grade{
 			{
 				UserID: user1.ID,
-				ScoreDetail: createJSONForTest(t, map[uint]uint{
+				Detail: createJSONForTest(t, map[uint]uint{
 					problem1.ID: 11,
 					problem2.ID: 12,
 				}),
-				TotalScore: 23,
+				Total: 23,
 			},
 		},
-		StartAt: hashStringToTime("test_update_grade_start_at"),
-		EndAt:   hashStringToTime("test_update_grade_end_at"),
+		StartTime: hashStringToTime("test_update_grade_start_time"),
+		EndTime:   hashStringToTime("test_update_grade_end_time"),
 	}
 	assert.NoError(t, base.DB.Create(&problemSet).Error)
 	assert.NoError(t, problemSet.UpdateGrade(Submission{
@@ -371,16 +371,16 @@ func TestUpdateGrade(t *testing.T) {
 	}))
 	assert.Equal(t, []*Grade{
 		{
-			ID:           problemSet.Scores[0].ID,
+			ID:           problemSet.Grades[0].ID,
 			UserID:       user1.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			TotalScore: 131,
+			Total: 131,
 		},
-	}, problemSet.Scores)
+	}, problemSet.Grades)
 	assert.NoError(t, problemSet.UpdateGrade(Submission{
 		UserID:    user2.ID,
 		ProblemID: problem1.ID,
@@ -388,25 +388,25 @@ func TestUpdateGrade(t *testing.T) {
 	}))
 	assert.Equal(t, []*Grade{
 		{
-			ID:           problemSet.Scores[0].ID,
+			ID:           problemSet.Grades[0].ID,
 			UserID:       user1.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			TotalScore: 131,
+			Total: 131,
 		},
 		{
-			ID:           problemSet.Scores[1].ID,
+			ID:           problemSet.Grades[1].ID,
 			UserID:       user2.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 21,
 			}),
-			TotalScore: 21,
+			Total: 21,
 		},
-	}, problemSet.Scores)
+	}, problemSet.Grades)
 	assert.NoError(t, problemSet.UpdateGrade(Submission{
 		UserID:    user2.ID,
 		ProblemID: problem2.ID,
@@ -414,26 +414,26 @@ func TestUpdateGrade(t *testing.T) {
 	}))
 	assert.Equal(t, []*Grade{
 		{
-			ID:           problemSet.Scores[0].ID,
+			ID:           problemSet.Grades[0].ID,
 			UserID:       user1.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			TotalScore: 131,
+			Total: 131,
 		},
 		{
-			ID:           problemSet.Scores[1].ID,
+			ID:           problemSet.Grades[1].ID,
 			UserID:       user2.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 21,
 				problem2.ID: 22,
 			}),
-			TotalScore: 43,
+			Total: 43,
 		},
-	}, problemSet.Scores)
+	}, problemSet.Grades)
 	assert.NoError(t, problemSet.UpdateGrade(Submission{
 		UserID:    user2.ID,
 		ProblemID: problem2.ID,
@@ -441,24 +441,24 @@ func TestUpdateGrade(t *testing.T) {
 	}))
 	assert.Equal(t, []*Grade{
 		{
-			ID:           problemSet.Scores[0].ID,
+			ID:           problemSet.Grades[0].ID,
 			UserID:       user1.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 11,
 				problem2.ID: 120,
 			}),
-			TotalScore: 131,
+			Total: 131,
 		},
 		{
-			ID:           problemSet.Scores[1].ID,
+			ID:           problemSet.Grades[1].ID,
 			UserID:       user2.ID,
 			ProblemSetID: problemSet.ID,
-			ScoreDetail: createJSONForTest(t, map[uint]uint{
+			Detail: createJSONForTest(t, map[uint]uint{
 				problem1.ID: 21,
 				problem2.ID: 220,
 			}),
-			TotalScore: 241,
+			Total: 241,
 		},
-	}, problemSet.Scores)
+	}, problemSet.Grades)
 }

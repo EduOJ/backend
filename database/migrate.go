@@ -974,8 +974,8 @@ func GetMigration() *gormigrate.Gormigrate {
 					UserID       uint `json:"user_id"`
 					ProblemSetID uint `json:"problem_set_id"`
 
-					ScoreDetail datatypes.JSON `json:"score_detail"`
-					TotalScore  uint           `json:"total_score"`
+					Detail datatypes.JSON `json:"detail"`
+					Total  uint           `json:"total"`
 				}
 				type ProblemSet struct {
 					ID uint `gorm:"primaryKey" json:"id"`
@@ -985,10 +985,10 @@ func GetMigration() *gormigrate.Gormigrate {
 					Description string `json:"description"`
 
 					Problems []Problem `json:"problems" gorm:"many2many:problems_in_problem_sets"`
-					Scores   []Grade   `json:"scores"`
+					Grades   []Grade   `json:"grades"`
 
-					StartAt time.Time `json:"start_at"`
-					EndAt   time.Time `json:"end_at"`
+					StartTime time.Time `json:"start_time"`
+					EndTime   time.Time `json:"end_time"`
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`
@@ -996,7 +996,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				}
 				type User struct {
 					ID     uint    `gorm:"primaryKey" json:"id"`
-					Scores []Grade `json:"scores"`
+					Grades []Grade `json:"grades"`
 				}
 				type Class struct {
 					ID          uint         `gorm:"primaryKey" json:"id"`
@@ -1014,8 +1014,8 @@ func GetMigration() *gormigrate.Gormigrate {
 					UserID       uint `json:"user_id"`
 					ProblemSetID uint `json:"problem_set_id"`
 
-					ScoreDetail datatypes.JSON `json:"score_detail"`
-					TotalScore  uint           `json:"total_score"`
+					Detail datatypes.JSON `json:"detail"`
+					Total  uint           `json:"total"`
 				}
 				type ProblemSet struct {
 					ID uint `gorm:"primaryKey" json:"id"`
@@ -1025,10 +1025,10 @@ func GetMigration() *gormigrate.Gormigrate {
 					Description string `json:"description"`
 
 					Problems []Problem `json:"problems" gorm:"many2many:problems_in_problem_sets"`
-					Scores   []Grade   `json:"scores"`
+					Grades   []Grade   `json:"grades"`
 
-					StartAt time.Time `json:"start_at"`
-					EndAt   time.Time `json:"end_at"`
+					StartTime time.Time `json:"start_time"`
+					EndTime   time.Time `json:"end_time"`
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`
@@ -1036,7 +1036,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				}
 				type User struct {
 					ID     uint    `gorm:"primaryKey" json:"id"`
-					Scores []Grade `json:"scores"`
+					Grades []Grade `json:"grades"`
 				}
 				type Class struct {
 					ID          uint         `gorm:"primaryKey" json:"id"`

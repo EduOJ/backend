@@ -197,15 +197,15 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.updateProblemSet"
 	api.POST("/class/:class_id/problem_set/:id/problems",
-		controller.AddProblemsInSet, middleware.HasPermission(middleware.OrPermission{
+		controller.AddProblemsToSet, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
-		})).Name = "problemSet.addProblemsInSet"
+		})).Name = "problemSet.addProblemsToSet"
 	api.DELETE("/class/:class_id/problem_set/:id/problems",
-		controller.DeleteProblemsInSet, middleware.HasPermission(middleware.OrPermission{
+		controller.DeleteProblemsFromSet, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
-		})).Name = "problemSet.deleteProblemsInSet"
+		})).Name = "problemSet.deleteProblemsFromSet"
 	api.DELETE("/class/:class_id/problem_set/:id",
 		controller.DeleteProblemSet, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},

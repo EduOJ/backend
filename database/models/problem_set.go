@@ -17,10 +17,10 @@ type ProblemSet struct {
 	Description string `json:"description"`
 
 	Problems []*Problem `json:"problems" gorm:"many2many:problems_in_problem_sets"`
-	Scores   []*Grade   `json:"scores"`
+	Grades   []*Grade   `json:"grades"`
 
-	StartAt time.Time `json:"start_at"`
-	EndAt   time.Time `json:"end_at"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
@@ -30,11 +30,13 @@ type ProblemSet struct {
 type Grade struct {
 	ID uint `gorm:"primaryKey" json:"id"`
 
-	UserID       uint `json:"user_id"`
-	ProblemSetID uint `json:"problem_set_id"`
+	UserID       uint        `json:"user_id"`
+	User         *User       `json:"user"`
+	ProblemSetID uint        `json:"problem_set_id"`
+	ProblemSet   *ProblemSet `json:"problem_set"`
 
-	ScoreDetail datatypes.JSON `json:"score_detail"`
-	TotalScore  uint           `json:"total_score"`
+	Detail datatypes.JSON `json:"detail"`
+	Total  uint           `json:"total"`
 }
 
 func (p *ProblemSet) AddProblems(ids []uint) error {
@@ -70,39 +72,33 @@ func (p *ProblemSet) UpdateGrade(submission Submission) error {
 	var grades []Grade
 	scoresDetail := make(map[uint]uint)
 	var originalTotalScore uint = 0
-	if err := base.DB.Model(p).Association("Scores").Find(&grades, "user_id", submission.UserID); err != nil {
+	if err := base.DB.Model(p).Association("Grades").Find(&grades, "user_id", submission.UserID); err != nil {
 		return errors.Wrap(err, "could not find grade for updating grade")
 	}
 	if len(grades) == 1 {
-		b, err := grades[0].ScoreDetail.MarshalJSON()
-		if err != nil {
-			return errors.Wrap(err, "could not marshal json for original score detail while updating grade")
-		}
-		err = json.Unmarshal(b, &scoresDetail)
+		err := json.Unmarshal(grades[0].Detail, &scoresDetail)
 		if err != nil {
 			return errors.Wrap(err, "could not unmarshal json for original score detail while updating grade")
 		}
-		originalTotalScore = grades[0].TotalScore
-		if err = base.DB.Model(p).Association("Scores").Delete(grades); err != nil {
+		originalTotalScore = grades[0].Total
+		if err = base.DB.Model(p).Association("Grades").Delete(grades); err != nil {
 			return errors.Wrap(err, "could not delete grade for updating grade")
 		}
 	} else if len(grades) > 1 {
-		return errors.New("there are two score records for the same user in the same question group")
+		return errors.New("duplicate grade")
 	}
 	originalScore := scoresDetail[submission.ProblemID]
 	scoresDetail[submission.ProblemID] = submission.Score
 	updatedGrade := Grade{
-		UserID:     submission.UserID,
-		TotalScore: originalTotalScore - originalScore + submission.Score,
+		UserID: submission.UserID,
+		Total:  originalTotalScore - originalScore + submission.Score,
 	}
-	b, err := json.Marshal(scoresDetail)
+	var err error
+	updatedGrade.Detail, err = json.Marshal(scoresDetail)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal json for updated score detail while updating grade")
 	}
-	if err = updatedGrade.ScoreDetail.UnmarshalJSON(b); err != nil {
-		return errors.Wrap(err, "could not unmarshal json for updated score detail while updating grade")
-	}
-	if err = base.DB.Model(p).Association("Scores").Append(&updatedGrade); err != nil {
+	if err = base.DB.Model(p).Association("Grades").Append(&updatedGrade); err != nil {
 		return errors.Wrap(err, "could not replace grade for updating grade")
 	}
 	return nil

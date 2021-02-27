@@ -16,7 +16,7 @@ type UserForAdmin struct {
 	Email    string `gorm:"unique_index" json:"email"`
 
 	Roles  []Role  `json:"roles"`
-	Scores []Grade `json:"scores"`
+	Grades []Grade `json:"grades"`
 }
 
 func (p *User) convert(user *models.User) {
@@ -38,7 +38,7 @@ func (p *UserForAdmin) convert(user *models.User) {
 	p.Nickname = user.Nickname
 	p.Email = user.Email
 	p.Roles = GetRoleSlice(user.Roles)
-	p.Scores = GetGradeSlice(user.Scores)
+	p.Grades = GetGradeSlice(user.Grades)
 }
 
 func GetUser(user *models.User) *User {
