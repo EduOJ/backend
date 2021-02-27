@@ -20,6 +20,9 @@ type User struct {
 	Roles      []UserHasRole `json:"roles"`
 	RoleLoaded bool          `gorm:"-" json:"-"`
 
+	ClassesManaging []*Class `json:"class_managing" gorm:"many2many:user_manage_classes"`
+	ClassesTaking   []*Class `json:"class_taking" gorm:"many2many:user_in_classes"`
+
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `sql:"index" json:"deleted_at"`
@@ -169,6 +172,16 @@ func (u *User) Can(permission string, target ...HasRole) bool {
 					}
 				}
 			}
+		}
+	}
+	return false
+}
+
+// In just compare ID to judge if a user is in a user slice
+func (u *User) In(users []User) bool {
+	for _, user := range users {
+		if u.ID == user.ID {
+			return true
 		}
 	}
 	return false

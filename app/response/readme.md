@@ -235,3 +235,45 @@ Common return codes.
 |:-----------------:|:-------------------------------------:|
 |   WRONG_RUN_ID    | 发起请求的judger与获取道当前run的judger不同 |
 | ALREADY_SUBMITTED |          一个run被提交了两次结果          |
+
+## Class
+
+### CreateClass
+
+### GetClass
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### GetClassesIManage
+
+### GetClassesITake
+
+### UpdateClass
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### RefreshInviteCode
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### AddStudents
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### DeleteStudents
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+
+### JoinClass
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
+|    WRONG_INVITE_CODE    |      错误的邀请码       |
+|    ALREADY_IN_CLASS     |   用户已是该class学生   |
+
+### DeleteClass

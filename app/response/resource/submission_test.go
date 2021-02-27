@@ -117,13 +117,19 @@ func TestGetRunAndGetRunSlice(t *testing.T) {
 }
 
 func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
+	user := createUserForTest("get_submission", 1)
+	problem := createProblemForTest("get_submission", 1, 2)
 	submission := createSubmissionForTest("get_submission", 1, 2)
+	submission.User = &user
+	submission.Problem = &problem
 	t.Run("testGetSubmission", func(t *testing.T) {
 		actualSubmission := resource.GetSubmission(&submission)
 		expectedSubmission := resource.Submission{
 			ID:           1,
 			UserID:       1,
+			User:         resource.GetUser(&user),
 			ProblemID:    1,
+			ProblemName:  "test_get_submission_problem_1",
 			ProblemSetId: 1,
 			Language:     "test_get_submission_submission_1_language",
 			Judged:       false,
@@ -138,7 +144,9 @@ func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
 		expectedSubmission := resource.SubmissionDetail{
 			ID:           1,
 			UserID:       1,
+			User:         resource.GetUser(&user),
 			ProblemID:    1,
+			ProblemName:  "test_get_submission_problem_1",
 			ProblemSetId: 1,
 			Language:     "test_get_submission_submission_1_language",
 			FileName:     "test_get_submission_submission_1_file_name",
@@ -185,15 +193,25 @@ func TestGetSubmissionAndGetSubmissionDetail(t *testing.T) {
 }
 
 func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
+	user1 := createUserForTest("get_submission", 1)
+	problem1 := createProblemForTest("get_submission", 1, 2)
 	submission1 := createSubmissionForTest("get_submission", 1, 2)
+	submission1.User = &user1
+	submission1.Problem = &problem1
+	user2 := createUserForTest("get_submission", 2)
+	problem2 := createProblemForTest("get_submission", 2, 1)
 	submission2 := createSubmissionForTest("get_submission", 2, 1)
+	submission2.User = &user2
+	submission2.Problem = &problem2
 	t.Run("testGetSubmissionSlice", func(t *testing.T) {
 		actualSubmissionSlice := resource.GetSubmissionSlice([]models.Submission{submission1, submission2})
 		expectedSubmissionSlice := []resource.Submission{
 			{
 				ID:           1,
 				UserID:       1,
+				User:         resource.GetUser(&user1),
 				ProblemID:    1,
+				ProblemName:  "test_get_submission_problem_1",
 				ProblemSetId: 1,
 				Language:     "test_get_submission_submission_1_language",
 				Judged:       false,
@@ -203,7 +221,9 @@ func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
 			}, {
 				ID:           2,
 				UserID:       2,
+				User:         resource.GetUser(&user2),
 				ProblemID:    2,
+				ProblemName:  "test_get_submission_problem_2",
 				ProblemSetId: 2,
 				Language:     "test_get_submission_submission_2_language",
 				Judged:       false,
@@ -220,7 +240,9 @@ func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
 			{
 				ID:           1,
 				UserID:       1,
+				User:         resource.GetUser(&user1),
 				ProblemID:    1,
+				ProblemName:  "test_get_submission_problem_1",
 				ProblemSetId: 1,
 				Language:     "test_get_submission_submission_1_language",
 				FileName:     "test_get_submission_submission_1_file_name",
@@ -264,7 +286,9 @@ func TestGetSubmissionSliceAndGetSubmissionDetailSlice(t *testing.T) {
 			}, {
 				ID:           2,
 				UserID:       2,
+				User:         resource.GetUser(&user2),
 				ProblemID:    2,
+				ProblemName:  "test_get_submission_problem_2",
 				ProblemSetId: 2,
 				Language:     "test_get_submission_submission_2_language",
 				FileName:     "test_get_submission_submission_2_file_name",

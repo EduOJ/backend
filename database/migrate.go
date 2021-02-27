@@ -778,6 +778,72 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 		},
 		{
+			// add classes
+			ID: "add_classes_table",
+			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
+					Password string `json:"-"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+				}
+				type Class struct {
+					ID          uint   `gorm:"primaryKey" json:"id"`
+					Name        string `json:"name" gorm:"size:255;default:'';not null"`
+					CourseName  string `json:"course_name" gorm:"size:255;default:'';not null"`
+					Description string `json:"description"`
+					InviteCode  string `json:"invite_code" gorm:"size:255;default:'';not null"`
+					Managers    []User `json:"managers" gorm:"many2many:user_manage_classes"`
+					Students    []User `json:"students" gorm:"many2many:user_in_classes"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Class{})
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"uniqueIndex;size:30" json:"username" validate:"required,max=30,min=5"`
+					Nickname string `gorm:"index;size:30" json:"nickname"`
+					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
+					Password string `json:"-"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+				}
+				type Class struct {
+					ID          uint    `gorm:"primaryKey" json:"id"`
+					Name        string  `json:"name" gorm:"size:255;default:'';not null"`
+					CourseName  string  `json:"course_name" gorm:"size:255;default:'';not null"`
+					Description string  `json:"description"`
+					InviteCode  string  `json:"invite_code" gorm:"size:255;default:'';not null;uniqueIndex"`
+					Managers    []*User `json:"managers" gorm:"many2many:user_manage_classes"`
+					Students    []*User `json:"students" gorm:"many2many:user_in_classes"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+				}
+				err = tx.Migrator().DropTable("user_manage_classes")
+				if err != nil {
+					return
+				}
+				err = tx.Migrator().DropTable("user_in_classes")
+				if err != nil {
+					return
+				}
+				return tx.Migrator().DropTable(&Class{})
+			},
+		},
+		{
 			ID: "add_WebauthnCredential_table",
 			Migrate: func(tx *gorm.DB) error {
 				type WebauthnCredential struct {
@@ -796,6 +862,102 @@ func GetMigration() *gormigrate.Gormigrate {
 					CreatedAt time.Time `json:"created_at"`
 				}
 				return tx.Migrator().DropTable(WebauthnCredential{})
+			},
+		},
+		{
+			// add default class role
+			ID: "add_default_class_role",
+			Migrate: func(tx *gorm.DB) (err error) {
+
+				type Permission struct {
+					ID     uint   `gorm:"primaryKey" json:"id"`
+					RoleID uint   `json:"role_id"`
+					Name   string `json:"name" gorm:"size:255"`
+				}
+
+				type Role struct {
+					ID          uint    `gorm:"primaryKey" json:"id"`
+					Name        string  `json:"name" gorm:"size:255"`
+					Target      *string `json:"target" gorm:"size:255"`
+					Permissions []Permission
+				}
+
+				classString := "class"
+				classCreator := Role{
+					Name:   "class_creator",
+					Target: &classString,
+				}
+				err = tx.Create(&classCreator).Error
+				if err != nil {
+					return
+				}
+				classPerm := Permission{
+					RoleID: classCreator.ID,
+					Name:   "all",
+				}
+				err = tx.Model(&classCreator).Association("Permissions").Append(&classPerm)
+				if err != nil {
+					return
+				}
+				return
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+
+				type Permission struct {
+					ID     uint   `gorm:"primaryKey" json:"id"`
+					RoleID uint   `json:"role_id"`
+					Name   string `json:"name" gorm:"size:255"`
+				}
+
+				type Role struct {
+					ID          uint    `gorm:"primaryKey" json:"id"`
+					Name        string  `json:"name" gorm:"size:255"`
+					Target      *string `json:"target" gorm:"size:255"`
+					Permissions []Permission
+				}
+
+				var classCreator Role
+				err = tx.Where("name = ? and target = ? ", "class_creator", "class").First(&classCreator).Error
+				if err != nil {
+					return
+				}
+				err = tx.Delete(Permission{}, "role_id = ?", classCreator.ID).Error
+				if err != nil {
+					return
+				}
+				err = tx.Delete(&classCreator).Error
+				if err != nil {
+					return
+				}
+				return
+			},
+		},
+		{
+			ID: "add_deleted_at_run_submission",
+			Migrate: func(tx *gorm.DB) error {
+				type Submission struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Run struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Submission{}, &Run{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Submission struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Run struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				if err := tx.Migrator().DropColumn(&Submission{}, "deleted_at"); err != nil {
+					return err
+				}
+				return tx.Migrator().DropColumn(&Run{}, "deleted_at")
 			},
 		},
 	})

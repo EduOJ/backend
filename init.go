@@ -172,13 +172,8 @@ func initWebAuthn() {
 		RPOrigin:      viper.GetString("webauthn.origin"),
 		RPIcon:        viper.GetString("webauthn.icon"),
 	})
-	log.Debug(webauthn.Config{
-		RPDisplayName: viper.GetString("webauthn.display_name"),
-		RPID:          viper.GetString("webauthn.domain"),
-		RPOrigin:      viper.GetString("webauthn.origin"),
-		RPIcon:        viper.GetString("webauthn.icon"),
-	})
 	if err != nil {
 		log.Fatal(err)
+		os.Exit(-1)
 	}
 }

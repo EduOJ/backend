@@ -24,7 +24,7 @@ running.
 |:---------------:|:-------:|:----------:|
 |      admin      |   N/A   |    all     |
 | problem_creator | problem |    all     |
-
+|  class_creator  |  class  |    all     |
 
 # Permissions
 
@@ -34,13 +34,16 @@ Here are the permissions and their descriptions.
 |:--------------------:|:-----------------------------------------------------------------------------------------------------------:|
 |      read_user       |                                        the permission to read users                                         |
 |     manage_user      |                                       the permission to manage users                                        |
-|   manage_problem    |                  无实际意义，但是有可能有update_problem / delete_problem权限的人必须拥有此全局权限。                  |
+|   manage_problem     |                  无实际意义，但是有可能有update_problem / delete_problem权限的人必须拥有此全局权限。                  |
 |    create_problem    |                                               create problem                                                |
 |   read_submission    |                    read submission of a certain problem. unscoped can read all problems.                    |
 |    update_problem    | update problem. A scoped update_problem can only update selected problem. unscoped can update all problems. |
 |    delete_problem    |                                      delete a problem. same as above.                                       |
 | read_problem_secrets |                                read sensitive information such as test case.                                |
 |      read_logs       |                                                 read logs.                                                  |
+| read_class_secrets   |                               read sensitive information such as invite code                                |
+|    manage_class      |                               the permission to manage a class or all classes                               |
+|   manage_students    |                           the permission to manage students of a class or all classes                       |
 
 # Buckets:
 ## images:

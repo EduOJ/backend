@@ -615,6 +615,7 @@ func TestCreateProblem(t *testing.T) {
 	t.Parallel()
 	FailTests := []failTest{
 		{
+			// testCreateProblemWithoutParams
 			name:   "WithoutParams",
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createProblem"),
@@ -642,7 +643,7 @@ func TestCreateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "Description",
 					"reason":      "required",
-					"translation": "题目描述为必填字段",
+					"translation": "描述为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "Public",
@@ -677,6 +678,7 @@ func TestCreateProblem(t *testing.T) {
 			}),
 		},
 		{
+			// testCreateProblemPermissionDenied
 			name:   "PermissionDenied",
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createProblem"),
@@ -850,7 +852,7 @@ func TestUpdateProblem(t *testing.T) {
 				map[string]interface{}{
 					"field":       "Description",
 					"reason":      "required",
-					"translation": "题目描述为必填字段",
+					"translation": "描述为必填字段",
 				},
 				map[string]interface{}{
 					"field":       "Public",

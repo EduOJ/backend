@@ -67,7 +67,7 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "delete_problem"},
 		})).Name = "problem.deleteProblem"
 
-	api.GET("/problem/:id", controller.GetProblem).Name = "problem.getProblem"
+	api.GET("/problem/:id", controller.GetProblem, middleware.AllowGuest).Name = "problem.getProblem"
 	api.GET("/problems", controller.GetProblems, middleware.AllowGuest).Name = "problem.getProblems"
 
 	api.GET("/problem/:id/attachment_file", controller.GetProblemAttachmentFile, middleware.AllowGuest).Name = "problem.getProblemAttachmentFile"
@@ -120,8 +120,8 @@ func Register(e *echo.Echo) {
 			},
 		})).Name = "problem.getTestCaseOutputFile"
 	api.POST("/problem/:pid/submission", controller.CreateSubmission, middleware.Logged).Name = "submission.createSubmission"
-	api.GET("/submission/:id", controller.GetSubmission).Name = "submission.getSubmission"
-	api.GET("/submissions", controller.GetSubmissions).Name = "submission.getSubmissions"
+	api.GET("/submission/:id", controller.GetSubmission, middleware.Logged).Name = "submission.getSubmission"
+	api.GET("/submissions", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
 
 	api.GET("/submission/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
 	api.GET("/submission/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
@@ -137,6 +137,41 @@ func Register(e *echo.Echo) {
 	judger.GET("/script/:name", controller.GetScript).Name = "judger.getScript"
 	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
 	judger.PUT("/run/:id", controller.UpdateRun).Name = "judger.updateRun"
+
+	api.POST("/class",
+		controller.CreateClass, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
+	api.GET("/class/:id",
+		controller.GetClass).Name = "class.getClass"
+	api.GET("/user/me/managing_classes",
+		controller.GetClassesIManage).Name = "class.getClassesIManage"
+	api.GET("/user/me/taking_classes",
+		controller.GetClassesITake).Name = "class.getClassesITake"
+	api.PUT("/class/:id",
+		controller.UpdateClass, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.updateClass"
+	api.PUT("/class/:id/invite_code",
+		controller.RefreshInviteCode, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.refreshInviteCode"
+	api.POST("/class/:id/students",
+		controller.AddStudents, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.addStudents"
+	api.DELETE("/class/:id/students",
+		controller.DeleteStudents, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.deleteStudents"
+	api.POST("/class/:id/join", controller.JoinClass).Name = "class.joinClass"
+	api.DELETE("/class/:id",
+		controller.DeleteClass, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_class"},
+		})).Name = "class.deleteClass"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")

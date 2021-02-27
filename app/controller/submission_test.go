@@ -24,7 +24,7 @@ const (
 	submitter
 )
 
-func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) (submission models.Submission) {
+func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) models.Submission {
 	for i := 0; i < testCaseCount; i++ {
 		createTestCaseForTest(t, *problem, testCaseData{
 			Score:      0,
@@ -34,17 +34,22 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		})
 	}
 	problem.LoadTestCases()
-	submission = models.Submission{
+	submission := models.Submission{
 		UserID:       user.ID,
+		User:         user,
 		ProblemID:    problem.ID,
+		Problem:      problem,
 		ProblemSetId: 0,
 		LanguageName: "test_language",
+		Language:     nil,
 		FileName:     fmt.Sprintf("test_%s_code_file_name_%d.test_language", name, id),
 		Priority:     models.PriorityDefault,
 		Judged:       false,
 		Score:        0,
 		Status:       "PENDING",
 		Runs:         make([]models.Run, len(problem.TestCases)),
+		CreatedAt:    time.Time{},
+		UpdatedAt:    time.Time{},
 	}
 	for i, testCase := range problem.TestCases {
 		submission.Runs[i] = models.Run{
@@ -68,7 +73,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		_, err = code.reader.Seek(0, io.SeekStart)
 		assert.NoError(t, err)
 	}
-	return
+	return submission
 }
 
 func TestCreateSubmission(t *testing.T) {
@@ -223,11 +228,13 @@ func TestCreateSubmission(t *testing.T) {
 				resp := response.CreateSubmissionResponse{}
 				assert.Equal(t, http.StatusCreated, httpResp.StatusCode)
 				mustJsonDecode(httpResp, &resp)
+
 				responseSubmission := *resp.Data.SubmissionDetail
 				databaseSubmission := models.Submission{}
 				reqUserID, err := strconv.ParseUint(req.Header.Get("Set-User-For-Test"), 10, 64)
 				assert.NoError(t, err)
-				assert.NoError(t, base.DB.Preload("Runs").First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
+				assert.NoError(t, base.DB.Preload("Runs").Preload("User").Preload("Problem").
+					First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
 				databaseSubmissionDetail := resource.GetSubmissionDetail(&databaseSubmission)
 				databaseRunData := map[uint]struct {
 					ID        uint
@@ -260,10 +267,14 @@ func TestCreateSubmission(t *testing.T) {
 						CreatedAt:    databaseRunData[testCase.ID].CreatedAt,
 					}
 				}
+				reqUser := models.User{}
+				assert.NoError(t, base.DB.First(&reqUser, reqUserID).Error)
 				expectedSubmission := resource.SubmissionDetail{
 					ID:           databaseSubmissionDetail.ID,
 					UserID:       uint(reqUserID),
+					User:         resource.GetUser(&reqUser),
 					ProblemID:    problem.ID,
+					ProblemName:  problem.Name,
 					ProblemSetId: 0,
 					Language:     "test_language",
 					FileName:     "code_file_name.test_language",
@@ -428,7 +439,7 @@ func TestGetSubmission(t *testing.T) {
 
 func TestGetSubmissions(t *testing.T) {
 	// Not Parallel
-	assert.NoError(t, base.DB.Delete(models.Submission{}, "id > 0").Error)
+	assert.NoError(t, base.DB.Delete(&models.Submission{}, "id > 0").Error)
 
 	problemCreator1 := createUserForTest(t, "get_submissions", 1)
 	problemCreator2 := createUserForTest(t, "get_submissions", 2)
@@ -463,12 +474,9 @@ func TestGetSubmissions(t *testing.T) {
 		},
 		5: {
 			problem:   &problem3,
-			submitter: &problemCreator2,
-		},
-		6: {
-			problem:   &problem3,
 			submitter: &problemCreator3,
 		},
+		// TODO: test submission in problem sets
 	}
 	submissions := make([]models.Submission, len(submissionRelations))
 
@@ -476,8 +484,6 @@ func TestGetSubmissions(t *testing.T) {
 		submissions[i] = createSubmissionForTest(t, "get_submissions", i, submissionRelations[i].problem, submissionRelations[i].submitter,
 			newFileContent("code", "code_file_name", b64Encodef("test_get_submissions_code_%d", i)), 0)
 	}
-
-	base.DB.Model(submissions[5]).Update("problem_set_id", 1)
 
 	successTests := []struct {
 		name        string
@@ -498,7 +504,7 @@ func TestGetSubmissions(t *testing.T) {
 				Offset:    0,
 			},
 			submissions: []models.Submission{
-				submissions[6],
+				submissions[5],
 				submissions[4],
 				submissions[3],
 				submissions[2],
@@ -520,7 +526,7 @@ func TestGetSubmissions(t *testing.T) {
 				Offset:    0,
 			},
 			submissions: []models.Submission{
-				submissions[6],
+				submissions[5],
 				submissions[3],
 			},
 			Total:  2,

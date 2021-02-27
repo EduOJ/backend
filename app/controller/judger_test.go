@@ -14,7 +14,7 @@ import (
 
 func TestGetTask(t *testing.T) {
 	// Not parallel
-	assert.NoError(t, base.DB.Delete(models.Run{}, "id > 0").Error)
+	assert.NoError(t, base.DB.Delete(&models.Run{}, "id > 0").Error)
 	user := createUserForTest(t, "get_task", 1)
 	problem := createProblemForTest(t, "get_task", 1, nil, user)
 	submission := createSubmissionForTest(t, "test_task", 1, &problem, &user, newFileContent(

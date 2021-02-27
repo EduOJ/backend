@@ -73,8 +73,11 @@ func CreateSubmission(c echo.Context) error {
 
 	submission := models.Submission{
 		UserID:       user.ID,
+		User:         &user,
 		ProblemID:    problem.ID,
+		Problem:      &problem,
 		ProblemSetId: 0,
+		LanguageName: language.Name,
 		Language:     &language,
 		FileName:     file.Filename,
 		Priority:     priority,
@@ -120,7 +123,7 @@ func CreateSubmission(c echo.Context) error {
 func GetSubmission(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Problem").Preload("User").First(&submission, c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if user.Can("read_submission") {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -152,7 +155,8 @@ func GetSubmissions(c echo.Context) error {
 		return err
 	}
 
-	query := base.DB.Model(&models.Submission{}).Where("problem_set_id = 0").Order("id DESC") // Force order by id desc.
+	query := base.DB.Model(&models.Submission{}).Preload("User").Preload("Problem").
+		Where("problem_set_id = 0").Order("id DESC") // Force order by id desc.
 
 	if req.ProblemId != 0 {
 		query = query.Where("problem_id = ?", req.ProblemId)
