@@ -656,14 +656,14 @@ func TestAdminGetUsers(t *testing.T) {
 		Email:    "4_test_admin_get_users@e.com",
 		Password: "test_admin_get_users_4_passwd",
 	}
-	DLUsers := make([]models.User, 25) // DL: Default Limit
+	DLUsers := make([]*models.User, 25) // DL: Default Limit
 	assert.NoError(t, base.DB.Create(&user1).Error)
 	assert.NoError(t, base.DB.Create(&user2).Error)
 	assert.NoError(t, base.DB.Create(&user3).Error)
 	assert.NoError(t, base.DB.Create(&user4).Error)
 
 	for i := 0; i < 25; i++ {
-		DLUsers[i] = models.User{
+		DLUsers[i] = &models.User{
 			Username: fmt.Sprintf("test_DL_admin_get_users_%d", i),
 			Nickname: fmt.Sprintf("test_DL_admin_get_users_n_%d", i),
 			Email:    fmt.Sprintf("test_DL_admin_get_users_%d@e.e", i),

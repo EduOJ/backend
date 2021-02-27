@@ -53,10 +53,10 @@ func GetUserForAdmin(user *models.User) *UserForAdmin {
 	return &p
 }
 
-func GetUserSlice(users []models.User) (profiles []User) {
+func GetUserSlice(users []*models.User) (profiles []User) {
 	profiles = make([]User, len(users))
 	for i, user := range users {
-		profiles[i] = *GetUser(&user)
+		profiles[i] = *GetUser(user)
 	}
 	return
 }

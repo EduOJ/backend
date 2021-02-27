@@ -66,7 +66,7 @@ func GetProblems(c echo.Context) error {
 		query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
 	}
 
-	var problems []models.Problem
+	var problems []*models.Problem
 	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &problems)
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {

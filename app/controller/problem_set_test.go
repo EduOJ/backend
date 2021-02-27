@@ -102,8 +102,8 @@ func TestCreateProblemSet(t *testing.T) {
 			ClassID:     class.ID,
 			Name:        "test_create_problem_set_success_name",
 			Description: "test_create_problem_set_success_description",
-			Problems:    []models.Problem{},
-			Scores:      []models.Grade{},
+			Problems:    []*models.Problem{},
+			Scores:      []*models.Grade{},
 			StartAt:     hashStringToTime("test_create_problem_set_success_time"),
 			EndAt:       hashStringToTime("test_create_problem_set_success_time").Add(time.Hour),
 			CreatedAt:   databaseProblemSet.CreatedAt,
@@ -130,8 +130,8 @@ func createProblemSetForTest(t *testing.T, name string, id int, class *models.Cl
 	problemSet := models.ProblemSet{
 		Name:        fmt.Sprintf("test_%s_%d_name", name, id),
 		Description: fmt.Sprintf("test_%s_%d_description", name, id),
-		Problems:    []models.Problem{},
-		Scores:      []models.Grade{},
+		Problems:    []*models.Problem{},
+		Scores:      []*models.Grade{},
 		StartAt:     hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)),
 		EndAt:       hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)).Add(time.Hour),
 	}
@@ -257,11 +257,11 @@ func TestCloneProblemSet(t *testing.T) {
 			ClassID:     class.ID,
 			Name:        "test_clone_problem_set_success_source_0_name",
 			Description: "test_clone_problem_set_success_source_0_description",
-			Problems: []models.Problem{
-				problem1,
-				problem2,
+			Problems: []*models.Problem{
+				&problem1,
+				&problem2,
 			},
-			Scores:    []models.Grade{},
+			Scores:    []*models.Grade{},
 			StartAt:   hashStringToTime("test_clone_problem_set_success_source_0_time"),
 			EndAt:     hashStringToTime("test_clone_problem_set_success_source_0_time").Add(time.Hour),
 			CreatedAt: databaseProblemSet.CreatedAt,
@@ -324,7 +324,7 @@ func TestGetProblemSet(t *testing.T) {
 	student := createUserForTest(t, "get_problem_set_success_student", 0)
 	problem1 := createProblemForTest(t, "get_problem_set_success", 1, nil, user)
 	problem2 := createProblemForTest(t, "get_problem_set_success", 2, nil, user)
-	class := createClassForTest(t, "get_problem_set_success", 0, nil, []models.User{student})
+	class := createClassForTest(t, "get_problem_set_success", 0, nil, []*models.User{&student})
 	problemSetInProgress := createProblemSetForTest(t, "get_problem_set_success_in_progress", 0, &class, []models.Problem{problem1, problem2})
 	assert.NoError(t, problemSetInProgress.UpdateGrade(models.Submission{
 		UserID:    user.ID,
@@ -648,10 +648,10 @@ func TestAddProblemsInSetProblemSet(t *testing.T) {
 			ClassID:     class.ID,
 			Name:        "test_add_problems_in_set_success_0_name",
 			Description: "test_add_problems_in_set_success_0_description",
-			Problems: []models.Problem{
-				problem1,
-				problem2,
-				problem3,
+			Problems: []*models.Problem{
+				&problem1,
+				&problem2,
+				&problem3,
 			},
 			Scores:    problemSet.Scores,
 			StartAt:   hashStringToTime("test_add_problems_in_set_success_0_time"),
@@ -769,8 +769,8 @@ func TestDeleteProblemsInSetProblemSet(t *testing.T) {
 			ClassID:     class.ID,
 			Name:        "test_delete_problems_in_set_success_0_name",
 			Description: "test_delete_problems_in_set_success_0_description",
-			Problems: []models.Problem{
-				problem1,
+			Problems: []*models.Problem{
+				&problem1,
 			},
 			Scores:    problemSet.Scores,
 			StartAt:   hashStringToTime("test_delete_problems_in_set_success_0_time"),

@@ -144,9 +144,9 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		problemSet := ProblemSet{
 			Name:        "test_add_students_success_problem_set_name",
 			Description: "test_add_students_success_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
+			Problems: []*Problem{
+				problem1,
+				problem2,
 			},
 			StartAt: hashStringToTime("test_add_students_success_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_add_students_success_problem_set_end_at"),
@@ -160,11 +160,11 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			ID:          problemSet.ID,
 			Name:        "test_add_students_success_problem_set_name",
 			Description: "test_add_students_success_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
-				*problem3,
-				*problem4,
+			Problems: []*Problem{
+				problem1,
+				problem2,
+				problem3,
+				problem4,
 			},
 			StartAt:   hashStringToTime("test_add_students_success_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_add_students_success_problem_set_end_at"),
@@ -180,9 +180,9 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		problemSet := ProblemSet{
 			Name:        "test_add_students_existing_in_set_problem_set_name",
 			Description: "test_add_students_existing_in_set_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
+			Problems: []*Problem{
+				problem1,
+				problem2,
 			},
 			StartAt: hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
@@ -196,10 +196,10 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			ID:          problemSet.ID,
 			Name:        "test_add_students_existing_in_set_problem_set_name",
 			Description: "test_add_students_existing_in_set_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
-				*problem3,
+			Problems: []*Problem{
+				problem1,
+				problem2,
+				problem3,
 			},
 			StartAt:   hashStringToTime("test_add_students_existing_in_set_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_add_students_existing_in_set_problem_set_end_at"),
@@ -215,9 +215,9 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		problemSet := ProblemSet{
 			Name:        "test_add_students_non_existing_problem_set_name",
 			Description: "test_add_students_non_existing_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
+			Problems: []*Problem{
+				problem1,
+				problem2,
 			},
 			StartAt: hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
@@ -231,10 +231,10 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			ID:          problemSet.ID,
 			Name:        "test_add_students_non_existing_problem_set_name",
 			Description: "test_add_students_non_existing_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
-				*problem3,
+			Problems: []*Problem{
+				problem1,
+				problem2,
+				problem3,
 			},
 			StartAt:   hashStringToTime("test_add_students_non_existing_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_add_students_non_existing_problem_set_end_at"),
@@ -250,10 +250,10 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		problemSet := ProblemSet{
 			Name:        "test_delete_students_success_problem_set_name",
 			Description: "test_delete_students_success_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
-				*problem3,
+			Problems: []*Problem{
+				problem1,
+				problem2,
+				problem3,
 			},
 			StartAt: hashStringToTime("test_delete_students_success_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_delete_students_success_problem_set_end_at"),
@@ -267,8 +267,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			ID:          problemSet.ID,
 			Name:        "test_delete_students_success_problem_set_name",
 			Description: "test_delete_students_success_problem_set_description",
-			Problems: []Problem{
-				*problem1,
+			Problems: []*Problem{
+				problem1,
 			},
 			StartAt:   hashStringToTime("test_delete_students_success_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_delete_students_success_problem_set_end_at"),
@@ -284,9 +284,9 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 		problemSet := ProblemSet{
 			Name:        "test_delete_students_not_belong_to_problem_set_name",
 			Description: "test_delete_students_not_belong_to_problem_set_description",
-			Problems: []Problem{
-				*problem1,
-				*problem2,
+			Problems: []*Problem{
+				problem1,
+				problem2,
 			},
 			StartAt: hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
 			EndAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
@@ -300,8 +300,8 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			ID:          problemSet.ID,
 			Name:        "test_delete_students_not_belong_to_problem_set_name",
 			Description: "test_delete_students_not_belong_to_problem_set_description",
-			Problems: []Problem{
-				*problem1,
+			Problems: []*Problem{
+				problem1,
 			},
 			StartAt:   hashStringToTime("test_delete_students_not_belong_to_problem_set_start_at"),
 			EndAt:     hashStringToTime("test_delete_students_not_belong_to_problem_set_end_at"),
@@ -346,11 +346,11 @@ func TestUpdateGrade(t *testing.T) {
 	problemSet := ProblemSet{
 		Name:        "test_update_grade_name",
 		Description: "test_update_grade_description",
-		Problems: []Problem{
-			problem1,
-			problem2,
+		Problems: []*Problem{
+			&problem1,
+			&problem2,
 		},
-		Scores: []Grade{
+		Scores: []*Grade{
 			{
 				UserID: user1.ID,
 				ScoreDetail: createJSONForTest(t, map[uint]uint{
@@ -369,7 +369,7 @@ func TestUpdateGrade(t *testing.T) {
 		ProblemID: problem2.ID,
 		Score:     120,
 	}))
-	assert.Equal(t, []Grade{
+	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Scores[0].ID,
 			UserID:       user1.ID,
@@ -386,7 +386,7 @@ func TestUpdateGrade(t *testing.T) {
 		ProblemID: problem1.ID,
 		Score:     21,
 	}))
-	assert.Equal(t, []Grade{
+	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Scores[0].ID,
 			UserID:       user1.ID,
@@ -412,7 +412,7 @@ func TestUpdateGrade(t *testing.T) {
 		ProblemID: problem2.ID,
 		Score:     22,
 	}))
-	assert.Equal(t, []Grade{
+	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Scores[0].ID,
 			UserID:       user1.ID,
@@ -439,7 +439,7 @@ func TestUpdateGrade(t *testing.T) {
 		ProblemID: problem2.ID,
 		Score:     220,
 	}))
-	assert.Equal(t, []Grade{
+	assert.Equal(t, []*Grade{
 		{
 			ID:           problemSet.Scores[0].ID,
 			UserID:       user1.ID,

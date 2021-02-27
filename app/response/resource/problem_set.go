@@ -76,10 +76,10 @@ func GetProblemSetDetail(problemSet *models.ProblemSet) *ProblemSetDetail {
 	return &p
 }
 
-func GetProblemSetSlice(problemSetSlice []models.ProblemSet) (ps []ProblemSet) {
+func GetProblemSetSlice(problemSetSlice []*models.ProblemSet) (ps []ProblemSet) {
 	ps = make([]ProblemSet, len(problemSetSlice))
 	for i, problemSet := range problemSetSlice {
-		ps[i].convert(&problemSet)
+		ps[i].convert(problemSet)
 	}
 	return
 }
@@ -102,10 +102,10 @@ func GetGrade(grade *models.Grade) *Grade {
 	return &g
 }
 
-func GetGradeSlice(grades []models.Grade) (g []Grade) {
+func GetGradeSlice(grades []*models.Grade) (g []Grade) {
 	g = make([]Grade, len(grades))
 	for i, grade := range grades {
-		g[i].convert(&grade)
+		g[i].convert(grade)
 	}
 	return
 }

@@ -55,7 +55,7 @@ func GetUsers(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(req, c); !ok {
 		return err
 	}
-	var users []models.User
+	var users []*models.User
 	var total int
 
 	query, err := utils.Sorter(base.DB.Model(&models.User{}), req.OrderBy, "id", "username", "nickname", "email")

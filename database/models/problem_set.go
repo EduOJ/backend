@@ -16,8 +16,8 @@ type ProblemSet struct {
 	Name        string `json:"name" gorm:"not null;size:255"`
 	Description string `json:"description"`
 
-	Problems []Problem `json:"problems" gorm:"many2many:problems_in_problem_sets"`
-	Scores   []Grade   `json:"scores"`
+	Problems []*Problem `json:"problems" gorm:"many2many:problems_in_problem_sets"`
+	Scores   []*Grade   `json:"scores"`
 
 	StartAt time.Time `json:"start_at"`
 	EndAt   time.Time `json:"end_at"`

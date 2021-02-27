@@ -16,7 +16,7 @@ func checkInviteCode(t *testing.T, code string) {
 	assert.Equal(t, int64(1), count)
 }
 
-func createClassForTest(t *testing.T, name string, id int, managers, students []models.User) models.Class {
+func createClassForTest(t *testing.T, name string, id int, managers, students []*models.User) models.Class {
 	inviteCode := GenerateInviteCode()
 	class := models.Class{
 		Name:        fmt.Sprintf("test_%s_%d_name", name, id),

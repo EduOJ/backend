@@ -23,7 +23,7 @@ type User struct {
 	ClassesManaging []*Class `json:"class_managing" gorm:"many2many:user_manage_classes"`
 	ClassesTaking   []*Class `json:"class_taking" gorm:"many2many:user_in_classes"`
 
-	Scores []Grade `json:"scores"`
+	Scores []*Grade `json:"scores"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`

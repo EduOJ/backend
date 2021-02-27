@@ -322,12 +322,12 @@ func TestGetProblems(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&problem4).Error)
 
 	type respData struct {
-		Problems []models.Problem `json:"problems"`
-		Total    int              `json:"total"`
-		Count    int              `json:"count"`
-		Offset   int              `json:"offset"`
-		Prev     *string          `json:"prev"`
-		Next     *string          `json:"next"`
+		Problems []*models.Problem `json:"problems"`
+		Total    int               `json:"total"`
+		Count    int               `json:"count"`
+		Offset   int               `json:"offset"`
+		Prev     *string           `json:"prev"`
+		Next     *string           `json:"next"`
 	}
 
 	successTests := []struct {
@@ -344,10 +344,10 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 			},
 			respData: respData{
-				Problems: []models.Problem{
-					problem1,
-					problem2,
-					problem3,
+				Problems: []*models.Problem{
+					&problem1,
+					&problem2,
+					&problem3,
 				},
 				Total:  3,
 				Count:  3,
@@ -365,11 +365,11 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 			},
 			respData: respData{
-				Problems: []models.Problem{
-					problem1,
-					problem2,
-					problem3,
-					problem4,
+				Problems: []*models.Problem{
+					&problem1,
+					&problem2,
+					&problem3,
+					&problem4,
 				},
 				Total:  4,
 				Count:  4,
@@ -387,7 +387,7 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 			},
 			respData: respData{
-				Problems: []models.Problem{},
+				Problems: []*models.Problem{},
 				Total:    0,
 				Count:    0,
 				Offset:   0,
@@ -404,8 +404,8 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 			},
 			respData: respData{
-				Problems: []models.Problem{
-					problem2,
+				Problems: []*models.Problem{
+					&problem2,
 				},
 				Total:  1,
 				Count:  1,
@@ -423,9 +423,9 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 			},
 			respData: respData{
-				Problems: []models.Problem{
-					problem1,
-					problem2,
+				Problems: []*models.Problem{
+					&problem1,
+					&problem2,
 				},
 				Total:  3,
 				Count:  2,

@@ -25,10 +25,10 @@ func CreateClass(c echo.Context) error {
 		CourseName:  req.CourseName,
 		Description: req.Description,
 		InviteCode:  utils.GenerateInviteCode(),
-		Managers: []models.User{
-			user,
+		Managers: []*models.User{
+			&user,
 		},
-		Students: []models.User{},
+		Students: []*models.User{},
 	}
 	utils.PanicIfDBError(base.DB.Create(&class), "could not create class")
 	user.GrantRole("class_creator", class)
