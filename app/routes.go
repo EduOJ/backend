@@ -120,8 +120,8 @@ func Register(e *echo.Echo) {
 			},
 		})).Name = "problem.getTestCaseOutputFile"
 	api.POST("/problem/:pid/submission", controller.CreateSubmission, middleware.Logged).Name = "submission.createSubmission"
-	api.GET("/submission/:id", controller.GetSubmission).Name = "submission.getSubmission"
-	api.GET("/submissions", controller.GetSubmissions).Name = "submission.getSubmissions"
+	api.GET("/submission/:id", controller.GetSubmission, middleware.Logged).Name = "submission.getSubmission"
+	api.GET("/submissions", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
 
 	api.GET("/submission/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
 	api.GET("/submission/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"

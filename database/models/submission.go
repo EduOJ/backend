@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/leoleoasd/EduOJBackend/base"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -31,8 +32,9 @@ type Submission struct {
 
 	Runs []Run `json:"runs"`
 
-	CreatedAt time.Time `sql:"index" json:"created_at"`
-	UpdatedAt time.Time `json:"-"`
+	CreatedAt time.Time      `sql:"index" json:"created_at"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 type Run struct {
@@ -63,8 +65,9 @@ type Run struct {
 	TimeUsed           uint   `json:"time_used"`   // ms
 	OutputStrippedHash string `json:"output_stripped_hash"`
 
-	CreatedAt time.Time `sql:"index" json:"created_at"`
-	UpdatedAt time.Time `json:"-"`
+	CreatedAt time.Time      `sql:"index" json:"created_at"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 func (s *Submission) LoadRuns() {
@@ -72,4 +75,8 @@ func (s *Submission) LoadRuns() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (s *Submission) AfterDelete(tx *gorm.DB) (err error) {
+	return tx.Where("submission_id = ?", s.ID).Delete(&Run{}).Error
 }

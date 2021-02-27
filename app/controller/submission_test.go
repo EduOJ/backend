@@ -439,7 +439,7 @@ func TestGetSubmission(t *testing.T) {
 
 func TestGetSubmissions(t *testing.T) {
 	// Not Parallel
-	assert.NoError(t, base.DB.Delete(models.Submission{}, "id > 0").Error)
+	assert.NoError(t, base.DB.Delete(&models.Submission{}, "id > 0").Error)
 
 	problemCreator1 := createUserForTest(t, "get_submissions", 1)
 	problemCreator2 := createUserForTest(t, "get_submissions", 2)

@@ -66,3 +66,10 @@ func (p *Problem) LoadTestCases() {
 		panic(err)
 	}
 }
+
+func (p *Problem) AfterDelete(tx *gorm.DB) (err error) {
+	if err := tx.Where("problem_id = ?", p.ID).Delete(&Submission{}).Error; err != nil {
+		return err
+	}
+	return tx.Where("problem_id = ?", p.ID).Delete(&TestCase{}).Error
+}

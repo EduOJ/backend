@@ -932,6 +932,34 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
+		{
+			ID: "add_deleted_at_run_submission",
+			Migrate: func(tx *gorm.DB) error {
+				type Submission struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Run struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Submission{}, &Run{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Submission struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Run struct {
+					ID        uint           `gorm:"primaryKey" json:"id"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				if err := tx.Migrator().DropColumn(&Submission{}, "deleted_at"); err != nil {
+					return err
+				}
+				return tx.Migrator().DropColumn(&Run{}, "deleted_at")
+			},
+		},
 	})
 }
 

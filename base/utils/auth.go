@@ -56,7 +56,7 @@ func CleanUpExpiredTokens() error {
 			}
 			tokenIds = append(tokenIds, token.ID)
 		}
-		err = base.DB.Delete(models.Token{}, "id in (?)", tokenIds).Error
+		err = base.DB.Delete(&models.Token{}, "id in (?)", tokenIds).Error
 		if err != nil {
 			return errors.Wrap(err, "could not delete tokens")
 		}
