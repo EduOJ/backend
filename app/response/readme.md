@@ -316,3 +316,42 @@ Common return codes.
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |     CLASS_NOT_FOUND     |     无法找到class      |
+
+
+## ProblemSetSubmission
+
+### ProblemSetCreateSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|  PROBLEM_SET_NOT_FOUND  |  无法找到problem set  |
+|        NOT_FOUND        |     错误的problem     |
+|     INVALID_LANGUAGE    |       无效的语言       |
+|       INVALID_FILE      |        缺少文件       |
+
+### ProblemSetGetSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### ProblemSetGetSubmissions
+
+### ProblemSetGetSubmissionCode
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### ProblemSetGetRunOutput
+|       message        |       结果        |
+|:--------------------:|:----------------:|
+|      NOT_FOUND       |    无法找到run     |
+
+
+### ProblemSetGetRunCompilerOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |      无法找到run       |
+
+### ProblemSetGetRunComparerOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |      无法找到run       |

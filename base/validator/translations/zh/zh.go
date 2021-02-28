@@ -47,6 +47,7 @@ var FieldTranslations = map[string]string{
 	"SourceClassID":      "复制源班级ID",
 	"SourceProblemSetID": "复制源题目组ID",
 	"ProblemIDs":         "题目ID数组",
+	"Language":           "语言",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

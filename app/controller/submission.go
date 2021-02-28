@@ -165,7 +165,7 @@ func GetSubmission(c echo.Context) error {
 		select {
 		case <-sub.Channel():
 			if err := base.DB.Preload("Problem").Preload("User").First(&submission, c.Param("id")).Error; err != nil {
-				panic(errors.Wrap(err, "could not find problem"))
+				panic(errors.Wrap(err, "could not find submission"))
 			}
 			break
 		case <-c.Request().Context().Done():
@@ -191,7 +191,6 @@ func GetSubmission(c echo.Context) error {
 			resource.GetSubmissionDetail(&submission),
 		},
 	})
-	return nil
 }
 
 func GetSubmissions(c echo.Context) error {
@@ -489,7 +488,7 @@ func GetRunComparerOutput(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
 	}
 
-	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, runID), run.TestCase.OutputFileName)
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, runID), "comparer_output.txt")
 
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))

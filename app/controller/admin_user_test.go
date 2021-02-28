@@ -17,7 +17,7 @@ import (
 )
 
 func getUrlStringPointer(name string, paras map[string]string, urlParas ...interface{}) *string {
-	thisURL, err := url.ParseRequestURI(base.Echo.Reverse(name, urlParas))
+	thisURL, err := url.ParseRequestURI(base.Echo.Reverse(name, urlParas...))
 	if err != nil {
 		panic(err)
 	}
