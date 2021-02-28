@@ -7,8 +7,11 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/request"
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/event"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
+	runEvent "github.com/leoleoasd/EduOJBackend/event/run"
+	submissionEvent "github.com/leoleoasd/EduOJBackend/event/submission"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -112,7 +115,7 @@ func GetTask(c echo.Context) error {
 	return c.JSON(http.StatusOK, generateResponse(run))
 
 poll:
-	timeoutChan := time.After(viper.GetDuration("polling_timeout") * time.Second)
+	timeoutChan := time.After(viper.GetDuration("polling_timeout"))
 	timeout := false
 	sub := base.Redis.Subscribe(c.Request().Context(), "runs")
 	for {
@@ -216,8 +219,10 @@ func UpdateRun(c echo.Context) error {
 		}
 	}
 	utils.PanicIfDBError(base.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&run), "could not save run")
+	var isLast = false
 	if base.DB.Model(&run.Submission).Where("status IN ? AND id <> ?", []string{"PENDING", "JUDGING"}, run.ID).Association("Runs").Count() == 0 {
 		// this is the last judged run
+		isLast = true
 		run.Submission.Judged = true
 		var runs []models.Run
 		if err := base.DB.Model(&run.Submission).Association("Runs").Find(&runs); err != nil {
@@ -241,9 +246,11 @@ func UpdateRun(c echo.Context) error {
 	utils.MustPutObject(output, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/output", run.Submission.ID, run.ID))
 	utils.MustPutObject(comparer, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/comparer_output", run.Submission.ID, run.ID))
 	utils.MustPutObject(compiler, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/compiler_output", run.Submission.ID, run.ID))
-	if !inTest {
-		base.Redis.Publish(context.Background(), fmt.Sprintf("runs:%d", run.ID), nil)
+	event.FireEvent("run", runEvent.EventArgs(&run))
+	if isLast {
+		event.FireEvent("submission", submissionEvent.EventArgs(run.Submission))
 	}
+
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 	})

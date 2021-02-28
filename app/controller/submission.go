@@ -11,10 +11,12 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 var inTest bool
@@ -121,6 +123,12 @@ func CreateSubmission(c echo.Context) error {
 }
 
 func GetSubmission(c echo.Context) error {
+	startedAt := time.Now()
+	poll := false
+	if c.QueryParam("poll") == "1" {
+		poll = true
+	}
+
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
 	if err := base.DB.Preload("Problem").Preload("User").First(&submission, c.Param("id")).Error; err != nil {
@@ -137,6 +145,41 @@ func GetSubmission(c echo.Context) error {
 	if user.ID != submission.UserID && !user.Can("read_submission", submission.Problem) && !user.Can("read_submission") {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
+	if !(submission.UpdatedAt.Before(startedAt) && poll) {
+		submission.LoadRuns()
+		return c.JSON(http.StatusOK, response.GetSubmissionResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.SubmissionDetail `json:"submission"`
+			}{
+				resource.GetSubmissionDetail(&submission),
+			},
+		})
+	}
+	timeoutChan := time.After(viper.GetDuration("polling_timeout"))
+	timeout := false
+	sub := base.Redis.Subscribe(c.Request().Context(), fmt.Sprintf("submission_update:%d", submission.ID))
+	for {
+		select {
+		case <-sub.Channel():
+			if err := base.DB.Preload("Problem").Preload("User").First(&submission, c.Param("id")).Error; err != nil {
+				panic(errors.Wrap(err, "could not find problem"))
+			}
+			break
+		case <-c.Request().Context().Done():
+			// context cancelled
+			return nil
+		case <-timeoutChan:
+			timeout = true
+		}
+		if timeout {
+			break
+		}
+		if submission.UpdatedAt.After(startedAt) {
+			break
+		}
+	}
 	submission.LoadRuns()
 	return c.JSON(http.StatusOK, response.GetSubmissionResponse{
 		Message: "SUCCESS",
@@ -147,6 +190,7 @@ func GetSubmission(c echo.Context) error {
 			resource.GetSubmissionDetail(&submission),
 		},
 	})
+	return nil
 }
 
 func GetSubmissions(c echo.Context) error {

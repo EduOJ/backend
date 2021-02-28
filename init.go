@@ -9,11 +9,13 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/leoleoasd/EduOJBackend/app"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/event"
 	"github.com/leoleoasd/EduOJBackend/base/exit"
 	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
+	runEvent "github.com/leoleoasd/EduOJBackend/event/run"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
@@ -45,6 +47,11 @@ func initLog() {
 		os.Exit(-1)
 	}
 	log.Debug("Logging initialized.")
+}
+
+func initEvent() {
+	log.Debug("Initializing Event System.")
+	event.RegisterListener("run", runEvent.NotifyGetSubmissionPoll)
 }
 
 func startEcho() {
