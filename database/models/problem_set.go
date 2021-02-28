@@ -13,6 +13,7 @@ type ProblemSet struct {
 	ID uint `gorm:"primaryKey" json:"id"`
 
 	ClassID     uint   `sql:"index" json:"class_id" gorm:"not null"`
+	Class       *Class `json:"class"`
 	Name        string `json:"name" gorm:"not null;size:255"`
 	Description string `json:"description"`
 
@@ -64,6 +65,9 @@ func (p *ProblemSet) DeleteProblems(ids []uint) error {
 }
 
 func UpdateGrade(submission *Submission) error {
+	if submission.ProblemSetId == 0 {
+		return nil
+	}
 	grade := Grade{}
 	detail := make(map[uint]uint)
 	var err error
