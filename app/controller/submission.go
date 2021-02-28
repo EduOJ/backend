@@ -67,10 +67,6 @@ func CreateSubmission(c echo.Context) error {
 		ext = ext[1:]
 	}
 
-	if !utils.Contain(ext, language.ExtensionAllowed) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LANGUAGE", nil))
-	}
-
 	priority := models.PriorityDefault
 
 	submission := models.Submission{
