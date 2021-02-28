@@ -16,6 +16,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/leoleoasd/EduOJBackend/database"
 	runEvent "github.com/leoleoasd/EduOJBackend/event/run"
+	submissionEvent "github.com/leoleoasd/EduOJBackend/event/submission"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
@@ -52,6 +53,7 @@ func initLog() {
 func initEvent() {
 	log.Debug("Initializing Event System.")
 	event.RegisterListener("run", runEvent.NotifyGetSubmissionPoll)
+	event.RegisterListener("submission", submissionEvent.UpdateGrade)
 }
 
 func startEcho() {

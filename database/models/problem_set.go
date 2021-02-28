@@ -63,8 +63,7 @@ func (p *ProblemSet) DeleteProblems(ids []uint) error {
 	return base.DB.Model(p).Association("Problems").Delete(&problems)
 }
 
-// TODO: register this function for event submission_judge_finished
-func UpdateGrade(submission Submission) error {
+func UpdateGrade(submission *Submission) error {
 	grade := Grade{}
 	detail := make(map[uint]uint)
 	var err error

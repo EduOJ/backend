@@ -364,7 +364,7 @@ func TestUpdateGrade(t *testing.T) {
 		EndTime:   hashStringToTime("test_update_grade_end_time"),
 	}
 	assert.NoError(t, base.DB.Create(&problemSet).Error)
-	assert.NoError(t, UpdateGrade(Submission{
+	assert.NoError(t, UpdateGrade(&Submission{
 		ProblemSetId: problemSet.ID,
 		UserID:       user1.ID,
 		ProblemID:    problem2.ID,
@@ -385,7 +385,7 @@ func TestUpdateGrade(t *testing.T) {
 			UpdatedAt: problemSet.Grades[0].UpdatedAt,
 		},
 	}, problemSet.Grades)
-	assert.NoError(t, UpdateGrade(Submission{
+	assert.NoError(t, UpdateGrade(&Submission{
 		ProblemSetId: problemSet.ID,
 		UserID:       user2.ID,
 		ProblemID:    problem1.ID,
@@ -417,7 +417,7 @@ func TestUpdateGrade(t *testing.T) {
 			UpdatedAt: problemSet.Grades[1].UpdatedAt,
 		},
 	}, problemSet.Grades)
-	assert.NoError(t, UpdateGrade(Submission{
+	assert.NoError(t, UpdateGrade(&Submission{
 		ProblemSetId: problemSet.ID,
 		UserID:       user2.ID,
 		ProblemID:    problem2.ID,
@@ -450,7 +450,7 @@ func TestUpdateGrade(t *testing.T) {
 			UpdatedAt: problemSet.Grades[1].UpdatedAt,
 		},
 	}, problemSet.Grades)
-	assert.NoError(t, UpdateGrade(Submission{
+	assert.NoError(t, UpdateGrade(&Submission{
 		ProblemSetId: problemSet.ID,
 		UserID:       user2.ID,
 		ProblemID:    problem2.ID,

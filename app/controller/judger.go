@@ -246,9 +246,19 @@ func UpdateRun(c echo.Context) error {
 	utils.MustPutObject(output, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/output", run.Submission.ID, run.ID))
 	utils.MustPutObject(comparer, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/comparer_output", run.Submission.ID, run.ID))
 	utils.MustPutObject(compiler, context.Background(), "submissions", fmt.Sprintf("%d/run/%d/compiler_output", run.Submission.ID, run.ID))
-	event.FireEvent("run", runEvent.EventArgs(&run))
+	if _, err := event.FireEvent("run", runEvent.EventArgs(&run)); err != nil {
+		panic(errors.Wrap(err, "could not fire run events"))
+	}
 	if isLast {
-		event.FireEvent("submission", submissionEvent.EventArgs(run.Submission))
+		eventResults, err := event.FireEvent("submission", submissionEvent.EventArgs(run.Submission))
+		if err != nil {
+			panic(errors.Wrap(err, "could not fire submission events"))
+		}
+		for _, ret := range eventResults {
+			if ret[0] != nil {
+				panic(err)
+			}
+		}
 	}
 
 	return c.JSON(http.StatusOK, response.Response{

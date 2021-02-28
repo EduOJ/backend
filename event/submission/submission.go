@@ -6,4 +6,4 @@ import "github.com/leoleoasd/EduOJBackend/database/models"
 type EventArgs = *models.Submission
 
 // EventRst is the result of "submission" event.
-type EventRst struct{}
+type EventRst error
