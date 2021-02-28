@@ -239,6 +239,7 @@ func UpdateRun(c echo.Context) error {
 		}
 		//TODO: Fire event here with argument submission
 	}
+	run.Submission.UpdatedAt = time.Now()
 	utils.PanicIfDBError(base.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&run), "could not save run")
 	unlocked = true
 	runLock.Unlock()

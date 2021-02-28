@@ -8,6 +8,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/app/response"
 	"github.com/leoleoasd/EduOJBackend/app/response/resource"
 	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/leoleoasd/EduOJBackend/base/log"
 	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
@@ -119,10 +120,14 @@ func CreateSubmission(c echo.Context) error {
 }
 
 func GetSubmission(c echo.Context) error {
-	startedAt := time.Now()
+	var startedAt time.Time
 	poll := false
 	if c.QueryParam("poll") == "1" {
 		poll = true
+	}
+	if err := echo.QueryParamsBinder(c).Time("before", &startedAt, time.RFC3339).BindError(); err != nil {
+		// Ignore error.
+		log.Error(err)
 	}
 
 	user := c.Get("user").(models.User)
@@ -141,7 +146,7 @@ func GetSubmission(c echo.Context) error {
 	if user.ID != submission.UserID && !user.Can("read_submission", submission.Problem) && !user.Can("read_submission") {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
-	if !(submission.UpdatedAt.Before(startedAt) && poll) {
+	if !(submission.UpdatedAt.Before(startedAt.Add(time.Nanosecond)) && poll) {
 		submission.LoadRuns()
 		return c.JSON(http.StatusOK, response.GetSubmissionResponse{
 			Message: "SUCCESS",
