@@ -10,6 +10,7 @@ import (
 	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
 )
@@ -125,7 +126,7 @@ func UpdateMe(c echo.Context) error {
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
-	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
+	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",
 		Error:   nil,
