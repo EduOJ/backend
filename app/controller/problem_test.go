@@ -34,14 +34,6 @@ type testCaseData struct {
 	OutputFile *fileContent
 }
 
-func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
-	obj, err := base.Storage.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
-	assert.NoError(t, err)
-	content, err = ioutil.ReadAll(obj)
-	assert.NoError(t, err)
-	return
-}
-
 func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fileContent, creator models.User) (problem models.Problem) {
 	problem = models.Problem{
 		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, id),

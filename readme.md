@@ -46,6 +46,9 @@ Here are the permissions and their descriptions.
 |   manage_students    |                           the permission to manage students of a class or all classes                       |
 | manage_problem_sets  |                        the permission to manage problem sets of a class or all classes                      |
 |  clone_problem_sets  |                         the permission to clone problem sets of a class or all classes                      |
+|    manage_scripts    |                                      the permission to manage all scripts                                   |
+|  manage_languages    |                                     the permission to manage all languages                                  |
+
 # Buckets:
 ## images:
 images with their "path" as filename.

@@ -335,6 +335,22 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 	return string(p)
 }
 
+func getObjectContent(t *testing.T, bucketName, objectName string) (content []byte) {
+	obj, err := base.Storage.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
+	assert.NoError(t, err)
+	content, err = ioutil.ReadAll(obj)
+	assert.NoError(t, err)
+	return
+}
+
+func checkObjectNonExist(t *testing.T, bucketName, objectName string) {
+	obj, err := base.Storage.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
+	assert.NoError(t, err)
+	_, err = ioutil.ReadAll(obj)
+	assert.NotNil(t, err)
+	assert.Equal(t, "The specified key does not exist.", err.Error())
+}
+
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()

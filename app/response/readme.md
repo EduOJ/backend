@@ -361,3 +361,11 @@ Common return codes.
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |      无法找到run       |
+
+## Script
+### CreateScript
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|       INVALID_FILE      |        缺少文件       |
+
+### GetScript

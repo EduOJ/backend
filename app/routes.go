@@ -156,7 +156,7 @@ func Register(e *echo.Echo) {
 
 	judger := e.Group("/judger", middleware.Judger)
 
-	judger.GET("/script/:name", controller.GetScript).Name = "judger.getScript"
+	judger.GET("/script/:name", controller.JudgerGetScript).Name = "judger.getScript"
 	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
 	judger.PUT("/run/:id", controller.UpdateRun).Name = "judger.updateRun"
 
@@ -233,6 +233,14 @@ func Register(e *echo.Echo) {
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.deleteProblemSet"
+
+	script := admin.Group("/script", middleware.HasPermission(middleware.UnscopedPermission{P: "manage_scripts"}))
+	script.POST("", controller.CreateScript).Name = "script.createScript"
+	script.GET("/:name", controller.GetScript).Name = "script.getScript"
+	script.GET("/:name/file", controller.GetScriptFile).Name = "script.getScriptFile"
+	script.GET("s", controller.GetScripts).Name = "script.getScripts"
+	script.PUT("/:name", controller.UpdateScript).Name = "script.updateScript"
+	script.DELETE("/:name", controller.DeleteScript).Name = "script.deleteScript"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")
