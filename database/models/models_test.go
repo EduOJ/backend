@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/leoleoasd/EduOJBackend/base/exit"
-	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/EduOJ/backend/base/exit"
+	"github.com/EduOJ/backend/database"
 	"os"
 	"testing"
 )

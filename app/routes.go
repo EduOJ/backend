@@ -1,12 +1,12 @@
 package app
 
 import (
+	"github.com/EduOJ/backend/app/controller"
+	"github.com/EduOJ/backend/app/middleware"
+	"github.com/EduOJ/backend/base/log"
+	"github.com/EduOJ/backend/base/utils"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
-	"github.com/leoleoasd/EduOJBackend/app/controller"
-	"github.com/leoleoasd/EduOJBackend/app/middleware"
-	"github.com/leoleoasd/EduOJBackend/base/log"
-	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/spf13/viper"
 	"net/http"
 	"net/http/pprof"

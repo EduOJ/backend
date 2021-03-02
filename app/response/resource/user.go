@@ -1,6 +1,6 @@
 package resource
 
-import "github.com/leoleoasd/EduOJBackend/database/models"
+import "github.com/EduOJ/backend/database/models"
 
 type User struct {
 	ID       uint   `gorm:"primaryKey" json:"id"`

@@ -2,12 +2,12 @@ package utils
 
 import (
 	"context"
+	"github.com/EduOJ/backend/app/response"
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
+	validator2 "github.com/EduOJ/backend/base/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"github.com/leoleoasd/EduOJBackend/app/response"
-	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/log"
-	validator2 "github.com/leoleoasd/EduOJBackend/base/validator"
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"

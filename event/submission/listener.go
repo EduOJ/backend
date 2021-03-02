@@ -1,7 +1,7 @@
 package submission
 
 import (
-	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 )
 

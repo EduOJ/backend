@@ -1,6 +1,6 @@
 package response
 
-import "github.com/leoleoasd/EduOJBackend/app/response/resource"
+import "github.com/EduOJ/backend/app/response/resource"
 
 type CreateProblemSetResponse struct {
 	Message string      `json:"message"`

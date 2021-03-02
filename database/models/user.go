@@ -3,8 +3,8 @@ package models
 import (
 	"encoding/binary"
 	"encoding/json"
+	"github.com/EduOJ/backend/base"
 	"github.com/duo-labs/webauthn/webauthn"
-	"github.com/leoleoasd/EduOJBackend/base"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"time"

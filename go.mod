@@ -1,4 +1,4 @@
-module github.com/leoleoasd/EduOJBackend
+module github.com/EduOJ/backend
 
 go 1.14
 

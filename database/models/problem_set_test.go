@@ -3,8 +3,8 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/database"
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/datatypes"
 	"hash/fnv"

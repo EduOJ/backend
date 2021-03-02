@@ -1,6 +1,6 @@
 package submission
 
-import "github.com/leoleoasd/EduOJBackend/database/models"
+import "github.com/EduOJ/backend/database/models"
 
 // EventArgs is the arguments of "submission" event.
 type EventArgs = *models.Submission

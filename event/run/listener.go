@@ -3,7 +3,7 @@ package submission
 import (
 	"context"
 	"fmt"
-	"github.com/leoleoasd/EduOJBackend/base"
+	"github.com/EduOJ/backend/base"
 )
 
 func NotifyGetSubmissionPoll(r EventArgs) EventRst {

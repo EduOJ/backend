@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
+	"github.com/EduOJ/backend/base"
 	"github.com/go-gormigrate/gormigrate/v2"
-	"github.com/leoleoasd/EduOJBackend/base"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"

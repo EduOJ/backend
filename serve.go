@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/leoleoasd/EduOJBackend/base/exit"
-	"github.com/leoleoasd/EduOJBackend/base/log"
+	"github.com/EduOJ/backend/base/exit"
+	"github.com/EduOJ/backend/base/log"
 	"os"
 	"os/signal"
 	"syscall"
