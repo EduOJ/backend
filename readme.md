@@ -44,7 +44,8 @@ Here are the permissions and their descriptions.
 | read_class_secrets   |                               read sensitive information such as invite code                                |
 |    manage_class      |                               the permission to manage a class or all classes                               |
 |   manage_students    |                           the permission to manage students of a class or all classes                       |
-
+| manage_problem_sets  |                        the permission to manage problem sets of a class or all classes                      |
+|  clone_problem_sets  |                         the permission to clone problem sets of a class or all classes                      |
 # Buckets:
 ## images:
 images with their "path" as filename.

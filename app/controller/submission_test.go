@@ -3,11 +3,11 @@ package controller_test
 import (
 	"context"
 	"fmt"
-	"github.com/leoleoasd/EduOJBackend/app/request"
-	"github.com/leoleoasd/EduOJBackend/app/response"
-	"github.com/leoleoasd/EduOJBackend/app/response/resource"
-	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/database/models"
+	"github.com/EduOJ/backend/app/request"
+	"github.com/EduOJ/backend/app/response"
+	"github.com/EduOJ/backend/app/response/resource"
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -236,18 +236,9 @@ func TestCreateSubmission(t *testing.T) {
 				assert.NoError(t, base.DB.Preload("Runs").Preload("User").Preload("Problem").
 					First(&databaseSubmission, "problem_id = ? and user_id = ?", problem.ID, reqUserID).Error)
 				databaseSubmissionDetail := resource.GetSubmissionDetail(&databaseSubmission)
-				databaseRunData := map[uint]struct {
-					ID        uint
-					CreatedAt time.Time
-				}{}
+				databaseRunData := map[uint]models.Run{}
 				for _, run := range databaseSubmission.Runs {
-					databaseRunData[run.TestCaseID] = struct {
-						ID        uint
-						CreatedAt time.Time
-					}{
-						ID:        run.ID,
-						CreatedAt: run.CreatedAt,
-					}
+					databaseRunData[run.TestCaseID] = run
 				}
 				expectedRunSlice := make([]resource.Run, test.testCaseCount)
 				for i, testCase := range problem.TestCases {
@@ -265,6 +256,7 @@ func TestCreateSubmission(t *testing.T) {
 						MemoryUsed:   0,
 						TimeUsed:     0,
 						CreatedAt:    databaseRunData[testCase.ID].CreatedAt,
+						UpdatedAt:    databaseRunData[testCase.ID].UpdatedAt,
 					}
 				}
 				reqUser := models.User{}
@@ -284,6 +276,7 @@ func TestCreateSubmission(t *testing.T) {
 					Status:       "PENDING",
 					Runs:         expectedRunSlice,
 					CreatedAt:    databaseSubmission.CreatedAt,
+					UpdatedAt:    databaseSubmission.UpdatedAt,
 				}
 				assert.Equal(t, &expectedSubmission, databaseSubmissionDetail)
 				assert.Equal(t, expectedSubmission, responseSubmission)

@@ -1,6 +1,6 @@
 package resource
 
-import "github.com/leoleoasd/EduOJBackend/database/models"
+import "github.com/EduOJ/backend/database/models"
 
 type User struct {
 	ID       uint   `gorm:"primaryKey" json:"id"`
@@ -15,7 +15,8 @@ type UserForAdmin struct {
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 
-	Roles []Role `json:"roles"`
+	Roles  []Role  `json:"roles"`
+	Grades []Grade `json:"grades"`
 }
 
 func (p *User) convert(user *models.User) {
@@ -37,6 +38,7 @@ func (p *UserForAdmin) convert(user *models.User) {
 	p.Nickname = user.Nickname
 	p.Email = user.Email
 	p.Roles = GetRoleSlice(user.Roles)
+	p.Grades = GetGradeSlice(user.Grades)
 }
 
 func GetUser(user *models.User) *User {
@@ -51,10 +53,10 @@ func GetUserForAdmin(user *models.User) *UserForAdmin {
 	return &p
 }
 
-func GetUserSlice(users []models.User) (profiles []User) {
+func GetUserSlice(users []*models.User) (profiles []User) {
 	profiles = make([]User, len(users))
 	for i, user := range users {
-		profiles[i] = *GetUser(&user)
+		profiles[i] = *GetUser(user)
 	}
 	return
 }

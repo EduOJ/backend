@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"github.com/EduOJ/backend/app/request"
+	"github.com/EduOJ/backend/app/response"
+	"github.com/EduOJ/backend/app/response/resource"
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/utils"
+	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
-	"github.com/leoleoasd/EduOJBackend/app/request"
-	"github.com/leoleoasd/EduOJBackend/app/response"
-	"github.com/leoleoasd/EduOJBackend/app/response/resource"
-	"github.com/leoleoasd/EduOJBackend/base"
-	"github.com/leoleoasd/EduOJBackend/base/utils"
-	"github.com/leoleoasd/EduOJBackend/database/models"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
@@ -25,10 +25,10 @@ func CreateClass(c echo.Context) error {
 		CourseName:  req.CourseName,
 		Description: req.Description,
 		InviteCode:  utils.GenerateInviteCode(),
-		Managers: []models.User{
-			user,
+		Managers: []*models.User{
+			&user,
 		},
-		Students: []models.User{},
+		Students: []*models.User{},
 	}
 	utils.PanicIfDBError(base.DB.Create(&class), "could not create class")
 	user.GrantRole("class_creator", class)
@@ -259,9 +259,10 @@ func JoinClass(c echo.Context) error {
 
 func DeleteClass(c echo.Context) error {
 	class := models.Class{}
-	if err := base.DB.Delete(&class, c.Param("id")).Error; err != nil {
+	if err := base.DB.First(&class, c.Param("id")).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		panic(errors.Wrap(err, "could not find class for deleting"))
 	}
+	utils.PanicIfDBError(base.DB.Delete(&class), "could not delete class for deleting")
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,

@@ -42,6 +42,12 @@ var FieldTranslations = map[string]string{
 	"CourseName":         "课程名称",
 	"UserIds":            "用户ID数组",
 	"InviteCode":         "邀请码",
+	"StartTime":          "开始时间",
+	"EndTime":            "结束时间",
+	"SourceClassID":      "复制源班级ID",
+	"SourceProblemSetID": "复制源题目组ID",
+	"ProblemIDs":         "题目ID数组",
+	"Language":           "语言",
 }
 
 // RegisterDefaultTranslations registers a set of default translations
@@ -986,8 +992,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}必须大于或等于{1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), FieldTranslations[fe.Field()], fe.Param())
+				t, err := ut.T(fe.Tag(), FieldTranslations[fe.Field()], FieldTranslations[fe.Param()])
 				if err != nil {
 					log.Printf("警告: 翻译字段错误: %#v", fe)
 					return fe.(error).Error()

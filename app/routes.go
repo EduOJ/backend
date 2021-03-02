@@ -1,12 +1,12 @@
 package app
 
 import (
+	"github.com/EduOJ/backend/app/controller"
+	"github.com/EduOJ/backend/app/middleware"
+	"github.com/EduOJ/backend/base/log"
+	"github.com/EduOJ/backend/base/utils"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
-	"github.com/leoleoasd/EduOJBackend/app/controller"
-	"github.com/leoleoasd/EduOJBackend/app/middleware"
-	"github.com/leoleoasd/EduOJBackend/base/log"
-	"github.com/leoleoasd/EduOJBackend/base/utils"
 	"github.com/spf13/viper"
 	"net/http"
 	"net/http/pprof"
@@ -129,6 +129,24 @@ func Register(e *echo.Echo) {
 	api.GET("/submission/:id/run/:run_id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
 	api.GET("/submission/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
+	api.POST("/problem_set/:problem_set_id/problem/:pid/submission",
+		controller.ProblemSetCreateSubmission, middleware.Logged).Name = "problemSet.createSubmission"
+	api.GET("/problem_set/:problem_set_id/submission/:id",
+		controller.ProblemSetGetSubmission, middleware.Logged).Name = "problemSet.getSubmission"
+	api.GET("/problem_set/:problem_set_id/submissions",
+		controller.ProblemSetGetSubmissions, middleware.Logged).Name = "problemSet.getSubmissions"
+
+	api.GET("/problem_set/:problem_set_id/submission/:id/code",
+		controller.ProblemSetGetSubmissionCode, middleware.Logged).Name = "problemSet.getSubmissionCode"
+	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/output",
+		controller.ProblemSetGetRunOutput, middleware.Logged).Name = "problemSet.getRunOutput"
+	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/input",
+		controller.ProblemSetGetRunInput, middleware.Logged).Name = "problemSet.getRunInput"
+	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/compiler_output",
+		controller.ProblemSetGetRunCompilerOutput, middleware.Logged).Name = "problemSet.getRunCompilerOutput"
+	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/comparer_output",
+		controller.ProblemSetGetRunComparerOutput, middleware.Logged).Name = "problemSet.getRunComparerOutput"
+
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
 
@@ -172,6 +190,45 @@ func Register(e *echo.Echo) {
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.deleteClass"
+
+	api.POST("/class/:id/problem_set",
+		controller.CreateProblemSet, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.createProblemSet"
+	api.POST("/class/:id/problem_set/clone",
+		controller.CloneProblemSet, middleware.HasPermission(middleware.AndPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
+				B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+			},
+			B: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "clone_problem_sets", T: "class"},
+				B: middleware.UnscopedPermission{P: "clone_problem_sets"},
+			},
+		})).Name = "problemSet.cloneProblemSet"
+	api.GET("/class/:class_id/problem_set/:id",
+		controller.GetProblemSet).Name = "problemSet.getProblemSet"
+	api.PUT("/class/:class_id/problem_set/:id",
+		controller.UpdateProblemSet, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.updateProblemSet"
+	api.POST("/class/:class_id/problem_set/:id/problems",
+		controller.AddProblemsToSet, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.addProblemsToSet"
+	api.DELETE("/class/:class_id/problem_set/:id/problems",
+		controller.DeleteProblemsFromSet, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.deleteProblemsFromSet"
+	api.DELETE("/class/:class_id/problem_set/:id",
+		controller.DeleteProblemSet, middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+		})).Name = "problemSet.deleteProblemSet"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")

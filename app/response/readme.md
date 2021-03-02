@@ -277,3 +277,81 @@ Common return codes.
 |    ALREADY_IN_CLASS     |   用户已是该class学生   |
 
 ### DeleteClass
+
+## ProblemSet
+
+### CreateProblemSet
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|      CLASS_NOT_FOUND    |     无法找到class      |
+
+### CloneProblemSet
+|            message           |          结果           |
+|:----------------------------:|:----------------------:|
+|       CLASS_NOT_FOUND        |       无法找到class      |
+|      SOURCE_NOT_FOUND        | 无法找到复制源problem set |
+
+### GetProblemSet
+|            message           |          结果           |
+|:----------------------------:|:----------------------:|
+|           NOT_FOUND          |    无法找到problem set   |
+|        CLASS_NOT_FOUND       |        无法找到class     |
+
+### UpdateProblemSet
+|            message           |          结果           |
+|:----------------------------:|:----------------------:|
+|           NOT_FOUND          |    无法找到problem set   |
+
+### AddProblemsToSet
+|            message           |          结果           |
+|:----------------------------:|:----------------------:|
+|           NOT_FOUND          |    无法找到problem set   |
+
+### DeleteProblemsFromSet
+|            message           |          结果           |
+|:----------------------------:|:----------------------:|
+|           NOT_FOUND          |    无法找到problem set   |
+
+### DeleteProblemSet
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|     CLASS_NOT_FOUND     |     无法找到class      |
+
+
+## ProblemSetSubmission
+
+### ProblemSetCreateSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|  PROBLEM_SET_NOT_FOUND  |  无法找到problem set  |
+|        NOT_FOUND        |     错误的problem     |
+|     INVALID_LANGUAGE    |       无效的语言       |
+|       INVALID_FILE      |        缺少文件       |
+
+### ProblemSetGetSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### ProblemSetGetSubmissions
+
+### ProblemSetGetSubmissionCode
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到submission   |
+
+### ProblemSetGetRunOutput
+|       message        |       结果        |
+|:--------------------:|:----------------:|
+|      NOT_FOUND       |    无法找到run     |
+
+
+### ProblemSetGetRunCompilerOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |      无法找到run       |
+
+### ProblemSetGetRunComparerOutput
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |      无法找到run       |
