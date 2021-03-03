@@ -118,6 +118,7 @@ poll:
 	timeoutChan := time.After(viper.GetDuration("polling_timeout"))
 	timeout := false
 	sub := base.Redis.Subscribe(c.Request().Context(), "runs")
+	defer sub.Close()
 	for {
 		select {
 		case <-sub.Channel():
