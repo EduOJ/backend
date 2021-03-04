@@ -53,7 +53,11 @@ func GetProblems(c echo.Context) error {
 		return err
 	}
 
-	query := base.DB.Model(&models.Problem{}).Order("id ASC") // Force order by id asc.
+	if req.Tried && req.Passed {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_STATUS", nil))
+	}
+
+	query := base.DB.Model(&models.Problem{}).Order("id ASC").Omit("Description") // Force order by id asc.
 
 	user := c.Get("user").(models.User)
 	isAdmin := user.Can("manage_problem")
@@ -64,6 +68,29 @@ func GetProblems(c echo.Context) error {
 	if req.Search != "" {
 		id, _ := strconv.ParseUint(req.Search, 10, 64)
 		query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
+	}
+
+	var passedProblemIds []uint
+	var failedProblemIds []uint
+
+	var ss []models.Submission
+	utils.PanicIfDBError(base.DB.Find(&ss), "could not find ss")
+
+	if req.Passed || req.Tried {
+		utils.PanicIfDBError(base.DB.Model(&models.Submission{}).Select("problem_id as total").
+			Where("status = ? and user_id = ?", "ACCEPTED", req.UserID).Group("problem_id").Find(&passedProblemIds),
+			"could not find submissions for getting problems")
+	} else if req.UserID != 0 {
+		query = query.Where("user_id = ?", req.UserID)
+	}
+	if req.Passed {
+		query = query.Where("id in (?)", passedProblemIds)
+	}
+	if req.Tried {
+		utils.PanicIfDBError(base.DB.Model(&models.Submission{}).Select("problem_id as total").
+			Where("status <> ? and user_id = ?", "ACCEPTED", req.UserID).Group("problem_id").Find(&failedProblemIds),
+			"could not find submissions for getting problems")
+		query = query.Where("id in (?)", failedProblemIds).Not("id in (?)", passedProblemIds)
 	}
 
 	var problems []*models.Problem

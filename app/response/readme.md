@@ -134,7 +134,7 @@ Common return codes.
 ### GetProblems
 |         message         |         结果         |
 |:-----------------------:|:-------------------:|
-|      INVALID_ORDER      |     无效的排序设置     |
+|     INVALID_STATUS      |     无效的状态设置     |
 
 ### UpdateProblem
 |         message         |         结果          |

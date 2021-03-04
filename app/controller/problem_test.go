@@ -292,26 +292,31 @@ func TestGetProblem(t *testing.T) {
 
 func TestGetProblems(t *testing.T) {
 	t.Parallel()
+
 	problem1 := models.Problem{
 		Name:               "test_get_problems_1",
+		Description:        "test_get_problems_1_description",
 		AttachmentFileName: "test_get_problems_1_attachment_file_name",
 		LanguageAllowed:    []string{"test_get_problems_1_language_allowed"},
 		Public:             true,
 	}
 	problem2 := models.Problem{
 		Name:               "test_get_problems_2",
+		Description:        "test_get_problems_2_description",
 		AttachmentFileName: "test_get_problems_2_attachment_file_name",
 		LanguageAllowed:    []string{"test_get_problems_2_language_allowed"},
 		Public:             true,
 	}
 	problem3 := models.Problem{
 		Name:               "test_get_problems_3",
+		Description:        "test_get_problems_3_description",
 		AttachmentFileName: "test_get_problems_3_attachment_file_name",
 		LanguageAllowed:    []string{"test_get_problems_3_language_allowed"},
 		Public:             true,
 	}
 	problem4 := models.Problem{
 		Name:               "test_get_problems_4",
+		Description:        "test_get_problems_4_description",
 		AttachmentFileName: "test_get_problems_4_attachment_file_name",
 		LanguageAllowed:    []string{"test_get_problems_4_language_allowed"},
 		Public:             false,
@@ -320,6 +325,86 @@ func TestGetProblems(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&problem2).Error)
 	assert.NoError(t, base.DB.Create(&problem3).Error)
 	assert.NoError(t, base.DB.Create(&problem4).Error)
+
+	user := createUserForTest(t, "get_problems_submitter", 0)
+	otherUser := createUserForTest(t, "get_problems_submitter", 1)
+	submissionPassed1 := createSubmissionForTest(t, "get_problems_1_passed", 1, &problem1, &user, nil, 0)
+	submissionPassed2 := createSubmissionForTest(t, "get_problems_1_passed", 2, &problem1, &otherUser, nil, 0)
+	submissionPassed3 := createSubmissionForTest(t, "get_problems_2_passed", 3, &problem2, &user, nil, 0)
+	submissionPassed4 := createSubmissionForTest(t, "get_problems_2_passed", 4, &problem2, &user, nil, 0)
+	submissionPassed1.Status = "ACCEPTED"
+	submissionPassed2.Status = "ACCEPTED"
+	submissionPassed3.Status = "ACCEPTED"
+	submissionPassed4.Status = "ACCEPTED"
+	assert.NoError(t, base.DB.Save(&submissionPassed1).Error)
+	assert.NoError(t, base.DB.Save(&submissionPassed2).Error)
+	assert.NoError(t, base.DB.Save(&submissionPassed3).Error)
+	assert.NoError(t, base.DB.Save(&submissionPassed4).Error)
+
+	submissionFailed1 := createSubmissionForTest(t, "get_problems_1_failed", 1, &problem1, &otherUser, nil, 0)
+	submissionFailed2 := createSubmissionForTest(t, "get_problems_2_failed", 2, &problem2, &user, nil, 0)
+	submissionFailed3 := createSubmissionForTest(t, "get_problems_3_failed", 3, &problem3, &user, nil, 0)
+	submissionFailed4 := createSubmissionForTest(t, "get_problems_3_failed", 4, &problem3, &user, nil, 0)
+	submissionFailed1.Status = "WRONG_ANSWER"
+	submissionFailed2.Status = "TIME_LIMIT_EXCEEDED"
+	submissionFailed3.Status = "RUNTIME_ERROR"
+	submissionFailed4.Status = "PENDING"
+	assert.NoError(t, base.DB.Save(&submissionFailed1).Error)
+	assert.NoError(t, base.DB.Save(&submissionFailed2).Error)
+	assert.NoError(t, base.DB.Save(&submissionFailed3).Error)
+	assert.NoError(t, base.DB.Save(&submissionFailed4).Error)
+
+	failTests := []failTest{
+		{
+			name:   "InvalidStatus",
+			method: "GET",
+			path:   base.Echo.Reverse("problem.getProblems"),
+			req: request.GetProblemsRequest{
+				Search: "",
+				UserID: user.ID, // non-existing user id
+				Limit:  0,
+				Offset: 0,
+				Tried:  true,
+				Passed: true,
+			},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("INVALID_STATUS", nil),
+		},
+		{
+			name:   "WithoutUserId",
+			method: "GET",
+			path:   base.Echo.Reverse("problem.getProblems"),
+			req: request.GetProblemsRequest{
+				Search: "",
+				UserID: 0,
+				Limit:  0,
+				Offset: 0,
+				Tried:  true,
+				Passed: false,
+			},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp: response.ErrorResp("VALIDATION_ERROR", []interface{}{
+				map[string]interface{}{
+					"field":       "UserID",
+					"reason":      "required_with",
+					"translation": "当选取尝试过题目或选取通过题目不为空时，用户ID为必填字段",
+				},
+			}),
+		},
+	}
+
+	runFailTests(t, failTests, "")
+
+	problem1.Description = ""
+	problem2.Description = ""
+	problem3.Description = ""
+	problem4.Description = ""
 
 	type respData struct {
 		Problems []*models.Problem `json:"problems"`
@@ -340,8 +425,11 @@ func TestGetProblems(t *testing.T) {
 			name: "All",
 			req: request.GetProblemsRequest{
 				Search: "test_get_problems",
+				UserID: 0,
 				Limit:  0,
 				Offset: 0,
+				Tried:  false,
+				Passed: false,
 			},
 			respData: respData{
 				Problems: []*models.Problem{
@@ -361,8 +449,11 @@ func TestGetProblems(t *testing.T) {
 			name: "AllWithAdminPermission",
 			req: request.GetProblemsRequest{
 				Search: "test_get_problems",
+				UserID: 0,
 				Limit:  0,
 				Offset: 0,
+				Tried:  false,
+				Passed: false,
 			},
 			respData: respData{
 				Problems: []*models.Problem{
@@ -383,8 +474,11 @@ func TestGetProblems(t *testing.T) {
 			name: "NonExist",
 			req: request.GetProblemsRequest{
 				Search: "test_get_problems_non_exist",
+				UserID: 0,
 				Limit:  0,
 				Offset: 0,
+				Tried:  false,
+				Passed: false,
 			},
 			respData: respData{
 				Problems: []*models.Problem{},
@@ -400,8 +494,11 @@ func TestGetProblems(t *testing.T) {
 			name: "Search",
 			req: request.GetProblemsRequest{
 				Search: "test_get_problems_2",
+				UserID: 0,
 				Limit:  0,
 				Offset: 0,
+				Tried:  false,
+				Passed: false,
 			},
 			respData: respData{
 				Problems: []*models.Problem{
@@ -419,8 +516,11 @@ func TestGetProblems(t *testing.T) {
 			name: "Paginator",
 			req: request.GetProblemsRequest{
 				Search: "test_get_problems",
+				UserID: 0,
 				Limit:  2,
 				Offset: 0,
+				Tried:  false,
+				Passed: false,
 			},
 			respData: respData{
 				Problems: []*models.Problem{
@@ -435,6 +535,51 @@ func TestGetProblems(t *testing.T) {
 					"limit":  "2",
 					"offset": "2",
 				}),
+			},
+			isAdmin: false,
+		},
+		{
+			name: "Passed",
+			req: request.GetProblemsRequest{
+				Search: "test_get_problems",
+				UserID: user.ID,
+				Limit:  0,
+				Offset: 0,
+				Tried:  false,
+				Passed: true,
+			},
+			respData: respData{
+				Problems: []*models.Problem{
+					&problem1,
+					&problem2,
+				},
+				Total:  2,
+				Count:  2,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
+			},
+			isAdmin: false,
+		},
+		{
+			name: "Tried",
+			req: request.GetProblemsRequest{
+				Search: "test_get_problems",
+				UserID: user.ID,
+				Limit:  0,
+				Offset: 0,
+				Tried:  true,
+				Passed: false,
+			},
+			respData: respData{
+				Problems: []*models.Problem{
+					&problem3,
+				},
+				Total:  1,
+				Count:  1,
+				Offset: 0,
+				Prev:   nil,
+				Next:   nil,
 			},
 			isAdmin: false,
 		},
