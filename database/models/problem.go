@@ -73,3 +73,7 @@ func (p *Problem) AfterDelete(tx *gorm.DB) (err error) {
 	}
 	return tx.Where("problem_id = ?", p.ID).Delete(&TestCase{}).Error
 }
+
+func (s *TestCase) AfterDelete(tx *gorm.DB) (err error) {
+	return tx.Where("test_case_id = ?", s.ID).Delete(&Run{}).Error
+}
