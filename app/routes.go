@@ -159,11 +159,11 @@ func Register(e *echo.Echo) {
 	api.POST("/class",
 		controller.CreateClass, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
 	api.GET("/class/:id",
-		controller.GetClass).Name = "class.getClass"
+		controller.GetClass, middleware.Logged).Name = "class.getClass"
 	api.GET("/user/me/managing_classes",
-		controller.GetClassesIManage).Name = "class.getClassesIManage"
+		controller.GetClassesIManage, middleware.Logged).Name = "class.getClassesIManage"
 	api.GET("/user/me/taking_classes",
-		controller.GetClassesITake).Name = "class.getClassesITake"
+		controller.GetClassesITake, middleware.Logged).Name = "class.getClassesITake"
 	api.PUT("/class/:id",
 		controller.UpdateClass, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
@@ -184,7 +184,7 @@ func Register(e *echo.Echo) {
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.deleteStudents"
-	api.POST("/class/:id/join", controller.JoinClass).Name = "class.joinClass"
+	api.POST("/class/:id/join", controller.JoinClass, middleware.Logged).Name = "class.joinClass"
 	api.DELETE("/class/:id",
 		controller.DeleteClass, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
@@ -208,7 +208,7 @@ func Register(e *echo.Echo) {
 			},
 		})).Name = "problemSet.cloneProblemSet"
 	api.GET("/class/:class_id/problem_set/:id",
-		controller.GetProblemSet).Name = "problemSet.getProblemSet"
+		controller.GetProblemSet, middleware.Logged).Name = "problemSet.getProblemSet"
 	api.PUT("/class/:class_id/problem_set/:id",
 		controller.UpdateProblemSet, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
