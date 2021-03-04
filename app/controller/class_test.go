@@ -229,11 +229,17 @@ func TestGetClassesIManageAndTake(t *testing.T) {
 		&users[1],
 		&users[3],
 	}, []*models.User{})
-	_ = createClassForTest(t, "test_get_classes_i_manage_or_take", 4, []*models.User{}, []*models.User{})
+	createClassForTest(t, "test_get_classes_i_manage_or_take", 4, []*models.User{}, []*models.User{})
 
 	for i := range users {
 		assert.NoError(t, base.DB.First(&users[i], users[i].ID).Error)
 	}
+
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_1", 1, &class1, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_1", 2, &class1, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_2", 1, &class2, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_2", 2, &class2, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_3", 1, &class3, nil)
 
 	class1.Students = nil
 	class1.Managers = nil
@@ -272,6 +278,9 @@ func TestGetClassesIManageAndTake(t *testing.T) {
 		for i, classes := range manageClasses {
 			i := i
 			classes := classes
+			for i := range classes {
+				classes[i].ProblemSets = []*models.ProblemSet{}
+			}
 			t.Run(fmt.Sprintf("User%d", i), func(t *testing.T) {
 				t.Parallel()
 
