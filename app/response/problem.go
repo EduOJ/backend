@@ -82,7 +82,15 @@ type GetRandomProblemResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.Problem `json:"test_case"`
+		*resource.Problem `json:"problem"`
+	} `json:"data"`
+}
+
+type GetRandomProblemResponseForAdmin struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.ProblemForAdmin `json:"problem"`
 	} `json:"data"`
 }
 

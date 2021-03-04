@@ -125,6 +125,12 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |   无法找到指定problem  |
 
+### GetRandomProblem
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |   无法找到公开problem  |
+
+
 ### GetProblemAttachmentFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|

@@ -2231,3 +2231,64 @@ func TestDeleteTestCases(t *testing.T) {
 		assert.Equal(t, 0, len(databaseTestCases))
 	})
 }
+
+func TestGetRandomProblem(t *testing.T) {
+	// Not Parallel
+	var originalProblems []models.Problem
+	assert.NoError(t, base.DB.Find(&originalProblems).Error)
+	assert.NoError(t, base.DB.Delete(originalProblems, "id > 0").Error)
+	t.Cleanup(func() {
+		base.DB.Create(&originalProblems)
+	})
+
+	t.Run("Empty", func(t *testing.T) {
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
+			request.GetRandomProblem{}, applyNormalUser))
+		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.ErrorResp("NOT_FOUND", nil), resp)
+	})
+
+	user := createUserForTest(t, "get_random_problem", 0)
+	problems := make(map[uint]*models.Problem)
+	for i := 0; i < 3; i++ {
+		p := createProblemForTest(t, "get_random_problem", 0, nil, user)
+		problems[p.ID] = &p
+	}
+
+	t.Run("NormalUserSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
+			request.GetRandomProblem{}, applyNormalUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetRandomProblemResponse{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetRandomProblemResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.Problem `json:"problem"`
+			}{
+				resource.GetProblem(problems[resp.Data.ID]),
+			},
+		}, resp)
+	})
+	t.Run("AdminUserSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
+			request.GetRandomProblem{}, applyAdminUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetRandomProblemResponseForAdmin{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetRandomProblemResponseForAdmin{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemForAdmin `json:"problem"`
+			}{
+				resource.GetProblemForAdmin(problems[resp.Data.ID]),
+			},
+		}, resp)
+	})
+}

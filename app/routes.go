@@ -67,6 +67,7 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "delete_problem"},
 		})).Name = "problem.deleteProblem"
 
+	api.GET("/problem/random", controller.GetRandomProblem, middleware.AllowGuest).Name = "problem.getRandomProblem"
 	api.GET("/problem/:id", controller.GetProblem, middleware.AllowGuest).Name = "problem.getProblem"
 	api.GET("/problems", controller.GetProblems, middleware.AllowGuest).Name = "problem.getProblems"
 

@@ -12,6 +12,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,7 +26,7 @@ func GetProblem(c echo.Context) error {
 	} else if err != nil {
 		panic(err)
 	}
-	if user.Can("read_problem", problem) {
+	if user.Can("read_problem_secrets", problem) || user.Can("read_problem_secrets") {
 		return c.JSON(http.StatusOK, response.GetProblemResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
@@ -496,5 +497,38 @@ func DeleteTestCases(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
+	})
+}
+
+func GetRandomProblem(c echo.Context) error {
+	var count int64
+	utils.PanicIfDBError(base.DB.Find(&models.Problem{}, "public = true").Count(&count),
+		"could not get count of public problems for getting random problem")
+	if count == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+	problem := models.Problem{}
+	utils.PanicIfDBError(base.DB.Limit(1).Offset(rand.Intn(int(count))).Find(&problem),
+		"could not get problem for getting random problem")
+	user := c.Get("user").(models.User)
+	if user.Can("read_problem_secrets", problem) || user.Can("read_problem_secrets") {
+		return c.JSON(http.StatusOK, response.GetRandomProblemResponseForAdmin{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemForAdmin `json:"problem"`
+			}{
+				resource.GetProblemForAdmin(&problem),
+			},
+		})
+	}
+	return c.JSON(http.StatusOK, response.GetRandomProblemResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.Problem `json:"problem"`
+		}{
+			resource.GetProblem(&problem),
+		},
 	})
 }
