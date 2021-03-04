@@ -164,6 +164,7 @@ func ProblemSetGetSubmission(c echo.Context) error {
 	timeoutChan := time.After(viper.GetDuration("polling_timeout"))
 	timeout := false
 	sub := base.Redis.Subscribe(c.Request().Context(), fmt.Sprintf("submission_update:%d", submission.ID))
+	defer sub.Close()
 	for {
 		select {
 		case <-sub.Channel():
