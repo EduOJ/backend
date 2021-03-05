@@ -3,17 +3,17 @@ package resource
 import "github.com/EduOJ/backend/database/models"
 
 type User struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
-	Nickname string `gorm:"index:nickname" json:"nickname"`
-	Email    string `gorm:"unique_index" json:"email"`
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Email    string `json:"email"`
 }
 
 type UserForAdmin struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
-	Nickname string `gorm:"index:nickname" json:"nickname"`
-	Email    string `gorm:"unique_index" json:"email"`
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Email    string `json:"email"`
 
 	Roles  []Role  `json:"roles"`
 	Grades []Grade `json:"grades"`

@@ -7,6 +7,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
@@ -432,7 +433,7 @@ func TestGetSubmission(t *testing.T) {
 
 func TestGetSubmissions(t *testing.T) {
 	// Not Parallel
-	assert.NoError(t, base.DB.Delete(&models.Submission{}, "id > 0").Error)
+	t.Cleanup(database.SetupDatabaseForTest())
 
 	problemCreator1 := createUserForTest(t, "get_submissions", 1)
 	problemCreator2 := createUserForTest(t, "get_submissions", 2)

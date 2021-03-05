@@ -77,3 +77,21 @@ type UpdateTestCaseResponse struct {
 		*resource.TestCaseForAdmin `json:"test_case"`
 	} `json:"data"`
 }
+
+type GetRandomProblemResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.Problem `json:"problem"`
+	} `json:"data"`
+}
+
+type GetUserProblemInfoResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		TriedCount  int `json:"tried_count"`
+		PassedCount int `json:"passed_count"`
+		Rank        int `json:"rank"` // TODO: develop this
+	} `json:"data"`
+}

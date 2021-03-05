@@ -100,7 +100,7 @@ func GetClassesIManage(c echo.Context) error {
 func GetClassesITake(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	var classes []models.Class
-	if err := base.DB.Model(&user).Association("ClassesTaking").Find(&classes); err != nil {
+	if err := base.DB.Model(&user).Preload("ProblemSets").Association("ClassesTaking").Find(&classes); err != nil {
 		panic(errors.Wrap(err, "could not find class taking"))
 	}
 	return c.JSON(http.StatusOK, response.GetClassesITakeResponse{
