@@ -86,7 +86,7 @@ type GetRandomProblemResponse struct {
 	} `json:"data"`
 }
 
-type GetUserProblemInfo struct {
+type GetUserProblemInfoResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
