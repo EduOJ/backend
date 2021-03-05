@@ -8,6 +8,7 @@ import (
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
+	"github.com/EduOJ/backend/database"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
@@ -2233,13 +2234,7 @@ func TestDeleteTestCases(t *testing.T) {
 }
 
 func TestGetRandomProblem(t *testing.T) {
-	// Not Parallel
-	var originalProblems []models.Problem
-	assert.NoError(t, base.DB.Find(&originalProblems).Error)
-	assert.NoError(t, base.DB.Delete(originalProblems, "id > 0").Error)
-	t.Cleanup(func() {
-		base.DB.Create(&originalProblems)
-	})
+	t.Cleanup(database.SetupDatabaseForTest())
 
 	t.Run("Empty", func(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
@@ -2258,7 +2253,6 @@ func TestGetRandomProblem(t *testing.T) {
 	}
 
 	t.Run("NormalUserSuccess", func(t *testing.T) {
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
 			request.GetRandomProblem{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -2275,7 +2269,6 @@ func TestGetRandomProblem(t *testing.T) {
 		}, resp)
 	})
 	t.Run("AdminUserSuccess", func(t *testing.T) {
-		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
 			request.GetRandomProblem{}, applyAdminUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
