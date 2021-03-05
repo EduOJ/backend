@@ -514,18 +514,6 @@ func GetRandomProblem(c echo.Context) error {
 	problem := models.Problem{}
 	utils.PanicIfDBError(base.DB.Limit(1).Offset(rand.Intn(int(count))).Find(&problem),
 		"could not get problem for getting random problem")
-	user := c.Get("user").(models.User)
-	if user.Can("read_problem_secrets", problem) || user.Can("read_problem_secrets") {
-		return c.JSON(http.StatusOK, response.GetRandomProblemResponseForAdmin{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.ProblemForAdmin `json:"problem"`
-			}{
-				resource.GetProblemForAdmin(&problem),
-			},
-		})
-	}
 	return c.JSON(http.StatusOK, response.GetRandomProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,

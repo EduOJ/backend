@@ -2252,7 +2252,7 @@ func TestGetRandomProblem(t *testing.T) {
 		problems[p.ID] = &p
 	}
 
-	t.Run("NormalUserSuccess", func(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
 			request.GetRandomProblem{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -2265,22 +2265,6 @@ func TestGetRandomProblem(t *testing.T) {
 				*resource.Problem `json:"problem"`
 			}{
 				resource.GetProblem(problems[resp.Data.ID]),
-			},
-		}, resp)
-	})
-	t.Run("AdminUserSuccess", func(t *testing.T) {
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
-			request.GetRandomProblem{}, applyAdminUser))
-		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		resp := response.GetRandomProblemResponseForAdmin{}
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.GetRandomProblemResponseForAdmin{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.ProblemForAdmin `json:"problem"`
-			}{
-				resource.GetProblemForAdmin(problems[resp.Data.ID]),
 			},
 		}, resp)
 	})
