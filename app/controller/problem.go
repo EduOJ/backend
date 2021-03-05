@@ -71,27 +71,31 @@ func GetProblems(c echo.Context) error {
 		query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
 	}
 
-	var passedProblemIds []uint
-	var failedProblemIds []uint
+	where := (*gorm.DB)(nil)
 
-	var ss []models.Submission
-	utils.PanicIfDBError(base.DB.Find(&ss), "could not find ss")
-
-	if req.Passed || req.Tried {
-		utils.PanicIfDBError(base.DB.Model(&models.Submission{}).Select("problem_id as total").
-			Where("status = ? and user_id = ?", "ACCEPTED", req.UserID).Group("problem_id").Find(&passedProblemIds),
-			"could not find submissions for getting problems")
-	} else if req.UserID != 0 {
-		query = query.Where("user_id = ?", req.UserID)
-	}
 	if req.Passed {
-		query = query.Where("id in (?)", passedProblemIds)
+		where = base.DB.Where("id in (?)", base.DB.Table("submissions").
+			Select("problem_id").
+			Where("status = 'ACCEPTED' and user_id = ?", req.UserID).
+			Group("problem_id"))
 	}
+
 	if req.Tried {
-		utils.PanicIfDBError(base.DB.Model(&models.Submission{}).Select("problem_id as total").
-			Where("status <> ? and user_id = ?", "ACCEPTED", req.UserID).Group("problem_id").Find(&failedProblemIds),
-			"could not find submissions for getting problems")
-		query = query.Where("id in (?)", failedProblemIds).Not("id in (?)", passedProblemIds)
+		where = base.DB.Where("id not in (?)",
+			base.DB.Table("submissions").
+				Select("problem_id").
+				Where("status = 'ACCEPTED' and user_id = ?", req.UserID).
+				Group("problem_id"),
+		).Where("id in (?)",
+			base.DB.Table("submissions").
+				Select("problem_id").
+				Where("status <> 'ACCEPTED' and user_id = ?", req.UserID).
+				Group("problem_id"),
+		)
+	}
+
+	if where != nil {
+		query = query.Where(where)
 	}
 
 	var problems []*models.Problem
