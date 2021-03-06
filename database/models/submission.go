@@ -15,7 +15,7 @@ type Submission struct {
 	User         *User       `json:"user"`
 	ProblemID    uint        `sql:"index" json:"problem_id"`
 	Problem      *Problem    `json:"problem"`
-	ProblemSetId uint        `sql:"index" json:"problem_set_id"`
+	ProblemSetID uint        `sql:"index" json:"problem_set_id"`
 	ProblemSet   *ProblemSet `json:"problem_set"`
 	LanguageName string      `json:"language_name"`
 	Language     *Language   `json:"language"`
@@ -45,7 +45,7 @@ type Run struct {
 	User         *User       `json:"user"`
 	ProblemID    uint        `sql:"index" json:"problem_id"`
 	Problem      *Problem    `json:"problem"`
-	ProblemSetId uint        `sql:"index" json:"problem_set_id"`
+	ProblemSetID uint        `sql:"index" json:"problem_set_id"`
 	TestCaseID   uint        `json:"test_case_id"`
 	TestCase     *TestCase   `json:"test_case"`
 	Sample       bool        `json:"sample" gorm:"not null"`

@@ -365,7 +365,7 @@ func TestUpdateGrade(t *testing.T) {
 	}
 	assert.NoError(t, base.DB.Create(&problemSet).Error)
 	assert.NoError(t, UpdateGrade(&Submission{
-		ProblemSetId: problemSet.ID,
+		ProblemSetID: problemSet.ID,
 		UserID:       user1.ID,
 		ProblemID:    problem2.ID,
 		Score:        120,
@@ -386,7 +386,7 @@ func TestUpdateGrade(t *testing.T) {
 		},
 	}, problemSet.Grades)
 	assert.NoError(t, UpdateGrade(&Submission{
-		ProblemSetId: problemSet.ID,
+		ProblemSetID: problemSet.ID,
 		UserID:       user2.ID,
 		ProblemID:    problem1.ID,
 		Score:        21,
@@ -418,7 +418,7 @@ func TestUpdateGrade(t *testing.T) {
 		},
 	}, problemSet.Grades)
 	assert.NoError(t, UpdateGrade(&Submission{
-		ProblemSetId: problemSet.ID,
+		ProblemSetID: problemSet.ID,
 		UserID:       user2.ID,
 		ProblemID:    problem2.ID,
 		Score:        22,
@@ -451,7 +451,7 @@ func TestUpdateGrade(t *testing.T) {
 		},
 	}, problemSet.Grades)
 	assert.NoError(t, UpdateGrade(&Submission{
-		ProblemSetId: problemSet.ID,
+		ProblemSetID: problemSet.ID,
 		UserID:       user2.ID,
 		ProblemID:    problem2.ID,
 		Score:        220,

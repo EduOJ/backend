@@ -2238,7 +2238,7 @@ func TestGetRandomProblem(t *testing.T) {
 
 	t.Run("Empty", func(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
-			request.GetRandomProblem{}, applyNormalUser))
+			request.GetRandomProblemRequest{}, applyNormalUser))
 		assert.Equal(t, http.StatusNotFound, httpResp.StatusCode)
 		resp := response.Response{}
 		mustJsonDecode(httpResp, &resp)
@@ -2254,7 +2254,7 @@ func TestGetRandomProblem(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getRandomProblem"),
-			request.GetRandomProblem{}, applyNormalUser))
+			request.GetRandomProblemRequest{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.GetRandomProblemResponse{}
 		mustJsonDecode(httpResp, &resp)
@@ -2308,7 +2308,7 @@ func TestGetUserProblemInfo(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getUserProblemInfo", user.ID),
-			request.GetUserProblemInfo{}, applyNormalUser))
+			request.GetUserProblemInfoRequest{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.GetUserProblemInfoResponse{}
 		mustJsonDecode(httpResp, &resp)
@@ -2330,7 +2330,7 @@ func TestGetUserProblemInfo(t *testing.T) {
 	t.Run("NonExistingUser", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problem.getUserProblemInfo", -1),
-			request.GetUserProblemInfo{}, applyNormalUser))
+			request.GetUserProblemInfoRequest{}, applyNormalUser))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.GetUserProblemInfoResponse{}
 		mustJsonDecode(httpResp, &resp)

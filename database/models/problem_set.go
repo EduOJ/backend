@@ -65,18 +65,18 @@ func (p *ProblemSet) DeleteProblems(ids []uint) error {
 }
 
 func UpdateGrade(submission *Submission) error {
-	if submission.ProblemSetId == 0 {
+	if submission.ProblemSetID == 0 {
 		return nil
 	}
 	grade := Grade{}
 	detail := make(map[uint]uint)
 	var err error
-	err = base.DB.First(&grade, "problem_set_id = ? and user_id = ?", submission.ProblemSetId, submission.UserID).Error
+	err = base.DB.First(&grade, "problem_set_id = ? and user_id = ?", submission.ProblemSetID, submission.UserID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			grade = Grade{
 				UserID:       submission.UserID,
-				ProblemSetID: submission.ProblemSetId,
+				ProblemSetID: submission.ProblemSetID,
 				Detail:       datatypes.JSON("{}"),
 				Total:        0,
 			}

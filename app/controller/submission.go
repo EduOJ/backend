@@ -75,7 +75,7 @@ func CreateSubmission(c echo.Context) error {
 		User:         &user,
 		ProblemID:    problem.ID,
 		Problem:      &problem,
-		ProblemSetId: 0,
+		ProblemSetID: 0,
 		LanguageName: language.Name,
 		Language:     &language,
 		FileName:     file.Filename,
@@ -89,7 +89,7 @@ func CreateSubmission(c echo.Context) error {
 		submission.Runs[i] = models.Run{
 			UserID:             user.ID,
 			ProblemID:          problem.ID,
-			ProblemSetId:       0,
+			ProblemSetID:       0,
 			TestCaseID:         testCase.ID,
 			Sample:             testCase.Sample,
 			Priority:           priority,

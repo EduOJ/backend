@@ -437,7 +437,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					User         *User     `json:"user"`
 					ProblemID    uint      `sql:"index" json:"problem_id"`
 					Problem      *Problem  `json:"problem"`
-					ProblemSetId uint      `sql:"index" json:"problem_set_id"`
+					ProblemSetID uint      `sql:"index" json:"problem_set_id"`
 					TestCaseID   uint      `json:"test_case_id"`
 					TestCase     *TestCase `json:"test_case"`
 					Sample       bool      `json:"sample" gorm:"not null"`
@@ -460,7 +460,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					User         *User    `json:"user"`
 					ProblemID    uint     `sql:"index" json:"problem_id"`
 					Problem      *Problem `json:"problem"`
-					ProblemSetId uint     `sql:"index" json:"problem_set_id"`
+					ProblemSetID uint     `sql:"index" json:"problem_set_id"`
 					Language     string   `json:"language"`
 					FileName     string   `json:"file_name"`
 					Priority     uint8    `json:"priority"`

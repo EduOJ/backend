@@ -71,8 +71,8 @@ type GetProblemsRequest struct {
 	Passed bool `json:"passed" form:"passed" query:"passed"`
 }
 
-type GetRandomProblem struct {
+type GetRandomProblemRequest struct {
 }
 
-type GetUserProblemInfo struct {
+type GetUserProblemInfoRequest struct {
 }

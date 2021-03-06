@@ -84,7 +84,7 @@ func ProblemSetCreateSubmission(c echo.Context) error {
 		User:         &user,
 		ProblemID:    problems[0].ID,
 		Problem:      &problems[0],
-		ProblemSetId: problemSet.ID,
+		ProblemSetID: problemSet.ID,
 		LanguageName: language.Name,
 		Language:     &language,
 		FileName:     file.Filename,
@@ -98,7 +98,7 @@ func ProblemSetCreateSubmission(c echo.Context) error {
 		submission.Runs[i] = models.Run{
 			UserID:             user.ID,
 			ProblemID:          problems[0].ID,
-			ProblemSetId:       problemSet.ID,
+			ProblemSetID:       problemSet.ID,
 			TestCaseID:         testCase.ID,
 			Sample:             testCase.Sample,
 			Priority:           priority,

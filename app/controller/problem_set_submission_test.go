@@ -184,7 +184,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 			User:         &student,
 			ProblemID:    problem.ID,
 			Problem:      &problem,
-			ProblemSetId: problemSet.ID,
+			ProblemSetID: problemSet.ID,
 			ProblemSet:   problemSet,
 			LanguageName: "test_language",
 			Language:     &language,
@@ -198,7 +198,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 					ID:                 databaseSubmission.Runs[0].ID,
 					UserID:             student.ID,
 					ProblemID:          problem.ID,
-					ProblemSetId:       problemSet.ID,
+					ProblemSetID:       problemSet.ID,
 					TestCaseID:         testCase1.ID,
 					Sample:             true,
 					SubmissionID:       databaseSubmission.ID,
@@ -218,7 +218,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 					ID:                 databaseSubmission.Runs[1].ID,
 					UserID:             student.ID,
 					ProblemID:          problem.ID,
-					ProblemSetId:       problemSet.ID,
+					ProblemSetID:       problemSet.ID,
 					TestCaseID:         testCase2.ID,
 					Sample:             false,
 					SubmissionID:       databaseSubmission.ID,
@@ -265,7 +265,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 	problemSet := createProblemSetForTest(t, "problem_set_get_submission_fail", 0, &class, []models.Problem{problem})
 	submission := createSubmissionForTest(t, "problem_set_get_submission_fail", 0, &problem, &user,
 		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_fail_0")), 2)
-	submission.ProblemSetId = problemSet.ID
+	submission.ProblemSetID = problemSet.ID
 	assert.NoError(t, base.DB.Save(&submission).Error)
 
 	failTests := []failTest{
@@ -315,7 +315,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 		problemSet := createProblemSetForTest(t, "problem_set_get_submission_success", 0, &class, []models.Problem{problem})
 		submission := createSubmissionForTest(t, "problem_set_get_submission_success", 0, &problem, &student,
 			newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_success_0")), 2)
-		submission.ProblemSetId = problemSet.ID
+		submission.ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submission).Error)
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmission", problemSet.ID, submission.ID),
 			request.ProblemSetGetSubmissionRequest{}, applyUser(student)))
@@ -405,7 +405,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 	for i := range submissions {
 		submissions[i] = createSubmissionForTest(t, "problem_set_get_submissions", i, submissionRelations[i].problem, submissionRelations[i].submitter,
 			newFileContent("code", "code_file_name", b64Encodef("test_problem_set_get_submissions_code_%d", i)), 0)
-		submissions[i].ProblemSetId = problemSet.ID
+		submissions[i].ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submissions[i]).Error)
 	}
 
@@ -563,7 +563,7 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 	problemSet := createProblemSetForTest(t, "problem_set_get_submission_code", 0, &class, []models.Problem{problem})
 	submission := createSubmissionForTest(t, "problem_set_get_submission_code", 0, &problem, &user,
 		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_code_0")), 2)
-	submission.ProblemSetId = problemSet.ID
+	submission.ProblemSetID = problemSet.ID
 	assert.NoError(t, base.DB.Save(&submission).Error)
 
 	failTests := []failTest{
@@ -623,9 +623,9 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 	submission := createSubmissionForTest(t, "problem_set_get_run_compiler_output", 0, &problem, &user,
 		newFileContent("compiler_output", "compiler_output_file_name",
 			b64Encode("problem_set_get_run_compiler_output_0")), 2)
-	submission.ProblemSetId = problemSet.ID
+	submission.ProblemSetID = problemSet.ID
 	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetId = problemSet.ID
+		submission.Runs[i].ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_run_compiler_output_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
@@ -703,11 +703,11 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 	submission := createSubmissionForTest(t, "problem_set_get_submission_run_output", 0, &problem, &user,
 		newFileContent("output", "output_file_name",
 			b64Encode("problem_set_get_submission_run_output_0")), 2)
-	submission.ProblemSetId = problemSet.ID
+	submission.ProblemSetID = problemSet.ID
 	submission.Runs[0].Sample = true
 	submission.Runs[1].Sample = false
 	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetId = problemSet.ID
+		submission.Runs[i].ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_submission_run_output_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
@@ -796,11 +796,11 @@ func TestProblemSetGetRunInput(t *testing.T) {
 	submission := createSubmissionForTest(t, "problem_set_get_submission_run_input", 0, &problem, &user,
 		newFileContent("input", "input_file_name",
 			b64Encode("problem_set_get_submission_run_input_0")), 2)
-	submission.ProblemSetId = problemSet.ID
+	submission.ProblemSetID = problemSet.ID
 	submission.Runs[0].Sample = true
 	submission.Runs[1].Sample = false
 	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetId = problemSet.ID
+		submission.Runs[i].ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_submission_run_input_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
@@ -889,11 +889,11 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 	submission := createSubmissionForTest(t, "problem_set_get_submission_run_comparer_output", 0, &problem, &user,
 		newFileContent("comparer_output", "comparer_output_file_name",
 			b64Encode("problem_set_get_submission_run_comparer_output_0")), 2)
-	submission.ProblemSetId = problemSet.ID
+	submission.ProblemSetID = problemSet.ID
 	submission.Runs[0].Sample = true
 	submission.Runs[1].Sample = false
 	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetId = problemSet.ID
+		submission.Runs[i].ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_submission_run_comparer_output_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",

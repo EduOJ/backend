@@ -12,7 +12,7 @@ type Submission struct {
 	User         *User  `json:"user"`
 	ProblemID    uint   `json:"problem_id"`
 	ProblemName  string `json:"problem_name"`
-	ProblemSetId uint   `json:"problem_set_id"` // 0 means not in problem set
+	ProblemSetID uint   `json:"problem_set_id"` // 0 means not in problem set
 	Language     string `json:"language"`
 
 	Judged bool   `json:"judged"`
@@ -29,7 +29,7 @@ func (s *Submission) convert(submission *models.Submission) {
 	s.User = GetUser(submission.User)
 	s.ProblemID = submission.ProblemID
 	s.ProblemName = submission.Problem.Name
-	s.ProblemSetId = submission.ProblemSetId
+	s.ProblemSetID = submission.ProblemSetID
 	s.Language = submission.LanguageName
 	s.Judged = submission.Judged
 	s.Score = submission.Score
@@ -59,7 +59,7 @@ type SubmissionDetail struct {
 	User         *User  `json:"user"`
 	ProblemID    uint   `json:"problem_id"`
 	ProblemName  string `json:"problem_name"`
-	ProblemSetId uint   `json:"problem_set_id"`
+	ProblemSetID uint   `json:"problem_set_id"`
 	Language     string `json:"language"`
 	FileName     string `json:"file_name"`
 	Priority     uint8  `json:"priority"`
@@ -80,7 +80,7 @@ func (s *SubmissionDetail) convert(submission *models.Submission) {
 	s.User = GetUser(submission.User)
 	s.ProblemID = submission.ProblemID
 	s.ProblemName = submission.Problem.Name
-	s.ProblemSetId = submission.ProblemSetId
+	s.ProblemSetID = submission.ProblemSetID
 	s.Language = submission.LanguageName
 	s.FileName = submission.FileName
 	s.Priority = submission.Priority
@@ -111,7 +111,7 @@ type Run struct {
 
 	UserID       uint  `json:"user_id"`
 	ProblemID    uint  `json:"problem_id"`
-	ProblemSetId uint  `json:"problem_set_id"`
+	ProblemSetID uint  `json:"problem_set_id"`
 	TestCaseID   uint  `json:"test_case_id"`
 	Sample       bool  `json:"sample"`
 	SubmissionID uint  `json:"submission_id"`
@@ -130,7 +130,7 @@ func (r *Run) convert(run *models.Run) {
 	r.ID = run.ID
 	r.UserID = run.UserID
 	r.ProblemID = run.ProblemID
-	r.ProblemSetId = run.ProblemSetId
+	r.ProblemSetID = run.ProblemSetID
 	r.TestCaseID = run.TestCaseID
 	r.Sample = run.Sample
 	r.SubmissionID = run.SubmissionID

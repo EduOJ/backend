@@ -155,7 +155,7 @@ func FindSubmission(id uint, includeProblemSet bool) (*models.Submission, error)
 			return nil, errors.Wrap(err, "could not query submission")
 		}
 	}
-	if !includeProblemSet && submission.ProblemSetId == 0 {
+	if !includeProblemSet && submission.ProblemSetID == 0 {
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &submission, nil
