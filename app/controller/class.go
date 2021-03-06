@@ -228,15 +228,12 @@ func JoinClass(c echo.Context) error {
 		return err
 	}
 	class := models.Class{}
-	if err := base.DB.Preload("Managers").Preload("Students").First(&class, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Managers").Preload("Students").First(&class, "invite_code = ?", req.InviteCode).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		} else {
 			panic(errors.Wrap(err, "could not find class for deleting students"))
 		}
-	}
-	if class.InviteCode != req.InviteCode {
-		return c.JSON(http.StatusForbidden, response.ErrorResp("WRONG_INVITE_CODE", nil))
 	}
 	user := c.Get("user").(models.User)
 	count := base.DB.Model(&class).Where("id = ?", user.ID).Association("Students").Count()

@@ -16,7 +16,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"time"
 )
 
@@ -282,12 +281,8 @@ func GetRunCompilerOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
-	}
 	run := models.Run{}
-	if err := base.DB.Preload("TestCase").First(&run, runID).Error; err != nil {
+	if err := base.DB.Preload("TestCase").First(&run, c.Param("run_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if user.Can("read_submission") {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -298,7 +293,7 @@ func GetRunCompilerOutput(c echo.Context) error {
 			panic(err)
 		}
 	}
-	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, runID), "compiler_output.txt")
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, run.ID), "compiler_output.txt")
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))
 	}
@@ -335,13 +330,8 @@ func GetRunOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
-	}
-
 	run := models.Run{}
-	if err := base.DB.Preload("TestCase").First(&run, runID).Error; err != nil {
+	if err := base.DB.Preload("TestCase").First(&run, "submission_id = ? and id = ?", submission.ID, c.Param("run_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if canReadSecret {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -357,11 +347,7 @@ func GetRunOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	if run.SubmissionID != submission.ID {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
-	}
-
-	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, runID), run.TestCase.OutputFileName)
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, run.ID), run.TestCase.OutputFileName)
 
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))
@@ -399,13 +385,8 @@ func GetRunInput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
-	}
-
 	run := models.Run{}
-	if err := base.DB.Preload("TestCase").Preload("Problem").First(&run, runID).Error; err != nil {
+	if err := base.DB.Preload("TestCase").Preload("Problem").First(&run, "submission_id = ? and id = ?", submission.ID, c.Param("run_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if canReadSecret {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -419,10 +400,6 @@ func GetRunInput(c echo.Context) error {
 
 	if !run.Sample && !canReadSecret {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
-	}
-
-	if run.SubmissionID != submission.ID {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/input/%d.in", run.Problem.ID, run.TestCase.ID), run.TestCase.InputFileName)
@@ -463,13 +440,8 @@ func GetRunComparerOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
-	}
-
 	run := models.Run{}
-	if err := base.DB.Preload("TestCase").First(&run, runID).Error; err != nil {
+	if err := base.DB.Preload("TestCase").First(&run, "submission_id = ? and id = ?", submission.ID, c.Param("run_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if canReadSecret {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -485,11 +457,7 @@ func GetRunComparerOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	if run.SubmissionID != submission.ID {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
-	}
-
-	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, runID), "comparer_output.txt")
+	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, run.ID), "comparer_output.txt")
 
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))

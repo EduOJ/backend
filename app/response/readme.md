@@ -161,7 +161,6 @@ Common return codes.
 |:-----------------------:|:-------------------------:|
 |  SUBMISSION_NOT_FOUND   |      无法找到submission    |
 |        NOT_FOUND        |   无法找到submission或run   |
-|        BAD_RUN_ID       | 错误的run id(TODO：remove) |
 
 ### CreateSubmission
 |         message         |         结果          |

@@ -711,14 +711,13 @@ func TestAddAndDeleteStudents(t *testing.T) {
 func TestJoinClass(t *testing.T) {
 	t.Parallel()
 	user := createUserForTest(t, "test_join_class_already_in_class", 0)
-	class1 := createClassForTest(t, "test_join_class_wrong_invite_code", 1, nil, nil)
-	class2 := createClassForTest(t, "test_join_class_already_in_class", 2, nil, []*models.User{&user})
+	class := createClassForTest(t, "test_join_class_already_in_class", 0, nil, []*models.User{&user})
 	failTests := []failTest{
 		{
 			// testJoinClassWithoutParams
 			name:       "WithoutParams",
 			method:     "POST",
-			path:       base.Echo.Reverse("class.joinClass", -1),
+			path:       base.Echo.Reverse("class.joinClass"),
 			req:        request.JoinClassRequest{},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusBadRequest,
@@ -731,36 +730,24 @@ func TestJoinClass(t *testing.T) {
 			}),
 		},
 		{
-			// testJoinClassNonExist
-			name:   "NonExist",
-			method: "POST",
-			path:   base.Echo.Reverse("class.joinClass", -1),
-			req: request.JoinClassRequest{
-				InviteCode: utils.GenerateInviteCode(),
-			},
-			reqOptions: []reqOption{applyAdminUser},
-			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
-		},
-		{
 			// testJoinClassWrongInviteCode
-			name:   "WrongInviteCode",
+			name:   "NotFound",
 			method: "POST",
-			path:   base.Echo.Reverse("class.joinClass", class1.ID),
+			path:   base.Echo.Reverse("class.joinClass"),
 			req: request.JoinClassRequest{
 				InviteCode: utils.GenerateInviteCode(),
 			},
 			reqOptions: []reqOption{applyNormalUser},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("WRONG_INVITE_CODE", nil),
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
 			// testJoinClassAlreadyInClass
 			name:   "AlreadyInClass",
 			method: "POST",
-			path:   base.Echo.Reverse("class.joinClass", class2.ID),
+			path:   base.Echo.Reverse("class.joinClass"),
 			req: request.JoinClassRequest{
-				InviteCode: class2.InviteCode,
+				InviteCode: class.InviteCode,
 			},
 			reqOptions: []reqOption{applyUser(user)},
 			statusCode: http.StatusBadRequest,
@@ -777,7 +764,7 @@ func TestJoinClass(t *testing.T) {
 		user := createUserForTest(t, "join_class", 0)
 		user.GrantRole("class_creator", class)
 
-		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("class.joinClass", class.ID), request.JoinClassRequest{
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("class.joinClass"), request.JoinClassRequest{
 			InviteCode: class.InviteCode,
 		}, applyUser(user)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
