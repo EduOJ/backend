@@ -120,9 +120,9 @@ func GetMigration() *gormigrate.Gormigrate {
 					DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 				}
 				type UserHasRole struct {
-					ID     uint `gorm:"primaryKey" json:"id"`
-					UserID uint `json:"user_id"`
-					User
+					ID       uint `gorm:"primaryKey" json:"id"`
+					UserID   uint `json:"user_id"`
+					User     User
 					RoleID   uint `json:"role_id"`
 					TargetID uint `json:"target_id"`
 				}
