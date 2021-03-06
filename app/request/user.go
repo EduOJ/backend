@@ -26,3 +26,12 @@ type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" form:"old_password" query:"old_password" validate:"required,max=30,min=5"`
 	NewPassword string `json:"new_password" form:"new_password" query:"new_password" validate:"required,max=30,min=5"`
 }
+
+type GetClassesIManageRequest struct {
+}
+
+type GetClassesITakeRequest struct {
+}
+
+type GetUserProblemInfoRequest struct {
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -232,13 +233,13 @@ func TestCloneProblemSet(t *testing.T) {
 		problem1 := createProblemForTest(t, "clone_problem_set_success_source", 1, nil, user)
 		problem2 := createProblemForTest(t, "clone_problem_set_success_source", 2, nil, user)
 		sourceProblemSet := createProblemSetForTest(t, "clone_problem_set_success_source", 0, &sourceClass, []models.Problem{problem1, problem2})
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: sourceProblemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem1.ID,
 			Score:        10,
 		}))
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: sourceProblemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem2.ID,
@@ -290,8 +291,14 @@ func TestCloneProblemSet(t *testing.T) {
 func TestGetProblemSet(t *testing.T) {
 	t.Parallel()
 
-	failClass := createClassForTest(t, "get_problem_set_fail", 0, nil, nil)
+	failUser := createUserForTest(t, "get_problem_set_fail", 0)
+	failClass := createClassForTest(t, "get_problem_set_fail", 0, nil, []*models.User{&failUser})
 	failProblemSet := createProblemSetForTest(t, "get_problem_set_fail", 0, &failClass, nil)
+	problemSetNotYetStarted := createProblemSetForTest(t, "get_problem_set_success_not_yet_started", 0, &failClass, []models.Problem{})
+	problemSetNotYetStarted.StartTime = time.Now().Add(time.Hour)
+	problemSetNotYetStarted.EndTime = time.Now().Add(2 * time.Hour)
+	assert.NoError(t, base.DB.Save(&problemSetNotYetStarted).Error)
+
 	failTests := []failTest{
 		{
 			name:       "NonExistingClass",
@@ -312,6 +319,15 @@ func TestGetProblemSet(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
+			name:       "NotYetStarted",
+			method:     "GET",
+			path:       base.Echo.Reverse("problemSet.getProblemSet", failClass.ID, problemSetNotYetStarted.ID),
+			req:        request.GetProblemSetRequest{},
+			reqOptions: []reqOption{applyUser(failUser)},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:       "PermissionDenied",
 			method:     "GET",
 			path:       base.Echo.Reverse("problemSet.getProblemSet", failClass.ID, failProblemSet.ID),
@@ -329,13 +345,13 @@ func TestGetProblemSet(t *testing.T) {
 	problem2 := createProblemForTest(t, "get_problem_set_success", 2, nil, user)
 	class := createClassForTest(t, "get_problem_set_success", 0, nil, []*models.User{&student})
 	problemSetInProgress := createProblemSetForTest(t, "get_problem_set_success_in_progress", 0, &class, []models.Problem{problem1, problem2})
-	assert.NoError(t, models.UpdateGrade(&models.Submission{
+	assert.NoError(t, utils.UpdateGrade(&models.Submission{
 		ProblemSetID: problemSetInProgress.ID,
 		UserID:       user.ID,
 		ProblemID:    problem1.ID,
 		Score:        10,
 	}))
-	assert.NoError(t, models.UpdateGrade(&models.Submission{
+	assert.NoError(t, utils.UpdateGrade(&models.Submission{
 		ProblemSetID: problemSetInProgress.ID,
 		UserID:       user.ID,
 		ProblemID:    problem2.ID,
@@ -345,23 +361,6 @@ func TestGetProblemSet(t *testing.T) {
 	problemSetInProgress.StartTime = time.Now().Add(-1 * time.Hour)
 	problemSetInProgress.EndTime = time.Now().Add(time.Hour)
 	assert.NoError(t, base.DB.Save(&problemSetInProgress).Error)
-	problemSetNotYetStarted := createProblemSetForTest(t, "get_problem_set_success_not_yet_started", 0, &class, []models.Problem{problem1, problem2})
-	assert.NoError(t, models.UpdateGrade(&models.Submission{
-		ProblemSetID: problemSetNotYetStarted.ID,
-		UserID:       user.ID,
-		ProblemID:    problem1.ID,
-		Score:        50,
-	}))
-	assert.NoError(t, models.UpdateGrade(&models.Submission{
-		ProblemSetID: problemSetNotYetStarted.ID,
-		UserID:       user.ID,
-		ProblemID:    problem2.ID,
-		Score:        60,
-	}))
-	assert.NoError(t, base.DB.Preload("Grades").First(&problemSetInProgress, problemSetInProgress.ID).Error)
-	problemSetNotYetStarted.StartTime = time.Now().Add(time.Hour)
-	problemSetNotYetStarted.EndTime = time.Now().Add(2 * time.Hour)
-	assert.NoError(t, base.DB.Save(&problemSetNotYetStarted).Error)
 	user.GrantRole("class_creator", class)
 
 	t.Run("SuccessAdmin", func(t *testing.T) {
@@ -400,27 +399,6 @@ func TestGetProblemSet(t *testing.T) {
 			},
 		}, resp)
 	})
-	t.Run("SuccessInProgressStudent", func(t *testing.T) {
-		t.Parallel()
-
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getProblemSet", class.ID, problemSetNotYetStarted.ID),
-			request.GetProblemSetRequest{}, applyUser(student)))
-		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-		expectedProblemSetResource := resource.GetProblemSet(problemSetNotYetStarted)
-		expectedProblemSetResource.Problems = []resource.Problem{}
-		resp := response.GetProblemSetResponse{}
-		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.GetProblemSetResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.ProblemSet `json:"problem_set"`
-			}{
-				expectedProblemSetResource,
-			},
-		}, resp)
-	})
-
 }
 
 func TestUpdateProblemSet(t *testing.T) {
@@ -510,13 +488,13 @@ func TestUpdateProblemSet(t *testing.T) {
 		problem2 := createProblemForTest(t, "update_problem_set_success", 2, nil, user)
 		class := createClassForTest(t, "update_problem_set_success", 0, nil, nil)
 		problemSet := createProblemSetForTest(t, "update_problem_set_success", 0, &class, []models.Problem{problem1, problem2})
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem1.ID,
 			Score:        10,
 		}))
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem2.ID,
@@ -629,13 +607,13 @@ func TestAddProblemsToSetProblemSet(t *testing.T) {
 		problem3 := createProblemForTest(t, "add_problems_to_set_success", 3, nil, user)
 		class := createClassForTest(t, "add_problems_to_set_success", 0, nil, nil)
 		problemSet := createProblemSetForTest(t, "add_problems_to_set_success", 0, &class, []models.Problem{problem1})
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem1.ID,
 			Score:        10,
 		}))
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem2.ID,
@@ -754,13 +732,13 @@ func TestDeleteProblemsFromSetProblemSet(t *testing.T) {
 		problem3 := createProblemForTest(t, "delete_problems_from_set_success", 3, nil, user)
 		class := createClassForTest(t, "delete_problems_from_set_success", 0, nil, nil)
 		problemSet := createProblemSetForTest(t, "delete_problems_from_set_success", 0, &class, []models.Problem{problem1, problem2})
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem1.ID,
 			Score:        10,
 		}))
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem2.ID,
@@ -842,13 +820,16 @@ func TestDeleteProblemSet(t *testing.T) {
 		class := createClassForTest(t, "delete_problem_set_success", 0, nil, nil)
 		user.GrantRole("class_creator", class)
 		problemSet := createProblemSetForTest(t, "delete_problem_set_success", 0, &class, []models.Problem{problem1, problem2})
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		submission := createSubmissionForTest(t, "delete_problem_set_success", 0, &problem1, &user, nil, 2)
+		submission.ProblemSetID = problemSet.ID
+		assert.NoError(t, base.DB.Save(&submission).Error)
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem1.ID,
 			Score:        10,
 		}))
-		assert.NoError(t, models.UpdateGrade(&models.Submission{
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
 			UserID:       user.ID,
 			ProblemID:    problem2.ID,
@@ -862,6 +843,10 @@ func TestDeleteProblemSet(t *testing.T) {
 		err := base.DB.First(&databasePS, problemSet.ID).Error
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 		err = base.DB.First(&models.Grade{}, "problem_set_id = ?", problemSet.ID).Error
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+		err = base.DB.First(&models.Submission{}, submission.ID).Error
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+		err = base.DB.First(&models.Run{}, "submission_id = ?", submission.ID).Error
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 	})
 }

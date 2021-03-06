@@ -164,3 +164,74 @@ func ChangePassword(c echo.Context) error {
 		Data:    nil,
 	})
 }
+
+func GetClassesIManage(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	var classes []models.Class
+	if err := base.DB.Model(&user).Association("ClassesManaging").Find(&classes); err != nil {
+		panic(errors.Wrap(err, "could not find class managing"))
+	}
+	return c.JSON(http.StatusOK, response.GetClassesIManageResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			Classes []resource.Class `json:"classes"`
+		}{
+			Classes: resource.GetClassSlice(classes),
+		},
+	})
+}
+
+func GetClassesITake(c echo.Context) error {
+	user := c.Get("user").(models.User)
+	var classes []models.Class
+	if err := base.DB.Model(&user).Preload("ProblemSets").Association("ClassesTaking").Find(&classes); err != nil {
+		panic(errors.Wrap(err, "could not find class taking"))
+	}
+	return c.JSON(http.StatusOK, response.GetClassesITakeResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			Classes []resource.Class `json:"classes"`
+		}{
+			Classes: resource.GetClassSlice(classes),
+		},
+	})
+}
+
+func GetUserProblemInfo(c echo.Context) error {
+	userID := c.Param("id")
+	var passedCount, triedCount int64
+
+	utils.PanicIfDBError(base.DB.Model(&models.Problem{}).
+		Where("id in (?)", base.DB.Table("submissions").
+			Select("problem_id").
+			Where("status = 'ACCEPTED' and user_id = ?", userID).
+			Group("problem_id")).
+		Count(&passedCount), "could not get count of passed problems for getting user problem info")
+
+	utils.PanicIfDBError(base.DB.Model(&models.Problem{}).
+		Where("id not in (?)", base.DB.Table("submissions").
+			Select("problem_id").
+			Where("status = 'ACCEPTED' and user_id = ?", userID).
+			Group("problem_id"),
+		).Where("id in (?)", base.DB.Table("submissions").
+		Select("problem_id").
+		Where("status <> 'ACCEPTED' and user_id = ?", userID).
+		Group("problem_id")).
+		Count(&triedCount), "could not get count of tried problems for getting user problem info")
+
+	return c.JSON(http.StatusOK, response.GetUserProblemInfoResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			TriedCount  int `json:"tried_count"`
+			PassedCount int `json:"passed_count"`
+			Rank        int `json:"rank"`
+		}{
+			TriedCount:  int(triedCount),
+			PassedCount: int(passedCount),
+			Rank:        0, // TODO: develop this
+		},
+	})
+}

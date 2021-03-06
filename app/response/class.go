@@ -26,22 +26,6 @@ type GetClassResponseForAdmin struct {
 	} `json:"data"`
 }
 
-type GetClassesIManageResponse struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-		Classes []resource.Class `json:"classes"`
-	} `json:"data"`
-}
-
-type GetClassesITakeResponse struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-		Classes []resource.Class `json:"classes"`
-	} `json:"data"`
-}
-
 type UpdateClassResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`

@@ -44,6 +44,11 @@ func Register(e *echo.Echo) {
 	api.GET("/user/me", controller.GetMe, middleware.Logged).Name = "user.getMe"
 	api.PUT("/user/me", controller.UpdateMe, middleware.Logged).Name = "user.updateMe"
 	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
+	api.GET("/user/me/managing_classes",
+		controller.GetClassesIManage, middleware.Logged).Name = "user.getClassesIManage"
+	api.GET("/user/me/taking_classes",
+		controller.GetClassesITake, middleware.Logged).Name = "user.getClassesITake"
+	api.GET("/user/:id/problem_info", controller.GetUserProblemInfo).Name = "user.getUserProblemInfo"
 	api.GET("/users", controller.GetUsers).Name = "user.getUsers"
 
 	api.GET("/webauthn/register", controller.BeginRegistration, middleware.Logged).Name = "webauthn.BeginRegister"
@@ -121,8 +126,6 @@ func Register(e *echo.Echo) {
 			},
 		})).Name = "problem.getTestCaseOutputFile"
 
-	api.GET("/user/:id/problem_info", controller.GetUserProblemInfo).Name = "problem.getUserProblemInfo"
-
 	api.POST("/problem/:pid/submission", controller.CreateSubmission, middleware.Logged).Name = "submission.createSubmission"
 	api.GET("/submission/:id", controller.GetSubmission, middleware.Logged).Name = "submission.getSubmission"
 	api.GET("/submissions", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
@@ -164,10 +167,6 @@ func Register(e *echo.Echo) {
 		controller.CreateClass, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
 	api.GET("/class/:id",
 		controller.GetClass, middleware.Logged).Name = "class.getClass"
-	api.GET("/user/me/managing_classes",
-		controller.GetClassesIManage, middleware.Logged).Name = "class.getClassesIManage"
-	api.GET("/user/me/taking_classes",
-		controller.GetClassesITake, middleware.Logged).Name = "class.getClassesITake"
 	api.PUT("/class/:id",
 		controller.UpdateClass, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},

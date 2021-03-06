@@ -34,6 +34,14 @@ type GetProblemSetResponse struct {
 	} `json:"data"`
 }
 
+type GetProblemSetResponseSummary struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.ProblemSetSummary `json:"problem_set"`
+	} `json:"data"`
+}
+
 type UpdateProblemSetResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`

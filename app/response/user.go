@@ -40,3 +40,29 @@ type UpdateMeResponse struct {
 		*resource.UserForAdmin `json:"user"`
 	} `json:"data"`
 }
+
+type GetClassesIManageResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		Classes []resource.Class `json:"classes"`
+	} `json:"data"`
+}
+
+type GetClassesITakeResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		Classes []resource.Class `json:"classes"`
+	} `json:"data"`
+}
+
+type GetUserProblemInfoResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		TriedCount  int `json:"tried_count"`
+		PassedCount int `json:"passed_count"`
+		Rank        int `json:"rank"` // TODO: develop this
+	} `json:"data"`
+}

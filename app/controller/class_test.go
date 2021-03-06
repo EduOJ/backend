@@ -165,6 +165,12 @@ func TestGetClass(t *testing.T) {
 
 		user := createUserForTest(t, "test_get_class_admin", 0)
 		class := createClassForTest(t, "test_get_class_admin", 0, nil, nil)
+		problem1 := createProblemForTest(t, "test_get_class_admin", 1, nil, user)
+		problem2 := createProblemForTest(t, "test_get_class_admin", 2, nil, user)
+		problemSet1 := createProblemSetForTest(t, "test_get_class_admin", 1, &class, []models.Problem{problem1})
+		problemSet2 := createProblemSetForTest(t, "test_get_class_admin", 1, &class, []models.Problem{problem1, problem2})
+		class.ProblemSets = []*models.ProblemSet{problemSet1, problemSet2}
+		assert.NoError(t, base.DB.Save(&class).Error)
 		user.GrantRole("class_creator", class)
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("class.getClass", class.ID),
 			request.GetClassRequest{}, applyUser(user)))
@@ -187,6 +193,12 @@ func TestGetClass(t *testing.T) {
 
 		user := createUserForTest(t, "test_get_class_student", 0)
 		class := createClassForTest(t, "test_get_class_student", 0, nil, []*models.User{&user})
+		problem1 := createProblemForTest(t, "test_get_class_student", 1, nil, user)
+		problem2 := createProblemForTest(t, "test_get_class_student", 2, nil, user)
+		problemSet1 := createProblemSetForTest(t, "test_get_class_student", 1, &class, []models.Problem{problem1})
+		problemSet2 := createProblemSetForTest(t, "test_get_class_student", 1, &class, []models.Problem{problem1, problem2})
+		class.ProblemSets = []*models.ProblemSet{problemSet1, problemSet2}
+		assert.NoError(t, base.DB.Save(&class).Error)
 		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("class.getClass", class.ID), request.GetClassRequest{}, applyUser(user)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.GetClassResponse{}
@@ -200,131 +212,6 @@ func TestGetClass(t *testing.T) {
 				resource.GetClass(&class),
 			},
 		}, resp)
-	})
-}
-
-func TestGetClassesIManageAndTake(t *testing.T) {
-	t.Parallel()
-
-	users := []models.User{
-		createUserForTest(t, "test_get_classes_i_manage_or_take", 0),
-		createUserForTest(t, "test_get_classes_i_manage_or_take", 1),
-		createUserForTest(t, "test_get_classes_i_manage_or_take", 2),
-		createUserForTest(t, "test_get_classes_i_manage_or_take", 3),
-	}
-
-	class1 := createClassForTest(t, "test_get_classes_i_manage_or_take", 1, []*models.User{
-		&users[1],
-	}, []*models.User{
-		&users[2],
-		&users[3],
-	})
-	class2 := createClassForTest(t, "test_get_classes_i_manage_or_take", 2, []*models.User{
-		&users[3],
-	}, []*models.User{
-		&users[2],
-		&users[3],
-	})
-	class3 := createClassForTest(t, "test_get_classes_i_manage_or_take", 3, []*models.User{
-		&users[1],
-		&users[3],
-	}, []*models.User{})
-	createClassForTest(t, "test_get_classes_i_manage_or_take", 4, []*models.User{}, []*models.User{})
-
-	for i := range users {
-		assert.NoError(t, base.DB.First(&users[i], users[i].ID).Error)
-	}
-
-	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_1", 1, &class1, nil)
-	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_1", 2, &class1, nil)
-	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_2", 1, &class2, nil)
-	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_2", 2, &class2, nil)
-	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_3", 1, &class3, nil)
-
-	class1.Students = nil
-	class1.Managers = nil
-	class2.Students = nil
-	class2.Managers = nil
-	class3.Students = nil
-	class3.Managers = nil
-
-	manageClasses := map[int][]models.Class{
-		0: {},
-		1: {
-			class1,
-			class3,
-		},
-		2: {},
-		3: {
-			class2,
-			class3,
-		},
-	}
-	takeClasses := map[int][]models.Class{
-		0: {},
-		1: {},
-		2: {
-			class1,
-			class2,
-		},
-		3: {
-			class1,
-			class2,
-		},
-	}
-
-	t.Run("GetClassesIManage", func(t *testing.T) {
-		t.Parallel()
-		for i, classes := range manageClasses {
-			i := i
-			classes := classes
-			for i := range classes {
-				classes[i].ProblemSets = []*models.ProblemSet{}
-			}
-			t.Run(fmt.Sprintf("User%d", i), func(t *testing.T) {
-				t.Parallel()
-
-				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("class.getClassesIManage"),
-					request.GetClassesIManageRequest{}, applyUser(users[i])))
-				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-				resp := response.GetClassesIManageResponse{}
-				mustJsonDecode(httpResp, &resp)
-				assert.Equal(t, response.GetClassesIManageResponse{
-					Message: "SUCCESS",
-					Error:   nil,
-					Data: struct {
-						Classes []resource.Class `json:"classes"`
-					}{
-						resource.GetClassSlice(classes),
-					},
-				}, resp)
-			})
-		}
-	})
-	t.Run("GetClassesITake", func(t *testing.T) {
-		t.Parallel()
-		for i, classes := range takeClasses {
-			i := i
-			classes := classes
-			t.Run(fmt.Sprintf("User%d", i), func(t *testing.T) {
-				t.Parallel()
-
-				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("class.getClassesITake"),
-					request.GetClassesIManageRequest{}, applyUser(users[i])))
-				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
-				resp := response.GetClassesIManageResponse{}
-				mustJsonDecode(httpResp, &resp)
-				assert.Equal(t, response.GetClassesIManageResponse{
-					Message: "SUCCESS",
-					Error:   nil,
-					Data: struct {
-						Classes []resource.Class `json:"classes"`
-					}{
-						resource.GetClassSlice(classes),
-					},
-				}, resp)
-			})
-		}
 	})
 }
 

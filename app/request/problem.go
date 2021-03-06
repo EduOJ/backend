@@ -73,6 +73,3 @@ type GetProblemsRequest struct {
 
 type GetRandomProblemRequest struct {
 }
-
-type GetUserProblemInfoRequest struct {
-}

@@ -45,7 +45,8 @@ func CreateClass(c echo.Context) error {
 
 func GetClass(c echo.Context) error {
 	class := models.Class{}
-	if err := base.DB.Preload("Managers").Preload("Students").First(&class, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Managers").Preload("Students").Preload("ProblemSets").
+		First(&class, c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
@@ -78,40 +79,6 @@ func GetClass(c echo.Context) error {
 			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 		}
 	}
-}
-
-func GetClassesIManage(c echo.Context) error {
-	user := c.Get("user").(models.User)
-	var classes []models.Class
-	if err := base.DB.Model(&user).Association("ClassesManaging").Find(&classes); err != nil {
-		panic(errors.Wrap(err, "could not find class managing"))
-	}
-	return c.JSON(http.StatusOK, response.GetClassesIManageResponse{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data: struct {
-			Classes []resource.Class `json:"classes"`
-		}{
-			Classes: resource.GetClassSlice(classes),
-		},
-	})
-}
-
-func GetClassesITake(c echo.Context) error {
-	user := c.Get("user").(models.User)
-	var classes []models.Class
-	if err := base.DB.Model(&user).Preload("ProblemSets").Association("ClassesTaking").Find(&classes); err != nil {
-		panic(errors.Wrap(err, "could not find class taking"))
-	}
-	return c.JSON(http.StatusOK, response.GetClassesITakeResponse{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data: struct {
-			Classes []resource.Class `json:"classes"`
-		}{
-			Classes: resource.GetClassSlice(classes),
-		},
-	})
 }
 
 func UpdateClass(c echo.Context) error {

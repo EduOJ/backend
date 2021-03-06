@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"github.com/EduOJ/backend/base"
-	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
@@ -64,35 +63,6 @@ func (p *ProblemSet) DeleteProblems(ids []uint) error {
 	return base.DB.Model(p).Association("Problems").Delete(&problems)
 }
 
-func UpdateGrade(submission *Submission) error {
-	if submission.ProblemSetID == 0 {
-		return nil
-	}
-	grade := Grade{}
-	detail := make(map[uint]uint)
-	var err error
-	err = base.DB.First(&grade, "problem_set_id = ? and user_id = ?", submission.ProblemSetID, submission.UserID).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			grade = Grade{
-				UserID:       submission.UserID,
-				ProblemSetID: submission.ProblemSetID,
-				Detail:       datatypes.JSON("{}"),
-				Total:        0,
-			}
-		} else {
-			return err
-		}
-	}
-	err = json.Unmarshal(grade.Detail, &detail)
-	if err != nil {
-		return err
-	}
-	detail[submission.ProblemID] = submission.Score
-	grade.Detail, err = json.Marshal(detail)
-	return base.DB.Save(&grade).Error
-}
-
 func (g *Grade) BeforeSave(tx *gorm.DB) (err error) {
 	detail := make(map[uint]uint)
 	err = json.Unmarshal(g.Detail, &detail)
@@ -111,5 +81,14 @@ func (p *ProblemSet) AfterDelete(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	return tx.Delete(&Grade{}, "problem_set_id = ?", p.ID).Error
+	err = tx.Delete(&Grade{}, "problem_set_id = ?", p.ID).Error
+	if err != nil {
+		return err
+	}
+	submission := Submission{}
+	err = tx.Where("problem_set_id = ?", p.ID).First(&submission).Error
+	if err != nil {
+		return err
+	}
+	return tx.Delete(&submission).Error
 }

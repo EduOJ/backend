@@ -959,3 +959,208 @@ func TestChangePassword(t *testing.T) {
 		}, httpResp)
 	})
 }
+
+func TestGetClassesIManageAndTake(t *testing.T) {
+	t.Parallel()
+
+	users := []models.User{
+		createUserForTest(t, "test_get_classes_i_manage_or_take", 0),
+		createUserForTest(t, "test_get_classes_i_manage_or_take", 1),
+		createUserForTest(t, "test_get_classes_i_manage_or_take", 2),
+		createUserForTest(t, "test_get_classes_i_manage_or_take", 3),
+	}
+
+	class1 := createClassForTest(t, "test_get_classes_i_manage_or_take", 1, []*models.User{
+		&users[1],
+	}, []*models.User{
+		&users[2],
+		&users[3],
+	})
+	class2 := createClassForTest(t, "test_get_classes_i_manage_or_take", 2, []*models.User{
+		&users[3],
+	}, []*models.User{
+		&users[2],
+		&users[3],
+	})
+	class3 := createClassForTest(t, "test_get_classes_i_manage_or_take", 3, []*models.User{
+		&users[1],
+		&users[3],
+	}, []*models.User{})
+	createClassForTest(t, "test_get_classes_i_manage_or_take", 4, []*models.User{}, []*models.User{})
+
+	for i := range users {
+		assert.NoError(t, base.DB.First(&users[i], users[i].ID).Error)
+	}
+
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_1", 1, &class1, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_1", 2, &class1, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_2", 1, &class2, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_2", 2, &class2, nil)
+	createProblemSetForTest(t, "test_get_classes_i_manage_or_take_3", 1, &class3, nil)
+
+	class1.Students = nil
+	class1.Managers = nil
+	class2.Students = nil
+	class2.Managers = nil
+	class3.Students = nil
+	class3.Managers = nil
+
+	manageClasses := map[int][]models.Class{
+		0: {},
+		1: {
+			class1,
+			class3,
+		},
+		2: {},
+		3: {
+			class2,
+			class3,
+		},
+	}
+	takeClasses := map[int][]models.Class{
+		0: {},
+		1: {},
+		2: {
+			class1,
+			class2,
+		},
+		3: {
+			class1,
+			class2,
+		},
+	}
+
+	t.Run("GetClassesIManage", func(t *testing.T) {
+		t.Parallel()
+		for i, classes := range manageClasses {
+			i := i
+			classes := classes
+			for i := range classes {
+				classes[i].ProblemSets = []*models.ProblemSet{}
+			}
+			t.Run(fmt.Sprintf("User%d", i), func(t *testing.T) {
+				t.Parallel()
+
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("user.getClassesIManage"),
+					request.GetClassesIManageRequest{}, applyUser(users[i])))
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+				resp := response.GetClassesIManageResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, response.GetClassesIManageResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						Classes []resource.Class `json:"classes"`
+					}{
+						resource.GetClassSlice(classes),
+					},
+				}, resp)
+			})
+		}
+	})
+	t.Run("GetClassesITake", func(t *testing.T) {
+		t.Parallel()
+		for i, classes := range takeClasses {
+			i := i
+			classes := classes
+			t.Run(fmt.Sprintf("User%d", i), func(t *testing.T) {
+				t.Parallel()
+
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("user.getClassesITake"),
+					request.GetClassesIManageRequest{}, applyUser(users[i])))
+				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+				resp := response.GetClassesIManageResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, response.GetClassesIManageResponse{
+					Message: "SUCCESS",
+					Error:   nil,
+					Data: struct {
+						Classes []resource.Class `json:"classes"`
+					}{
+						resource.GetClassSlice(classes),
+					},
+				}, resp)
+			})
+		}
+	})
+}
+
+func TestGetUserProblemInfo(t *testing.T) {
+	t.Parallel()
+
+	user := createUserForTest(t, "get_user_problem_info", 1)
+	otherUser := createUserForTest(t, "get_user_problem_info", 2)
+	problem1 := createProblemForTest(t, "get_user_problem_info", 1, nil, user)
+	problem2 := createProblemForTest(t, "get_user_problem_info", 2, nil, user)
+	problem3 := createProblemForTest(t, "get_user_problem_info", 3, nil, user)
+
+	submissionPassed1 := createSubmissionForTest(t, "get_user_problem_info_1_passed", 1, &problem1, &user, nil, 0)
+	submissionPassed2 := createSubmissionForTest(t, "get_user_problem_info_1_passed", 2, &problem1, &otherUser, nil, 0)
+	submissionPassed3 := createSubmissionForTest(t, "get_user_problem_info_2_passed", 3, &problem2, &user, nil, 0)
+	submissionPassed4 := createSubmissionForTest(t, "get_user_problem_info_2_passed", 4, &problem2, &user, nil, 0)
+	submissionPassed1.Status = "ACCEPTED"
+	submissionPassed2.Status = "ACCEPTED"
+	submissionPassed3.Status = "ACCEPTED"
+	submissionPassed4.Status = "ACCEPTED"
+	assert.NoError(t, base.DB.Save(&submissionPassed1).Error)
+	assert.NoError(t, base.DB.Save(&submissionPassed2).Error)
+	assert.NoError(t, base.DB.Save(&submissionPassed3).Error)
+	assert.NoError(t, base.DB.Save(&submissionPassed4).Error)
+
+	submissionFailed1 := createSubmissionForTest(t, "get_user_problem_info_1_failed", 1, &problem1, &otherUser, nil, 0)
+	submissionFailed2 := createSubmissionForTest(t, "get_user_problem_info_2_failed", 2, &problem2, &user, nil, 0)
+	submissionFailed3 := createSubmissionForTest(t, "get_user_problem_info_3_failed", 3, &problem3, &user, nil, 0)
+	submissionFailed4 := createSubmissionForTest(t, "get_user_problem_info_3_failed", 4, &problem3, &user, nil, 0)
+	submissionFailed1.Status = "WRONG_ANSWER"
+	submissionFailed2.Status = "TIME_LIMIT_EXCEEDED"
+	submissionFailed3.Status = "RUNTIME_ERROR"
+	submissionFailed4.Status = "PENDING"
+	assert.NoError(t, base.DB.Save(&submissionFailed1).Error)
+	assert.NoError(t, base.DB.Save(&submissionFailed2).Error)
+	assert.NoError(t, base.DB.Save(&submissionFailed3).Error)
+	assert.NoError(t, base.DB.Save(&submissionFailed4).Error)
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("user.getUserProblemInfo", user.ID),
+			request.GetUserProblemInfoRequest{}, applyNormalUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetUserProblemInfoResponse{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetUserProblemInfoResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				TriedCount  int `json:"tried_count"`
+				PassedCount int `json:"passed_count"`
+				Rank        int `json:"rank"`
+			}{
+				TriedCount:  1,
+				PassedCount: 2,
+				Rank:        0,
+			},
+		}, resp)
+	})
+
+	t.Run("NonExistingUser", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("user.getUserProblemInfo", -1),
+			request.GetUserProblemInfoRequest{}, applyNormalUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetUserProblemInfoResponse{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetUserProblemInfoResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				TriedCount  int `json:"tried_count"`
+				PassedCount int `json:"passed_count"`
+				Rank        int `json:"rank"`
+			}{
+				TriedCount:  0,
+				PassedCount: 0,
+				Rank:        0,
+			},
+		}, resp)
+	})
+}
