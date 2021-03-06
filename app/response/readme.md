@@ -48,11 +48,14 @@ Common return codes.
 ### Log
 
 #### AdminGetLogs
-
 |   message     |    结果     |
 |:-------------:|:----------:|
 | INVALID_LEVEL | 非法的level |
+
 ### User
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到指定user   |
 
 #### AdminCreateUser
 
@@ -65,24 +68,14 @@ Common return codes.
 
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
 |     CONFLICT_EMAIL     |        邮箱重复        |
 |    CONFLICT_USERNAME   |       用户名重复       |
 
 #### AdminDeleteUser
 
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
-
 #### AdminGetUser
 
-|         message        |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
-
 #### AdminGetUsers
-
 |         message         |         结果         |
 |:-----------------------:|:-------------------:|
 |      INVALID_ORDER      |     无效的排序设置     |
@@ -117,24 +110,20 @@ Common return codes.
 |    WRONG_PASSWORD    |       密码错误        |
 
 ## Problem
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |    无法找到problem    |
+|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### CreateProblem
 
 ### GetProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 
 ### GetRandomProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到公开problem  |
-
 
 ### GetProblemAttachmentFile
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|         NOT_FOUND       |     错误的problem     |
 |   ATTACHMENT_NOT_FOUND  |     无法找到指定附件    |
 
 ### GetProblems
@@ -143,50 +132,23 @@ Common return codes.
 |     INVALID_STATUS      |     无效的状态设置     |
 
 ### UpdateProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 
 ### DeleteProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 
 ### CreateTestCase
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     错误的problem     |
 |      INVALID_FILE       |        缺少文件       |
 
 ### UpdateTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
-
 
 ### DeleteTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### DeleteTestCases
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
 
 ### GetTestCaseInputFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### GetTestCaseOutputFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ## Image
 ### CreateImage
@@ -195,6 +157,11 @@ Common return codes.
 | ILLEGAL_TYPE | 类型非法 |
 
 ## Submission
+|         message         |            结果            |
+|:-----------------------:|:-------------------------:|
+|  SUBMISSION_NOT_FOUND   |      无法找到submission    |
+|        NOT_FOUND        |   无法找到submission或run   |
+|        BAD_RUN_ID       | 错误的run id(TODO：remove) |
 
 ### CreateSubmission
 |         message         |         结果          |
@@ -204,37 +171,21 @@ Common return codes.
 |       INVALID_FILE      |        缺少文件       |
 
 ### GetSubmission
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### GetSubmissions
 
 ### GetSubmissionCode
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### GetRunOutput
-|       message        |       结果        |
-|:--------------------:|:----------------:|
-| SUBMISSION_NOT_FOUND | 无法找到submission |
-|      NOT_FOUND       |    无法找到run     |
-|      BAD_RUN_ID      |                  |
 
 ### GetRunCompilerOutput
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
-|        NOT_FOUND        |      无法找到run       |
 
 ### GetRunComparerOutput
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
-|        NOT_FOUND        |      无法找到run       |
 
 # Judger
+
+## JudgerGetScript
+
 ## UpdateRun
 
 |      message      |                  结果                  |
@@ -243,88 +194,61 @@ Common return codes.
 | ALREADY_SUBMITTED |          一个run被提交了两次结果          |
 
 ## Class
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |     无法找到class      |
 
 ### CreateClass
 
 ### GetClass
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### GetClassesIManage
 
 ### GetClassesITake
 
 ### UpdateClass
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### RefreshInviteCode
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### AddStudents
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### DeleteStudents
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### JoinClass
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
-|    WRONG_INVITE_CODE    |      错误的邀请码       |
 |    ALREADY_IN_CLASS     |   用户已是该class学生   |
 
 ### DeleteClass
 
 ## ProblemSet
 
+|            message           |          结果           |
+|:----------------------------:|:----------------------:|
+|         CLASS_NOT_FOUND      |       无法找到class      |
+|           NOT_FOUND          |    无法找到problem set   |
+
 ### CreateProblemSet
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|      CLASS_NOT_FOUND    |     无法找到class      |
 
 ### CloneProblemSet
 |            message           |          结果           |
 |:----------------------------:|:----------------------:|
-|       CLASS_NOT_FOUND        |       无法找到class      |
 |      SOURCE_NOT_FOUND        | 无法找到复制源problem set |
 
 ### GetProblemSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
-|        CLASS_NOT_FOUND       |        无法找到class     |
 
 ### UpdateProblemSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
 
 ### AddProblemsToSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
 
 ### DeleteProblemsFromSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
 
 ### DeleteProblemSet
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|     CLASS_NOT_FOUND     |     无法找到class      |
-
 
 ## ProblemSetSubmission
+|         message         |         结果           |
+|:-----------------------:|:---------------------:|
+|        NOT_FOUND        | 无法找到submission或run |
 
 ### ProblemSetCreateSubmission
 |         message         |         结果          |
@@ -335,37 +259,36 @@ Common return codes.
 |       INVALID_FILE      |        缺少文件       |
 
 ### ProblemSetGetSubmission
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### ProblemSetGetSubmissions
 
 ### ProblemSetGetSubmissionCode
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### ProblemSetGetRunOutput
-|       message        |       结果        |
-|:--------------------:|:----------------:|
-|      NOT_FOUND       |    无法找到run     |
-
 
 ### ProblemSetGetRunCompilerOutput
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |      无法找到run       |
 
 ### ProblemSetGetRunComparerOutput
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |      无法找到run       |
 
 ## Script
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |    找不到指定script    |
+
 ### CreateScript
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |       INVALID_FILE      |        缺少文件       |
 
 ### GetScript
+
+### GetScriptFile
+
+### GetScripts
+
+### UpdateScript
+
+### DeleteScript
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|      SCRIPT_IN_USE      |      脚本仍在使用      |

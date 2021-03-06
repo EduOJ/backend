@@ -191,7 +191,7 @@ func UpdateScript(c echo.Context) error {
 
 func DeleteScript(c echo.Context) error {
 	script := models.Script{}
-	if err := base.DB.First(&script, c.Param("name")).Error; err != nil {
+	if err := base.DB.First(&script, "name = ?", c.Param("name")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusOK, response.Response{
 				Message: "SUCCESS",
@@ -199,7 +199,7 @@ func DeleteScript(c echo.Context) error {
 				Data:    nil,
 			})
 		}
-		panic(errors.Wrap(err, "could not find script for updating script"))
+		panic(errors.Wrap(err, "could not find script for deleting script"))
 	}
 	var languageCount, problemCount int64
 	utils.PanicIfDBError(base.DB.Find(&models.Language{}, "build_script_name = ? or run_script_name = ?", script.Name, script.Name).
@@ -209,6 +209,7 @@ func DeleteScript(c echo.Context) error {
 	if languageCount > 0 || problemCount > 0 {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("SCRIPT_IN_USE", nil))
 	}
+	utils.PanicIfDBError(base.DB.Delete(&script), "could not delete script for deleting script")
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,

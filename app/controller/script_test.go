@@ -13,6 +13,7 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"strings"
@@ -514,5 +515,84 @@ func TestUpdateScript(t *testing.T) {
 		}, resp)
 
 		assert.Equal(t, "test_update_script_2_content", string(getObjectContent(t, "scripts", databaseScript.Name)))
+	})
+}
+
+func TestDeleteScript(t *testing.T) {
+	t.Parallel()
+
+	script := createScriptForTest(t, "delete_script_fail", 0)
+	scriptInUseLanguage := createScriptForTest(t, "delete_script_in_use", 1)
+	scriptInUseProblem := createScriptForTest(t, "delete_script_in_use", 2)
+	language := models.Language{
+		Name:             "test_delete_script_in_use",
+		ExtensionAllowed: nil,
+		BuildScriptName:  scriptInUseLanguage.Name,
+		RunScriptName:    scriptInUseLanguage.Name,
+	}
+	assert.NoError(t, base.DB.Create(&language).Error)
+	problem := models.Problem{
+		Name:          "test_delete_script_in_use",
+		CompareScript: *scriptInUseProblem,
+	}
+	assert.NoError(t, base.DB.Create(&problem).Error)
+	failTests := []failTest{
+		{
+			name:       "PermissionDenied",
+			method:     "DELETE",
+			path:       base.Echo.Reverse("script.deleteScript", script.Name),
+			req:        request.DeleteScriptRequest{},
+			reqOptions: []reqOption{applyNormalUser},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:       "InUseLanguage",
+			method:     "DELETE",
+			path:       base.Echo.Reverse("script.deleteScript", scriptInUseLanguage.Name),
+			req:        request.DeleteScriptRequest{},
+			reqOptions: []reqOption{applyAdminUser},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("SCRIPT_IN_USE", nil),
+		},
+		{
+			name:       "InUseProblem",
+			method:     "DELETE",
+			path:       base.Echo.Reverse("script.deleteScript", scriptInUseProblem.Name),
+			req:        request.DeleteScriptRequest{},
+			reqOptions: []reqOption{applyAdminUser},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("SCRIPT_IN_USE", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "")
+
+	t.Run("Success", func(t *testing.T) {
+		script := createScriptForTest(t, "delete_script_success", 0)
+		httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("script.deleteScript", script.Name),
+			request.DeleteScriptRequest{}, applyAdminUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.Response{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+		assert.ErrorIs(t, gorm.ErrRecordNotFound, base.DB.First(&models.Script{}, "name = ?", script.Name).Error)
+	})
+	t.Run("NonExist", func(t *testing.T) {
+		name := "non_existing_script_name"
+		httpResp := makeResp(makeReq(t, "DELETE", base.Echo.Reverse("script.deleteScript", name),
+			request.DeleteScriptRequest{}, applyAdminUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.Response{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
 	})
 }
