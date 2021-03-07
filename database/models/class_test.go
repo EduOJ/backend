@@ -75,6 +75,37 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 			DeletedAt: gorm.DeletedAt{},
 		}, class)
 	})
+	t.Run("AddInEmptyClass", func(t *testing.T) {
+		t.Parallel()
+		class := Class{
+			Name:        "test_add_students_empty_class_name",
+			CourseName:  "test_add_students_empty_class_course_name",
+			Description: "test_add_students_empty_class_description",
+			InviteCode:  "test_add_students_empty_class_invite_code",
+			Managers:    []*User{},
+			Students:    []*User{},
+		}
+		assert.NoError(t, base.DB.Create(&class).Error)
+		assert.NoError(t, class.AddStudents([]uint{
+			user3.ID,
+			user4.ID,
+		}))
+		assert.Equal(t, Class{
+			ID:          class.ID,
+			Name:        "test_add_students_empty_class_name",
+			CourseName:  "test_add_students_empty_class_course_name",
+			Description: "test_add_students_empty_class_description",
+			InviteCode:  "test_add_students_empty_class_invite_code",
+			Managers:    []*User{},
+			Students: []*User{
+				&user3,
+				&user4,
+			},
+			CreatedAt: class.CreatedAt,
+			UpdatedAt: class.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}, class)
+	})
 	t.Run("AddExistingInClass", func(t *testing.T) {
 		t.Parallel()
 		class := Class{
@@ -212,6 +243,34 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 			CreatedAt: class.CreatedAt,
 			UpdatedAt: class.UpdatedAt,
 			DeletedAt: gorm.DeletedAt{},
+		}, class)
+	})
+	t.Run("DeleteInEmptyClass", func(t *testing.T) {
+		t.Parallel()
+		class := Class{
+			Name:        "test_delete_students_not_belong_to_class_name",
+			CourseName:  "test_delete_students_not_belong_to_class_course_name",
+			Description: "test_delete_students_not_belong_to_class_description",
+			InviteCode:  "test_delete_students_not_belong_to_class_invite_code",
+			Managers:    []*User{},
+			Students:    []*User{},
+		}
+		assert.NoError(t, base.DB.Create(&class).Error)
+		assert.NoError(t, class.DeleteStudents([]uint{
+			user1.ID,
+			user2.ID,
+		}))
+		assert.Equal(t, Class{
+			ID:          class.ID,
+			Name:        "test_delete_students_not_belong_to_class_name",
+			CourseName:  "test_delete_students_not_belong_to_class_course_name",
+			Description: "test_delete_students_not_belong_to_class_description",
+			InviteCode:  "test_delete_students_not_belong_to_class_invite_code",
+			Managers:    []*User{},
+			Students:    nil,
+			CreatedAt:   class.CreatedAt,
+			UpdatedAt:   class.UpdatedAt,
+			DeletedAt:   gorm.DeletedAt{},
 		}, class)
 	})
 }

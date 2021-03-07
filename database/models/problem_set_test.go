@@ -82,6 +82,36 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			UpdatedAt: problemSet.UpdatedAt,
 		}, problemSet)
 	})
+	t.Run("AddInEmptySet", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "add_in_empty_set", 1)
+		problem2 := createProblemForTest(t, "add_in_empty_set", 2)
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_add_students_in_empty_set_problem_set_name",
+			Description: "test_add_students_in_empty_set_problem_set_description",
+			Problems:    []*Problem{},
+			StartTime:   hashStringToTime("test_add_students_in_empty_set_problem_set_start_time"),
+			EndTime:     hashStringToTime("test_add_students_in_empty_set_problem_set_end_time"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.AddProblems([]uint{
+			problem1.ID,
+			problem2.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_add_students_in_empty_set_problem_set_name",
+			Description: "test_add_students_in_empty_set_problem_set_description",
+			Problems: []*Problem{
+				problem1,
+				problem2,
+			},
+			StartTime: hashStringToTime("test_add_students_in_empty_set_problem_set_start_time"),
+			EndTime:   hashStringToTime("test_add_students_in_empty_set_problem_set_end_time"),
+			CreatedAt: problemSet.CreatedAt,
+			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
 	t.Run("AddExistingInSet", func(t *testing.T) {
 		problem1 := createProblemForTest(t, "add_existing_in_set", 1)
 		problem2 := createProblemForTest(t, "add_existing_in_set", 2)
@@ -184,6 +214,33 @@ func TestAddProblemsAndDeleteProblemsByID(t *testing.T) {
 			EndTime:   hashStringToTime("test_delete_students_success_problem_set_end_time"),
 			CreatedAt: problemSet.CreatedAt,
 			UpdatedAt: problemSet.UpdatedAt,
+		}, problemSet)
+	})
+	t.Run("DeleteInEmptySet", func(t *testing.T) {
+		problem1 := createProblemForTest(t, "delete_in_empty_set", 1)
+		problem2 := createProblemForTest(t, "delete_in_empty_set", 2)
+		t.Parallel()
+		problemSet := ProblemSet{
+			Name:        "test_delete_students_in_empty_set_problem_set_name",
+			Description: "test_delete_students_in_empty_set_problem_set_description",
+			Problems:    []*Problem{},
+			StartTime:   hashStringToTime("test_delete_students_in_empty_set_problem_set_start_time"),
+			EndTime:     hashStringToTime("test_delete_students_in_empty_set_problem_set_end_time"),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, problemSet.DeleteProblems([]uint{
+			problem1.ID,
+			problem2.ID,
+		}))
+		assert.Equal(t, ProblemSet{
+			ID:          problemSet.ID,
+			Name:        "test_delete_students_in_empty_set_problem_set_name",
+			Description: "test_delete_students_in_empty_set_problem_set_description",
+			Problems:    nil,
+			StartTime:   hashStringToTime("test_delete_students_in_empty_set_problem_set_start_time"),
+			EndTime:     hashStringToTime("test_delete_students_in_empty_set_problem_set_end_time"),
+			CreatedAt:   problemSet.CreatedAt,
+			UpdatedAt:   problemSet.UpdatedAt,
 		}, problemSet)
 	})
 	t.Run("DeleteNotBelongTo", func(t *testing.T) {

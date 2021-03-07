@@ -36,7 +36,11 @@ func (c *Class) AddStudents(ids []uint) error {
 		existingIds[i] = s.ID
 	}
 	var users []User
-	if err := base.DB.Not("id in ?", existingIds).Find(&users, ids).Error; err != nil {
+	query := base.DB
+	if len(existingIds) != 0 {
+		query = base.DB.Where("id not in (?)", existingIds)
+	}
+	if err := query.Find(&users, ids).Error; err != nil {
 		return err
 	}
 	return base.DB.Model(c).Association("Students").Append(&users)

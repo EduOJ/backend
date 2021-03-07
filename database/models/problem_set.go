@@ -49,7 +49,11 @@ func (p *ProblemSet) AddProblems(ids []uint) error {
 		existingIds[i] = problem.ID
 	}
 	var problems []Problem
-	if err := base.DB.Not("id in ?", existingIds).Preload("TestCases").Find(&problems, ids).Error; err != nil {
+	query := base.DB.Preload("TestCases")
+	if len(existingIds) != 0 {
+		query = query.Where("id not in (?)", existingIds)
+	}
+	if err := query.Find(&problems, ids).Error; err != nil {
 		return err
 	}
 	return base.DB.Model(p).Association("Problems").Append(&problems)
