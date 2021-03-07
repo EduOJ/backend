@@ -75,6 +75,37 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 			DeletedAt: gorm.DeletedAt{},
 		}, class)
 	})
+	t.Run("AddNobody", func(t *testing.T) {
+		t.Parallel()
+		class := Class{
+			Name:        "test_add_students_nobody_class_name",
+			CourseName:  "test_add_students_nobody_class_course_name",
+			Description: "test_add_students_nobody_class_description",
+			InviteCode:  "test_add_students_nobody_class_invite_code",
+			Managers:    []*User{},
+			Students: []*User{
+				&user1,
+				&user2,
+			},
+		}
+		assert.NoError(t, base.DB.Create(&class).Error)
+		assert.NoError(t, class.AddStudents([]uint{}))
+		assert.Equal(t, Class{
+			ID:          class.ID,
+			Name:        "test_add_students_nobody_class_name",
+			CourseName:  "test_add_students_nobody_class_course_name",
+			Description: "test_add_students_nobody_class_description",
+			InviteCode:  "test_add_students_nobody_class_invite_code",
+			Managers:    []*User{},
+			Students: []*User{
+				&user1,
+				&user2,
+			},
+			CreatedAt: class.CreatedAt,
+			UpdatedAt: class.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}, class)
+	})
 	t.Run("AddInEmptyClass", func(t *testing.T) {
 		t.Parallel()
 		class := Class{
@@ -204,6 +235,39 @@ func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {
 			Managers:    []*User{},
 			Students: []*User{
 				&user2,
+			},
+			CreatedAt: class.CreatedAt,
+			UpdatedAt: class.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}, class)
+	})
+	t.Run("DeleteNobody", func(t *testing.T) {
+		t.Parallel()
+		class := Class{
+			Name:        "test_delete_students_nobody_class_name",
+			CourseName:  "test_delete_students_nobody_class_course_name",
+			Description: "test_delete_students_nobody_class_description",
+			InviteCode:  "test_delete_students_nobody_class_invite_code",
+			Managers:    []*User{},
+			Students: []*User{
+				&user1,
+				&user2,
+				&user3,
+			},
+		}
+		assert.NoError(t, base.DB.Create(&class).Error)
+		assert.NoError(t, class.DeleteStudents([]uint{}))
+		assert.Equal(t, Class{
+			ID:          class.ID,
+			Name:        "test_delete_students_nobody_class_name",
+			CourseName:  "test_delete_students_nobody_class_course_name",
+			Description: "test_delete_students_nobody_class_description",
+			InviteCode:  "test_delete_students_nobody_class_invite_code",
+			Managers:    []*User{},
+			Students: []*User{
+				&user1,
+				&user2,
+				&user3,
 			},
 			CreatedAt: class.CreatedAt,
 			UpdatedAt: class.UpdatedAt,

@@ -44,6 +44,9 @@ type Grade struct {
 }
 
 func (p *ProblemSet) AddProblems(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
 	existingIds := make([]uint, len(p.Problems))
 	for i, problem := range p.Problems {
 		existingIds[i] = problem.ID
@@ -60,6 +63,9 @@ func (p *ProblemSet) AddProblems(ids []uint) error {
 }
 
 func (p *ProblemSet) DeleteProblems(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
 	var problems []Problem
 	if err := base.DB.Find(&problems, ids).Error; err != nil {
 		return err

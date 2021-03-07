@@ -31,6 +31,9 @@ func (c Class) TypeName() string {
 }
 
 func (c *Class) AddStudents(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
 	existingIds := make([]uint, len(c.Students))
 	for i, s := range c.Students {
 		existingIds[i] = s.ID
@@ -47,6 +50,9 @@ func (c *Class) AddStudents(ids []uint) error {
 }
 
 func (c *Class) DeleteStudents(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
 	var users []User
 	if err := base.DB.Find(&users, ids).Error; err != nil {
 		return err

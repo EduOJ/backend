@@ -16,11 +16,11 @@ type UpdateClassRequest struct {
 }
 
 type AddStudentsRequest struct {
-	UserIds []uint `json:"user_ids" form:"user_ids" query:"user_ids" validate:"required"`
+	UserIds []uint `json:"user_ids" form:"user_ids" query:"user_ids" validate:"required,min=1"`
 }
 
 type DeleteStudentsRequest struct {
-	UserIds []uint `json:"user_ids" form:"user_ids" query:"user_ids" validate:"required"`
+	UserIds []uint `json:"user_ids" form:"user_ids" query:"user_ids" validate:"required,min=1"`
 }
 
 type RefreshInviteCodeRequest struct {

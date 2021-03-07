@@ -27,11 +27,11 @@ type UpdateProblemSetRequest struct {
 }
 
 type AddProblemsToSetRequest struct {
-	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required"`
+	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required,min=1"`
 }
 
 type DeleteProblemsFromSetRequest struct {
-	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required"`
+	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required,min=1"`
 }
 
 type DeleteProblemSetRequest struct {

@@ -229,7 +229,9 @@ func DeleteClass(c echo.Context) error {
 	if err := base.DB.First(&class, c.Param("id")).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		panic(errors.Wrap(err, "could not find class for deleting"))
 	}
-	utils.PanicIfDBError(base.DB.Delete(&class), "could not delete class for deleting")
+	if class.ID != 0 {
+		utils.PanicIfDBError(base.DB.Delete(&class), "could not delete class for deleting")
+	}
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
