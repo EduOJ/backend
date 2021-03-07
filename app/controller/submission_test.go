@@ -760,18 +760,6 @@ func TestGetRunCompilerOutput(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
-			// testGetRunCompilerOutputInvalidRunId
-			name:   "InvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunCompilerOutput", publicSubmission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				applyAdminUser,
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
-		},
-		{
 			// testGetRunCompilerOutputPublicFalse
 			name:   "PublicFalse",
 			method: "GET",
@@ -885,32 +873,6 @@ func TestGetRunOutput(t *testing.T) {
 			},
 			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("NOT_FOUND", nil),
-		},
-		{
-			// testGetRunOutputSubmitterInvalidRunId
-			name:   "SubmitterInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
-				},
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
-		},
-		{
-			// testGetRunOutputAdminUserInvalidRunId
-			name:   "AdminUserInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunOutput", publicSubmission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				applyAdminUser,
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
 		},
 		{
 			// testGetRunOutputPublicFalse
@@ -1068,46 +1030,6 @@ func TestGetRunComparerOutput(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
-			// testGetRunComparerOutputSubmitterInvalidRunId
-			name:   "SubmitterInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
-				},
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
-		},
-		{
-			// testGetRunComparerOutputAdminUserInvalidRunId
-			name:   "AdminUserInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				applyAdminUser,
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
-		},
-		{
-			// testGetRunComparerOutputNotSample
-			name:   "SubmitterInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunComparerOutput", publicSubmission.ID, publicSubmission.Runs[0].ID),
-			req:    nil,
-			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", publicProblemSubmitter.ID)},
-				},
-			},
-			statusCode: http.StatusForbidden,
-			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
-		},
-		{
 			// testGetRunComparerOutputPublicFalse
 			name:   "PublicFalse",
 			method: "GET",
@@ -1253,32 +1175,6 @@ func TestGetRunInput(t *testing.T) {
 			},
 			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("NOT_FOUND", nil),
-		},
-		{
-			// testGetRunComparerOutputSubmitterInvalidRunId
-			name:   "SubmitterInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunInput", submission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				headerOption{
-					"Set-User-For-Test": {fmt.Sprintf("%d", problemSubmitter.ID)},
-				},
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
-		},
-		{
-			// testGetRunComparerOutputAdminUserInvalidRunId
-			name:   "AdminUserInvalidRunId",
-			method: "GET",
-			path:   base.Echo.Reverse("submission.getRunInput", submission.ID, "InvalidRunId"),
-			req:    nil,
-			reqOptions: []reqOption{
-				applyAdminUser,
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("BAD_RUN_ID", nil),
 		},
 		{
 			// testGetRunComparerOutputNotSample

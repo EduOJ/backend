@@ -30,6 +30,7 @@ func Register(e *echo.Echo) {
 	auth.GET("/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
 
 	admin := api.Group("/admin", middleware.Logged)
+
 	admin.POST("/user",
 		controller.AdminCreateUser, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_user"})).Name = "admin.user.createUser"
 	admin.PUT("/user/:id",
@@ -59,51 +60,53 @@ func Register(e *echo.Echo) {
 	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.createImage"
 
-	admin.POST("/problem",
+	adminProblem := admin.Group("/problem", middleware.ValidateParams("id", "test_case_id"))
+	problem := api.Group("/problem", middleware.ValidateParams("id", "test_case_id"))
+	adminProblem.POST("",
 		controller.CreateProblem, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"})).Name = "problem.createProblem"
-	admin.PUT("/problem/:id",
+	adminProblem.PUT("/:id",
 		controller.UpdateProblem, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.updateProblem"
-	admin.DELETE("/problem/:id",
+	adminProblem.DELETE("/:id",
 		controller.DeleteProblem, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "delete_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "delete_problem"},
 		})).Name = "problem.deleteProblem"
 
-	api.GET("/problem/random", controller.GetRandomProblem, middleware.AllowGuest).Name = "problem.getRandomProblem"
-	api.GET("/problem/:id", controller.GetProblem, middleware.AllowGuest).Name = "problem.getProblem"
-	api.GET("/problems", controller.GetProblems, middleware.AllowGuest).Name = "problem.getProblems"
+	problem.GET("/random", controller.GetRandomProblem, middleware.AllowGuest).Name = "problem.getRandomProblem"
+	problem.GET("/:id", controller.GetProblem, middleware.AllowGuest).Name = "problem.getProblem"
+	problem.GET("s", controller.GetProblems, middleware.AllowGuest).Name = "problem.getProblems"
 
-	api.GET("/problem/:id/attachment_file", controller.GetProblemAttachmentFile, middleware.AllowGuest).Name = "problem.getProblemAttachmentFile"
+	problem.GET("/:id/attachment_file", controller.GetProblemAttachmentFile, middleware.AllowGuest).Name = "problem.getProblemAttachmentFile"
 
-	admin.POST("/problem/:id/test_case",
+	adminProblem.POST("/:id/test_case",
 		controller.CreateTestCase,
 		middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.createTestCase"
-	admin.PUT("/problem/:id/test_case/:test_case_id",
+	adminProblem.PUT("/:id/test_case/:test_case_id",
 		controller.UpdateTestCase,
 		middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.updateTestCase"
-	admin.DELETE("/problem/:id/test_case/all",
+	adminProblem.DELETE("/:id/test_case/all",
 		controller.DeleteTestCases,
 		middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.deleteTestCases"
-	admin.DELETE("/problem/:id/test_case/:test_case_id",
+	adminProblem.DELETE("/:id/test_case/:test_case_id",
 		controller.DeleteTestCase,
 		middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		})).Name = "problem.deleteTestCase"
 
-	api.GET("/problem/:id/test_case/:test_case_id/input_file",
+	problem.GET("/:id/test_case/:test_case_id/input_file",
 		controller.GetTestCaseInputFile,
 		middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.CustomPermission{
@@ -114,7 +117,7 @@ func Register(e *echo.Echo) {
 				B: middleware.UnscopedPermission{P: "read_problem_secret"},
 			},
 		})).Name = "problem.getTestCaseInputFile"
-	api.GET("/problem/:id/test_case/:test_case_id/output_file",
+	problem.GET("/:id/test_case/:test_case_id/output_file",
 		controller.GetTestCaseOutputFile,
 		middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.CustomPermission{
@@ -126,83 +129,46 @@ func Register(e *echo.Echo) {
 			},
 		})).Name = "problem.getTestCaseOutputFile"
 
-	api.POST("/problem/:pid/submission", controller.CreateSubmission, middleware.Logged).Name = "submission.createSubmission"
-	api.GET("/submission/:id", controller.GetSubmission, middleware.Logged).Name = "submission.getSubmission"
-	api.GET("/submissions", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
+	api.POST("/problem/:pid/submission", controller.CreateSubmission,
+		middleware.ValidateParams("pid"), middleware.Logged).Name = "submission.createSubmission"
 
-	api.GET("/submission/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
-	api.GET("/submission/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
-	api.GET("/submission/:id/run/:run_id/input", controller.GetRunInput, middleware.Logged).Name = "submission.getRunInput"
-	api.GET("/submission/:id/run/:run_id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
-	api.GET("/submission/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
+	submission := api.Group("/submission", middleware.ValidateParams("id", "run_id"))
+	submission.GET("/:id", controller.GetSubmission, middleware.Logged).Name = "submission.getSubmission"
+	submission.GET("s", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
+
+	submission.GET("/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
+	submission.GET("/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
+	submission.GET("/:id/run/:run_id/input", controller.GetRunInput, middleware.Logged).Name = "submission.getRunInput"
+	submission.GET("/:id/run/:run_id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
+	submission.GET("/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
 	api.POST("/problem_set/:problem_set_id/problem/:pid/submission",
-		controller.ProblemSetCreateSubmission, middleware.Logged,
+		controller.ProblemSetCreateSubmission, middleware.ValidateParams("problem_set_id", "pid"), middleware.Logged,
 		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted})).Name = "problemSet.createSubmission"
-	api.GET("/problem_set/:problem_set_id/submission/:id",
-		controller.ProblemSetGetSubmission, middleware.Logged,
+	problemSetSubmission := api.Group("/problem_set",
+		middleware.ValidateParams("id", "problem_set_id", "submission_id"),
+		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
 				B: middleware.UnscopedPermission{P: "read_answers"},
 			},
 			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getSubmission"
-	api.GET("/problem_set/:problem_set_id/submissions",
-		controller.ProblemSetGetSubmissions, middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getSubmissions"
-
-	api.GET("/problem_set/:problem_set_id/submission/:id/code",
-		controller.ProblemSetGetSubmissionCode, middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getSubmissionCode"
-	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/output",
-		controller.ProblemSetGetRunOutput, middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getRunOutput"
-	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/input",
-		controller.ProblemSetGetRunInput, middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getRunInput"
-	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/compiler_output",
-		controller.ProblemSetGetRunCompilerOutput, middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getRunCompilerOutput"
-	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/comparer_output",
-		controller.ProblemSetGetRunComparerOutput, middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		})).Name = "problemSet.getRunComparerOutput"
+		}))
+	problemSetSubmission.GET("/:problem_set_id/submission/:id",
+		controller.ProblemSetGetSubmission).Name = "problemSet.getSubmission"
+	problemSetSubmission.GET("/:problem_set_id/submissions",
+		controller.ProblemSetGetSubmissions).Name = "problemSet.getSubmissions"
+	problemSetSubmission.GET("/:problem_set_id/submission/:id/code",
+		controller.ProblemSetGetSubmissionCode).Name = "problemSet.getSubmissionCode"
+	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/output",
+		controller.ProblemSetGetRunOutput).Name = "problemSet.getRunOutput"
+	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/input",
+		controller.ProblemSetGetRunInput).Name = "problemSet.getRunInput"
+	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/compiler_output",
+		controller.ProblemSetGetRunCompilerOutput).Name = "problemSet.getRunCompilerOutput"
+	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/comparer_output",
+		controller.ProblemSetGetRunComparerOutput).Name = "problemSet.getRunComparerOutput"
 
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
@@ -211,45 +177,46 @@ func Register(e *echo.Echo) {
 
 	judger.GET("/script/:name", controller.GetScript).Name = "judger.getScript"
 	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
-	judger.PUT("/run/:id", controller.UpdateRun).Name = "judger.updateRun"
+	judger.PUT("/run/:id", controller.UpdateRun, middleware.ValidateParams("id")).Name = "judger.updateRun"
 
-	api.POST("/class",
+	class := api.Group("/class", middleware.ValidateParams("id", "class_id"))
+	class.POST("",
 		controller.CreateClass, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
-	api.GET("/class/:id",
+	class.GET("/:id",
 		controller.GetClass, middleware.Logged).Name = "class.getClass"
-	api.PUT("/class/:id",
+	class.PUT("/:id",
 		controller.UpdateClass, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.updateClass"
-	api.PUT("/class/:id/invite_code",
+	class.PUT("/:id/invite_code",
 		controller.RefreshInviteCode, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.refreshInviteCode"
-	api.POST("/class/:id/students",
+	class.POST("/:id/students",
 		controller.AddStudents, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.addStudents"
-	api.DELETE("/class/:id/students",
+	class.DELETE("/:id/students",
 		controller.DeleteStudents, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.deleteStudents"
-	api.POST("/class/:id/join", controller.JoinClass, middleware.Logged).Name = "class.joinClass"
-	api.DELETE("/class/:id",
+	class.POST("/:id/join", controller.JoinClass, middleware.Logged).Name = "class.joinClass"
+	class.DELETE("/:id",
 		controller.DeleteClass, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		})).Name = "class.deleteClass"
 
-	api.POST("/class/:id/problem_set",
+	class.POST("/:id/problem_set",
 		controller.CreateProblemSet, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.createProblemSet"
-	api.POST("/class/:id/problem_set/clone",
+	class.POST("/:id/problem_set/clone",
 		controller.CloneProblemSet, middleware.Logged, middleware.HasPermission(middleware.AndPermission{
 			A: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
@@ -260,24 +227,24 @@ func Register(e *echo.Echo) {
 				B: middleware.UnscopedPermission{P: "clone_problem_sets"},
 			},
 		})).Name = "problemSet.cloneProblemSet"
-	api.GET("/class/:class_id/problem_set/:id",
+	class.GET("/:class_id/problem_set/:id",
 		controller.GetProblemSet, middleware.Logged).Name = "problemSet.getProblemSet"
-	api.PUT("/class/:class_id/problem_set/:id",
+	class.PUT("/:class_id/problem_set/:id",
 		controller.UpdateProblemSet, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.updateProblemSet"
-	api.POST("/class/:class_id/problem_set/:id/problems",
+	class.POST("/:class_id/problem_set/:id/problems",
 		controller.AddProblemsToSet, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.addProblemsToSet"
-	api.DELETE("/class/:class_id/problem_set/:id/problems",
+	class.DELETE("/:class_id/problem_set/:id/problems",
 		controller.DeleteProblemsFromSet, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.deleteProblemsFromSet"
-	api.DELETE("/class/:class_id/problem_set/:id",
+	class.DELETE("/:class_id/problem_set/:id",
 		controller.DeleteProblemSet, middleware.Logged, middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},

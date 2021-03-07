@@ -429,7 +429,7 @@ func TestUpdateProblemSet(t *testing.T) {
 		{
 			name:       "WithoutParams",
 			method:     "PUT",
-			path:       base.Echo.Reverse("problemSet.updateProblemSet", failClass.ID),
+			path:       base.Echo.Reverse("problemSet.updateProblemSet", failClass.ID, failProblemSet.ID),
 			req:        request.UpdateProblemSetRequest{},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusBadRequest,
@@ -571,7 +571,7 @@ func TestAddProblemsToSetProblemSet(t *testing.T) {
 		{
 			name:       "WithoutParams",
 			method:     "POST",
-			path:       base.Echo.Reverse("problemSet.addProblemsToSet", failClass.ID),
+			path:       base.Echo.Reverse("problemSet.addProblemsToSet", failClass.ID, failProblemSet.ID),
 			req:        request.AddProblemsToSetRequest{},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusBadRequest,
@@ -696,7 +696,7 @@ func TestDeleteProblemsFromSetProblemSet(t *testing.T) {
 		{
 			name:       "WithoutParams",
 			method:     "DELETE",
-			path:       base.Echo.Reverse("problemSet.deleteProblemsFromSet", failClass.ID),
+			path:       base.Echo.Reverse("problemSet.deleteProblemsFromSet", failClass.ID, failProblemSet.ID),
 			req:        request.DeleteProblemsFromSetRequest{},
 			reqOptions: []reqOption{applyAdminUser},
 			statusCode: http.StatusBadRequest,
