@@ -274,10 +274,10 @@ func TestProblemSetGetSubmission(t *testing.T) {
 			path:   base.Echo.Reverse("problemSet.getSubmission", -1, submission1.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingSubmission",
@@ -369,6 +369,17 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 					"translation": "单页个数最小只能为0",
 				},
 			}),
+		},
+		{
+			name:   "NonExistingProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmissions", -1),
+			req:    request.ProblemSetGetSubmissionsRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NotStartYet",
@@ -611,10 +622,10 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 			path:   base.Echo.Reverse("problemSet.getSubmissionCode", -1, submission1.ID),
 			req:    nil,
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingSubmission",
@@ -711,10 +722,10 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingSubmission",
@@ -829,10 +840,10 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 			path:   base.Echo.Reverse("problemSet.getRunOutput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingSubmission",
@@ -947,10 +958,10 @@ func TestProblemSetGetRunInput(t *testing.T) {
 			path:   base.Echo.Reverse("problemSet.getRunInput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingSubmission",
@@ -1075,10 +1086,10 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
-			resp:       response.ErrorResp("NOT_FOUND", nil),
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
 		},
 		{
 			name:   "NonExistingSubmission",
