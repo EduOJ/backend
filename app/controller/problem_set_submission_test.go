@@ -925,11 +925,6 @@ func TestProblemSetGetRunInput(t *testing.T) {
 	for i := range submission1.Runs {
 		submission1.Runs[i].ProblemSetID = problemSetInProgress.ID
 		assert.NoError(t, base.DB.Save(&submission1.Runs[i]).Error)
-		content := fmt.Sprintf("problem_set_get_submission_run_input_%d", i)
-		var _, err = base.Storage.PutObject(context.Background(), "submissions",
-			fmt.Sprintf("%d/run/%d/input", submission1.ID, submission1.Runs[i].ID),
-			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
-		assert.NoError(t, err)
 	}
 	assert.NoError(t, base.DB.Save(&submission1).Error)
 	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_run_input", 0, &class, []models.Problem{problem}, notStartYet)
@@ -942,11 +937,6 @@ func TestProblemSetGetRunInput(t *testing.T) {
 	for i := range submission2.Runs {
 		submission2.Runs[i].ProblemSetID = problemSetNotStartYet.ID
 		assert.NoError(t, base.DB.Save(&submission2.Runs[i]).Error)
-		content := fmt.Sprintf("problem_set_get_submission_run_input_%d", i)
-		var _, err = base.Storage.PutObject(context.Background(), "submissions",
-			fmt.Sprintf("%d/run/%d/input", submission2.ID, submission2.Runs[i].ID),
-			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
-		assert.NoError(t, err)
 	}
 	assert.NoError(t, base.DB.Save(&submission2).Error)
 
@@ -1026,14 +1016,14 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		httpResp := makeResp(makeReq(t, "GET",
 			base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
-		assert.Equal(t, "problem_set_get_submission_run_input_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+		assert.Equal(t, fmt.Sprintf("problem_%d_test_case_0_input", problem.ID), getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 	t.Run("AdminSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
 			base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
-		assert.Equal(t, "problem_set_get_submission_run_input_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+		assert.Equal(t, fmt.Sprintf("problem_%d_test_case_0_input", problem.ID), getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 }
 

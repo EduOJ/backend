@@ -6,18 +6,9 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/datatypes"
-	"hash/fnv"
 	"testing"
 	"time"
 )
-
-func hashStringToTime(s string) time.Time {
-	h := fnv.New32()
-	if _, err := h.Write([]byte(s)); err != nil {
-		panic(err)
-	}
-	return time.Unix(int64(h.Sum32()), 0).UTC()
-}
 
 func createJSONForTest(t *testing.T, in interface{}) datatypes.JSON {
 	j := datatypes.JSON{}
@@ -58,144 +49,204 @@ func TestUpdateGrade(t *testing.T) {
 	}
 	assert.NoError(t, base.DB.Create(&problem1).Error)
 	assert.NoError(t, base.DB.Create(&problem2).Error)
-	problemSet := models.ProblemSet{
-		Name:        "test_update_grade_name",
-		Description: "test_update_grade_description",
-		Problems: []*models.Problem{
-			&problem1,
-			&problem2,
-		},
-		Grades: []*models.Grade{
+
+	t.Run("SubmissionNotInProblemSet", func(t *testing.T) {
+		t.Parallel()
+		assert.NoError(t, UpdateGrade(&models.Submission{
+			ProblemSetID: 0,
+			UserID:       user1.ID,
+			ProblemID:    problem2.ID,
+			Score:        100,
+		}))
+	})
+	t.Run("EndedProblemSet", func(t *testing.T) {
+		t.Parallel()
+		problemSet := models.ProblemSet{
+			Name:        "test_update_grade_ended_name",
+			Description: "test_update_grade_ended_description",
+			Problems: []*models.Problem{
+				&problem1,
+				&problem2,
+			},
+			Grades: []*models.Grade{
+				{
+					UserID: user1.ID,
+					Detail: createJSONForTest(t, map[uint]uint{
+						problem1.ID: 33,
+						problem2.ID: 44,
+					}),
+					Total: 77,
+				},
+			},
+			StartTime: time.Now().Add(-2 * time.Hour),
+			EndTime:   time.Now().Add(-1 * time.Hour),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, UpdateGrade(&models.Submission{
+			ProblemSetID: problemSet.ID,
+			UserID:       user1.ID,
+			ProblemID:    problem2.ID,
+			Score:        100,
+		}))
+		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
+		assert.Equal(t, []*models.Grade{
 			{
-				UserID: user1.ID,
+				ID:           problemSet.Grades[0].ID,
+				UserID:       user1.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 33,
+					problem2.ID: 44,
+				}),
+				Total:     77,
+				CreatedAt: problemSet.Grades[0].CreatedAt,
+				UpdatedAt: problemSet.Grades[0].UpdatedAt,
+			},
+		}, problemSet.Grades)
+	})
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+
+		problemSet := models.ProblemSet{
+			Name:        "test_update_grade_name",
+			Description: "test_update_grade_description",
+			Problems: []*models.Problem{
+				&problem1,
+				&problem2,
+			},
+			Grades: []*models.Grade{
+				{
+					UserID: user1.ID,
+					Detail: createJSONForTest(t, map[uint]uint{
+						problem1.ID: 11,
+						problem2.ID: 12,
+					}),
+					Total: 23,
+				},
+			},
+			StartTime: time.Now().Add(-1 * time.Hour),
+			EndTime:   time.Now().Add(time.Hour),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		assert.NoError(t, UpdateGrade(&models.Submission{
+			ProblemSetID: problemSet.ID,
+			UserID:       user1.ID,
+			ProblemID:    problem2.ID,
+			Score:        120,
+		}))
+		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
+		assert.Equal(t, []*models.Grade{
+			{
+				ID:           problemSet.Grades[0].ID,
+				UserID:       user1.ID,
+				ProblemSetID: problemSet.ID,
 				Detail: createJSONForTest(t, map[uint]uint{
 					problem1.ID: 11,
-					problem2.ID: 12,
+					problem2.ID: 120,
 				}),
-				Total: 23,
+				Total:     131,
+				CreatedAt: problemSet.Grades[0].CreatedAt,
+				UpdatedAt: problemSet.Grades[0].UpdatedAt,
 			},
-		},
-		StartTime: hashStringToTime("test_update_grade_start_time"),
-		EndTime:   hashStringToTime("test_update_grade_end_time"),
-	}
-	assert.NoError(t, base.DB.Create(&problemSet).Error)
-	assert.NoError(t, UpdateGrade(&models.Submission{
-		ProblemSetID: problemSet.ID,
-		UserID:       user1.ID,
-		ProblemID:    problem2.ID,
-		Score:        120,
-	}))
-	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
-	assert.Equal(t, []*models.Grade{
-		{
-			ID:           problemSet.Grades[0].ID,
-			UserID:       user1.ID,
+		}, problemSet.Grades)
+		assert.NoError(t, UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 11,
-				problem2.ID: 120,
-			}),
-			Total:     131,
-			CreatedAt: problemSet.Grades[0].CreatedAt,
-			UpdatedAt: problemSet.Grades[0].UpdatedAt,
-		},
-	}, problemSet.Grades)
-	assert.NoError(t, UpdateGrade(&models.Submission{
-		ProblemSetID: problemSet.ID,
-		UserID:       user2.ID,
-		ProblemID:    problem1.ID,
-		Score:        21,
-	}))
-	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
-	assert.Equal(t, []*models.Grade{
-		{
-			ID:           problemSet.Grades[0].ID,
-			UserID:       user1.ID,
-			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 11,
-				problem2.ID: 120,
-			}),
-			Total:     131,
-			CreatedAt: problemSet.Grades[0].CreatedAt,
-			UpdatedAt: problemSet.Grades[0].UpdatedAt,
-		},
-		{
-			ID:           problemSet.Grades[1].ID,
 			UserID:       user2.ID,
+			ProblemID:    problem1.ID,
+			Score:        21,
+		}))
+		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
+		assert.Equal(t, []*models.Grade{
+			{
+				ID:           problemSet.Grades[0].ID,
+				UserID:       user1.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 11,
+					problem2.ID: 120,
+				}),
+				Total:     131,
+				CreatedAt: problemSet.Grades[0].CreatedAt,
+				UpdatedAt: problemSet.Grades[0].UpdatedAt,
+			},
+			{
+				ID:           problemSet.Grades[1].ID,
+				UserID:       user2.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 21,
+				}),
+				Total:     21,
+				CreatedAt: problemSet.Grades[1].CreatedAt,
+				UpdatedAt: problemSet.Grades[1].UpdatedAt,
+			},
+		}, problemSet.Grades)
+		assert.NoError(t, UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 21,
-			}),
-			Total:     21,
-			CreatedAt: problemSet.Grades[1].CreatedAt,
-			UpdatedAt: problemSet.Grades[1].UpdatedAt,
-		},
-	}, problemSet.Grades)
-	assert.NoError(t, UpdateGrade(&models.Submission{
-		ProblemSetID: problemSet.ID,
-		UserID:       user2.ID,
-		ProblemID:    problem2.ID,
-		Score:        22,
-	}))
-	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
-	assert.Equal(t, []*models.Grade{
-		{
-			ID:           problemSet.Grades[0].ID,
-			UserID:       user1.ID,
-			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 11,
-				problem2.ID: 120,
-			}),
-			Total:     131,
-			CreatedAt: problemSet.Grades[0].CreatedAt,
-			UpdatedAt: problemSet.Grades[0].UpdatedAt,
-		},
-		{
-			ID:           problemSet.Grades[1].ID,
 			UserID:       user2.ID,
+			ProblemID:    problem2.ID,
+			Score:        22,
+		}))
+		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
+		assert.Equal(t, []*models.Grade{
+			{
+				ID:           problemSet.Grades[0].ID,
+				UserID:       user1.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 11,
+					problem2.ID: 120,
+				}),
+				Total:     131,
+				CreatedAt: problemSet.Grades[0].CreatedAt,
+				UpdatedAt: problemSet.Grades[0].UpdatedAt,
+			},
+			{
+				ID:           problemSet.Grades[1].ID,
+				UserID:       user2.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 21,
+					problem2.ID: 22,
+				}),
+				Total:     43,
+				CreatedAt: problemSet.Grades[1].CreatedAt,
+				UpdatedAt: problemSet.Grades[1].UpdatedAt,
+			},
+		}, problemSet.Grades)
+		assert.NoError(t, UpdateGrade(&models.Submission{
 			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 21,
-				problem2.ID: 22,
-			}),
-			Total:     43,
-			CreatedAt: problemSet.Grades[1].CreatedAt,
-			UpdatedAt: problemSet.Grades[1].UpdatedAt,
-		},
-	}, problemSet.Grades)
-	assert.NoError(t, UpdateGrade(&models.Submission{
-		ProblemSetID: problemSet.ID,
-		UserID:       user2.ID,
-		ProblemID:    problem2.ID,
-		Score:        220,
-	}))
-	assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
-	assert.Equal(t, []*models.Grade{
-		{
-			ID:           problemSet.Grades[0].ID,
-			UserID:       user1.ID,
-			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 11,
-				problem2.ID: 120,
-			}),
-			Total:     131,
-			CreatedAt: problemSet.Grades[0].CreatedAt,
-			UpdatedAt: problemSet.Grades[0].UpdatedAt,
-		},
-		{
-			ID:           problemSet.Grades[1].ID,
 			UserID:       user2.ID,
-			ProblemSetID: problemSet.ID,
-			Detail: createJSONForTest(t, map[uint]uint{
-				problem1.ID: 21,
-				problem2.ID: 220,
-			}),
-			Total:     241,
-			CreatedAt: problemSet.Grades[1].CreatedAt,
-			UpdatedAt: problemSet.Grades[1].UpdatedAt,
-		},
-	}, problemSet.Grades)
+			ProblemID:    problem2.ID,
+			Score:        220,
+		}))
+		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
+		assert.Equal(t, []*models.Grade{
+			{
+				ID:           problemSet.Grades[0].ID,
+				UserID:       user1.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 11,
+					problem2.ID: 120,
+				}),
+				Total:     131,
+				CreatedAt: problemSet.Grades[0].CreatedAt,
+				UpdatedAt: problemSet.Grades[0].UpdatedAt,
+			},
+			{
+				ID:           problemSet.Grades[1].ID,
+				UserID:       user2.ID,
+				ProblemSetID: problemSet.ID,
+				Detail: createJSONForTest(t, map[uint]uint{
+					problem1.ID: 21,
+					problem2.ID: 220,
+				}),
+				Total:     241,
+				CreatedAt: problemSet.Grades[1].CreatedAt,
+				UpdatedAt: problemSet.Grades[1].UpdatedAt,
+			},
+		}, problemSet.Grades)
+	})
 }

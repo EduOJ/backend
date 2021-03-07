@@ -7,11 +7,21 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"time"
 )
 
 func UpdateGrade(submission *models.Submission) error {
-	// TODO: check problem set end time, don't update if problem set ends
 	if submission.ProblemSetID == 0 {
+		return nil
+	}
+	if submission.ProblemSet == nil {
+		problemSet := models.ProblemSet{}
+		if err := base.DB.First(&problemSet, submission.ProblemSetID).Error; err != nil {
+			return errors.Wrap(err, "could not get problem set for updating grade")
+		}
+		submission.ProblemSet = &problemSet
+	}
+	if time.Now().After(submission.ProblemSet.EndTime) {
 		return nil
 	}
 	grade := models.Grade{}

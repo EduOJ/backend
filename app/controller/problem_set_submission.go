@@ -422,7 +422,7 @@ func ProblemSetGetRunInput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/input", run.Submission.ID, run.ID),
+	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/input/%d.in", run.ProblemID, run.TestCaseID),
 		run.TestCase.InputFileName)
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))
