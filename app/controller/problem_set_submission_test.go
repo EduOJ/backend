@@ -24,24 +24,18 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 	problem.Public = false
 	problem.LanguageAllowed = []string{"test_language", "golang"}
 	assert.NoError(t, base.DB.Save(&problem).Error)
-	class := createClassForTest(t, "test_problem_set_create_submission_fail", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "test_problem_set_create_submission_fail", 0, &class, []models.Problem{problem})
-	problemSet.StartTime = time.Now().Add(-1 * time.Hour)
-	problemSet.EndTime = time.Now().Add(time.Hour)
-	assert.NoError(t, base.DB.Save(&problemSet).Error)
-	problemSetNotInOpenTime := createProblemSetForTest(t, "test_problem_set_create_submission_not_in_open_time", 0, &class, []models.Problem{problem})
-	problemSetNotInOpenTime.StartTime = time.Now().Add(-1 * time.Hour)
-	problemSetNotInOpenTime.EndTime = time.Now().Add(time.Hour)
-	assert.NoError(t, base.DB.Save(&problemSetNotInOpenTime).Error)
+	class := createClassForTest(t, "test_problem_set_create_submission_fail", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "test_problem_set_create_submission_fail", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "test_problem_set_create_submission_not_in_open_time", 0, &class, []models.Problem{problem}, notStartYet)
 
 	failTests := []failTest{
 		{
 			name:   "WithoutParas",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSet.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusBadRequest,
 			resp: response.ErrorResp("VALIDATION_ERROR", []interface{}{
@@ -60,7 +54,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
@@ -68,12 +62,12 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSet.ID, -1),
+			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, -1),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("NOT_FOUND", nil),
@@ -81,12 +75,12 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "WithoutCode",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSet.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
 			req: request.CreateSubmissionRequest{
 				Language: "test_language",
 			},
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("INVALID_FILE", nil),
@@ -94,12 +88,12 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "InvalidLanguage",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSet.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "invalid_language"}),
 			reqOptions: []reqOption{
-				applyAdminUser,
+				applyUser(user),
 			},
 			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("INVALID_LANGUAGE", nil),
@@ -107,7 +101,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "NotInOpenTime",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetNotInOpenTime.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetNotStartYet.ID, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
@@ -120,7 +114,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSet.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
@@ -261,18 +255,23 @@ func TestProblemSetGetSubmission(t *testing.T) {
 
 	user := createUserForTest(t, "problem_set_get_submission_fail", 0)
 	problem := createProblemForTest(t, "problem_set_get_submission_fail", 0, nil, user)
-	class := createClassForTest(t, "test_problem_set_get_submission_fail", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "problem_set_get_submission_fail", 0, &class, []models.Problem{problem})
-	submission := createSubmissionForTest(t, "problem_set_get_submission_fail", 0, &problem, &user,
-		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_fail_0")), 2)
-	submission.ProblemSetID = problemSet.ID
-	assert.NoError(t, base.DB.Save(&submission).Error)
+	class := createClassForTest(t, "test_problem_set_get_submission_fail", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "problem_set_get_submission_fail", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_fail", 0, &class, []models.Problem{problem}, notStartYet)
+	submission1 := createSubmissionForTest(t, "problem_set_get_submission_fail", 1, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_fail_1")), 2)
+	submission1.ProblemSetID = problemSetInProgress.ID
+	assert.NoError(t, base.DB.Save(&submission1).Error)
+	submission2 := createSubmissionForTest(t, "problem_set_get_submission_fail", 2, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_fail_2")), 2)
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	assert.NoError(t, base.DB.Save(&submission2).Error)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", -1, submission.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmission", -1, submission1.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -283,7 +282,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", problemSet.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getSubmission", problemSetInProgress.ID, -1),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -292,9 +291,20 @@ func TestProblemSetGetSubmission(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmission", problemSetNotStartYet.ID, submission1.ID),
+			req:    request.ProblemSetGetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", problemSet.ID, submission.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmission", problemSetInProgress.ID, submission1.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -312,7 +322,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 		student := createUserForTest(t, "problem_set_get_submission_success", 0)
 		problem := createProblemForTest(t, "problem_set_get_submission_success", 0, nil, student)
 		class := createClassForTest(t, "test_problem_set_get_submission_success", 0, nil, nil)
-		problemSet := createProblemSetForTest(t, "problem_set_get_submission_success", 0, &class, []models.Problem{problem})
+		problemSet := createProblemSetForTest(t, "problem_set_get_submission_success", 0, &class, []models.Problem{problem}, inProgress)
 		submission := createSubmissionForTest(t, "problem_set_get_submission_success", 0, &problem, &student,
 			newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_success_0")), 2)
 		submission.ProblemSetID = problemSet.ID
@@ -336,14 +346,15 @@ func TestProblemSetGetSubmission(t *testing.T) {
 
 func TestProblemSetGetSubmissions(t *testing.T) {
 	t.Parallel()
-
-	failClass := createClassForTest(t, "test_problem_set_get_submissions_fail", 0, nil, nil)
-	failProblemSet := createProblemSetForTest(t, "problem_problem_set_get_submissions_fail", 0, &failClass, nil)
+	user := createUserForTest(t, "problem_problem_set_get_submissions_fail", 0)
+	failClass := createClassForTest(t, "test_problem_set_get_submissions_fail", 0, nil, []*models.User{&user})
+	failProblemSetInProgress := createProblemSetForTest(t, "problem_problem_set_get_submissions_fail", 0, &failClass, nil, inProgress)
+	failProblemSetNotStartYet := createProblemSetForTest(t, "problem_problem_set_get_submissions_fail", 1, &failClass, nil, notStartYet)
 	failTests := []failTest{
 		{
 			name:   "WithoutParas",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSet.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSetInProgress.ID),
 			req: request.ProblemSetGetSubmissionsRequest{
 				Limit: -1,
 			},
@@ -358,6 +369,28 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 					"translation": "单页个数最小只能为0",
 				},
 			}),
+		},
+		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSetNotStartYet.ID),
+			req:    request.ProblemSetGetSubmissionsRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSetInProgress.ID),
+			req:    request.ProblemSetGetSubmissionsRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
 	}
 	runFailTests(t, failTests, "")
@@ -526,7 +559,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 			test := test
 			t.Run("testProblemSetGetSubmissions"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissions", problemSet.ID), test.req, applyNormalUser))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissions", problemSet.ID), test.req, applyUser(student)))
 				resp := response.GetSubmissionsResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -559,18 +592,23 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 
 	user := createUserForTest(t, "problem_set_get_submission_code", 0)
 	problem := createProblemForTest(t, "problem_set_get_submission_code", 0, nil, user)
-	class := createClassForTest(t, "test_problem_set_get_submission_code", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "problem_set_get_submission_code", 0, &class, []models.Problem{problem})
-	submission := createSubmissionForTest(t, "problem_set_get_submission_code", 0, &problem, &user,
-		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_code_0")), 2)
-	submission.ProblemSetID = problemSet.ID
-	assert.NoError(t, base.DB.Save(&submission).Error)
+	class := createClassForTest(t, "test_problem_set_get_submission_code", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "problem_set_get_submission_code", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_code", 0, &class, []models.Problem{problem}, notStartYet)
+	submission1 := createSubmissionForTest(t, "problem_set_get_submission_code", 1, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_code_1")), 2)
+	submission1.ProblemSetID = problemSetInProgress.ID
+	assert.NoError(t, base.DB.Save(&submission1).Error)
+	submission2 := createSubmissionForTest(t, "problem_set_get_submission_code", 2, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_code_2")), 2)
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	assert.NoError(t, base.DB.Save(&submission2).Error)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", -1, submission.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", -1, submission1.ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -581,7 +619,7 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSet.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSetInProgress.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -590,9 +628,20 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSetNotStartYet.ID, submission2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSet.ID, submission.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSetInProgress.ID, submission1.ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -604,12 +653,19 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 
 	runFailTests(t, failTests, "")
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", problemSet.ID, submission.ID),
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", problemSetInProgress.ID, submission1.ID),
+			nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "problem_set_get_submission_code_1", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", problemSetNotStartYet.ID, submission2.ID),
 			nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
-		assert.Equal(t, "problem_set_get_submission_code_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+		assert.Equal(t, "problem_set_get_submission_code_2", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 }
 
@@ -619,27 +675,40 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 	user := createUserForTest(t, "problem_set_get_run_compiler_output", 0)
 	problem := createProblemForTest(t, "problem_set_get_run_compiler_output", 0, nil, user)
 	class := createClassForTest(t, "test_problem_set_get_run_compiler_output", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "problem_set_get_run_compiler_output", 0, &class, []models.Problem{problem})
-	submission := createSubmissionForTest(t, "problem_set_get_run_compiler_output", 0, &problem, &user,
-		newFileContent("compiler_output", "compiler_output_file_name",
-			b64Encode("problem_set_get_run_compiler_output_0")), 2)
-	submission.ProblemSetID = problemSet.ID
-	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetID = problemSet.ID
-		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
+	problemSetInProgress := createProblemSetForTest(t, "problem_set_get_run_compiler_output", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_run_compiler_output", 0, &class, []models.Problem{problem}, notStartYet)
+	submission1 := createSubmissionForTest(t, "problem_set_get_run_compiler_output", 1, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_run_compiler_output_1")), 2)
+	submission1.ProblemSetID = problemSetInProgress.ID
+	for i := range submission1.Runs {
+		submission1.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission1.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_run_compiler_output_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
-			fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, submission.Runs[i].ID),
+			fmt.Sprintf("%d/run/%d/compiler_output", submission1.ID, submission1.Runs[i].ID),
 			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
 		assert.NoError(t, err)
 	}
-	assert.NoError(t, base.DB.Save(&submission).Error)
+	assert.NoError(t, base.DB.Save(&submission1).Error)
+	submission2 := createSubmissionForTest(t, "problem_set_get_run_compiler_output", 2, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_run_compiler_output_2")), 2)
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	for i := range submission2.Runs {
+		submission2.Runs[i].ProblemSetID = problemSetNotStartYet.ID
+		assert.NoError(t, base.DB.Save(&submission2.Runs[i]).Error)
+		content := fmt.Sprintf("problem_set_get_run_compiler_output_%d", i)
+		var _, err = base.Storage.PutObject(context.Background(), "submissions",
+			fmt.Sprintf("%d/run/%d/compiler_output", submission2.ID, submission2.Runs[i].ID),
+			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
+		assert.NoError(t, err)
+	}
+	assert.NoError(t, base.DB.Save(&submission2).Error)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", -1, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -650,7 +719,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSet.ID, -1, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -661,7 +730,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSet.ID, submission.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -670,9 +739,20 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSet.ID, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -684,10 +764,18 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 
 	runFailTests(t, failTests, "")
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSet.ID, submission.ID, submission.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "problem_set_get_run_compiler_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_run_compiler_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -699,29 +787,46 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 	user := createUserForTest(t, "problem_set_get_submission_run_output", 0)
 	problem := createProblemForTest(t, "problem_set_get_submission_run_output", 0, nil, user)
 	class := createClassForTest(t, "test_problem_set_get_submission_run_output", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "problem_set_get_submission_run_output", 0, &class, []models.Problem{problem})
-	submission := createSubmissionForTest(t, "problem_set_get_submission_run_output", 0, &problem, &user,
+	problemSetInProgress := createProblemSetForTest(t, "problem_set_get_submission_run_output", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_run_compiler_output", 0, &class, []models.Problem{problem}, notStartYet)
+	submission1 := createSubmissionForTest(t, "problem_set_get_submission_run_output", 0, &problem, &user,
 		newFileContent("output", "output_file_name",
-			b64Encode("problem_set_get_submission_run_output_0")), 2)
-	submission.ProblemSetID = problemSet.ID
-	submission.Runs[0].Sample = true
-	submission.Runs[1].Sample = false
-	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetID = problemSet.ID
-		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
+			b64Encode("problem_set_get_submission_run_output_1")), 2)
+	submission1.ProblemSetID = problemSetInProgress.ID
+	submission1.Runs[0].Sample = true
+	submission1.Runs[1].Sample = false
+	for i := range submission1.Runs {
+		submission1.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission1.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_submission_run_output_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
-			fmt.Sprintf("%d/run/%d/output", submission.ID, submission.Runs[i].ID),
+			fmt.Sprintf("%d/run/%d/output", submission1.ID, submission1.Runs[i].ID),
 			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
 		assert.NoError(t, err)
 	}
-	assert.NoError(t, base.DB.Save(&submission).Error)
+	assert.NoError(t, base.DB.Save(&submission1).Error)
+	submission2 := createSubmissionForTest(t, "problem_set_get_submission_run_output", 2, &problem, &user,
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_run_output_2")), 2)
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	submission2.Runs[0].Sample = true
+	submission2.Runs[1].Sample = false
+	for i := range submission2.Runs {
+		submission2.Runs[i].ProblemSetID = problemSetNotStartYet.ID
+		assert.NoError(t, base.DB.Save(&submission2.Runs[i]).Error)
+		content := fmt.Sprintf("problem_set_get_submission_run_output_%d", i)
+		var _, err = base.Storage.PutObject(context.Background(), "submissions",
+			fmt.Sprintf("%d/run/%d/output", submission2.ID, submission2.Runs[i].ID),
+			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
+		assert.NoError(t, err)
+	}
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	assert.NoError(t, base.DB.Save(&submission2).Error)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", -1, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -732,7 +837,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSet.ID, -1, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -743,7 +848,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSet.ID, submission.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -754,7 +859,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSet.ID, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -763,9 +868,20 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
 		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "NotSample",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSet.ID, submission.ID, submission.Runs[1].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -777,10 +893,17 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 
 	runFailTests(t, failTests, "")
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunOutput", problemSet.ID, submission.ID, submission.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "problem_set_get_submission_run_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getRunOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -791,30 +914,47 @@ func TestProblemSetGetRunInput(t *testing.T) {
 
 	user := createUserForTest(t, "problem_set_get_submission_run_input", 0)
 	problem := createProblemForTest(t, "problem_set_get_submission_run_input", 0, nil, user)
-	class := createClassForTest(t, "test_problem_set_get_submission_run_input", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "problem_set_get_submission_run_input", 0, &class, []models.Problem{problem})
-	submission := createSubmissionForTest(t, "problem_set_get_submission_run_input", 0, &problem, &user,
+	class := createClassForTest(t, "test_problem_set_get_submission_run_input", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "problem_set_get_submission_run_input", 0, &class, []models.Problem{problem}, inProgress)
+	submission1 := createSubmissionForTest(t, "problem_set_get_submission_run_input", 0, &problem, &user,
 		newFileContent("input", "input_file_name",
 			b64Encode("problem_set_get_submission_run_input_0")), 2)
-	submission.ProblemSetID = problemSet.ID
-	submission.Runs[0].Sample = true
-	submission.Runs[1].Sample = false
-	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetID = problemSet.ID
-		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
+	submission1.ProblemSetID = problemSetInProgress.ID
+	submission1.Runs[0].Sample = true
+	submission1.Runs[1].Sample = false
+	for i := range submission1.Runs {
+		submission1.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission1.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_submission_run_input_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
-			fmt.Sprintf("%d/run/%d/input", submission.ID, submission.Runs[i].ID),
+			fmt.Sprintf("%d/run/%d/input", submission1.ID, submission1.Runs[i].ID),
 			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
 		assert.NoError(t, err)
 	}
-	assert.NoError(t, base.DB.Save(&submission).Error)
+	assert.NoError(t, base.DB.Save(&submission1).Error)
+	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_run_input", 0, &class, []models.Problem{problem}, notStartYet)
+	submission2 := createSubmissionForTest(t, "problem_set_get_submission_run_input", 0, &problem, &user,
+		newFileContent("input", "input_file_name",
+			b64Encode("problem_set_get_submission_run_input_0")), 2)
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	submission2.Runs[0].Sample = true
+	submission2.Runs[1].Sample = false
+	for i := range submission2.Runs {
+		submission2.Runs[i].ProblemSetID = problemSetNotStartYet.ID
+		assert.NoError(t, base.DB.Save(&submission2.Runs[i]).Error)
+		content := fmt.Sprintf("problem_set_get_submission_run_input_%d", i)
+		var _, err = base.Storage.PutObject(context.Background(), "submissions",
+			fmt.Sprintf("%d/run/%d/input", submission2.ID, submission2.Runs[i].ID),
+			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
+		assert.NoError(t, err)
+	}
+	assert.NoError(t, base.DB.Save(&submission2).Error)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", -1, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -825,7 +965,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSet.ID, -1, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -836,7 +976,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSet.ID, submission.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -847,7 +987,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSet.ID, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -856,9 +996,20 @@ func TestProblemSetGetRunInput(t *testing.T) {
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
 		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "NotSample",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSet.ID, submission.ID, submission.Runs[1].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -870,10 +1021,17 @@ func TestProblemSetGetRunInput(t *testing.T) {
 
 	runFailTests(t, failTests, "")
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunInput", problemSet.ID, submission.ID, submission.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "problem_set_get_submission_run_input_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_input_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -884,30 +1042,47 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 
 	user := createUserForTest(t, "problem_set_get_submission_run_comparer_output", 0)
 	problem := createProblemForTest(t, "problem_set_get_submission_run_comparer_output", 0, nil, user)
-	class := createClassForTest(t, "test_problem_set_get_submission_run_comparer_output", 0, nil, nil)
-	problemSet := createProblemSetForTest(t, "problem_set_get_submission_run_comparer_output", 0, &class, []models.Problem{problem})
-	submission := createSubmissionForTest(t, "problem_set_get_submission_run_comparer_output", 0, &problem, &user,
+	class := createClassForTest(t, "test_problem_set_get_submission_run_comparer_output", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "problem_set_get_submission_run_comparer_output", 0, &class, []models.Problem{problem}, inProgress)
+	submission1 := createSubmissionForTest(t, "problem_set_get_submission_run_comparer_output", 0, &problem, &user,
 		newFileContent("comparer_output", "comparer_output_file_name",
 			b64Encode("problem_set_get_submission_run_comparer_output_0")), 2)
-	submission.ProblemSetID = problemSet.ID
-	submission.Runs[0].Sample = true
-	submission.Runs[1].Sample = false
-	for i := range submission.Runs {
-		submission.Runs[i].ProblemSetID = problemSet.ID
-		assert.NoError(t, base.DB.Save(&submission.Runs[i]).Error)
+	submission1.ProblemSetID = problemSetInProgress.ID
+	submission1.Runs[0].Sample = true
+	submission1.Runs[1].Sample = false
+	for i := range submission1.Runs {
+		submission1.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission1.Runs[i]).Error)
 		content := fmt.Sprintf("problem_set_get_submission_run_comparer_output_%d", i)
 		var _, err = base.Storage.PutObject(context.Background(), "submissions",
-			fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, submission.Runs[i].ID),
+			fmt.Sprintf("%d/run/%d/comparer_output", submission1.ID, submission1.Runs[i].ID),
 			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
 		assert.NoError(t, err)
 	}
-	assert.NoError(t, base.DB.Save(&submission).Error)
+	assert.NoError(t, base.DB.Save(&submission1).Error)
+	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_run_comparer_output", 0, &class, []models.Problem{problem}, notStartYet)
+	submission2 := createSubmissionForTest(t, "problem_set_get_submission_run_comparer_output", 0, &problem, &user,
+		newFileContent("comparer_output", "comparer_output_file_name",
+			b64Encode("problem_set_get_submission_run_comparer_output_0")), 2)
+	submission2.ProblemSetID = problemSetNotStartYet.ID
+	submission2.Runs[0].Sample = true
+	submission2.Runs[1].Sample = false
+	for i := range submission2.Runs {
+		submission2.Runs[i].ProblemSetID = problemSetNotStartYet.ID
+		assert.NoError(t, base.DB.Save(&submission2.Runs[i]).Error)
+		content := fmt.Sprintf("problem_set_get_submission_run_comparer_output_%d", i)
+		var _, err = base.Storage.PutObject(context.Background(), "submissions",
+			fmt.Sprintf("%d/run/%d/comparer_output", submission2.ID, submission2.Runs[i].ID),
+			strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
+		assert.NoError(t, err)
+	}
+	assert.NoError(t, base.DB.Save(&submission2).Error)
 
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", -1, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -918,7 +1093,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSet.ID, -1, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -929,7 +1104,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSet.ID, submission.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -940,7 +1115,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSet.ID, submission.ID, submission.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -949,9 +1124,20 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
 		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
 			name:   "NotSample",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSet.ID, submission.ID, submission.Runs[1].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -963,10 +1149,17 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 
 	runFailTests(t, failTests, "")
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunComparerOutput", problemSet.ID, submission.ID, submission.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "problem_set_get_submission_run_comparer_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_comparer_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})

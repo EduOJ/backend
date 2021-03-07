@@ -325,11 +325,14 @@ Common return codes.
 
 
 ## ProblemSetSubmission
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|  PROBLEM_SET_NOT_FOUND  |  无法找到problem set  |
+
 
 ### ProblemSetCreateSubmission
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|  PROBLEM_SET_NOT_FOUND  |  无法找到problem set  |
 |        NOT_FOUND        |     错误的problem     |
 |     INVALID_LANGUAGE    |       无效的语言       |
 |       INVALID_FILE      |        缺少文件       |

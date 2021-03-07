@@ -137,22 +137,72 @@ func Register(e *echo.Echo) {
 	api.GET("/submission/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
 	api.POST("/problem_set/:problem_set_id/problem/:pid/submission",
-		controller.ProblemSetCreateSubmission, middleware.Logged).Name = "problemSet.createSubmission"
+		controller.ProblemSetCreateSubmission, middleware.Logged,
+		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted})).Name = "problemSet.createSubmission"
 	api.GET("/problem_set/:problem_set_id/submission/:id",
-		controller.ProblemSetGetSubmission, middleware.Logged).Name = "problemSet.getSubmission"
+		controller.ProblemSetGetSubmission, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getSubmission"
 	api.GET("/problem_set/:problem_set_id/submissions",
-		controller.ProblemSetGetSubmissions, middleware.Logged).Name = "problemSet.getSubmissions"
+		controller.ProblemSetGetSubmissions, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getSubmissions"
 
 	api.GET("/problem_set/:problem_set_id/submission/:id/code",
-		controller.ProblemSetGetSubmissionCode, middleware.Logged).Name = "problemSet.getSubmissionCode"
+		controller.ProblemSetGetSubmissionCode, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getSubmissionCode"
 	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/output",
-		controller.ProblemSetGetRunOutput, middleware.Logged).Name = "problemSet.getRunOutput"
+		controller.ProblemSetGetRunOutput, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getRunOutput"
 	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/input",
-		controller.ProblemSetGetRunInput, middleware.Logged).Name = "problemSet.getRunInput"
+		controller.ProblemSetGetRunInput, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getRunInput"
 	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/compiler_output",
-		controller.ProblemSetGetRunCompilerOutput, middleware.Logged).Name = "problemSet.getRunCompilerOutput"
+		controller.ProblemSetGetRunCompilerOutput, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getRunCompilerOutput"
 	api.GET("/problem_set/:problem_set_id/submission/:submission_id/run/:id/comparer_output",
-		controller.ProblemSetGetRunComparerOutput, middleware.Logged).Name = "problemSet.getRunComparerOutput"
+		controller.ProblemSetGetRunComparerOutput, middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		})).Name = "problemSet.getRunComparerOutput"
 
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"

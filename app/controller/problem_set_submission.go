@@ -24,24 +24,25 @@ func ProblemSetCreateSubmission(c echo.Context) error {
 		return err
 	}
 
-	user := c.Get("user").(models.User)
-
-	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Class").First(&problemSet, c.Param("problem_set_id")).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	problemSet := c.Get("problem_set").(*models.ProblemSet)
+	findErr := c.Get("find_problem_set_error")
+	if findErr != nil {
+		if errors.Is(findErr.(error), gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
 		}
-		panic(errors.Wrap(err, "could not find problem set for creating submission in problem set"))
+		panic(errors.Wrap(findErr.(error), "could not find problem set for getting submission"))
 	}
-
-	if !user.Can("manage_problem_sets", problemSet.Class) && !user.Can("manage_problem_sets") {
-		var users []models.User
-		if err := base.DB.Model(problemSet.Class).Association("Students").Find(&users, "id = ?", user.ID); err != nil {
-			panic(errors.Wrap(err, "could not check student in class for creating submission in problem set"))
-		}
-		if len(users) == 0 || time.Now().Before(problemSet.StartTime) || time.Now().After(problemSet.EndTime) {
-			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
-		}
+	user := c.Get("user").(models.User)
+	var students []models.User
+	class := models.Class{}
+	if err := base.DB.First(&class, problemSet.ClassID).Error; err != nil {
+		panic(errors.Wrap(err, "could not find class for problem set creating submissions"))
+	}
+	if err := base.DB.Model(&class).Association("Students").Find(&students, "id = ?", user.ID); err != nil {
+		panic(errors.Wrap(err, "could not check if student in class for problem set creating submissions"))
+	}
+	if len(students) == 0 {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
 	var problems []models.Problem
@@ -135,9 +136,20 @@ func ProblemSetGetSubmission(c echo.Context) error {
 		poll = true
 	}
 
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+	}
+
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("ProblemSet.Class").Preload("Problem").Preload("User").
+	if err := base.DB.Preload("Problem").Preload("User").
 		First(&submission, "problem_set_id = ? and id = ?", c.Param("problem_set_id"), c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -146,7 +158,9 @@ func ProblemSetGetSubmission(c echo.Context) error {
 		}
 	}
 
-	if user.ID != submission.UserID && !user.Can("manage_problem_sets", submission.ProblemSet.Class) && !user.Can("manage_problem_sets") {
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+	if user.ID != submission.UserID && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 	if !(submission.UpdatedAt.Before(startedAt) && poll) {
@@ -203,6 +217,31 @@ func ProblemSetGetSubmissions(c echo.Context) error {
 		return err
 	}
 
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+		user := c.Get("user").(models.User)
+		var students []models.User
+		class := models.Class{}
+		if err := base.DB.First(&class, problemSet.(*models.ProblemSet).ClassID).Error; err != nil {
+			panic(errors.Wrap(err, "could not find class for problem set getting submissions"))
+		}
+		if err := base.DB.Model(&class).Association("Students").Find(&students, "id = ?", user.ID); err != nil {
+			panic(errors.Wrap(err, "could not check if student in class for problem set getting submissions"))
+		}
+		if len(students) == 0 {
+			return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+		}
+	}
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+
 	query := base.DB.Model(&models.Submission{}).Preload("User").Preload("Problem").
 		Where("problem_set_id = ?", c.Param("problem_set_id")).Order("id DESC") // Force order by id desc.
 
@@ -243,9 +282,20 @@ func ProblemSetGetSubmissions(c echo.Context) error {
 }
 
 func ProblemSetGetSubmissionCode(c echo.Context) error {
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+	}
+
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("ProblemSet.Class").First(&submission, "problem_set_id = ? and id = ?",
+	if err := base.DB.First(&submission, "problem_set_id = ? and id = ?",
 		c.Param("problem_set_id"), c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -253,7 +303,10 @@ func ProblemSetGetSubmissionCode(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find submission for getting submission code"))
 		}
 	}
-	if user.ID != submission.UserID && !user.Can("manage_problem_sets", submission.ProblemSet.Class) && !user.Can("manage_problem_sets") {
+
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+	if user.ID != submission.UserID && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
@@ -265,9 +318,20 @@ func ProblemSetGetSubmissionCode(c echo.Context) error {
 }
 
 func ProblemSetGetRunCompilerOutput(c echo.Context) error {
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+	}
+
 	user := c.Get("user").(models.User)
 	run := models.Run{}
-	if err := base.DB.Preload("Submission.ProblemSet.Class").First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
+	if err := base.DB.Preload("Submission").First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
 		c.Param("problem_set_id"), c.Param("submission_id"), c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -275,7 +339,10 @@ func ProblemSetGetRunCompilerOutput(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find submission for getting submission code"))
 		}
 	}
-	if user.ID != run.UserID && !user.Can("manage_problem_sets", run.Submission.ProblemSet.Class) && !user.Can("manage_problem_sets") {
+
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+	if user.ID != run.UserID && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
@@ -288,9 +355,20 @@ func ProblemSetGetRunCompilerOutput(c echo.Context) error {
 }
 
 func ProblemSetGetRunOutput(c echo.Context) error {
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+	}
+
 	user := c.Get("user").(models.User)
 	run := models.Run{}
-	if err := base.DB.Preload("Submission.ProblemSet.Class").Preload("TestCase").
+	if err := base.DB.Preload("TestCase").Preload("Submission").
 		First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
 			c.Param("problem_set_id"), c.Param("submission_id"), c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -299,7 +377,10 @@ func ProblemSetGetRunOutput(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find submission for getting submission code"))
 		}
 	}
-	if (user.ID != run.UserID || !run.Sample) && !user.Can("manage_problem_sets", run.Submission.ProblemSet.Class) && !user.Can("manage_problem_sets") {
+
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+	if (user.ID != run.UserID || !run.Sample) && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
@@ -312,9 +393,20 @@ func ProblemSetGetRunOutput(c echo.Context) error {
 }
 
 func ProblemSetGetRunInput(c echo.Context) error {
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+	}
+
 	user := c.Get("user").(models.User)
 	run := models.Run{}
-	if err := base.DB.Preload("Submission.ProblemSet.Class").Preload("TestCase").
+	if err := base.DB.Preload("Submission").Preload("TestCase").
 		First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
 			c.Param("problem_set_id"), c.Param("submission_id"), c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -323,7 +415,10 @@ func ProblemSetGetRunInput(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find submission for getting submission code"))
 		}
 	}
-	if (user.ID != run.UserID || !run.Sample) && !user.Can("manage_problem_sets", run.Submission.ProblemSet.Class) && !user.Can("manage_problem_sets") {
+
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+	if (user.ID != run.UserID || !run.Sample) && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
@@ -336,9 +431,20 @@ func ProblemSetGetRunInput(c echo.Context) error {
 }
 
 func ProblemSetGetRunComparerOutput(c echo.Context) error {
+	problemSet := c.Get("problem_set")
+	if problemSet != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting submission"))
+		}
+	}
+
 	user := c.Get("user").(models.User)
 	run := models.Run{}
-	if err := base.DB.Preload("Submission.ProblemSet.Class").First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
+	if err := base.DB.Preload("Submission").First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
 		c.Param("problem_set_id"), c.Param("submission_id"), c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -346,7 +452,10 @@ func ProblemSetGetRunComparerOutput(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find submission for getting submission code"))
 		}
 	}
-	if (user.ID != run.UserID || !run.Sample) && !user.Can("manage_problem_sets", run.Submission.ProblemSet.Class) && !user.Can("manage_problem_sets") {
+
+	// If problem set is empty here, the user is considered to have permission read_answers(because of
+	// the short-circuit in middleware HasPermission), and the submission info is returned directly
+	if (user.ID != run.UserID || !run.Sample) && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 

@@ -127,7 +127,13 @@ func TestCreateProblemSet(t *testing.T) {
 	})
 }
 
-func createProblemSetForTest(t *testing.T, name string, id int, class *models.Class, problems []models.Problem) *models.ProblemSet {
+const (
+	notStartYet = iota
+	inProgress
+	ended
+)
+
+func createProblemSetForTest(t *testing.T, name string, id int, class *models.Class, problems []models.Problem, timeOption ...int) *models.ProblemSet {
 	problemSet := models.ProblemSet{
 		Name:        fmt.Sprintf("test_%s_%d_name", name, id),
 		Description: fmt.Sprintf("test_%s_%d_description", name, id),
@@ -135,6 +141,19 @@ func createProblemSetForTest(t *testing.T, name string, id int, class *models.Cl
 		Grades:      []*models.Grade{},
 		StartTime:   hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)),
 		EndTime:     hashStringToTime(fmt.Sprintf("test_%s_%d_time", name, id)).Add(time.Hour),
+	}
+	if len(timeOption) > 0 {
+		switch timeOption[0] {
+		case notStartYet:
+			problemSet.StartTime = time.Now().Add(time.Hour)
+			problemSet.EndTime = time.Now().Add(2 * time.Hour)
+		case inProgress:
+			problemSet.StartTime = time.Now().Add(-1 * time.Hour)
+			problemSet.EndTime = time.Now().Add(1 * time.Hour)
+		case ended:
+			problemSet.StartTime = time.Now().Add(-2 * time.Hour)
+			problemSet.EndTime = time.Now().Add(-1 * time.Hour)
+		}
 	}
 	assert.NoError(t, base.DB.Model(&class).Association("ProblemSets").Append(&problemSet))
 	assert.NoError(t, base.DB.Model(&problemSet).Association("Problems").Append(problems))

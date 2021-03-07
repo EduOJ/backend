@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"github.com/EduOJ/backend/app/response"
+	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type hasRole struct {
@@ -103,4 +105,16 @@ func IsTestCaseSample(c echo.Context) (result bool) {
 	c.Set("problem", problem)
 	c.Set("find_test_case_err", err)
 	return
+}
+
+func ProblemSetStarted(c echo.Context) (result bool) {
+	problemSet := models.ProblemSet{}
+	err := base.DB.First(&problemSet, c.Param("problem_set_id")).Error
+	c.Set("problem_set", &problemSet)
+	c.Set("find_problem_set_error", err)
+	if err == nil {
+		return time.Now().After(problemSet.StartTime)
+	} else {
+		return true
+	}
 }
