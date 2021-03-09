@@ -60,8 +60,14 @@ func Register(e *echo.Echo) {
 	api.GET("/image/:id", controller.GetImage).Name = "image.getImage"
 	api.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.createImage"
 
-	adminProblem := admin.Group("/problem", middleware.ValidateParams("id", "test_case_id"))
-	problem := api.Group("/problem", middleware.ValidateParams("id", "test_case_id"))
+	adminProblem := admin.Group("/problem", middleware.ValidateParams(map[string]string{
+		"id":           "NOT_FOUND",
+		"test_case_id": "TEST_CASE_NOT_FOUND",
+	}))
+	problem := api.Group("/problem", middleware.ValidateParams(map[string]string{
+		"id":           "NOT_FOUND",
+		"test_case_id": "TEST_CASE_NOT_FOUND",
+	}))
 	adminProblem.POST("",
 		controller.CreateProblem, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"})).Name = "problem.createProblem"
 	adminProblem.PUT("/:id",
@@ -130,23 +136,35 @@ func Register(e *echo.Echo) {
 		})).Name = "problem.getTestCaseOutputFile"
 
 	api.POST("/problem/:pid/submission", controller.CreateSubmission,
-		middleware.ValidateParams("pid"), middleware.Logged).Name = "submission.createSubmission"
+		middleware.ValidateParams(map[string]string{
+			"pid": "PROBLEM_NOT_FOUND",
+		}), middleware.Logged).Name = "submission.createSubmission"
 
-	submission := api.Group("/submission", middleware.ValidateParams("id", "run_id"))
+	submission := api.Group("/submission", middleware.ValidateParams(map[string]string{
+		"id":     "NOT_FOUND",
+		"run_id": "RUN_NOT_FOUND",
+	}))
 	submission.GET("/:id", controller.GetSubmission, middleware.Logged).Name = "submission.getSubmission"
 	submission.GET("s", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
 
 	submission.GET("/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
-	submission.GET("/:id/run/:run_id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
-	submission.GET("/:id/run/:run_id/input", controller.GetRunInput, middleware.Logged).Name = "submission.getRunInput"
-	submission.GET("/:id/run/:run_id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
-	submission.GET("/:id/run/:run_id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
+	submission.GET("/:submission_id/run/:id/output", controller.GetRunOutput, middleware.Logged).Name = "submission.getRunOutput"
+	submission.GET("/:submission_id/run/:id/input", controller.GetRunInput, middleware.Logged).Name = "submission.getRunInput"
+	submission.GET("/:submission_id/run/:id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
+	submission.GET("/:submission_id/run/:id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
 	api.POST("/problem_set/:problem_set_id/problem/:pid/submission",
-		controller.ProblemSetCreateSubmission, middleware.ValidateParams("problem_set_id", "pid"), middleware.Logged,
+		controller.ProblemSetCreateSubmission, middleware.ValidateParams(map[string]string{
+			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
+			"pid":            "PROBLEM_NOT_FOUND",
+		}), middleware.Logged,
 		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted})).Name = "problemSet.createSubmission"
 	problemSetSubmission := api.Group("/problem_set",
-		middleware.ValidateParams("id", "problem_set_id", "submission_id"),
+		middleware.ValidateParams(map[string]string{
+			"id":             "NOT_FOUND",
+			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
+			"submission_id":  "SUBMISSION_NOT_FOUND",
+		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.OrPermission{
@@ -177,9 +195,14 @@ func Register(e *echo.Echo) {
 
 	judger.GET("/script/:name", controller.GetScript).Name = "judger.getScript"
 	judger.GET("/task", controller.GetTask).Name = "judger.getTask"
-	judger.PUT("/run/:id", controller.UpdateRun, middleware.ValidateParams("id")).Name = "judger.updateRun"
+	judger.PUT("/run/:id", controller.UpdateRun, middleware.ValidateParams(map[string]string{
+		"id": "NOT_FOUND",
+	})).Name = "judger.updateRun"
 
-	class := api.Group("/class", middleware.ValidateParams("id", "class_id"))
+	class := api.Group("/class", middleware.ValidateParams(map[string]string{
+		"id":       "NOT_FOUND",
+		"class_id": "CLASS_NOT_FOUND",
+	}))
 	class.POST("",
 		controller.CreateClass, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
 	class.GET("/:id",

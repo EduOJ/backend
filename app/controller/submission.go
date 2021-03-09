@@ -267,7 +267,7 @@ func GetSubmissionCode(c echo.Context) error {
 func GetRunCompilerOutput(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("submission_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if user.Can("read_submission") {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
@@ -282,7 +282,7 @@ func GetRunCompilerOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
+	runID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
 	}
@@ -308,7 +308,7 @@ func GetRunCompilerOutput(c echo.Context) error {
 func GetRunOutput(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("submission_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if user.Can("create_problem") {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
@@ -335,7 +335,7 @@ func GetRunOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
+	runID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
 	}
@@ -372,7 +372,7 @@ func GetRunOutput(c echo.Context) error {
 func GetRunInput(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("submission_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if user.Can("create_problem") {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
@@ -399,7 +399,7 @@ func GetRunInput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
+	runID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
 	}
@@ -436,7 +436,7 @@ func GetRunInput(c echo.Context) error {
 func GetRunComparerOutput(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
-	if err := base.DB.Preload("Problem").First(&submission, c.Param("id")).Error; err != nil {
+	if err := base.DB.Preload("Problem").First(&submission, c.Param("submission_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if user.Can("create_problem") {
 				return c.JSON(http.StatusNotFound, response.ErrorResp("SUBMISSION_NOT_FOUND", nil))
@@ -463,7 +463,7 @@ func GetRunComparerOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	runID, err := strconv.ParseInt(c.Param("run_id"), 10, 64)
+	runID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
 	}
