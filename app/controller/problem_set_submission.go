@@ -346,6 +346,10 @@ func ProblemSetGetRunCompilerOutput(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
+	if run.Status == "PENDING" || run.Status == "JUDGEMENT_FAILED" || run.Status == "NO_COMMENT" {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGEMENT_UNFINISHED", nil))
+	}
+
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/compiler_output", run.Submission.ID, run.ID),
 		"compiler_output.txt")
 	if err != nil {
@@ -382,6 +386,10 @@ func ProblemSetGetRunOutput(c echo.Context) error {
 	// the short-circuit in middleware HasPermission), and the submission info is returned directly
 	if (user.ID != run.UserID || !run.Sample) && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+
+	if run.Status == "PENDING" || run.Status == "JUDGEMENT_FAILED" || run.Status == "NO_COMMENT" {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGEMENT_UNFINISHED", nil))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/output", run.Submission.ID, run.ID),
@@ -442,6 +450,9 @@ func ProblemSetGetRunComparerOutput(c echo.Context) error {
 		}
 	}
 
+	var ss []models.Submission
+	base.DB.Preload("Runs").Find(&ss)
+
 	user := c.Get("user").(models.User)
 	run := models.Run{}
 	if err := base.DB.Preload("Submission").First(&run, "problem_set_id = ? and submission_id = ? and id = ?",
@@ -457,6 +468,10 @@ func ProblemSetGetRunComparerOutput(c echo.Context) error {
 	// the short-circuit in middleware HasPermission), and the submission info is returned directly
 	if (user.ID != run.UserID || !run.Sample) && problemSet != nil {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+
+	if run.Status == "PENDING" || run.Status == "JUDGEMENT_FAILED" || run.Status == "NO_COMMENT" {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGEMENT_UNFINISHED", nil))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", run.Submission.ID, run.ID),

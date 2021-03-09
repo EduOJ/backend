@@ -216,23 +216,25 @@ Common return codes.
 |        NOT_FOUND        |   无法找到submission   |
 
 ### GetRunOutput
-|       message        |       结果        |
-|:--------------------:|:----------------:|
-| SUBMISSION_NOT_FOUND | 无法找到submission |
-|      NOT_FOUND       |    无法找到run     |
-|      BAD_RUN_ID      |                  |
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|  SUBMISSION_NOT_FOUND   |   无法找到submission   |
+|        NOT_FOUND        |      无法找到run       |
+|   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### GetRunCompilerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |  SUBMISSION_NOT_FOUND   |   无法找到submission   |
 |        NOT_FOUND        |      无法找到run       |
+|   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### GetRunComparerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |  SUBMISSION_NOT_FOUND   |   无法找到submission   |
 |        NOT_FOUND        |      无法找到run       |
+|   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 # Judger
 ## UpdateRun
@@ -350,17 +352,21 @@ Common return codes.
 |        NOT_FOUND        |   无法找到submission   |
 
 ### ProblemSetGetRunOutput
-|       message        |       结果        |
-|:--------------------:|:----------------:|
-|      NOT_FOUND       |    无法找到run     |
+|         message         |         结果          |
+|:-----------------------:|:--------------------:|
+|        NOT_FOUND        |      无法找到run       |
+|   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
+### ProblemSetGetRunInput
 
 ### ProblemSetGetRunCompilerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |      无法找到run       |
+|   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### ProblemSetGetRunComparerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |        NOT_FOUND        |      无法找到run       |
+|   JUDGEMENT_UNFINISHED  |       评测未完成       |

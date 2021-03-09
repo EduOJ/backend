@@ -611,7 +611,7 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 	submission1.ProblemSetID = problemSetInProgress.ID
 	assert.NoError(t, base.DB.Save(&submission1).Error)
 	submission2 := createSubmissionForTest(t, "problem_set_get_submission_code", 2, &problem, &user,
-		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_code_2")), 2)
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_code_2")), 0)
 	submission2.ProblemSetID = problemSetNotStartYet.ID
 	assert.NoError(t, base.DB.Save(&submission2).Error)
 
@@ -702,7 +702,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 	}
 	assert.NoError(t, base.DB.Save(&submission1).Error)
 	submission2 := createSubmissionForTest(t, "problem_set_get_run_compiler_output", 2, &problem, &user,
-		newFileContent("code", "code_file_name", b64Encode("problem_set_get_run_compiler_output_2")), 2)
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_run_compiler_output_2")), 0)
 	submission2.ProblemSetID = problemSetNotStartYet.ID
 	for i := range submission2.Runs {
 		submission2.Runs[i].ProblemSetID = problemSetNotStartYet.ID
@@ -714,6 +714,13 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	assert.NoError(t, base.DB.Save(&submission2).Error)
+	submission3 := createSubmissionForTest(t, "problem_set_get_run_compiler_output", 3, &problem, &user, nil, 0, "PENDING")
+	submission3.ProblemSetID = problemSetInProgress.ID
+	for i := range submission3.Runs {
+		submission3.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission3.Runs[i]).Error)
+	}
+	assert.NoError(t, base.DB.Save(&submission3).Error)
 
 	failTests := []failTest{
 		{
@@ -771,6 +778,17 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
+		{
+			name:   "Judging",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
+		},
 	}
 
 	runFailTests(t, failTests, "")
@@ -817,7 +835,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 	}
 	assert.NoError(t, base.DB.Save(&submission1).Error)
 	submission2 := createSubmissionForTest(t, "problem_set_get_submission_run_output", 2, &problem, &user,
-		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_run_output_2")), 2)
+		newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_run_output_2")), 0)
 	submission2.ProblemSetID = problemSetNotStartYet.ID
 	submission2.Runs[0].Sample = true
 	submission2.Runs[1].Sample = false
@@ -832,6 +850,13 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 	}
 	submission2.ProblemSetID = problemSetNotStartYet.ID
 	assert.NoError(t, base.DB.Save(&submission2).Error)
+	submission3 := createSubmissionForTest(t, "problem_set_get_submission_run_output", 3, &problem, &user, nil, 0, "PENDING")
+	submission3.ProblemSetID = problemSetInProgress.ID
+	for i := range submission3.Runs {
+		submission3.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission3.Runs[i]).Error)
+	}
+	assert.NoError(t, base.DB.Save(&submission3).Error)
 
 	failTests := []failTest{
 		{
@@ -900,6 +925,17 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
+		{
+			name:   "Judging",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
+		},
 	}
 
 	runFailTests(t, failTests, "")
@@ -941,7 +977,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_run_input", 0, &class, []models.Problem{problem}, notStartYet)
 	submission2 := createSubmissionForTest(t, "problem_set_get_submission_run_input", 0, &problem, &user,
 		newFileContent("input", "input_file_name",
-			b64Encode("problem_set_get_submission_run_input_0")), 2)
+			b64Encode("problem_set_get_submission_run_input_0")), 0)
 	submission2.ProblemSetID = problemSetNotStartYet.ID
 	submission2.Runs[0].Sample = true
 	submission2.Runs[1].Sample = false
@@ -1064,7 +1100,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 	problemSetNotStartYet := createProblemSetForTest(t, "problem_set_get_submission_run_comparer_output", 0, &class, []models.Problem{problem}, notStartYet)
 	submission2 := createSubmissionForTest(t, "problem_set_get_submission_run_comparer_output", 0, &problem, &user,
 		newFileContent("comparer_output", "comparer_output_file_name",
-			b64Encode("problem_set_get_submission_run_comparer_output_0")), 2)
+			b64Encode("problem_set_get_submission_run_comparer_output_0")), 0)
 	submission2.ProblemSetID = problemSetNotStartYet.ID
 	submission2.Runs[0].Sample = true
 	submission2.Runs[1].Sample = false
@@ -1078,6 +1114,13 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	assert.NoError(t, base.DB.Save(&submission2).Error)
+	submission3 := createSubmissionForTest(t, "problem_set_get_submission_run_comparer_output", 3, &problem, &user, nil, 0, "PENDING")
+	submission3.ProblemSetID = problemSetInProgress.ID
+	for i := range submission3.Runs {
+		submission3.Runs[i].ProblemSetID = problemSetInProgress.ID
+		assert.NoError(t, base.DB.Save(&submission3.Runs[i]).Error)
+	}
+	assert.NoError(t, base.DB.Save(&submission3).Error)
 
 	failTests := []failTest{
 		{
@@ -1145,6 +1188,17 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "Judging",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
 		},
 	}
 

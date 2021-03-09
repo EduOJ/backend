@@ -298,6 +298,11 @@ func GetRunCompilerOutput(c echo.Context) error {
 			panic(err)
 		}
 	}
+
+	if run.Status == "PENDING" || run.Status == "JUDGEMENT_FAILED" || run.Status == "NO_COMMENT" {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGEMENT_UNFINISHED", nil))
+	}
+
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/compiler_output", submission.ID, runID), "compiler_output.txt")
 	if err != nil {
 		panic(errors.Wrap(err, "could not get presigned url"))
@@ -359,6 +364,10 @@ func GetRunOutput(c echo.Context) error {
 
 	if run.SubmissionID != submission.ID {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
+	}
+
+	if run.Status == "PENDING" || run.Status == "JUDGEMENT_FAILED" || run.Status == "NO_COMMENT" {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGEMENT_UNFINISHED", nil))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/output", submission.ID, runID), run.TestCase.OutputFileName)
@@ -487,6 +496,10 @@ func GetRunComparerOutput(c echo.Context) error {
 
 	if run.SubmissionID != submission.ID {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("BAD_RUN_ID", nil))
+	}
+
+	if run.Status == "PENDING" || run.Status == "JUDGEMENT_FAILED" || run.Status == "NO_COMMENT" {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("JUDGEMENT_UNFINISHED", nil))
 	}
 
 	presignedUrl, err := utils.GetPresignedURL("submissions", fmt.Sprintf("%d/run/%d/comparer_output", submission.ID, runID), "comparer_output.txt")

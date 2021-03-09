@@ -25,7 +25,7 @@ const (
 	submitter
 )
 
-func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int) models.Submission {
+func createSubmissionForTest(t *testing.T, name string, id int, problem *models.Problem, user *models.User, code *fileContent, testCaseCount int, status ...string) models.Submission {
 	for i := 0; i < testCaseCount; i++ {
 		createTestCaseForTest(t, *problem, testCaseData{
 			Score:      0,
@@ -35,6 +35,10 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		})
 	}
 	problem.LoadTestCases()
+	stat := "ACCEPTED"
+	if len(status) > 0 {
+		stat = status[0]
+	}
 	submission := models.Submission{
 		UserID:       user.ID,
 		User:         user,
@@ -47,7 +51,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 		Priority:     models.PriorityDefault,
 		Judged:       false,
 		Score:        0,
-		Status:       "PENDING",
+		Status:       stat,
 		Runs:         make([]models.Run, len(problem.TestCases)),
 		CreatedAt:    time.Time{},
 		UpdatedAt:    time.Time{},
@@ -61,7 +65,7 @@ func createSubmissionForTest(t *testing.T, name string, id int, problem *models.
 			Sample:             testCase.Sample,
 			Priority:           models.PriorityDefault,
 			Judged:             false,
-			Status:             "PENDING",
+			Status:             stat,
 			MemoryUsed:         0,
 			TimeUsed:           0,
 			OutputStrippedHash: "",
@@ -721,6 +725,7 @@ func TestGetRunCompilerOutput(t *testing.T) {
 	publicProblem := createProblemForTest(t, "get_run_compiler_output_fail", 1, nil, publicProblemCreator)
 	publicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_1")), 2)
+	judgingSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 2, &publicProblem, &publicProblemCreator, nil, 2, "PENDING")
 
 	failTests := []failTest{
 		{
@@ -783,6 +788,18 @@ func TestGetRunCompilerOutput(t *testing.T) {
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
+		{
+			// testGetRunCompilerOutputJudging
+			name:   "Judging",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", judgingSubmission.ID, judgingSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
+		},
 	}
 
 	// testGetRunCompilerOutputFail
@@ -822,6 +839,7 @@ func TestGetRunOutput(t *testing.T) {
 	publicProblemSubmitter := createUserForTest(t, "get_run_output_fail_submit", 1)
 	publicSubmission := createSubmissionForTest(t, "get_run_output_fail", 1, &publicProblem, &publicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_1")), 2)
+	judgingSubmission := createSubmissionForTest(t, "get_run_output_fail", 2, &publicProblem, &publicProblemCreator, nil, 2, "PENDING")
 
 	failTests := []failTest{
 		{
@@ -897,6 +915,18 @@ func TestGetRunOutput(t *testing.T) {
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunOutputJudging
+			name:   "Judging",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", judgingSubmission.ID, judgingSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
 		},
 	}
 
@@ -977,6 +1007,7 @@ func TestGetRunComparerOutput(t *testing.T) {
 	publicProblemSubmitter := createUserForTest(t, "get_run_comparer_output_fail_submit", 1)
 	publicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 1, &publicProblem, &publicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_1")), 2)
+	judgingSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 2, &publicProblem, &publicProblemCreator, nil, 2, "PENDING")
 
 	failTests := []failTest{
 		{
@@ -1052,6 +1083,18 @@ func TestGetRunComparerOutput(t *testing.T) {
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetRunComparerOutputJudging
+			name:   "Judging",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", judgingSubmission.ID, judgingSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusBadRequest,
+			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
 		},
 	}
 

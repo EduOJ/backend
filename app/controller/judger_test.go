@@ -22,7 +22,7 @@ func TestGetTask(t *testing.T) {
 	problem := createProblemForTest(t, "get_task", 1, nil, user)
 	submission := createSubmissionForTest(t, "test_task", 1, &problem, &user, newFileContent(
 		"", "code.test_language", b64Encode("balh"),
-	), 1)
+	), 1, "PENDING")
 	var language models.Language
 	var compareScript = models.Script{
 		Name:     "test_get_task",
@@ -37,7 +37,6 @@ func TestGetTask(t *testing.T) {
 	_, _ = buf.ReadFrom(httpResp.Body)
 	var resp response.GetTaskResponse
 	mustJsonDecode(buf.String(), &resp)
-	t.Log(buf.String())
 	jsonEQ(t, response.GetTaskResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -91,7 +90,7 @@ func TestUpdateRun(t *testing.T) {
 		problem := createProblemForTest(t, "update_run", 1, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 1, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
-		), 3)
+		), 3, "PENDING")
 		var language models.Language
 		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
 		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
@@ -239,7 +238,7 @@ func TestUpdateRun(t *testing.T) {
 		problem := createProblemForTest(t, "update_run", 2, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 2, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
-		), 3)
+		), 3, "PENDING")
 		var language models.Language
 		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
 		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
@@ -385,7 +384,7 @@ func TestUpdateRun(t *testing.T) {
 		problem := createProblemForTest(t, "update_run", 3, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 3, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
-		), 3)
+		), 3, "PENDING")
 		var language models.Language
 		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
 		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
@@ -538,7 +537,7 @@ func TestUpdateRun(t *testing.T) {
 		problem := createProblemForTest(t, "update_run", 4, nil, user)
 		submission := createSubmissionForTest(t, "update_run", 4, &problem, &user, newFileContent(
 			"", "code.test_language", b64Encode("balh"),
-		), 3)
+		), 3, "PENDING")
 		var language models.Language
 		assert.NoError(t, base.DB.Model(&problem).Association("CompareScript").Append(&compareScript))
 		assert.NoError(t, base.DB.Model(&submission).Preload("RunScript").Preload("BuildScript").Association("Language").Find(&language))
