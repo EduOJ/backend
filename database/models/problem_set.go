@@ -91,14 +91,13 @@ func (p *ProblemSet) AfterDelete(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = tx.Delete(&Grade{}, "problem_set_id = ?", p.ID).Error
+	var submissions []Submission
+	err = tx.Where("problem_set_id = ?", p.ID).Find(&submissions).Error
 	if err != nil {
 		return err
 	}
-	submission := Submission{}
-	err = tx.Where("problem_set_id = ?", p.ID).First(&submission).Error
-	if err != nil {
-		return err
+	if len(submissions) == 0 {
+		return nil
 	}
-	return tx.Delete(&submission).Error
+	return tx.Delete(&submissions).Error
 }

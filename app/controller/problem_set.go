@@ -244,7 +244,9 @@ func DeleteProblemSet(c echo.Context) error {
 	if err := base.DB.First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		panic(errors.Wrap(err, "could not get problem set for deleting problem set"))
 	}
-	utils.PanicIfDBError(base.DB.Delete(&problemSet), "could not delete problem set for deleting problem set")
+	if problemSet.ID != 0 {
+		utils.PanicIfDBError(base.DB.Delete(&problemSet), "could not delete problem set for deleting problem set")
+	}
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,

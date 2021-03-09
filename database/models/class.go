@@ -60,6 +60,14 @@ func (c *Class) DeleteStudents(ids []uint) error {
 	return base.DB.Model(c).Association("Students").Delete(&users)
 }
 
-func (c *Class) AfterDelete(tx *gorm.DB) (err error) {
-	return tx.Delete(&ProblemSet{}, "class_id = ?", c.ID).Error
+func (c *Class) AfterDelete(tx *gorm.DB) error {
+	var problemSets []ProblemSet
+	err := tx.Find(&problemSets, "class_id = ?", c.ID).Error
+	if err != nil {
+		return err
+	}
+	if len(problemSets) != 0 {
+		return tx.Delete(&problemSets).Error
+	}
+	return nil
 }

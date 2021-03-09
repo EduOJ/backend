@@ -1127,7 +1127,7 @@ func TestGetRunInput(t *testing.T) {
 
 	failTests := []failTest{
 		{
-			// testGetRunComparerOutputNormalUserNonExistingSubmission
+			// testGetRunRunInputNormalUserNonExistingSubmission
 			name:   "NormalUserNonExistingSubmission",
 			method: "GET",
 			path:   base.Echo.Reverse("submission.getRunInput", -1, -1),
@@ -1151,7 +1151,7 @@ func TestGetRunInput(t *testing.T) {
 			resp:       response.ErrorResp("SUBMISSION_NOT_FOUND", nil),
 		},
 		{
-			// testGetRunComparerOutputSubmitterNonExistingRun
+			// testGetRunRunInputSubmitterNonExistingRun
 			name:   "SubmitterNonExistingRun",
 			method: "GET",
 			path:   base.Echo.Reverse("submission.getRunInput", submission.ID, -1),
@@ -1165,7 +1165,7 @@ func TestGetRunInput(t *testing.T) {
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
 		{
-			// testGetRunComparerOutputAdminUserNonExistingRun
+			// testGetRunRunInputAdminUserNonExistingRun
 			name:   "AdminUserNonExistingRun",
 			method: "GET",
 			path:   base.Echo.Reverse("submission.getRunInput", submission.ID, -1),
@@ -1177,7 +1177,7 @@ func TestGetRunInput(t *testing.T) {
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{
-			// testGetRunComparerOutputNotSample
+			// testGetRunRunInputNotSample
 			name:   "SubmitterInvalidRunId",
 			method: "GET",
 			path:   base.Echo.Reverse("submission.getRunInput", submission.ID, submission.Runs[0].ID),
@@ -1191,7 +1191,7 @@ func TestGetRunInput(t *testing.T) {
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
 		{
-			// testGetRunComparerOutputSubmittedByOthers
+			// testGetRunRunInputSubmittedByOthers
 			name:   "SubmittedByOthers",
 			method: "GET",
 			path:   base.Echo.Reverse("submission.getRunInput", submission.ID, submission.Runs[0].ID),
@@ -1204,7 +1204,7 @@ func TestGetRunInput(t *testing.T) {
 		},
 	}
 
-	// testGetRunComparerOutputFail
+	// testGetRunRunInputFail
 	runFailTests(t, failTests, "GetRunInput")
 
 	successTests := []struct {
@@ -1213,7 +1213,7 @@ func TestGetRunInput(t *testing.T) {
 		sample      bool
 	}{
 		{
-			// testGetRunComparerOutputAdminUser
+			// testGetRunRunInputAdminUser
 			name:        "AdminUser",
 			requestUser: adminUser,
 			sample:      false,
