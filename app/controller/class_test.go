@@ -710,6 +710,16 @@ func TestDeleteClass(t *testing.T) {
 	class := createClassForTest(t, "test_delete_class_permission_denied", 0, nil, nil)
 	failTests := []failTest{
 		{
+			// testDeleteClassNonExistingClass
+			name:       "NonExistingClass",
+			method:     "DELETE",
+			path:       base.Echo.Reverse("class.deleteClass", -1),
+			req:        request.DeleteClassRequest{},
+			reqOptions: []reqOption{applyAdminUser},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
 			// testDeleteClassPermissionDenied
 			name:       "PermissionDenied",
 			method:     "DELETE",

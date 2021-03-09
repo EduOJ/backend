@@ -816,15 +816,19 @@ func TestDeleteProblemSet(t *testing.T) {
 	failProblemSet := createProblemSetForTest(t, "delete_problem_set_fail", 0, &failClass, nil)
 	failTests := []failTest{
 		{
-			name:   "PermissionDenied",
-			method: "DELETE",
-			path:   base.Echo.Reverse("problemSet.deleteProblemSet", failClass.ID, failProblemSet.ID),
-			req: request.UpdateProblemSetRequest{
-				Name:        "test_delete_problem_set_permission_denied_name",
-				Description: "test_delete_problem_set_permission_denied_description",
-				StartTime:   hashStringToTime("test_delete_problem_set_permission_denied_time"),
-				EndTime:     hashStringToTime("test_delete_problem_set_permission_denied_time").Add(time.Hour),
-			},
+			name:       "NonExistingProblemSet",
+			method:     "DELETE",
+			path:       base.Echo.Reverse("problemSet.deleteProblemSet", failClass.ID, -1),
+			req:        request.DeleteProblemSetRequest{},
+			reqOptions: []reqOption{applyAdminUser},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:       "PermissionDenied",
+			method:     "DELETE",
+			path:       base.Echo.Reverse("problemSet.deleteProblemSet", failClass.ID, failProblemSet.ID),
+			req:        request.DeleteProblemSetRequest{},
 			reqOptions: []reqOption{applyNormalUser},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
