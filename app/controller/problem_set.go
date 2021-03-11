@@ -256,3 +256,63 @@ func DeleteProblemSet(c echo.Context) error {
 		Data:    nil,
 	})
 }
+
+func GetProblemSetProblem(c echo.Context) error {
+	problemSet := models.ProblemSet{}
+
+	if err := base.DB.Preload("Class").First(&problemSet, c.Param("problem_set_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get problem set while getting problem set problem"))
+	}
+
+	var problems []models.Problem
+	if err := base.DB.Model(&problemSet).Association("Problems").Find(&problems, c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not check problem in problem set for getting problem set problem"))
+	}
+	if len(problems) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+
+	// skip permission check in function FindProblem, check permission in this function instead
+	problem, err := utils.FindProblem(c.Param("id"), nil)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	} else if err != nil {
+		panic(err)
+	}
+
+	user := c.Get("user").(models.User)
+	if user.Can("manage_problem_sets", problemSet.Class) || user.Can("manage_problem_sets") {
+		return c.JSON(http.StatusOK, response.GetProblemSetProblemResponseForAdmin{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemForAdmin `json:"problem"`
+			}{
+				resource.GetProblemForAdmin(problem),
+			},
+		})
+	}
+	if time.Now().Before(problemSet.StartTime) {
+		// TODO: add config to determine if students could read problems and submissions when problem sets end
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+	var users []models.User
+	if err := base.DB.Model(&problemSet.Class).Association("Students").Find(&users, user.ID); err != nil {
+		panic(errors.Wrap(err, "could not check student in class for getting problem set problem"))
+	}
+	if len(users) == 0 {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+	return c.JSON(http.StatusOK, response.GetProblemSetProblemResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.Problem `json:"problem"`
+		}{
+			resource.GetProblem(problem),
+		},
+	})
+}

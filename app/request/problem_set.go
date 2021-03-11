@@ -36,3 +36,6 @@ type DeleteProblemsFromSetRequest struct {
 
 type DeleteProblemSetRequest struct {
 }
+
+type GetProblemSetProblem struct {
+}

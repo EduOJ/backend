@@ -65,3 +65,19 @@ type DeleteProblemsFromSetResponse struct {
 		*resource.ProblemSetDetail `json:"problem_set"`
 	} `json:"data"`
 }
+
+type GetProblemSetProblemResponseForAdmin struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.ProblemForAdmin `json:"problem"`
+	} `json:"data"`
+}
+
+type GetProblemSetProblemResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		*resource.Problem `json:"problem"`
+	} `json:"data"`
+}

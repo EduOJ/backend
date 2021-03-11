@@ -272,6 +272,8 @@ func Register(e *echo.Echo) {
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		})).Name = "problemSet.deleteProblemSet"
+	class.GET("/:class_id/problem_set/:problem_set_id/problem/:id",
+		controller.GetProblemSetProblem, middleware.Logged).Name = "problemSet.getProblemSetProblem"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")
