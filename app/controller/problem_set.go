@@ -280,7 +280,7 @@ func GetProblemSetProblem(c echo.Context) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	} else if err != nil {
-		panic(err)
+		panic(errors.Wrap(err, "could not find problem for getting problem set problem"))
 	}
 
 	user := c.Get("user").(models.User)

@@ -23,9 +23,7 @@ func Register(e *echo.Echo) {
 	api := e.Group("/api", middleware.Authentication)
 
 	// auth APIs
-	auth := api.Group("",
-		middleware.Auth,
-	)
+	auth := api.Group("", middleware.Auth)
 	auth.POST("/auth/login", controller.Login).Name = "auth.login"
 	auth.GET("/auth/login/webauthn", controller.BeginLogin).Name = "auth.webauthn.beginLogin"
 	auth.POST("/auth/login/webauthn", controller.FinishLogin).Name = "auth.webauthn.finishLogin"
@@ -33,9 +31,7 @@ func Register(e *echo.Echo) {
 	auth.GET("/auth/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
 
 	// user APIs
-	user := api.Group("",
-		middleware.Logged,
-	)
+	user := api.Group("", middleware.Logged)
 	readUser := api.Group("",
 		middleware.Logged,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "read_user"}),
@@ -94,7 +90,8 @@ func Register(e *echo.Echo) {
 	)
 	updateProblem := api.Group("",
 		middleware.ValidateParams(map[string]string{
-			"id": "NOT_FOUND",
+			"id":           "NOT_FOUND",
+			"test_case_id": "TEST_CASE_NOT_FOUND",
 		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
@@ -103,16 +100,12 @@ func Register(e *echo.Echo) {
 		}),
 	)
 	api.POST("/problem", controller.CreateProblem,
-		middleware.ValidateParams(map[string]string{
-			"id": "NOT_FOUND",
-		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"}),
 	).Name = "problem.createProblem"
 	api.DELETE("/problem/:id", controller.DeleteProblem,
 		middleware.ValidateParams(map[string]string{
-			"id":           "NOT_FOUND",
-			"test_case_id": "TEST_CASE_NOT_FOUND",
+			"id": "NOT_FOUND",
 		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
@@ -135,13 +128,13 @@ func Register(e *echo.Echo) {
 	// submission APIs
 	submission := api.Group("",
 		middleware.ValidateParams(map[string]string{
-			"id":     "NOT_FOUND",
-			"run_id": "RUN_NOT_FOUND",
-			"pid":    "PROBLEM_NOT_FOUND",
+			"id":            "NOT_FOUND",
+			"submission_id": "SUBMISSION_NOT_FOUND",
+			"problem_id":    "PROBLEM_NOT_FOUND",
 		}),
 		middleware.Logged,
 	)
-	submission.POST("/problem/:pid/submission", controller.CreateSubmission).Name = "submission.createSubmission"
+	submission.POST("/problem/:problem_id/submission", controller.CreateSubmission).Name = "submission.createSubmission"
 	submission.GET("/submission/:id", controller.GetSubmission).Name = "submission.getSubmission"
 	submission.GET("/submissions", controller.GetSubmissions, middleware.Logged).Name = "submission.getSubmissions"
 	submission.GET("/submission/:id/code", controller.GetSubmissionCode, middleware.Logged).Name = "submission.getSubmissionCode"
@@ -151,31 +144,32 @@ func Register(e *echo.Echo) {
 	submission.GET("/submission/:submission_id/run/:id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
 	// log API
-	api.GET("/admin/logs", controller.AdminGetLogs, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
+	api.GET("/admin/logs", controller.AdminGetLogs,
+		middleware.Logged,
+		middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"}),
+	).Name = "admin.getLogs"
 
 	// judger APIs
-	judger := e.Group("",
+	judger := e.Group("", middleware.Judger)
+	api.PUT("/judger/run/:id", controller.UpdateRun,
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
 		middleware.Judger,
-	)
+	).Name = "judger.updateRun"
 	judger.GET("/judger/script/:name", controller.GetScript).Name = "judger.getScript"
 	judger.GET("/judger/task", controller.GetTask).Name = "judger.getTask"
-	judger.PUT("/judger/run/:id", controller.UpdateRun).Name = "judger.updateRun"
 
 	// class APIs
 	class := api.Group("",
 		middleware.ValidateParams(map[string]string{
-			"id":       "NOT_FOUND",
-			"class_id": "CLASS_NOT_FOUND",
+			"id": "NOT_FOUND",
 		}),
 		middleware.Logged,
 	)
 	manageClass := api.Group("",
 		middleware.ValidateParams(map[string]string{
-			"id":       "NOT_FOUND",
-			"class_id": "CLASS_NOT_FOUND",
+			"id": "NOT_FOUND",
 		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
@@ -183,7 +177,10 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		}),
 	)
-	class.POST("/class", controller.CreateClass, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"})).Name = "class.createClass"
+	api.POST("/class", controller.CreateClass,
+		middleware.Logged,
+		middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"}),
+	).Name = "class.createClass"
 	class.GET("/class/:id", controller.GetClass, middleware.Logged).Name = "class.getClass"
 	class.POST("/class/:id/join", controller.JoinClass, middleware.Logged).Name = "class.joinClass"
 	manageClass.PUT("/class/:id", controller.UpdateClass).Name = "class.updateClass"
@@ -203,8 +200,7 @@ func Register(e *echo.Echo) {
 	)
 	createProblemSet := api.Group("",
 		middleware.ValidateParams(map[string]string{
-			"id":       "NOT_FOUND",
-			"class_id": "CLASS_NOT_FOUND",
+			"id": "NOT_FOUND",
 		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
@@ -223,8 +219,8 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		}),
 	)
-	problemSet.GET("/:class_id/problem_set/:id", controller.GetProblemSet).Name = "problemSet.getProblemSet"
-	problemSet.GET("/:class_id/problem_set/:problem_set_id/problem/:id", controller.GetProblemSetProblem).Name = "problemSet.getProblemSetProblem"
+	problemSet.GET("/class/:class_id/problem_set/:id", controller.GetProblemSet).Name = "problemSet.getProblemSet"
+	problemSet.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id", controller.GetProblemSetProblem).Name = "problemSet.getProblemSetProblem"
 	createProblemSet.POST("/class/:id/problem_set", controller.CreateProblemSet).Name = "problemSet.createProblemSet"
 	createProblemSet.POST("/class/:id/problem_set/clone", controller.CloneProblemSet).Name = "problemSet.cloneProblemSet" // TODO: add clone_problem_sets perm check
 	manageProblemSet.PUT("/class/:class_id/problem_set/:id", controller.UpdateProblemSet).Name = "problemSet.updateProblemSet"
@@ -233,22 +229,12 @@ func Register(e *echo.Echo) {
 	manageProblemSet.DELETE("/class/:class_id/problem_set/:id", controller.DeleteProblemSet).Name = "problemSet.deleteProblemSet"
 
 	// problem set submission APIs
-	problemSetCreateSubmission := api.Group("",
-		middleware.ValidateParams(map[string]string{
-			"class_id":       "CLASS_NOT_FOUND",
-			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
-			"pid":            "PROBLEM_NOT_FOUND",
-		}),
-		middleware.Logged,
-		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted}),
-	)
 	problemSetSubmission := api.Group("",
 		middleware.ValidateParams(map[string]string{
 			"id":             "NOT_FOUND",
 			"class_id":       "CLASS_NOT_FOUND",
 			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
 			"submission_id":  "SUBMISSION_NOT_FOUND",
-			"pid":            "PROBLEM_NOT_FOUND",
 		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
@@ -259,7 +245,15 @@ func Register(e *echo.Echo) {
 			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
 		}),
 	)
-	problemSetCreateSubmission.POST("/class/:class_id/problem_set/:problem_set_id/problem/:pid/submission", controller.ProblemSetCreateSubmission).Name = "problemSet.createSubmission"
+	api.POST("/class/:class_id/problem_set/:problem_set_id/problem/:problem_id/submission", controller.ProblemSetCreateSubmission,
+		middleware.ValidateParams(map[string]string{
+			"class_id":       "CLASS_NOT_FOUND",
+			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
+			"problem_id":     "PROBLEM_NOT_FOUND",
+		}),
+		middleware.Logged,
+		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted}),
+	).Name = "problemSet.createSubmission"
 	problemSetSubmission.GET("/class/:class_id/problem_set/:problem_set_id/submission/:id", controller.ProblemSetGetSubmission).Name = "problemSet.getSubmission"
 	problemSetSubmission.GET("/class/:class_id/problem_set/:problem_set_id/submissions", controller.ProblemSetGetSubmissions).Name = "problemSet.getSubmissions"
 	problemSetSubmission.GET("/class/:class_id/problem_set/:problem_set_id/submission/:id/code", controller.ProblemSetGetSubmissionCode).Name = "problemSet.getSubmissionCode"

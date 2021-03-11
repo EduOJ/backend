@@ -29,7 +29,7 @@ func CreateSubmission(c echo.Context) error {
 	}
 
 	problem := models.Problem{}
-	if err := base.DB.First(&problem, c.Param("pid")).Error; err != nil {
+	if err := base.DB.First(&problem, c.Param("problem_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		} else {

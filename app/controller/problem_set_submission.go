@@ -46,7 +46,7 @@ func ProblemSetCreateSubmission(c echo.Context) error {
 	}
 
 	var problems []models.Problem
-	if err := base.DB.Model(&problemSet).Association("Problems").Find(&problems, "id = ?", c.Param("pid")); err != nil {
+	if err := base.DB.Model(&problemSet).Association("Problems").Find(&problems, "id = ?", c.Param("problem_id")); err != nil {
 		panic(errors.Wrap(err, "could not find problem"))
 	}
 	if len(problems) == 0 {
