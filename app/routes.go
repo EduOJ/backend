@@ -153,41 +153,6 @@ func Register(e *echo.Echo) {
 	submission.GET("/:submission_id/run/:id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
 	submission.GET("/:submission_id/run/:id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
-	api.POST("/problem_set/:problem_set_id/problem/:pid/submission",
-		controller.ProblemSetCreateSubmission, middleware.ValidateParams(map[string]string{
-			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
-			"pid":            "PROBLEM_NOT_FOUND",
-		}), middleware.Logged,
-		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted})).Name = "problemSet.createSubmission"
-	problemSetSubmission := api.Group("/problem_set",
-		middleware.ValidateParams(map[string]string{
-			"id":             "NOT_FOUND",
-			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
-			"submission_id":  "SUBMISSION_NOT_FOUND",
-		}),
-		middleware.Logged,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
-				B: middleware.UnscopedPermission{P: "read_answers"},
-			},
-			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
-		}))
-	problemSetSubmission.GET("/:problem_set_id/submission/:id",
-		controller.ProblemSetGetSubmission).Name = "problemSet.getSubmission"
-	problemSetSubmission.GET("/:problem_set_id/submissions",
-		controller.ProblemSetGetSubmissions).Name = "problemSet.getSubmissions"
-	problemSetSubmission.GET("/:problem_set_id/submission/:id/code",
-		controller.ProblemSetGetSubmissionCode).Name = "problemSet.getSubmissionCode"
-	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/output",
-		controller.ProblemSetGetRunOutput).Name = "problemSet.getRunOutput"
-	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/input",
-		controller.ProblemSetGetRunInput).Name = "problemSet.getRunInput"
-	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/compiler_output",
-		controller.ProblemSetGetRunCompilerOutput).Name = "problemSet.getRunCompilerOutput"
-	problemSetSubmission.GET("/:problem_set_id/submission/:submission_id/run/:id/comparer_output",
-		controller.ProblemSetGetRunComparerOutput).Name = "problemSet.getRunComparerOutput"
-
 	admin.GET("/logs",
 		controller.AdminGetLogs, middleware.Logged, middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"})).Name = "admin.getLogs"
 
@@ -274,6 +239,43 @@ func Register(e *echo.Echo) {
 		})).Name = "problemSet.deleteProblemSet"
 	class.GET("/:class_id/problem_set/:problem_set_id/problem/:id",
 		controller.GetProblemSetProblem, middleware.Logged).Name = "problemSet.getProblemSetProblem"
+
+	api.POST("/class/:class_id/problem_set/:problem_set_id/problem/:pid/submission",
+		controller.ProblemSetCreateSubmission, middleware.ValidateParams(map[string]string{
+			"class_id":       "CLASS_NOT_FOUND",
+			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
+			"pid":            "PROBLEM_NOT_FOUND",
+		}), middleware.Logged,
+		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted})).Name = "problemSet.createSubmission"
+	problemSetSubmission := api.Group("/class/:class_id/problem_set/:problem_set_id/submission",
+		middleware.ValidateParams(map[string]string{
+			"id":             "NOT_FOUND",
+			"class_id":       "CLASS_NOT_FOUND",
+			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
+			"submission_id":  "SUBMISSION_NOT_FOUND",
+		}),
+		middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				B: middleware.UnscopedPermission{P: "read_answers"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		}))
+	problemSetSubmission.GET("/:id",
+		controller.ProblemSetGetSubmission).Name = "problemSet.getSubmission"
+	problemSetSubmission.GET("s",
+		controller.ProblemSetGetSubmissions).Name = "problemSet.getSubmissions"
+	problemSetSubmission.GET("/:id/code",
+		controller.ProblemSetGetSubmissionCode).Name = "problemSet.getSubmissionCode"
+	problemSetSubmission.GET("/:submission_id/run/:id/output",
+		controller.ProblemSetGetRunOutput).Name = "problemSet.getRunOutput"
+	problemSetSubmission.GET("/:submission_id/run/:id/input",
+		controller.ProblemSetGetRunInput).Name = "problemSet.getRunInput"
+	problemSetSubmission.GET("/:submission_id/run/:id/compiler_output",
+		controller.ProblemSetGetRunCompilerOutput).Name = "problemSet.getRunCompilerOutput"
+	problemSetSubmission.GET("/:submission_id/run/:id/comparer_output",
+		controller.ProblemSetGetRunComparerOutput).Name = "problemSet.getRunComparerOutput"
 
 	if viper.GetBool("debug") {
 		log.Debugf("Adding pprof handlers. SHOULD NOT BE USED IN PRODUCTION")

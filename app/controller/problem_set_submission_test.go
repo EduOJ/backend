@@ -32,7 +32,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "WithoutParas",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSetInProgress.ID, problem.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -47,9 +47,22 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 			}),
 		},
 		{
+			name:   "NonExistingClass",
+			method: "POST",
+			path:   base.Echo.Reverse("problemSet.createSubmission", -1, problemSetInProgress.ID, problem.ID),
+			req: addFieldContentSlice([]reqContent{
+				newFileContent("code", "code_file_name", b64Encode("test code content")),
+			}, map[string]string{"language": "test_language"}),
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", -1, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, -1, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
@@ -62,7 +75,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "NonExistingProblem",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, -1),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSetInProgress.ID, -1),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
@@ -75,7 +88,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "WithoutCode",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSetInProgress.ID, problem.ID),
 			req: request.CreateSubmissionRequest{
 				Language: "test_language",
 			},
@@ -88,7 +101,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "InvalidLanguage",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSetInProgress.ID, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "invalid_language"}),
@@ -101,7 +114,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "NotInOpenTime",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetNotStartYet.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSetNotStartYet.ID, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
@@ -114,7 +127,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "POST",
-			path:   base.Echo.Reverse("problemSet.createSubmission", problemSetInProgress.ID, problem.ID),
+			path:   base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSetInProgress.ID, problem.ID),
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name", b64Encode("test code content")),
 			}, map[string]string{"language": "test_language"}),
@@ -157,7 +170,7 @@ func TestProblemSetCreateSubmission(t *testing.T) {
 		assert.NoError(t, base.DB.First(&problem, problem.ID).Error)
 		assert.NoError(t, base.DB.Preload("Problems").First(&problemSet, problemSet.ID).Error)
 
-		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("problemSet.createSubmission", problemSet.ID, problem.ID),
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("problemSet.createSubmission", class.ID, problemSet.ID, problem.ID),
 			addFieldContentSlice([]reqContent{
 				newFileContent("code", "code_file_name.test_language", b64Encode("problem_set_create_submission_code_success")),
 			}, map[string]string{
@@ -269,9 +282,20 @@ func TestProblemSetGetSubmission(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmission", -1, problemSetInProgress.ID, submission1.ID),
+			req:    request.ProblemSetGetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", -1, submission1.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmission", class.ID, -1, submission1.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -282,7 +306,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", problemSetInProgress.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getSubmission", class.ID, problemSetInProgress.ID, -1),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -293,7 +317,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", problemSetNotStartYet.ID, submission1.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmission", class.ID, problemSetNotStartYet.ID, submission1.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -304,7 +328,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmission", problemSetInProgress.ID, submission1.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmission", class.ID, problemSetInProgress.ID, submission1.ID),
 			req:    request.ProblemSetGetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -327,7 +351,7 @@ func TestProblemSetGetSubmission(t *testing.T) {
 			newFileContent("code", "code_file_name", b64Encode("problem_set_get_submission_success_0")), 2)
 		submission.ProblemSetID = problemSet.ID
 		assert.NoError(t, base.DB.Save(&submission).Error)
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmission", problemSet.ID, submission.ID),
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmission", class.ID, problemSet.ID, submission.ID),
 			request.ProblemSetGetSubmissionRequest{}, applyUser(student)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.ProblemSetGetSubmissionResponse{}
@@ -354,7 +378,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 		{
 			name:   "WithoutParas",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSetInProgress.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failClass.ID, failProblemSetInProgress.ID),
 			req: request.ProblemSetGetSubmissionsRequest{
 				Limit: -1,
 			},
@@ -371,9 +395,20 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 			}),
 		},
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmissions", -1, failProblemSetInProgress.ID),
+			req:    request.ProblemSetGetSubmissionsRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissions", -1),
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failClass.ID, -1),
 			req:    request.ProblemSetGetSubmissionsRequest{},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -384,7 +419,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSetNotStartYet.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failClass.ID, failProblemSetNotStartYet.ID),
 			req:    request.ProblemSetGetSubmissionsRequest{},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -395,7 +430,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissions", failProblemSetInProgress.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissions", failClass.ID, failProblemSetInProgress.ID),
 			req:    request.ProblemSetGetSubmissionsRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -560,7 +595,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 			Next: getUrlStringPointer("problemSet.getSubmissions", map[string]string{
 				"limit":  "3",
 				"offset": "4",
-			}, problemSet.ID),
+			}, class.ID, problemSet.ID),
 		},
 	}
 
@@ -570,7 +605,7 @@ func TestProblemSetGetSubmissions(t *testing.T) {
 			test := test
 			t.Run("testProblemSetGetSubmissions"+test.name, func(t *testing.T) {
 				t.Parallel()
-				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissions", problemSet.ID), test.req, applyUser(student)))
+				httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissions", class.ID, problemSet.ID), test.req, applyUser(student)))
 				resp := response.GetSubmissionsResponse{}
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
@@ -617,9 +652,20 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", -1, problemSetInProgress.ID, submission1.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", -1, submission1.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", class.ID, -1, submission1.ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -630,7 +676,7 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSetInProgress.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", class.ID, problemSetInProgress.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -641,7 +687,7 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSetNotStartYet.ID, submission2.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", class.ID, problemSetNotStartYet.ID, submission2.ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -652,7 +698,7 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getSubmissionCode", problemSetInProgress.ID, submission1.ID),
+			path:   base.Echo.Reverse("problemSet.getSubmissionCode", class.ID, problemSetInProgress.ID, submission1.ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -666,14 +712,14 @@ func TestProblemSetGetSubmissionCode(t *testing.T) {
 
 	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", problemSetInProgress.ID, submission1.ID),
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", class.ID, problemSetInProgress.ID, submission1.ID),
 			nil, applyUser(user)))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_code_1", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 	t.Run("AdminSuccess", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", problemSetNotStartYet.ID, submission2.ID),
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getSubmissionCode", class.ID, problemSetNotStartYet.ID, submission2.ID),
 			nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_code_2", getPresignedURLContent(t, httpResp.Header.Get("Location")))
@@ -724,9 +770,20 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", -1, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", -1, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -737,7 +794,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -748,7 +805,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission1.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -759,7 +816,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -770,7 +827,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -781,7 +838,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 		{
 			name:   "Judging",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -796,7 +853,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_run_compiler_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -804,7 +861,7 @@ func TestProblemSetGetRunCompilerOutput(t *testing.T) {
 	t.Run("AdminSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunCompilerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.getRunCompilerOutput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_run_compiler_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -860,9 +917,20 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunOutput", -1, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", -1, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -873,7 +941,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -884,7 +952,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -895,7 +963,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -906,7 +974,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -917,7 +985,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "NotSample",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -928,7 +996,7 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 		{
 			name:   "Judging",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -943,14 +1011,14 @@ func TestProblemSetGetRunOutput(t *testing.T) {
 	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 	t.Run("AdminSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.getRunOutput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -989,9 +1057,20 @@ func TestProblemSetGetRunInput(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunInput", -1, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", -1, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", class.ID, -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1002,7 +1081,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1013,7 +1092,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1024,7 +1103,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1035,7 +1114,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1046,7 +1125,7 @@ func TestProblemSetGetRunInput(t *testing.T) {
 		{
 			name:   "NotSample",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
+			path:   base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1061,14 +1140,14 @@ func TestProblemSetGetRunInput(t *testing.T) {
 	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, fmt.Sprintf("problem_%d_test_case_0_input", problem.ID), getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 	t.Run("AdminSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunInput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.getRunInput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, fmt.Sprintf("problem_%d_test_case_0_input", problem.ID), getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
@@ -1124,9 +1203,20 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 
 	failTests := []failTest{
 		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", -1, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", -1, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, -1, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1137,7 +1227,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "NonExistingSubmission",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, -1, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetInProgress.ID, -1, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1148,7 +1238,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "NonExistingRun",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, -1),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetInProgress.ID, submission1.ID, -1),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1159,7 +1249,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1170,7 +1260,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "NotStartYet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1181,7 +1271,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "NotSample",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[1].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1192,7 +1282,7 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 		{
 			name:   "Judging",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
+			path:   base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetInProgress.ID, submission3.ID, submission3.Runs[0].ID),
 			req:    nil,
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1207,14 +1297,14 @@ func TestProblemSetGetRunComparerOutput(t *testing.T) {
 	t.Run("StudentSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
+			base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetInProgress.ID, submission1.ID, submission1.Runs[0].ID), nil, applyUser(user)))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_comparer_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 	t.Run("AdminSuccess", func(t *testing.T) {
 		t.Parallel()
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.getRunComparerOutput", problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.getRunComparerOutput", class.ID, problemSetNotStartYet.ID, submission2.ID, submission2.Runs[0].ID), nil, applyAdminUser))
 		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
 		assert.Equal(t, "problem_set_get_submission_run_comparer_output_0", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
