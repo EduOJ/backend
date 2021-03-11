@@ -633,14 +633,14 @@ func TestGetProblems(t *testing.T) {
 						Message: "SUCCESS",
 						Error:   nil,
 						Data: struct {
-							Problems []resource.Problem `json:"problems"`
-							Total    int                `json:"total"`
-							Count    int                `json:"count"`
-							Offset   int                `json:"offset"`
-							Prev     *string            `json:"prev"`
-							Next     *string            `json:"next"`
+							Problems []resource.ProblemSummary `json:"problems"`
+							Total    int                       `json:"total"`
+							Count    int                       `json:"count"`
+							Offset   int                       `json:"offset"`
+							Prev     *string                   `json:"prev"`
+							Next     *string                   `json:"next"`
 						}{
-							Problems: resource.GetProblemSlice(test.respData.Problems),
+							Problems: resource.GetProblemSummarySlice(test.respData.Problems),
 							Total:    test.respData.Total,
 							Count:    test.respData.Count,
 							Offset:   test.respData.Offset,

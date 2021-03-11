@@ -13,8 +13,8 @@ type ProblemSetDetail struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 
-	Problems []Problem `json:"problems"`
-	Grades   []Grade   `json:"grades"`
+	Problems []ProblemSummary `json:"problems"`
+	Grades   []Grade          `json:"grades"`
 
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
@@ -27,7 +27,7 @@ type ProblemSet struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 
-	Problems []Problem `json:"problems"`
+	Problems []ProblemSummary `json:"problems"`
 
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
@@ -59,7 +59,7 @@ func (p *ProblemSetDetail) convert(problemSet *models.ProblemSet) {
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
-	p.Problems = GetProblemSlice(problemSet.Problems)
+	p.Problems = GetProblemSummarySlice(problemSet.Problems)
 	p.Grades = GetGradeSlice(problemSet.Grades)
 	p.StartTime = problemSet.StartTime
 	p.EndTime = problemSet.EndTime
@@ -70,7 +70,7 @@ func (p *ProblemSet) convert(problemSet *models.ProblemSet) {
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
-	p.Problems = GetProblemSlice(problemSet.Problems)
+	p.Problems = GetProblemSummarySlice(problemSet.Problems)
 	p.StartTime = problemSet.StartTime
 	p.EndTime = problemSet.EndTime
 }

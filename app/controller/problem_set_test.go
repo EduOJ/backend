@@ -155,6 +155,7 @@ func createProblemSetForTest(t *testing.T, name string, id int, class *models.Cl
 			problemSet.EndTime = time.Now().Add(-1 * time.Hour)
 		}
 	}
+	assert.NoError(t, base.DB.Create(&problemSet).Error)
 	assert.NoError(t, base.DB.Model(&class).Association("ProblemSets").Append(&problemSet))
 	assert.NoError(t, base.DB.Model(&problemSet).Association("Problems").Append(problems))
 	return &problemSet

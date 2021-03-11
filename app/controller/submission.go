@@ -143,7 +143,8 @@ func GetSubmission(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find problem"))
 		}
 	}
-	if user.ID != submission.UserID && !user.Can("read_submission", submission.Problem) && !user.Can("read_submission") {
+	if !(user.ID == submission.UserID && submission.ProblemSetID == 0) &&
+		!(user.Can("read_submission", submission.Problem) || user.Can("read_submission")) {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 	if !(submission.UpdatedAt.Before(startedAt.Add(time.Nanosecond)) && poll) {
@@ -253,7 +254,8 @@ func GetSubmissionCode(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find problem"))
 		}
 	}
-	if user.ID != submission.UserID && !user.Can("read_submission", submission.Problem) && !user.Can("read_submission") {
+	if !(user.ID == submission.UserID && submission.ProblemSetID == 0) &&
+		!(user.Can("read_submission", submission.Problem) || user.Can("read_submission")) {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
@@ -278,7 +280,8 @@ func GetRunCompilerOutput(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find problem"))
 		}
 	}
-	if user.ID != submission.UserID && !user.Can("read_submission", submission.Problem) && !user.Can("read_submission") {
+	if !(user.ID == submission.UserID && submission.ProblemSetID == 0) &&
+		!(user.Can("read_submission", submission.Problem) || user.Can("read_submission")) {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
@@ -324,14 +327,13 @@ func GetRunOutput(c echo.Context) error {
 			panic(errors.Wrap(err, "could not find problem"))
 		}
 	}
-
 	canRead := false
 	canReadSecret := false
 
 	if user.Can("read_problem_secret", submission.Problem) || user.Can("read_problem_secret") {
 		canReadSecret = true
 		canRead = true
-	} else if user.ID == submission.UserID {
+	} else if user.ID == submission.UserID && submission.ProblemSetID == 0 {
 		canRead = true
 		canReadSecret = false
 	}
@@ -399,7 +401,7 @@ func GetRunInput(c echo.Context) error {
 	if user.Can("read_problem_secret", submission.Problem) || user.Can("read_problem_secret") {
 		canReadSecret = true
 		canRead = true
-	} else if user.ID == submission.UserID {
+	} else if user.ID == submission.UserID && submission.ProblemSetID == 0 {
 		canRead = true
 		canReadSecret = false
 	}
@@ -463,7 +465,7 @@ func GetRunComparerOutput(c echo.Context) error {
 	if user.Can("read_problem_secret", submission.Problem) || user.Can("read_problem_secret") {
 		canReadSecret = true
 		canRead = true
-	} else if user.ID == submission.UserID {
+	} else if user.ID == submission.UserID && submission.ProblemSetID == 0 {
 		canRead = true
 		canReadSecret = false
 	}

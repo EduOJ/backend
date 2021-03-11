@@ -22,6 +22,16 @@ func Register(e *echo.Echo) {
 	}))
 	api := e.Group("/api", middleware.Authentication)
 
+	// judger APIs
+	judger := e.Group("", middleware.Judger)
+	judger.PUT("/judger/run/:id", controller.UpdateRun,
+		middleware.ValidateParams(map[string]string{
+			"id": "NOT_FOUND",
+		}),
+	).Name = "judger.updateRun"
+	judger.GET("/judger/script/:name", controller.GetScript).Name = "judger.getScript"
+	judger.GET("/judger/task", controller.GetTask).Name = "judger.getTask"
+
 	// auth APIs
 	auth := api.Group("", middleware.Auth)
 	auth.POST("/auth/login", controller.Login).Name = "auth.login"
@@ -149,17 +159,6 @@ func Register(e *echo.Echo) {
 		middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"}),
 	).Name = "admin.getLogs"
 
-	// judger APIs
-	judger := e.Group("", middleware.Judger)
-	api.PUT("/judger/run/:id", controller.UpdateRun,
-		middleware.ValidateParams(map[string]string{
-			"id": "NOT_FOUND",
-		}),
-		middleware.Judger,
-	).Name = "judger.updateRun"
-	judger.GET("/judger/script/:name", controller.GetScript).Name = "judger.getScript"
-	judger.GET("/judger/task", controller.GetTask).Name = "judger.getTask"
-
 	// class APIs
 	class := api.Group("",
 		middleware.ValidateParams(map[string]string{
@@ -219,7 +218,20 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
 		}),
 	)
-	problemSet.GET("/class/:class_id/problem_set/:id", controller.GetProblemSet).Name = "problemSet.getProblemSet"
+	api.GET("/class/:class_id/problem_set/:id", controller.GetProblemSet,
+		middleware.ValidateParams(map[string]string{
+			"id":       "NOT_FOUND",
+			"class_id": "CLASS_NOT_FOUND",
+		}),
+		middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+				B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		}),
+	).Name = "problemSet.getProblemSet"
 	problemSet.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id", controller.GetProblemSetProblem).Name = "problemSet.getProblemSetProblem"
 	createProblemSet.POST("/class/:id/problem_set", controller.CreateProblemSet).Name = "problemSet.createProblemSet"
 	createProblemSet.POST("/class/:id/problem_set/clone", controller.CloneProblemSet).Name = "problemSet.cloneProblemSet" // TODO: add clone_problem_sets perm check

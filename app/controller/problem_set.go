@@ -258,13 +258,27 @@ func DeleteProblemSet(c echo.Context) error {
 }
 
 func GetProblemSetProblem(c echo.Context) error {
-	problemSet := models.ProblemSet{}
 
-	if err := base.DB.Preload("Class").First(&problemSet, c.Param("problem_set_id")).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+	problemSet := models.ProblemSet{}
+	problemSetInContext := c.Get("problem_set")
+	if problemSetInContext != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting problem set problem"))
 		}
-		panic(errors.Wrap(err, "could not get problem set while getting problem set problem"))
+		problemSet = *problemSetInContext.(*models.ProblemSet)
+		utils.PanicIfDBError(base.DB.First(problemSet.Class, problemSet.ClassID), "could not find class while getting problem set problem")
+	} else {
+		if err := base.DB.Preload("Class").
+			First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err, "could not get problem set for getting problem set problem"))
+		}
 	}
 
 	var problems []models.Problem

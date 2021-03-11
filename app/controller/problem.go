@@ -131,14 +131,14 @@ func GetProblems(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Problems []resource.Problem `json:"problems"`
-			Total    int                `json:"total"`
-			Count    int                `json:"count"`
-			Offset   int                `json:"offset"`
-			Prev     *string            `json:"prev"`
-			Next     *string            `json:"next"`
+			Problems []resource.ProblemSummary `json:"problems"`
+			Total    int                       `json:"total"`
+			Count    int                       `json:"count"`
+			Offset   int                       `json:"offset"`
+			Prev     *string                   `json:"prev"`
+			Next     *string                   `json:"next"`
 		}{
-			Problems: resource.GetProblemSlice(problems),
+			Problems: resource.GetProblemSummarySlice(problems),
 			Total:    total,
 			Count:    len(problems),
 			Offset:   req.Offset,

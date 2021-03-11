@@ -298,7 +298,7 @@ func TestCreateSubmission(t *testing.T) {
 func TestGetSubmission(t *testing.T) {
 	t.Parallel()
 
-	// notPublicProblem means a problem which "public" field is false
+	//notPublicProblem means a problem which "public" field is false
 	notPublicProblemCreator := createUserForTest(t, "get_submission_fail", 0)
 	notPublicProblem := createProblemForTest(t, "get_submission_fail", 0, nil, notPublicProblemCreator)
 	assert.NoError(t, base.DB.Model(&notPublicProblem).Update("public", false).Error)
@@ -308,6 +308,11 @@ func TestGetSubmission(t *testing.T) {
 	publicProblem := createProblemForTest(t, "get_submission_fail", 1, nil, publicProblemCreator)
 	publicSubmission := createSubmissionForTest(t, "get_submission_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_fail_1")), 2)
+	user := createUserForTest(t, "get_submission_fail", 2)
+	problemSet := createProblemSetForTest(t, "get_submission_fail", 0, nil, []models.Problem{notPublicProblem}, inProgress)
+	problemSetSubmission := createSubmissionForTest(t, "get_submission_fail", 2, &notPublicProblem, &user, nil, 2)
+	problemSetSubmission.ProblemSetID = problemSet.ID
+	assert.NoError(t, base.DB.Save(&problemSetSubmission).Error)
 
 	failTests := []failTest{
 		{
@@ -354,6 +359,18 @@ func TestGetSubmission(t *testing.T) {
 			req:    request.GetSubmissionRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			// testGetSubmissionProblemSet
+			name:   "ProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmission", problemSetSubmission.ID),
+			req:    request.GetSubmissionRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
 			},
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
@@ -641,6 +658,11 @@ func TestGetSubmissionCode(t *testing.T) {
 	publicProblem := createProblemForTest(t, "get_submission_code_fail", 1, nil, publicProblemCreator)
 	publicSubmission := createSubmissionForTest(t, "get_submission_code_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_submission_code_fail_1")), 2)
+	user := createUserForTest(t, "get_submission_code_fail", 2)
+	problemSet := createProblemSetForTest(t, "get_submission_code_fail", 0, nil, []models.Problem{notPublicProblem}, inProgress)
+	problemSetSubmission := createSubmissionForTest(t, "get_submission_code_fail", 2, &notPublicProblem, &user, nil, 2)
+	problemSetSubmission.ProblemSetID = problemSet.ID
+	assert.NoError(t, base.DB.Save(&problemSetSubmission).Error)
 
 	failTests := []failTest{
 		{
@@ -691,6 +713,18 @@ func TestGetSubmissionCode(t *testing.T) {
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
+		{
+			// testGetSubmissionProblemSet
+			name:   "ProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getSubmissionCode", problemSetSubmission.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
 	}
 
 	// testGetSubmissionCodeFail
@@ -726,6 +760,12 @@ func TestGetRunCompilerOutput(t *testing.T) {
 	publicSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 1, &publicProblem, &publicProblemCreator,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_compiler_output_fail_1")), 2)
 	judgingSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 2, &publicProblem, &publicProblemCreator, nil, 2, "PENDING")
+
+	user := createUserForTest(t, "get_run_compiler_output_fail", 2)
+	problemSet := createProblemSetForTest(t, "get_run_compiler_output_fail", 0, nil, []models.Problem{notPublicProblem}, inProgress)
+	problemSetSubmission := createSubmissionForTest(t, "get_run_compiler_output_fail", 2, &notPublicProblem, &user, nil, 2)
+	problemSetSubmission.ProblemSetID = problemSet.ID
+	assert.NoError(t, base.DB.Save(&problemSetSubmission).Error)
 
 	failTests := []failTest{
 		{
@@ -800,6 +840,18 @@ func TestGetRunCompilerOutput(t *testing.T) {
 			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
 		},
+		{
+			// testGetRunCompilerOutputProblemSet
+			name:   "ProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunCompilerOutput", problemSetSubmission.ID, problemSetSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
 	}
 
 	// testGetRunCompilerOutputFail
@@ -840,6 +892,12 @@ func TestGetRunOutput(t *testing.T) {
 	publicSubmission := createSubmissionForTest(t, "get_run_output_fail", 1, &publicProblem, &publicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_output_fail_1")), 2)
 	judgingSubmission := createSubmissionForTest(t, "get_run_output_fail", 2, &publicProblem, &publicProblemCreator, nil, 2, "PENDING")
+
+	user := createUserForTest(t, "get_run_output_fail", 2)
+	problemSet := createProblemSetForTest(t, "get_run_output_fail", 0, nil, []models.Problem{notPublicProblem}, inProgress)
+	problemSetSubmission := createSubmissionForTest(t, "get_run_output_fail", 2, &notPublicProblem, &user, nil, 2)
+	problemSetSubmission.ProblemSetID = problemSet.ID
+	assert.NoError(t, base.DB.Save(&problemSetSubmission).Error)
 
 	failTests := []failTest{
 		{
@@ -928,6 +986,18 @@ func TestGetRunOutput(t *testing.T) {
 			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
 		},
+		{
+			// testGetRunOutputProblemSet
+			name:   "ProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", problemSetSubmission.ID, problemSetSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
 	}
 
 	// testGetRunOutputFail
@@ -1008,6 +1078,12 @@ func TestGetRunComparerOutput(t *testing.T) {
 	publicSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 1, &publicProblem, &publicProblemSubmitter,
 		newFileContent("code", "code_file_name", b64Encode("test_get_run_comparer_output_fail_1")), 2)
 	judgingSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 2, &publicProblem, &publicProblemCreator, nil, 2, "PENDING")
+
+	user := createUserForTest(t, "get_run_comparer_output_fail", 2)
+	problemSet := createProblemSetForTest(t, "get_run_comparer_output_fail", 0, nil, []models.Problem{notPublicProblem}, inProgress)
+	problemSetSubmission := createSubmissionForTest(t, "get_run_comparer_output_fail", 2, &notPublicProblem, &user, nil, 2)
+	problemSetSubmission.ProblemSetID = problemSet.ID
+	assert.NoError(t, base.DB.Save(&problemSetSubmission).Error)
 
 	failTests := []failTest{
 		{
@@ -1096,6 +1172,18 @@ func TestGetRunComparerOutput(t *testing.T) {
 			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("JUDGEMENT_UNFINISHED", nil),
 		},
+		{
+			// testGetRunComparerOutputProblemSet
+			name:   "ProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunComparerOutput", problemSetSubmission.ID, problemSetSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
 	}
 
 	// testGetRunComparerOutputFail
@@ -1166,7 +1254,11 @@ func TestGetRunInput(t *testing.T) {
 	problem := createProblemForTest(t, "get_run_input_fail", 1, nil, user)
 	problemSubmitter := createUserForTest(t, "get_run_input_fail_submit", 1)
 	submission := createSubmissionForTest(t, "get_run_input_fail", 1, &problem, &problemSubmitter,
-		newFileContent("code", "code_file_name", b64Encode("test_get_run_input_fail_1")), 2)
+		newFileContent("code", "get_run_input_fail", b64Encode("test_get_run_input_fail_1")), 2)
+	problemSet := createProblemSetForTest(t, "get_run_input_fail", 0, nil, []models.Problem{problem}, inProgress)
+	problemSetSubmission := createSubmissionForTest(t, "get_run_input_fail", 2, &problem, &problemSubmitter, nil, 2)
+	problemSetSubmission.ProblemSetID = problemSet.ID
+	assert.NoError(t, base.DB.Save(&problemSetSubmission).Error)
 
 	failTests := []failTest{
 		{
@@ -1245,6 +1337,18 @@ func TestGetRunInput(t *testing.T) {
 			statusCode: http.StatusForbidden,
 			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
 		},
+		{
+			// testGetRunRunInputProblemSet
+			name:   "ProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("submission.getRunInput", problemSetSubmission.ID, problemSetSubmission.Runs[0].ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(problemSubmitter),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
 	}
 
 	// testGetRunRunInputFail
@@ -1273,7 +1377,7 @@ func TestGetRunInput(t *testing.T) {
 		for i, test := range successTests {
 			i := i
 			test := test
-			t.Run("testGetRunComparerOutput"+test.name, func(t *testing.T) {
+			t.Run("testGetRunInput"+test.name, func(t *testing.T) {
 				t.Parallel()
 				user := createUserForTest(t, "get_run_input", i)
 				problem := createProblemForTest(t, "get_run_input", i, nil, user)

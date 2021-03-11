@@ -54,6 +54,19 @@ type Problem struct {
 	TestCases []TestCase `json:"test_cases"`
 }
 
+type ProblemSummary struct {
+	ID                 uint   `json:"id"`
+	Name               string `sql:"index" json:"name"`
+	AttachmentFileName string `json:"attachment_file_name"`
+
+	MemoryLimit       uint64   `json:"memory_limit"` // Byte
+	TimeLimit         uint     `json:"time_limit"`   // ms
+	LanguageAllowed   []string `json:"language_allowed"`
+	CompareScriptName string   `json:"compare_script_name"`
+
+	TestCases []TestCase `json:"test_cases"`
+}
+
 func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {
 	t.ID = testCase.ID
 	t.ProblemID = testCase.ProblemID
@@ -118,6 +131,21 @@ func (p *Problem) convert(problem *models.Problem) {
 	}
 }
 
+func (p *ProblemSummary) convert(problem *models.Problem) {
+	p.ID = problem.ID
+	p.Name = problem.Name
+	p.AttachmentFileName = problem.AttachmentFileName
+	p.MemoryLimit = problem.MemoryLimit
+	p.TimeLimit = problem.TimeLimit
+	p.LanguageAllowed = problem.LanguageAllowed
+	p.CompareScriptName = problem.CompareScriptName
+
+	p.TestCases = make([]TestCase, len(problem.TestCases))
+	for i, testCase := range problem.TestCases {
+		p.TestCases[i].convert(&testCase)
+	}
+}
+
 func GetProblemForAdmin(problem *models.Problem) *ProblemForAdmin {
 	p := ProblemForAdmin{}
 	p.convert(problem)
@@ -142,6 +170,20 @@ func GetProblemSlice(problems []*models.Problem) (profiles []Problem) {
 	profiles = make([]Problem, len(problems))
 	for i, problem := range problems {
 		profiles[i].convert(problem)
+	}
+	return
+}
+
+func GetProblemSummary(problem *models.Problem) *ProblemSummary {
+	p := ProblemSummary{}
+	p.convert(problem)
+	return &p
+}
+
+func GetProblemSummarySlice(problems []*models.Problem) (summaries []ProblemSummary) {
+	summaries = make([]ProblemSummary, len(problems))
+	for i, problem := range problems {
+		summaries[i].convert(problem)
 	}
 	return
 }

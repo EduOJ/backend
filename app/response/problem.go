@@ -16,12 +16,12 @@ type GetProblemsResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		Problems []resource.Problem `json:"problems"`
-		Total    int                `json:"total"`
-		Count    int                `json:"count"`
-		Offset   int                `json:"offset"`
-		Prev     *string            `json:"prev"`
-		Next     *string            `json:"next"`
+		Problems []resource.ProblemSummary `json:"problems"`
+		Total    int                       `json:"total"`
+		Count    int                       `json:"count"`
+		Offset   int                       `json:"offset"`
+		Prev     *string                   `json:"prev"`
+		Next     *string                   `json:"next"`
 	} `json:"data"`
 }
 
