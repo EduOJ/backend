@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"time"
 )
@@ -32,7 +33,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusRequestTimeout, response.ErrorResp("AUTH_SESSION_EXPIRED", nil))
 		}
 		token.UpdatedAt = time.Now()
-		utils.PanicIfDBError(base.DB.Save(&token), "could not update token")
+		utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&token), "could not update token")
 		c.Set("user", token.User)
 		return next(c)
 	}
