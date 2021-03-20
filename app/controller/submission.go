@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -62,22 +61,13 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
 
-	ext := filepath.Ext(file.Filename)
-
-	if ext != "" {
-		ext = ext[1:]
-	}
-
 	priority := models.PriorityDefault
 
 	submission := models.Submission{
 		UserID:       user.ID,
-		User:         &user,
 		ProblemID:    problem.ID,
-		Problem:      &problem,
 		ProblemSetID: 0,
 		LanguageName: language.Name,
-		Language:     &language,
 		FileName:     file.Filename,
 		Priority:     priority,
 		Judged:       false,
@@ -101,6 +91,9 @@ func CreateSubmission(c echo.Context) error {
 		}
 	}
 	utils.PanicIfDBError(base.DB.Create(&submission), "could not create submission and runs")
+	submission.Problem = &problem
+	submission.User = &user
+	submission.Language = &language
 
 	utils.MustPutObject(file, c.Request().Context(), "submissions", fmt.Sprintf("%d/code", submission.ID))
 

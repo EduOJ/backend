@@ -52,7 +52,7 @@ func Register(e *echo.Echo) {
 	)
 	user.GET("/user/me", controller.GetMe).Name = "user.getMe"
 	user.PUT("/user/me", controller.UpdateMe).Name = "user.updateMe"
-	user.GET("/user/:id", controller.GetUser).Name = "user.getUser"
+	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
 	user.GET("/user/me/managing_classes", controller.GetClassesIManage).Name = "user.getClassesIManage"
 	user.GET("/user/me/taking_classes", controller.GetClassesITake).Name = "user.getClassesITake"
 	user.GET("/user/:id/problem_info", controller.GetUserProblemInfo).Name = "user.getUserProblemInfo"
@@ -109,7 +109,7 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		}),
 	)
-	api.POST("/problem", controller.CreateProblem,
+	api.POST("/admin/problem", controller.CreateProblem,
 		middleware.Logged,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"}),
 	).Name = "problem.createProblem"
