@@ -874,3 +874,108 @@ func TestDeleteProblemSet(t *testing.T) {
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 	})
 }
+
+func TestGetProblemSetProblem(t *testing.T) {
+	t.Parallel()
+
+	user := createUserForTest(t, "get_problem_set_problem", 0)
+	problem := createProblemForTest(t, "get_problem_set_problem", 0, nil, user)
+	class := createClassForTest(t, "get_problem_set_problem", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "get_problem_set_problem", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "get_problem_set_problem", 0, &class, []models.Problem{problem}, notStartYet)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblem", -1, problemSetInProgress.ID, problem.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblem", class.ID, -1, problem.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblem",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblem", class.ID, problemSetInProgress.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblem", class.ID, problemSetNotStartYet.ID, problem.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblem", class.ID, problemSetInProgress.ID, problem.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "")
+
+	t.Run("StudentSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getProblemSetProblem", class.ID, problemSetInProgress.ID, problem.ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetProblemSetProblemResponse{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetProblemSetProblemResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.Problem `json:"problem"`
+			}{
+				resource.GetProblem(&problem),
+			},
+		}, resp)
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getProblemSetProblem", class.ID, problemSetNotStartYet.ID, problem.ID), nil, applyAdminUser))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetProblemSetProblemResponseForAdmin{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetProblemSetProblemResponseForAdmin{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemForAdmin `json:"problem"`
+			}{
+				resource.GetProblemForAdmin(&problem),
+			},
+		}, resp)
+	})
+}

@@ -107,6 +107,17 @@ func IsTestCaseSample(c echo.Context) (result bool) {
 	return
 }
 
+func IsTestCaseSampleProblemSet(c echo.Context) (result bool) {
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
+	if err == nil {
+		result = testCase.Sample
+	}
+	c.Set("test_case", testCase)
+	c.Set("problem", problem)
+	c.Set("find_test_case_err", err)
+	return
+}
+
 func ProblemSetStarted(c echo.Context) (result bool) {
 	problemSet := models.ProblemSet{}
 	err := base.DB.First(&problemSet, "class_id = ? and id = ?", c.Param("class_id"), c.Param("problem_set_id")).Error
