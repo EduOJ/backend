@@ -260,6 +260,7 @@ func DeleteProblemSet(c echo.Context) error {
 func GetProblemSetProblem(c echo.Context) error {
 
 	problemSet := models.ProblemSet{}
+	var class *models.Class
 	problemSetInContext := c.Get("problem_set")
 	if problemSetInContext != nil {
 		err := c.Get("find_problem_set_error")
@@ -270,7 +271,8 @@ func GetProblemSetProblem(c echo.Context) error {
 			panic(errors.Wrap(err.(error), "could not find problem set for getting problem set problem"))
 		}
 		problemSet = *problemSetInContext.(*models.ProblemSet)
-		utils.PanicIfDBError(base.DB.First(problemSet.Class, problemSet.ClassID), "could not find class while getting problem set problem")
+		class = &models.Class{}
+		utils.PanicIfDBError(base.DB.First(class, problemSet.ClassID), "could not find class while getting problem set problem")
 	} else {
 		if err := base.DB.Preload("Class").
 			First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
@@ -279,6 +281,7 @@ func GetProblemSetProblem(c echo.Context) error {
 			}
 			panic(errors.Wrap(err, "could not get problem set for getting problem set problem"))
 		}
+		class = problemSet.Class
 	}
 
 	var problems []models.Problem
@@ -298,7 +301,7 @@ func GetProblemSetProblem(c echo.Context) error {
 	}
 
 	user := c.Get("user").(models.User)
-	if user.Can("manage_problem_sets", problemSet.Class) || user.Can("manage_problem_sets") {
+	if user.Can("manage_problem_sets", class) || user.Can("manage_problem_sets") {
 		return c.JSON(http.StatusOK, response.GetProblemSetProblemResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
@@ -314,7 +317,7 @@ func GetProblemSetProblem(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 	var users []models.User
-	if err := base.DB.Model(&problemSet.Class).Association("Students").Find(&users, user.ID); err != nil {
+	if err := base.DB.Model(class).Association("Students").Find(&users, user.ID); err != nil {
 		panic(errors.Wrap(err, "could not check student in class for getting problem set problem"))
 	}
 	if len(users) == 0 {

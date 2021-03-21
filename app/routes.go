@@ -189,14 +189,6 @@ func Register(e *echo.Echo) {
 	manageClass.DELETE("/class/:id", controller.DeleteClass).Name = "class.deleteClass"
 
 	// problem set APIs
-	problemSet := api.Group("",
-		middleware.ValidateParams(map[string]string{
-			"id":             "NOT_FOUND",
-			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
-			"class_id":       "CLASS_NOT_FOUND",
-		}),
-		middleware.Logged,
-	)
 	createProblemSet := api.Group("",
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
@@ -232,7 +224,21 @@ func Register(e *echo.Echo) {
 			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
 		}),
 	).Name = "problemSet.getProblemSet"
-	problemSet.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id", controller.GetProblemSetProblem).Name = "problemSet.getProblemSetProblem"
+	api.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id", controller.GetProblemSetProblem,
+		middleware.ValidateParams(map[string]string{
+			"id":             "NOT_FOUND",
+			"class_id":       "CLASS_NOT_FOUND",
+			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
+		}),
+		middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.OrPermission{
+				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
+				B: middleware.UnscopedPermission{P: "manage_problem_sets"},
+			},
+			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
+		}),
+	).Name = "problemSet.getProblemSetProblem"
 	createProblemSet.POST("/class/:id/problem_set", controller.CreateProblemSet).Name = "problemSet.createProblemSet"
 	createProblemSet.POST("/class/:id/problem_set/clone", controller.CloneProblemSet).Name = "problemSet.cloneProblemSet" // TODO: add clone_problem_sets perm check
 	manageProblemSet.PUT("/class/:class_id/problem_set/:id", controller.UpdateProblemSet).Name = "problemSet.updateProblemSet"
