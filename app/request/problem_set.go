@@ -39,3 +39,9 @@ type DeleteProblemSetRequest struct {
 
 type GetProblemSetProblem struct {
 }
+
+type GetProblemSetProblemInputFile struct {
+}
+
+type GetProblemSetProblemOutputFile struct {
+}

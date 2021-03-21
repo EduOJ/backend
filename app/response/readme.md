@@ -325,6 +325,23 @@ Common return codes.
 |:-----------------------:|:--------------------:|
 |     CLASS_NOT_FOUND     |     无法找到class      |
 
+### GetProblemSetProblem
+|            message           |            结果           |
+|:----------------------------:|:-------------------------:|
+|           NOT_FOUND          |       无法找到problem      |
+|     PROBLEM_SET_NOT_FOUND    | 无法找到problem set或 class |
+
+### GetProblemSetProblemInputFile
+|            message           |            结果           |
+|:----------------------------:|:-------------------------:|
+|           NOT_FOUND          |       无法找到problem      |
+|     PROBLEM_SET_NOT_FOUND    | 无法找到problem set或 class |
+
+### GetProblemSetProblemOutputFile
+|            message           |            结果           |
+|:----------------------------:|:-------------------------:|
+|           NOT_FOUND          |       无法找到problem      |
+|     PROBLEM_SET_NOT_FOUND    | 无法找到problem set或 class |
 
 ## ProblemSetSubmission
 |         message         |         结果          |

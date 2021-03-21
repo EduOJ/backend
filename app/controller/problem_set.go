@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -261,6 +262,7 @@ func GetProblemSetProblem(c echo.Context) error {
 
 	problemSet := models.ProblemSet{}
 	var class *models.Class
+	isAdmin := false
 	problemSetInContext := c.Get("problem_set")
 	if problemSetInContext != nil {
 		err := c.Get("find_problem_set_error")
@@ -282,6 +284,7 @@ func GetProblemSetProblem(c echo.Context) error {
 			panic(errors.Wrap(err, "could not get problem set for getting problem set problem"))
 		}
 		class = problemSet.Class
+		isAdmin = true
 	}
 
 	var problems []models.Problem
@@ -301,7 +304,7 @@ func GetProblemSetProblem(c echo.Context) error {
 	}
 
 	user := c.Get("user").(models.User)
-	if user.Can("manage_problem_sets", class) || user.Can("manage_problem_sets") {
+	if isAdmin {
 		return c.JSON(http.StatusOK, response.GetProblemSetProblemResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
@@ -311,10 +314,6 @@ func GetProblemSetProblem(c echo.Context) error {
 				resource.GetProblemForAdmin(problem),
 			},
 		})
-	}
-	if time.Now().Before(problemSet.StartTime) {
-		// TODO: add config to determine if students could read problems and submissions when problem sets end
-		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 	var users []models.User
 	if err := base.DB.Model(class).Association("Students").Find(&users, user.ID); err != nil {
@@ -332,4 +331,140 @@ func GetProblemSetProblem(c echo.Context) error {
 			resource.GetProblem(problem),
 		},
 	})
+}
+
+func GetProblemSetProblemInputFile(c echo.Context) error {
+	testCase := c.Get("test_case").(*models.TestCase)
+	problem := c.Get("problem").(*models.Problem)
+	var err error
+	// ferr finding error
+	if ferr := c.Get("find_test_case_err"); ferr != nil {
+		err = ferr.(error)
+	}
+	if problem == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+	if testCase == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", nil))
+	}
+	if err != nil {
+		panic(errors.Wrap(err, "could not find test case"))
+	}
+
+	problemSet := models.ProblemSet{}
+	var class *models.Class
+	isAdmin := false
+	problemSetInContext := c.Get("problem_set")
+	if problemSetInContext != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting problem set problem"))
+		}
+		problemSet = *problemSetInContext.(*models.ProblemSet)
+		class = &models.Class{}
+		utils.PanicIfDBError(base.DB.First(class, problemSet.ClassID), "could not find class while getting problem set problem")
+	} else {
+		if err := base.DB.Preload("Class").
+			First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err, "could not get problem set for getting problem set problem"))
+		}
+		class = problemSet.Class
+		isAdmin = true
+	}
+
+	var problems []models.Problem
+	if err := base.DB.Model(&problemSet).Association("Problems").Find(&problems, c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not check problem in problem set for getting problem set problem"))
+	}
+	if len(problems) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+
+	user := c.Get("user").(models.User)
+	var users []models.User
+	if err := base.DB.Model(class).Association("Students").Find(&users, user.ID); err != nil {
+		panic(errors.Wrap(err, "could not check student in class for getting problem set problem"))
+	}
+	if len(users) == 0 && !isAdmin {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID), testCase.InputFileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
+}
+
+func GetProblemSetProblemOutputFile(c echo.Context) error {
+	testCase := c.Get("test_case").(*models.TestCase)
+	problem := c.Get("problem").(*models.Problem)
+	var err error
+	// ferr finding error
+	if ferr := c.Get("find_test_case_err"); ferr != nil {
+		err = ferr.(error)
+	}
+	if problem == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+	if testCase == nil {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
+	}
+	if err != nil {
+		panic(errors.Wrap(err, "could not find test case"))
+	}
+
+	problemSet := models.ProblemSet{}
+	var class *models.Class
+	isAdmin := false
+	problemSetInContext := c.Get("problem_set")
+	if problemSetInContext != nil {
+		err := c.Get("find_problem_set_error")
+		if err != nil {
+			if errors.Is(err.(error), gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err.(error), "could not find problem set for getting problem set problem"))
+		}
+		problemSet = *problemSetInContext.(*models.ProblemSet)
+		class = &models.Class{}
+		utils.PanicIfDBError(base.DB.First(class, problemSet.ClassID), "could not find class while getting problem set problem")
+	} else {
+		if err := base.DB.Preload("Class").
+			First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
+			}
+			panic(errors.Wrap(err, "could not get problem set for getting problem set problem"))
+		}
+		class = problemSet.Class
+		isAdmin = true
+	}
+
+	var problems []models.Problem
+	if err := base.DB.Model(&problemSet).Association("Problems").Find(&problems, c.Param("id")); err != nil {
+		panic(errors.Wrap(err, "could not check problem in problem set for getting problem set problem"))
+	}
+	if len(problems) == 0 {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+	}
+
+	user := c.Get("user").(models.User)
+	var users []models.User
+	if err := base.DB.Model(class).Association("Students").Find(&users, user.ID); err != nil {
+		panic(errors.Wrap(err, "could not check student in class for getting problem set problem"))
+	}
+	if len(users) == 0 && !isAdmin {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
+	}
+	presignedUrl, err := utils.GetPresignedURL("problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID), testCase.OutputFileName)
+	if err != nil {
+		panic(errors.Wrap(err, "could not get presigned url"))
+	}
+	return c.Redirect(http.StatusFound, presignedUrl)
 }
