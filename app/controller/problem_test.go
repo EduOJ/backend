@@ -42,6 +42,13 @@ func getObjectContent(t *testing.T, bucketName, objectName string) (content []by
 	return
 }
 
+func checkObjectNonExist(t *testing.T, bucketName, objectName string) {
+	_, err := base.Storage.StatObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
+	assert.Equal(t, 404, err.(minio.ErrorResponse).StatusCode)
+	assert.Equal(t, "NoSuchKey", err.(minio.ErrorResponse).Code)
+	return
+}
+
 func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fileContent, creator models.User) (problem models.Problem) {
 	problem = models.Problem{
 		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, id),
@@ -2075,7 +2082,7 @@ func TestUpdateTestCase(t *testing.T) {
 				}
 				expectedInputContent, err := ioutil.ReadAll(expectedInputFileReader)
 				assert.NoError(t, err)
-				assert.Equal(t, (expectedInputContent), (getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID))))
+				assert.Equal(t, expectedInputContent, getObjectContent(t, "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, databaseTestCase.ID)))
 
 				var expectedOutputFileReader io.Reader
 				if test.updatedData.OutputFile != nil {
@@ -2085,7 +2092,7 @@ func TestUpdateTestCase(t *testing.T) {
 				}
 				expectedOutputContent, err := ioutil.ReadAll(expectedOutputFileReader)
 				assert.NoError(t, err)
-				assert.Equal(t, (expectedOutputContent), (getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID))))
+				assert.Equal(t, expectedOutputContent, getObjectContent(t, "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, databaseTestCase.ID)))
 
 				resp := response.UpdateTestCaseResponse{}
 				mustJsonDecode(httpResp, &resp)
@@ -2176,6 +2183,7 @@ func TestDeleteTestCase(t *testing.T) {
 		databaseTestcase := models.TestCase{}
 		err := base.DB.First(&databaseTestcase, testCase.ID).Error
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		checkObjectNonExist(t, "problem", fmt.Sprintf("%d/input/%d.in", testCase.ProblemID, testCase.ID))
 	})
 }
 
@@ -2213,8 +2221,9 @@ func TestDeleteTestCases(t *testing.T) {
 
 	t.Run("TestDeleteTestCasesSuccess", func(t *testing.T) {
 		t.Parallel()
+		testCases := make([]models.TestCase, 5)
 		for i := 0; i < 5; i++ {
-			createTestCaseForTest(t, problem, testCaseData{
+			testCases[i] = createTestCaseForTest(t, problem, testCaseData{
 				Score:      0,
 				Sample:     false,
 				InputFile:  newFileContent("input_file", fmt.Sprintf("test_delete_test_cases_%d.in", i), inputTextBase64),
@@ -2230,6 +2239,9 @@ func TestDeleteTestCases(t *testing.T) {
 		var databaseTestCases []models.TestCase
 		assert.NoError(t, base.DB.Find(&databaseTestCases, "problem_id = ?", problem.ID).Error)
 		assert.Equal(t, 0, len(databaseTestCases))
+		for _, tc := range testCases {
+			checkObjectNonExist(t, "problem", fmt.Sprintf("%d/input/%d.in", tc.ProblemID, tc.ID))
+		}
 	})
 }
 

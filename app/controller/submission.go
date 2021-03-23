@@ -39,7 +39,7 @@ func CreateSubmission(c echo.Context) error {
 
 	user := c.Get("user").(models.User)
 
-	if !problem.Public && !user.Can("read_problem", problem) && !user.Can("read_problem") {
+	if !problem.Public && !user.Can("manage_problem", problem) && !user.Can("manage_problem") {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
