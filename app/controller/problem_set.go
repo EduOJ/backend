@@ -413,7 +413,7 @@ func GetProblemSetProblemOutputFile(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
 	if testCase == nil {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", err))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("TEST_CASE_NOT_FOUND", nil))
 	}
 	if err != nil {
 		panic(errors.Wrap(err, "could not find test case"))

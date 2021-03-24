@@ -979,3 +979,219 @@ func TestGetProblemSetProblem(t *testing.T) {
 		}, resp)
 	})
 }
+
+func TestGetProblemSetProblemInputFile(t *testing.T) {
+	t.Parallel()
+
+	user := createUserForTest(t, "get_problem_set_problem_input", 0)
+	problem := createProblemForTest(t, "get_problem_set_problem_input", 0, nil, user)
+	testCase1 := createTestCaseForTest(t, problem, testCaseData{
+		Score:      0,
+		Sample:     false,
+		InputFile:  newFileContent("input_file", "1.in", b64Encode("get_problem_set_problem_input_1")),
+		OutputFile: nil,
+	})
+	testCase2 := createTestCaseForTest(t, problem, testCaseData{
+		Score:      0,
+		Sample:     true,
+		InputFile:  newFileContent("input_file", "2.in", b64Encode("get_problem_set_problem_input_2")),
+		OutputFile: nil,
+	})
+	class := createClassForTest(t, "get_problem_set_problem_input", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "get_problem_set_problem_input", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "get_problem_set_problem_input", 0, &class, []models.Problem{problem}, notStartYet)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", -1, problemSetInProgress.ID, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, -1, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblem",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, problemSetInProgress.ID, -1, testCase1.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingTestCase",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, problemSetInProgress.ID, problem.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("TEST_CASE_NOT_FOUND", nil),
+		},
+		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, problemSetNotStartYet.ID, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, problemSetInProgress.ID, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "")
+
+	t.Run("StudentSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, problemSetInProgress.ID, problem.ID, testCase2.ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "get_problem_set_problem_input_2", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getProblemSetProblemInputFile", class.ID, problemSetInProgress.ID, problem.ID, testCase1.ID), nil, applyAdminUser))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "get_problem_set_problem_input_1", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+}
+
+func TestGetProblemSetProblemOutputFile(t *testing.T) {
+	t.Parallel()
+
+	user := createUserForTest(t, "get_problem_set_problem_output", 0)
+	problem := createProblemForTest(t, "get_problem_set_problem_output", 0, nil, user)
+	testCase1 := createTestCaseForTest(t, problem, testCaseData{
+		Score:      0,
+		Sample:     false,
+		InputFile:  nil,
+		OutputFile: newFileContent("output_file", "1.out", b64Encode("get_problem_set_problem_output_1")),
+	})
+	testCase2 := createTestCaseForTest(t, problem, testCaseData{
+		Score:      0,
+		Sample:     true,
+		InputFile:  nil,
+		OutputFile: newFileContent("output_file", "2.out", b64Encode("get_problem_set_problem_output_2")),
+	})
+	class := createClassForTest(t, "get_problem_set_problem_output", 0, nil, []*models.User{&user})
+	problemSetInProgress := createProblemSetForTest(t, "get_problem_set_problem_output", 0, &class, []models.Problem{problem}, inProgress)
+	problemSetNotStartYet := createProblemSetForTest(t, "get_problem_set_problem_output", 0, &class, []models.Problem{problem}, notStartYet)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", -1, problemSetInProgress.ID, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, -1, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblem",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, problemSetInProgress.ID, -1, testCase1.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingTestCase",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, problemSetInProgress.ID, problem.ID, 0),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("TEST_CASE_NOT_FOUND", nil),
+		},
+		{
+			name:   "NotStartYet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, problemSetNotStartYet.ID, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, problemSetInProgress.ID, problem.ID, testCase2.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "")
+
+	t.Run("StudentSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, problemSetInProgress.ID, problem.ID, testCase2.ID), nil, applyUser(user)))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "get_problem_set_problem_output_2", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+	t.Run("AdminSuccess", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.getProblemSetProblemOutputFile", class.ID, problemSetInProgress.ID, problem.ID, testCase1.ID), nil, applyAdminUser))
+		assert.Equal(t, http.StatusFound, httpResp.StatusCode)
+		assert.Equal(t, "get_problem_set_problem_output_1", getPresignedURLContent(t, httpResp.Header.Get("Location")))
+	})
+}
