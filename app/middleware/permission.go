@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
@@ -126,6 +127,7 @@ func ProblemSetStarted(c echo.Context) (result bool) {
 	if err == nil {
 		return time.Now().After(problemSet.StartTime)
 	} else {
+		log.Info(c.Request())
 		return true
 	}
 }
