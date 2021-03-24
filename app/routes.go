@@ -278,7 +278,7 @@ func Register(e *echo.Echo) {
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_answers", T: "problem_set"},
+				A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
 				B: middleware.UnscopedPermission{P: "read_answers"},
 			},
 			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
