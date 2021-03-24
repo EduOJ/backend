@@ -101,17 +101,9 @@ func GetProblemSet(c echo.Context) error {
 		panic(errors.Wrap(err, "could not get class while creating problem set"))
 	}
 
-	query := base.DB
-	isAdmin := false
-
 	user := c.Get("user").(models.User)
-	if user.Can("manage_problem_sets", class) || user.Can("manage_problem_sets") {
-		query = query.Preload("Grades")
-		isAdmin = true
-	}
-
 	problemSet := models.ProblemSet{}
-	if err := query.Preload("Problems").
+	if err := base.DB.Preload("Problems").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -119,7 +111,7 @@ func GetProblemSet(c echo.Context) error {
 		panic(errors.Wrap(err, "could not get class for getting problem set"))
 	}
 
-	if isAdmin {
+	if user.Can("manage_problem_sets", class) || user.Can("manage_problem_sets") {
 		return c.JSON(http.StatusOK, response.GetProblemSetResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
@@ -159,7 +151,7 @@ func UpdateProblemSet(c echo.Context) error {
 		return err
 	}
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").Preload("Grades").
+	if err := base.DB.Preload("Problems").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -190,7 +182,7 @@ func AddProblemsToSet(c echo.Context) error {
 	}
 
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").Preload("Grades").
+	if err := base.DB.Preload("Problems").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -219,7 +211,7 @@ func DeleteProblemsFromSet(c echo.Context) error {
 	}
 
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").Preload("Grades").
+	if err := base.DB.Preload("Problems").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
