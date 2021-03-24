@@ -1065,6 +1065,41 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
+		{
+			ID: "set_grade_unique",
+			Migrate: func(tx *gorm.DB) error {
+				type Grade struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					UserID       uint `json:"user_id" gorm:"index:grade_user_problem_set,unique"`
+					ProblemSetID uint `json:"problem_set_id" gorm:"index:grade_user_problem_set,unique"`
+
+					Detail datatypes.JSON `json:"detail"`
+					Total  uint           `json:"total"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Grade{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Grade struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					UserID       uint `json:"user_id" gorm:"index:grade_user_problem_set,unique"`
+					ProblemSetID uint `json:"problem_set_id" gorm:"index:grade_user_problem_set,unique"`
+
+					Detail datatypes.JSON `json:"detail"`
+					Total  uint           `json:"total"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().DropIndex(&Grade{}, "grade_user_problem_set")
+			},
+		},
 	})
 }
 
