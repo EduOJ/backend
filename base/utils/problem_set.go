@@ -44,7 +44,9 @@ func UpdateGrade(submission *models.Submission) error {
 	if err != nil {
 		return err
 	}
-	detail[submission.ProblemID] = submission.Score
+	if detail[submission.ProblemID] < submission.Score {
+		detail[submission.ProblemID] = submission.Score
+	}
 	grade.Detail, err = json.Marshal(detail)
 	return base.DB.Save(&grade).Error
 }
