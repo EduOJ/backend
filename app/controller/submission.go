@@ -323,7 +323,7 @@ func GetRunOutput(c echo.Context) error {
 	canRead := false
 	canReadSecret := false
 
-	if user.Can("read_problem_secret", submission.Problem) || user.Can("read_problem_secret") {
+	if user.Can("read_problem_secrets", submission.Problem) || user.Can("read_problem_secrets") {
 		canReadSecret = true
 		canRead = true
 	} else if user.ID == submission.UserID && submission.ProblemSetID == 0 {
@@ -391,7 +391,7 @@ func GetRunInput(c echo.Context) error {
 	canRead := false
 	canReadSecret := false
 
-	if user.Can("read_problem_secret", submission.Problem) || user.Can("read_problem_secret") {
+	if user.Can("read_problem_secrets", submission.Problem) || user.Can("read_problem_secrets") {
 		canReadSecret = true
 		canRead = true
 	} else if user.ID == submission.UserID && submission.ProblemSetID == 0 {
@@ -455,7 +455,7 @@ func GetRunComparerOutput(c echo.Context) error {
 	canRead := false
 	canReadSecret := false
 
-	if user.Can("read_problem_secret", submission.Problem) || user.Can("read_problem_secret") {
+	if user.Can("read_problem_secrets", submission.Problem) || user.Can("read_problem_secrets") {
 		canReadSecret = true
 		canRead = true
 	} else if user.ID == submission.UserID && submission.ProblemSetID == 0 {

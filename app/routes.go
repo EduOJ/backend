@@ -93,8 +93,8 @@ func Register(e *echo.Echo) {
 				F: middleware.IsTestCaseSample,
 			},
 			B: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_problem_secret", T: "problem"},
-				B: middleware.UnscopedPermission{P: "read_problem_secret"},
+				A: middleware.ScopedPermission{P: "read_problem_secrets", T: "problem"},
+				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
 		}),
 	)
@@ -252,8 +252,8 @@ func Register(e *echo.Echo) {
 				F: middleware.IsTestCaseSampleProblemSet,
 			},
 			B: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_problem_secret", T: "class", IdFieldName: "class_id"},
-				B: middleware.UnscopedPermission{P: "read_problem_secret"},
+				A: middleware.ScopedPermission{P: "read_problem_secrets", T: "class", IdFieldName: "class_id"},
+				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
 		})).Name = "problemSet.getProblemSetProblemInputFile"
 	problemSetProblem.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id/test_case/:test_case_id/output_file", controller.GetProblemSetProblemOutputFile,
@@ -262,8 +262,8 @@ func Register(e *echo.Echo) {
 				F: middleware.IsTestCaseSampleProblemSet,
 			},
 			B: middleware.OrPermission{
-				A: middleware.ScopedPermission{P: "read_problem_secret", T: "class", IdFieldName: "class_id"},
-				B: middleware.UnscopedPermission{P: "read_problem_secret"},
+				A: middleware.ScopedPermission{P: "read_problem_secrets", T: "class", IdFieldName: "class_id"},
+				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
 		})).Name = "problemSet.getProblemSetProblemOutputFile"
 
