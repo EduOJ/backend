@@ -1100,6 +1100,79 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropIndex(&Grade{}, "grade_user_problem_set")
 			},
 		},
+		{
+			ID: "add_class_id_field_in_grades",
+			Migrate: func(tx *gorm.DB) error {
+				type Class struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+				}
+				type ProblemSet struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					ClassID     uint   `sql:"index" json:"class_id" gorm:"not null"`
+					Name        string `json:"name" gorm:"not null;size:255"`
+					Description string `json:"description"`
+
+					StartTime time.Time `json:"start_time"`
+					EndTime   time.Time `json:"end_time"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				type Grade struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					UserID       uint        `json:"user_id" gorm:"index:grade_user_problem_set,unique"`
+					ProblemSetID uint        `json:"problem_set_id" gorm:"index:grade_user_problem_set,unique"`
+					ProblemSet   *ProblemSet `json:"problem_set"`
+					ClassID      uint        `json:"class_id"`
+					Class        *Class      `json:"class" gorm:"foreignKey:ClassID"`
+
+					Detail datatypes.JSON `json:"detail"`
+					Total  uint           `json:"total"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				err := tx.AutoMigrate(&Grade{})
+				if err != nil {
+					return err
+				}
+				var grades []Grade
+				it, err := NewIterator(tx.Preload("ProblemSet"), &grades)
+				if err != nil {
+					return err
+				}
+				for true {
+					ok, err := it.Next()
+					if err != nil || !ok {
+						return err
+					}
+					grade := &grades[it.index]
+					grade.ClassID = grade.ProblemSet.ClassID
+				}
+				return nil
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Grade struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					UserID       uint `json:"user_id" gorm:"index:grade_user_problem_set,unique"`
+					ProblemSetID uint `json:"problem_set_id" gorm:"index:grade_user_problem_set,unique"`
+					ClassID      uint `json:"class_id"`
+
+					Detail datatypes.JSON `json:"detail"`
+					Total  uint           `json:"total"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().DropColumn(&Grade{}, "ClassID")
+			},
+		},
 	})
 }
 

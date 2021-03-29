@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"gorm.io/gorm"
 )
 
@@ -31,12 +32,12 @@ func NewIterator(query *gorm.DB, branch interface{}, limit ...int) (it *Iterator
 }
 
 func (it *Iterator) nextBranch() error {
-	ret := it.query.Limit(it.limit).Offset(it.offset).Find(it.branch)
-	if err := ret.Error; err != nil {
+
+	if err := it.query.WithContext(context.Background()).Limit(it.limit).Offset(it.offset).Find(it.branch).Error; err != nil {
 		return err
 	}
 	var count int64
-	if err := it.query.Model(it.branch).Count(&count).Error; err != nil {
+	if err := it.query.WithContext(context.Background()).Model(it.branch).Count(&count).Error; err != nil {
 		return err
 	}
 	if c := int(count) - it.offset; c < it.limit {
@@ -51,11 +52,19 @@ func (it *Iterator) nextBranch() error {
 
 func (it *Iterator) Next() (ok bool, err error) {
 	if it.index+1 == it.limit {
+		if err = it.saveBranch(); err != nil {
+			return
+		}
 		if err = it.nextBranch(); err != nil {
 			return
 		}
 	}
-	if it.index+1 == int(it.count) {
+	if it.index+1 == it.count {
+		if it.count > 0 {
+			if err = it.saveBranch(); err != nil {
+				return
+			}
+		}
 		return false, nil
 	}
 	it.index++
@@ -64,4 +73,8 @@ func (it *Iterator) Next() (ok bool, err error) {
 
 func (it *Iterator) Index() interface{} {
 	return it.index
+}
+
+func (it *Iterator) saveBranch() error {
+	return it.query.Save(it.branch).Error
 }

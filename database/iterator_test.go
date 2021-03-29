@@ -29,6 +29,8 @@ func TestIterator(t *testing.T) {
 
 	t.Run("Global", func(t *testing.T) {
 		// Not Parallel
+		err = tx.Delete(&TestingObject{}, "id > 0").Error
+		assert.NoError(t, err)
 		objects := []TestingObject{
 			{
 				Name: "test_iterator_1",
@@ -46,10 +48,12 @@ func TestIterator(t *testing.T) {
 		ts := make([]TestingObject, 2)
 		it, err := NewIterator(tx, &ts, 2)
 		assert.NoError(t, err)
-		var ok bool
-		for i := 0; ok; i++ {
-			ok, err = it.Next()
+		for i := 0; true; i++ {
+			ok, err := it.Next()
 			assert.NoError(t, err)
+			if !ok {
+				break
+			}
 			assert.Equal(t, objects[i].ID, ts[it.index].ID)
 			assert.Equal(t, objects[i].Name, ts[it.index].Name)
 		}
@@ -73,10 +77,12 @@ func TestIterator(t *testing.T) {
 		ts := make([]TestingObject, 2)
 		it, err := NewIterator(tx.Where("name like ?", "%search%"), &ts, 2)
 		assert.NoError(t, err)
-		var ok bool
-		for i := 0; ok; i++ {
-			ok, err = it.Next()
+		for i := 0; true; i++ {
+			ok, err := it.Next()
 			assert.NoError(t, err)
+			if !ok {
+				break
+			}
 			assert.Equal(t, objects[i].ID, ts[it.index].ID)
 			assert.Equal(t, objects[i].Name, ts[it.index].Name)
 		}
