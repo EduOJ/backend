@@ -104,7 +104,7 @@ func GetProblemSet(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	problemSet := models.ProblemSet{}
 	if err := base.DB.Preload("Problems").
-		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
+		First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
@@ -152,7 +152,7 @@ func UpdateProblemSet(c echo.Context) error {
 	}
 	problemSet := models.ProblemSet{}
 	if err := base.DB.Preload("Problems").
-		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
+		First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
@@ -234,7 +234,7 @@ func DeleteProblemsFromSet(c echo.Context) error {
 
 func DeleteProblemSet(c echo.Context) error {
 	problemSet := models.ProblemSet{}
-	if err := base.DB.First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
+	if err := base.DB.First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}

@@ -5,7 +5,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
-	"github.com/EduOJ/backend/database/models"
+	"github.com/EduOJ/backend/database/models/log"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -18,7 +18,7 @@ func AdminGetLogs(c echo.Context) error {
 		return err
 	}
 
-	query := base.DB.Model(&models.Log{}).Order("id desc")
+	query := base.DB.Model(&log.Log{}).Order("id desc")
 
 	if len(req.Levels) != 0 {
 		levelsS := strings.Split(req.Levels, ",")
@@ -36,7 +36,7 @@ func AdminGetLogs(c echo.Context) error {
 		query = query.Where("level in (?)", levels)
 	}
 
-	var logs []models.Log
+	var logs []log.Log
 	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &logs)
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {
@@ -48,12 +48,12 @@ func AdminGetLogs(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			Logs   []models.Log `json:"logs"`
-			Total  int          `json:"total"`
-			Count  int          `json:"count"`
-			Offset int          `json:"offset"`
-			Prev   *string      `json:"prev"`
-			Next   *string      `json:"next"`
+			Logs   []log.Log `json:"logs"`
+			Total  int       `json:"total"`
+			Count  int       `json:"count"`
+			Offset int       `json:"offset"`
+			Prev   *string   `json:"prev"`
+			Next   *string   `json:"next"`
 		}{
 			logs,
 			total,

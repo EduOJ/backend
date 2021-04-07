@@ -2,13 +2,13 @@ package log
 
 import (
 	"fmt"
+	"github.com/EduOJ/backend/database/models/log"
 	"github.com/fatih/color"
 	"strings"
 
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/exit"
-	"github.com/EduOJ/backend/database/models"
 )
 
 // Writers should only be used in this package.
@@ -70,7 +70,7 @@ func (w *databaseWriter) init() {
 			select {
 			case l := <-w.queue:
 				ll := int(l.Level)
-				lm := models.Log{
+				lm := log.Log{
 					Level:     &ll,
 					Message:   l.Message,
 					Caller:    l.Caller,
@@ -81,7 +81,7 @@ func (w *databaseWriter) init() {
 				select {
 				case l := <-w.queue:
 					ll := int(l.Level)
-					lm := models.Log{
+					lm := log.Log{
 						Level:     &ll,
 						Message:   l.Message,
 						Caller:    l.Caller,

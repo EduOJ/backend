@@ -6,7 +6,6 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/duo-labs/webauthn/protocol"
@@ -25,7 +24,6 @@ var cac = cache.New(5*time.Minute, 10*time.Minute)
 
 func BeginRegistration(c echo.Context) error {
 	user := c.Get("user").(models.User)
-	log.Debug(base.WebAuthn.Config)
 	options, sessionData, err := base.WebAuthn.BeginRegistration(&user)
 	if err != nil {
 		panic(errors.Wrap(err, "could not begin register webauthn"))

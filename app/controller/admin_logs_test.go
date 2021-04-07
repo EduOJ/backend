@@ -6,7 +6,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
-	"github.com/EduOJ/backend/database/models"
+	log2 "github.com/EduOJ/backend/database/models/log"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -64,11 +64,11 @@ func TestAdminGetLogs(t *testing.T) {
 
 	runFailTests(t, failTests, "AdminGetLogs")
 
-	logs := make([]models.Log, 5)
+	logs := make([]log2.Log, 5)
 	var ll log.Level
 	for ll = 0; ll < 5; ll++ {
 		llInt := int(ll)
-		l := models.Log{
+		l := log2.Log{
 			Level:   &llInt,
 			Message: fmt.Sprintf("test_admin_get_logs_%s_message", ll.String()),
 			Caller:  fmt.Sprintf("test_admin_get_logs_%s_caller", ll.String()),
@@ -93,14 +93,14 @@ func TestAdminGetLogs(t *testing.T) {
 				Message: "SUCCESS",
 				Error:   nil,
 				Data: struct {
-					Logs   []models.Log `json:"logs"`
-					Total  int          `json:"total"`
-					Count  int          `json:"count"`
-					Offset int          `json:"offset"`
-					Prev   *string      `json:"prev"`
-					Next   *string      `json:"next"`
+					Logs   []log2.Log `json:"logs"`
+					Total  int        `json:"total"`
+					Count  int        `json:"count"`
+					Offset int        `json:"offset"`
+					Prev   *string    `json:"prev"`
+					Next   *string    `json:"next"`
 				}{
-					Logs: []models.Log{
+					Logs: []log2.Log{
 						logs[2],
 					},
 					Total:  1,
@@ -122,14 +122,14 @@ func TestAdminGetLogs(t *testing.T) {
 				Message: "SUCCESS",
 				Error:   nil,
 				Data: struct {
-					Logs   []models.Log `json:"logs"`
-					Total  int          `json:"total"`
-					Count  int          `json:"count"`
-					Offset int          `json:"offset"`
-					Prev   *string      `json:"prev"`
-					Next   *string      `json:"next"`
+					Logs   []log2.Log `json:"logs"`
+					Total  int        `json:"total"`
+					Count  int        `json:"count"`
+					Offset int        `json:"offset"`
+					Prev   *string    `json:"prev"`
+					Next   *string    `json:"next"`
 				}{
-					Logs: []models.Log{
+					Logs: []log2.Log{
 						logs[4], logs[2], logs[1], logs[0],
 					},
 					Total:  4,
@@ -151,14 +151,14 @@ func TestAdminGetLogs(t *testing.T) {
 				Message: "SUCCESS",
 				Error:   nil,
 				Data: struct {
-					Logs   []models.Log `json:"logs"`
-					Total  int          `json:"total"`
-					Count  int          `json:"count"`
-					Offset int          `json:"offset"`
-					Prev   *string      `json:"prev"`
-					Next   *string      `json:"next"`
+					Logs   []log2.Log `json:"logs"`
+					Total  int        `json:"total"`
+					Count  int        `json:"count"`
+					Offset int        `json:"offset"`
+					Prev   *string    `json:"prev"`
+					Next   *string    `json:"next"`
 				}{
-					Logs: []models.Log{
+					Logs: []log2.Log{
 						logs[2], logs[1],
 					},
 					Total:  4,
