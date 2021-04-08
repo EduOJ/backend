@@ -81,11 +81,11 @@ func (p *Problem) AfterDelete(tx *gorm.DB) (err error) {
 func (t *TestCase) AfterDelete(tx *gorm.DB) (err error) {
 	err = base.Storage.RemoveObject(context.Background(), "problems", fmt.Sprintf("%d/input/%d.in", t.ProblemID, t.ID), minio.RemoveObjectOptions{})
 	if err != nil {
-		log.Errorf("Error occured in TestCase afterDelete, %+v\n", err)
+		log.Errorf("Error occurred in TestCase afterDelete, %+v\n", err)
 	}
 	err = base.Storage.RemoveObject(context.Background(), "problems", fmt.Sprintf("%d/output/%d.out", t.ProblemID, t.ID), minio.RemoveObjectOptions{})
 	if err != nil {
-		log.Errorf("Error occured in TestCase afterDelete, %+v\n", err)
+		log.Errorf("Error occurred in TestCase afterDelete, %+v\n", err)
 	}
 	return tx.Where("test_case_id = ?", t.ID).Delete(&Run{}).Error
 }
