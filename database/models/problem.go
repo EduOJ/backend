@@ -1,8 +1,12 @@
 package models
 
 import (
+	"context"
+	"fmt"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/database"
+	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"time"
 )
@@ -74,6 +78,14 @@ func (p *Problem) AfterDelete(tx *gorm.DB) (err error) {
 	return tx.Where("problem_id = ?", p.ID).Delete(&TestCase{}).Error
 }
 
-func (s *TestCase) AfterDelete(tx *gorm.DB) (err error) {
-	return tx.Where("test_case_id = ?", s.ID).Delete(&Run{}).Error
+func (t *TestCase) AfterDelete(tx *gorm.DB) (err error) {
+	err = base.Storage.RemoveObject(context.Background(), "problems", fmt.Sprintf("%d/input/%d.in", t.ProblemID, t.ID), minio.RemoveObjectOptions{})
+	if err != nil {
+		log.Errorf("Error occurred in TestCase afterDelete, %+v\n", err)
+	}
+	err = base.Storage.RemoveObject(context.Background(), "problems", fmt.Sprintf("%d/output/%d.out", t.ProblemID, t.ID), minio.RemoveObjectOptions{})
+	if err != nil {
+		log.Errorf("Error occurred in TestCase afterDelete, %+v\n", err)
+	}
+	return tx.Where("test_case_id = ?", t.ID).Delete(&Run{}).Error
 }

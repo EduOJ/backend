@@ -5,7 +5,7 @@ import (
 	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/exit"
 	"github.com/EduOJ/backend/database"
-	"github.com/EduOJ/backend/database/models"
+	log2 "github.com/EduOJ/backend/database/models/log"
 	"github.com/kami-zh/go-capturer"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -92,14 +92,14 @@ func TestDatabaseWriter(t *testing.T) {
 	}
 	exit.Close()
 	exit.QuitWG.Wait()
-	lm := models.Log{}
+	lm := log2.Log{}
 	count := int64(-1)
 	assert.NoError(t, base.DB.Table("logs").Count(&count).Error)
 	assert.LessOrEqual(t, int64(100), count)
 
 	assert.NoError(t, base.DB.First(&lm).Error)
 	ll := int(DEBUG)
-	assert.Equal(t, models.Log{
+	assert.Equal(t, log2.Log{
 		ID:        lm.ID,
 		Level:     &ll,
 		Message:   "123",

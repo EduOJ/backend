@@ -30,9 +30,14 @@ func UpdateGrade(submission *models.Submission) error {
 	err = base.DB.First(&grade, "problem_set_id = ? and user_id = ?", submission.ProblemSetID, submission.UserID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			problemSet := models.ProblemSet{}
+			if err := base.DB.First(&problemSet, submission.ProblemSetID).Error; err != nil {
+				return err
+			}
 			grade = models.Grade{
 				UserID:       submission.UserID,
 				ProblemSetID: submission.ProblemSetID,
+				ClassID:      problemSet.ClassID,
 				Detail:       datatypes.JSON("{}"),
 				Total:        0,
 			}
@@ -44,7 +49,9 @@ func UpdateGrade(submission *models.Submission) error {
 	if err != nil {
 		return err
 	}
-	detail[submission.ProblemID] = submission.Score
+	if detail[submission.ProblemID] < submission.Score {
+		detail[submission.ProblemID] = submission.Score
+	}
 	grade.Detail, err = json.Marshal(detail)
 	return base.DB.Save(&grade).Error
 }

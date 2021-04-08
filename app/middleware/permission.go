@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
@@ -107,14 +108,29 @@ func IsTestCaseSample(c echo.Context) (result bool) {
 	return
 }
 
+func IsTestCaseSampleProblemSet(c echo.Context) (result bool) {
+	testCase, problem, err := utils.FindTestCase(c.Param("id"), c.Param("test_case_id"), nil)
+	if err == nil {
+		result = testCase.Sample
+	}
+	c.Set("test_case", testCase)
+	c.Set("problem", problem)
+	c.Set("find_test_case_err", err)
+	return
+}
+
 func ProblemSetStarted(c echo.Context) (result bool) {
 	problemSet := models.ProblemSet{}
 	err := base.DB.First(&problemSet, "class_id = ? and id = ?", c.Param("class_id"), c.Param("problem_set_id")).Error
+	if c.Param("problem_set_id") == "" {
+		log.Infof("%+v\n%s\n", c.Request(), c.Param("problem_set_id"))
+	}
 	c.Set("problem_set", &problemSet)
 	c.Set("find_problem_set_error", err)
 	if err == nil {
 		return time.Now().After(problemSet.StartTime)
 	} else {
+		log.Info(c.Request())
 		return true
 	}
 }

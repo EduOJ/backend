@@ -34,6 +34,8 @@ type Grade struct {
 	User         *User       `json:"user"`
 	ProblemSetID uint        `json:"problem_set_id"`
 	ProblemSet   *ProblemSet `json:"problem_set"`
+	ClassID      uint        `json:"class_id"`
+	Class        *Class      `json:"class"`
 
 	Detail datatypes.JSON `json:"detail"`
 	Total  uint           `json:"total"`
