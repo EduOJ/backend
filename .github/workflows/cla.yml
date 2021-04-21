@@ -21,7 +21,7 @@ jobs:
           path-to-signatures: 'signatures/version1/cla.json'
           path-to-document: 'https://github.com/EduOJ/cla/blob/main/cla.txt' # e.g. a CLA or a DCO document
           # branch should not be protected
-          branch: 'master'
+          branch: main
           remote-organization-name: eduoj
           remote-repository-name: cla
           signed-commit-message: 'For example: $contributorName has signed the CLA in #$pullRequestNo'
