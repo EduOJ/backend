@@ -221,17 +221,44 @@ func GetGrades(c echo.Context) error {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
 		panic(errors.Wrap(err, "could not get class for getting problem set"))
-	} else {
-		return c.JSON(http.StatusOK, response.GetGradesResponse{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.ProblemSetWithGrades `json:"grades"`
-			}{
-				resource.GetGrades(&problemSet),
-			},
-		})
 	}
+
+	students := []*models.User{}
+	if err := base.DB.Preload("Students").First(students, c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class while creating problem set"))
+	} else {
+		studentsLen := len(students)
+		problemSetGradesLen := len(problemSet.Grades)
+	walk:
+		for i := 0; i < studentsLen; i++ {
+			for j := 0; j < problemSetGradesLen; j++ {
+				if students[i].ID != problemSet.Grades[j].UserID {
+					continue
+				} else {
+					continue walk
+				}
+			}
+			problemSet.Grades = append(problemSet.Grades, &models.Grade{
+				UserID:       students[i].ID,
+				ProblemSet:   &problemSet,
+				ProblemSetID: problemSet.ID,
+				Total:        0,
+			})
+		}
+	}
+
+	return c.JSON(http.StatusOK, response.GetGradesResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.ProblemSetWithGrades `json:"grades"`
+		}{
+			resource.GetGrades(&problemSet),
+		},
+	})
 
 }
 

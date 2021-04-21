@@ -188,6 +188,20 @@ func Register(e *echo.Echo) {
 	manageClass.DELETE("/class/:id/students", controller.DeleteStudents).Name = "class.deleteStudents"
 	manageClass.DELETE("/class/:id", controller.DeleteClass).Name = "class.deleteClass"
 
+	// read answers APIs
+	readAnswer := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id":       "NOT_FOUND",
+			"class_id": "CLASS_NOT_FOUND",
+		}),
+		middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "read_answers"},
+		}),
+	)
+	readAnswer.GET("/class/:class_id/problem_set/:id/grades", controller.GetGrades).Name = "problemSet.getGrades"
+
 	// problem set APIs
 	createProblemSet := api.Group("",
 		middleware.ValidateParams(map[string]string{
@@ -243,11 +257,6 @@ func Register(e *echo.Echo) {
 	createProblemSet.POST("/class/:id/problem_set/clone", controller.CloneProblemSet).Name = "problemSet.cloneProblemSet" // TODO: add clone_problem_sets perm check
 	manageProblemSet.PUT("/class/:class_id/problem_set/:problem_set_id", controller.UpdateProblemSet).Name = "problemSet.updateProblemSet"
 	manageProblemSet.POST("/class/:class_id/problem_set/:id/problems", controller.AddProblemsToSet).Name = "problemSet.addProblemsToSet"
-	manageProblemSet.GET("/class/:class_id/problem_set/:id/grades", controller.GetGrades,
-		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
-			B: middleware.UnscopedPermission{P: "read_answers"},
-		})).Name = "problemSet.getGrades"
 	manageProblemSet.DELETE("/class/:class_id/problem_set/:id/problems", controller.DeleteProblemsFromSet).Name = "problemSet.deleteProblemsFromSet"
 	manageProblemSet.DELETE("/class/:class_id/problem_set/:problem_set_id", controller.DeleteProblemSet).Name = "problemSet.deleteProblemSet"
 	problemSetProblem.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id", controller.GetProblemSetProblem).Name = "problemSet.getProblemSetProblem"

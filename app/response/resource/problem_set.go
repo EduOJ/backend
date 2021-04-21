@@ -51,7 +51,7 @@ type ProblemSetWithGrades struct {
 	Description string `json:"description"`
 
 	Problems []ProblemSummary `json:"problems"`
-	Grades   []Grade          `json:"Grades"`
+	Grades   []Grade          `json:"snake_case"`
 
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
