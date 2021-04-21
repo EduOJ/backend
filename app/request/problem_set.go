@@ -30,6 +30,9 @@ type AddProblemsToSetRequest struct {
 	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required,min=1"`
 }
 
+type GetGradesRequest struct {
+}
+
 type DeleteProblemsFromSetRequest struct {
 	ProblemIDs []uint `json:"problem_ids" form:"problem_ids" query:"problem_ids" validate:"required,min=1"`
 }

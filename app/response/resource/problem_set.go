@@ -43,6 +43,20 @@ type ProblemSetSummary struct {
 	EndTime   time.Time `json:"end_time"`
 }
 
+type ProblemSetWithGrades struct {
+	ID uint `json:"id"`
+
+	ClassID     uint   `json:"class_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+
+	Problems []ProblemSummary `json:"problems"`
+	Grades   []Grade          `json:"Grades"`
+
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+}
+
 type Grade struct {
 	ID uint `json:"id"`
 
@@ -78,6 +92,17 @@ func (p *ProblemSetSummary) convert(problemSet *models.ProblemSet) {
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
+	p.StartTime = problemSet.StartTime
+	p.EndTime = problemSet.EndTime
+}
+
+func (p *ProblemSetWithGrades) convert(problemSet *models.ProblemSet) {
+	p.ID = problemSet.ID
+	p.ClassID = problemSet.ClassID
+	p.Name = problemSet.Name
+	p.Description = problemSet.Description
+	p.Problems = GetProblemSummarySlice(problemSet.Problems)
+	p.Grades = GetGradeSlice(problemSet.Grades)
 	p.StartTime = problemSet.StartTime
 	p.EndTime = problemSet.EndTime
 }
@@ -140,4 +165,10 @@ func GetGradeSlice(grades []*models.Grade) (g []Grade) {
 		g[i].convert(grade)
 	}
 	return
+}
+
+func GetGrades(problemSet *models.ProblemSet) *ProblemSetWithGrades {
+	p := ProblemSetWithGrades{}
+	p.convert(problemSet)
+	return &p
 }

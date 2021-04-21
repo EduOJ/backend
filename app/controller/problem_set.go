@@ -203,6 +203,38 @@ func AddProblemsToSet(c echo.Context) error {
 	})
 }
 
+func GetGrades(c echo.Context) error {
+	class := models.Class{}
+	// if class not exists
+	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class while creating problem set"))
+	}
+
+	// query grades
+	problemSet := models.ProblemSet{}
+	if err := base.DB.Preload("Grades").
+		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class for getting problem set"))
+	} else {
+		return c.JSON(http.StatusOK, response.GetGradesResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemSetWithGrades `json:"grades"`
+			}{
+				resource.GetGrades(&problemSet),
+			},
+		})
+	}
+
+}
+
 func DeleteProblemsFromSet(c echo.Context) error {
 	req := request.DeleteProblemsFromSetRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
