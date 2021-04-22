@@ -1195,3 +1195,97 @@ func TestGetProblemSetProblemOutputFile(t *testing.T) {
 		assert.Equal(t, "get_problem_set_problem_output_1", getPresignedURLContent(t, httpResp.Header.Get("Location")))
 	})
 }
+
+func TestGetGrades(t *testing.T) {
+	t.Parallel()
+
+	failUser := createUserForTest(t, "get_grades_fail", 0)
+	failClass := createClassForTest(t, "get_grades_fail", 0, nil, []*models.User{&failUser})
+	failProblemSet := createProblemSetForTest(t, "get_grades_fail", 0, &failClass, nil)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getGrades", -1, failProblemSet.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("CLASS_NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getGrades", failClass.ID, -1),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.getGrades", failClass.ID, failProblemSet.ID),
+			req:    nil,
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "")
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+		user := createUserForTest(t, "get_grades_success", 0)
+		student := createUserForTest(t, "get_grades_success_student", 0)
+		problem1 := createProblemForTest(t, "get_grades_success", 1, nil, user)
+		problem2 := createProblemForTest(t, "get_grades_success", 2, nil, user)
+		class := createClassForTest(t, "get_grades_success", 0, nil, []*models.User{&student})
+		problemSet := createProblemSetForTest(t, "get_grades_success", 0, &class, []models.Problem{problem1, problem2})
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
+			ProblemSetID: problemSet.ID,
+			UserID:       user.ID,
+			ProblemID:    problem1.ID,
+			Score:        10,
+		}))
+		assert.NoError(t, utils.UpdateGrade(&models.Submission{
+			ProblemSetID: problemSet.ID,
+			UserID:       user.ID,
+			ProblemID:    problem2.ID,
+			Score:        20,
+		}))
+		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
+		//problemSet.StartTime = time.Now().Add(-1 * time.Hour)
+		//problemSet.EndTime = time.Now().Add(time.Hour)
+		assert.NoError(t, base.DB.Save(&problemSet).Error)
+		user.GrantRole("class_creator", class)
+
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getGrades", class.ID, problemSet.ID),
+			request.GetGradesRequest{}, applyUser(user)))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.GetGradesResponse{}
+		mustJsonDecode(httpResp, &resp)
+		resp.Data.Problems = []resource.ProblemSummary{
+			*resource.GetProblemSummary(&problem1),
+			*resource.GetProblemSummary(&problem2),
+		}
+		resp.Data.Grades = []resource.Grade{}
+		assert.Equal(t, response.GetGradesResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemSetWithGrades `json:"grades"`
+			}{
+				resource.GetGrades(problemSet),
+			},
+		}, resp)
+	})
+
+}

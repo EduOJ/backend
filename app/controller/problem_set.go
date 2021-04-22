@@ -204,9 +204,8 @@ func AddProblemsToSet(c echo.Context) error {
 }
 
 func GetGrades(c echo.Context) error {
-	class := models.Class{}
-	// if class not exists
-	if err := base.DB.First(&class, c.Param("class_id")).Error; err != nil {
+	class := &models.Class{}
+	if err := base.DB.First(class, c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
 		}
@@ -214,39 +213,47 @@ func GetGrades(c echo.Context) error {
 	}
 
 	// query grades
-	problemSet := models.ProblemSet{}
+	problemSet := &models.ProblemSet{}
 	if err := base.DB.Preload("Grades").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+			return c.JSON(http.StatusNotFound, response.ErrorResp("PROBLEM_SET_NOT_FOUND", nil))
 		}
 		panic(errors.Wrap(err, "could not get class for getting problem set"))
 	}
 
-	students := []*models.User{}
-	if err := base.DB.Preload("Students").First(students, c.Param("class_id")).Error; err != nil {
+	if err := base.DB.Preload("Students").First(class, "id = ?", c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("CLASS_NOT_FOUND", nil))
 		}
 		panic(errors.Wrap(err, "could not get class while creating problem set"))
 	} else {
+		students := class.Students
+		studentTotals := map[uint]*models.Grade{}
+
 		studentsLen := len(students)
 		problemSetGradesLen := len(problemSet.Grades)
-	walk:
+
+		// store in map
+		for j := 0; j < problemSetGradesLen; j++ {
+			studentTotals[problemSet.Grades[j].UserID] = problemSet.Grades[j]
+		}
+
+		// query from map
 		for i := 0; i < studentsLen; i++ {
-			for j := 0; j < problemSetGradesLen; j++ {
-				if students[i].ID != problemSet.Grades[j].UserID {
-					continue
-				} else {
-					continue walk
-				}
+			if _, ok := studentTotals[students[i].ID]; ok {
+				continue
+			} else { // set Total = 0 if not exists
+				problemSet.Grades = append(problemSet.Grades, &models.Grade{
+					UserID:       students[i].ID,
+					User:         students[i],
+					ProblemSet:   problemSet,
+					ProblemSetID: problemSet.ID,
+					ClassID:      class.ID,
+					Class:        class,
+					Total:        0,
+				})
 			}
-			problemSet.Grades = append(problemSet.Grades, &models.Grade{
-				UserID:       students[i].ID,
-				ProblemSet:   &problemSet,
-				ProblemSetID: problemSet.ID,
-				Total:        0,
-			})
 		}
 	}
 
@@ -256,7 +263,7 @@ func GetGrades(c echo.Context) error {
 		Data: struct {
 			*resource.ProblemSetWithGrades `json:"grades"`
 		}{
-			resource.GetGrades(&problemSet),
+			resource.GetGrades(problemSet),
 		},
 	})
 
