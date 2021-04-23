@@ -9,6 +9,7 @@ import (
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"net/http"
 	"testing"
@@ -1245,45 +1246,42 @@ func TestGetGrades(t *testing.T) {
 		t.Parallel()
 		user := createUserForTest(t, "get_grades_success", 0)
 		student := createUserForTest(t, "get_grades_success_student", 0)
-		problem1 := createProblemForTest(t, "get_grades_success", 1, nil, user)
-		problem2 := createProblemForTest(t, "get_grades_success", 2, nil, user)
 		class := createClassForTest(t, "get_grades_success", 0, nil, []*models.User{&student})
-		problemSet := createProblemSetForTest(t, "get_grades_success", 0, &class, []models.Problem{problem1, problem2})
-		assert.NoError(t, utils.UpdateGrade(&models.Submission{
-			ProblemSetID: problemSet.ID,
-			UserID:       user.ID,
-			ProblemID:    problem1.ID,
-			Score:        10,
-		}))
-		assert.NoError(t, utils.UpdateGrade(&models.Submission{
-			ProblemSetID: problemSet.ID,
-			UserID:       user.ID,
-			ProblemID:    problem2.ID,
-			Score:        20,
-		}))
-		assert.NoError(t, base.DB.Preload("Grades").First(&problemSet, problemSet.ID).Error)
-		//problemSet.StartTime = time.Now().Add(-1 * time.Hour)
-		//problemSet.EndTime = time.Now().Add(time.Hour)
-		assert.NoError(t, base.DB.Save(&problemSet).Error)
 		user.GrantRole("class_creator", class)
 
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getGrades", class.ID, problemSet.ID),
-			request.GetGradesRequest{}, applyUser(user)))
+		problem1 := createProblemForTest(t, "get_grades_success", 1, nil, user)
+		problem2 := createProblemForTest(t, "get_grades_success", 2, nil, user)
+		expectedProblemSet := createProblemSetForTest(t, "get_grades_success", 0, &class, []models.Problem{problem1, problem2})
+		actualProblemSet := expectedProblemSet
+
+		grade := models.Grade{
+			ID:           0,
+			UserID:       student.ID,
+			User:         &student,
+			ProblemSetID: expectedProblemSet.ID,
+			ProblemSet:   expectedProblemSet,
+			ClassID:      class.ID,
+			Class:        &class,
+			Detail:       datatypes.JSON{},
+			Total:        0,
+		}
+		expectedProblemSet.Grades = append(expectedProblemSet.Grades, &grade)
+
+		//assert.NoError(t, base.DB.Preload("Grades").First(&expectedProblemSet, expectedProblemSet.ID).Error)
+
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("problemSet.getGrades", class.ID, actualProblemSet.ID),
+			nil, applyUser(user)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.GetGradesResponse{}
 		mustJsonDecode(httpResp, &resp)
-		resp.Data.Problems = []resource.ProblemSummary{
-			*resource.GetProblemSummary(&problem1),
-			*resource.GetProblemSummary(&problem2),
-		}
-		resp.Data.Grades = []resource.Grade{}
+
 		assert.Equal(t, response.GetGradesResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
 				*resource.ProblemSetWithGrades `json:"grades"`
 			}{
-				resource.GetGrades(problemSet),
+				resource.GetGrades(actualProblemSet),
 			},
 		}, resp)
 	})
