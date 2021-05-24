@@ -512,7 +512,7 @@ func GetRandomProblem(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 	}
 	problem := models.Problem{}
-	utils.PanicIfDBError(base.DB.Limit(1).Offset(rand.Intn(int(count))).Find(&problem),
+	utils.PanicIfDBError(base.DB.Limit(1).Offset(rand.Intn(int(count))).Where("public = true").Find(&problem),
 		"could not get problem for getting random problem")
 	return c.JSON(http.StatusOK, response.GetRandomProblemResponse{
 		Message: "SUCCESS",
