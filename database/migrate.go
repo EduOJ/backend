@@ -1204,6 +1204,78 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.AutoMigrate(&Grade{})
 			},
 		},
+		{
+			ID: "create_comments_table",
+			Migrate: func(tx *gorm.DB) error {
+				type Reaction struct {
+					ID uint `gorm:"primaryKey"`
+					BelongType string
+					BelongID uint
+
+					Details string
+
+					LastDealType string
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+
+					DeletedAt gorm.DeletedAt `sql:"index" json:"deleted_at"`
+
+				}
+
+				type User struct {
+					ID       uint   `gorm:"primaryKey" json:"id"`
+					Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
+					Nickname string `gorm:"index:nickname" json:"nickname"`
+					Email    string `gorm:"unique_index" json:"email"`
+					Password string `json:"-"`
+
+					RoleLoaded bool          `gorm:"-" json:"-"`
+
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `sql:"index" json:"deleted_at"`
+
+				}
+
+				type Comment struct{
+
+					ID       uint `gorm:"primaryKey"`
+
+					UserID uint
+					Writer User `gorm:"foreignKey:UserID"`
+
+					Content string
+
+
+					IfDeleted bool
+
+					FirstID uint
+					FirstType string
+
+					FatherID uint
+					FatherType string
+
+					Detail string
+
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `sql:"index" json:"deleted_at"`
+
+				}
+
+				return tx.AutoMigrate(&Comment{})
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				err =  tx.Migrator().DropTable("ancestors_in_comments")
+				if err != nil {
+					return
+				}
+				return tx.Migrator().DropTable("comments")
+			},
+		},
 	})
 }
 
