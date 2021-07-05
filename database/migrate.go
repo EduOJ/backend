@@ -1270,7 +1270,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					TargetType string
 
 					FatherID          uint
-					RecursiveFatherId uint
+					RootCommentID uint
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `gorm:"index"`
