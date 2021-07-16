@@ -16,6 +16,7 @@ type User struct {
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 	Password string `json:"-"`
+	PreferedNoticeWay string `gorm:"prefered_notice_way"`
 
 	Roles      []UserHasRole `json:"roles"`
 	RoleLoaded bool          `gorm:"-" json:"-"`
@@ -49,6 +50,9 @@ func (u *User) WebAuthnDisplayName() string {
 
 func (u *User) WebAuthnIcon() string {
 	return ""
+}
+func (u *User) WebAuthPreferedNoticeWay() string {
+	return u.PreferedNoticeWay
 }
 
 func (u *User) WebAuthnCredentials() []webauthn.Credential {
