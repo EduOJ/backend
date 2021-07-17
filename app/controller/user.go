@@ -165,6 +165,29 @@ func ChangePassword(c echo.Context) error {
 	})
 }
 
+func EditPreferedNoticeWay (c echo.Context) error {
+	req := request.EditPreferedNoticeWayRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	user, ok := c.Get("way").(models.User)
+	if !ok {
+		panic("could not get user from context")
+	}
+	tokenString := c.Request().Header.Get("Authorization")
+	if tokenString == "" {
+		panic("could not get tokenString from request header")
+	}
+	utils.PanicIfDBError(base.DB.Where("user_id = ? and token != ?", user.ID, tokenString), "could not find user")
+	base.DB.Save(&user)
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
+
 func GetClassesIManage(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	var classes []models.Class

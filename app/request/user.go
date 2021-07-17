@@ -27,6 +27,10 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" form:"new_password" query:"new_password" validate:"required,max=30,min=5"`
 }
 
+type EditPreferedNoticeWayRequest struct {
+	way string  `query:"preferedNoticeWay"`
+}
+
 type GetClassesIManageRequest struct {
 }
 
