@@ -48,7 +48,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					Nickname string `gorm:"index;size:30" json:"nickname"`
 					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
-					PreferedNoticeWay string `gorm:"PreferedNoticeWay"`
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`
@@ -70,7 +69,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					Nickname string `gorm:"index;size:30" json:"nickname"`
 					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
-					PreferedNoticeWay string `gorm:"PreferedNoticeWay"`
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`
@@ -116,7 +114,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					Nickname string `gorm:"index;size:30" json:"nickname"`
 					Email    string `gorm:"uniqueIndex;size:320" json:"email"`
 					Password string `json:"-"`
-					PreferedNoticeWay string `gorm:"PreferedNoticeWay"`
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`

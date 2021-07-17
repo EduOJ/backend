@@ -175,7 +175,7 @@ func EditPreferedNoticeWay (c echo.Context) error {
 	if !ok {
 		panic("could not get user from context")
 	}
-	way := c.Param("way")
+	way := req.PreferedNoticeWay
 	//waiting for add other ways
 	if way != "email" {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_PreferedNoticeWay", nil))
