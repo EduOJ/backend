@@ -166,25 +166,26 @@ func ChangePassword(c echo.Context) error {
 }
 
 func EditPreferedNoticeWay (c echo.Context) error {
-	req := request.EditPreferedNoticeWayRequest{}
+	req := request. EditPreferedNOticeWayRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
-	user, ok := c.Get("way").(models.User)
+	user, ok := c.Get("user").(models.User)
 	if !ok {
 		panic("could not get user from context")
 	}
-	tokenString := c.Request().Header.Get("Authorization")
-	if tokenString == "" {
-		panic("could not get tokenString from request header")
+	way := c.Param("way")
+	//waiting for add other ways
+	if way != "email" {
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_PreferedNoticeWay", nil))
 	}
-	utils.PanicIfDBError(base.DB.Where("user_id = ? and token != ?", user.ID, tokenString), "could not find user")
-	base.DB.Save(&user)
-	return c.JSON(http.StatusOK, response.Response{
+	user.PreferedNoticeWay = way
+	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
+	return c.JSON(http.StatusOK, response.EditPreferedNoticeWay{
 		Message: "SUCCESS",
 		Error:   nil,
-		Data:    nil,
+		Data:	nil,
 	})
 }
 
