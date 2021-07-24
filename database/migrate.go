@@ -1174,13 +1174,13 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 		},
 		{
-			// add PreferedNoticeWay
+			// add PreferedNoticeMethod
 			ID: "add_prefered_notice_way",
 			Migrate: func(tx *gorm.DB) error {
-				type PreferedNoticeWay struct {
-					PreferedNoticeWay string `gorm:"prefered_notice_way"`
+				type PreferedNoticeMethod struct {
+					PreferedNoticeMethod string `gorm:"prefered_notice_way"`
 				}
-				return tx.AutoMigrate(&PreferedNoticeWay{})
+				return tx.AutoMigrate(&PreferedNoticeMethod{})
 			},
 			Rollback: func(tx *gorm.DB) error {
 				type TestCase struct{}

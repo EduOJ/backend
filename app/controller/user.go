@@ -165,8 +165,8 @@ func ChangePassword(c echo.Context) error {
 	})
 }
 
-func EditPreferedNoticeWay (c echo.Context) error {
-	req := request. EditPreferedNOticeWayRequest{}
+func EditPreferedNoticeMethod (c echo.Context) error {
+	req := request. EditPreferedNoticeMethodRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
@@ -175,14 +175,14 @@ func EditPreferedNoticeWay (c echo.Context) error {
 	if !ok {
 		panic("could not get user from context")
 	}
-	way := req.PreferedNoticeWay
+	way := req.PreferedNoticeMethod
 	//waiting for add other ways
 	if way != "email" {
-		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_PreferedNoticeWay", nil))
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_PreferedNoticeMethod", nil))
 	}
-	user.PreferedNoticeWay = way
+	user.PreferedNoticeMethod = way
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
-	return c.JSON(http.StatusOK, response.EditPreferedNoticeWay{
+	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:	nil,

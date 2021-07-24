@@ -58,7 +58,7 @@ func Register(e *echo.Echo) {
 	user.GET("/user/:id/problem_info", controller.GetUserProblemInfo).Name = "user.getUserProblemInfo"
 	user.GET("/users", controller.GetUsers).Name = "user.getUsers"
 	user.POST("/user/change_password", controller.ChangePassword).Name = "user.changePassword"
-	user.POST("/user/edit_preferednoticeway/",controller.EditPreferedNoticeWay).Name = "user.editPreferedNoticeWay"
+	user.POST("/user/editpreferednoticemethod/",controller.EditPreferedNoticeMethod).Name = "user.editPreferedNoticeMethod"
 	readUser.GET("/admin/user/:id", controller.AdminGetUser).Name = "admin.user.getUser"
 	readUser.GET("/admin/users", controller.AdminGetUsers).Name = "admin.user.getUsers"
 	manageUsers.POST("/admin/user", controller.AdminCreateUser).Name = "admin.user.createUser"

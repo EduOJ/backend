@@ -27,8 +27,8 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" form:"new_password" query:"new_password" validate:"required,max=30,min=5"`
 }
 
-type EditPreferedNOticeWayRequest struct {
-	PreferedNoticeWay string `json:"prefered_notice_way" form:"prefered_notice_way" query:"prefered_notice_way"`
+type EditPreferedNoticeMethodRequest struct {
+	PreferedNoticeMethod string `json:"prefered_notice_method" form:"prefered_notice_method" query:"prefered_notice_method"`
 }
 
 type GetClassesIManageRequest struct {
