@@ -51,9 +51,6 @@ func (u *User) WebAuthnDisplayName() string {
 func (u *User) WebAuthnIcon() string {
 	return ""
 }
-func (u *User) WebAuthPreferedNoticeMethod() string {
-	return u.PreferedNoticeMethod
-}
 
 func (u *User) WebAuthnCredentials() []webauthn.Credential {
 	err := base.DB.Model(u).Association("Credentials").Find(&u.Credentials)

@@ -171,17 +171,13 @@ func EditPreferedNoticeMethod (c echo.Context) error {
 	if !ok {
 		return err
 	}
-	user, ok := c.Get("user").(models.User)
-	if !ok {
-		panic("could not get user from context")
-	}
-	way := req.PreferedNoticeMethod
+	user := c.Get("user").(models.User)
 	//waiting for add other ways
-	if way != "email" {
-		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_PreferedNoticeMethod", nil))
+	if req.PreferedNoticeMethod != "email" {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("PreferedNoticeMethod_NotFound", nil))
 	}
-	user.PreferedNoticeMethod = way
-	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
+	user.PreferedNoticeMethod = req.PreferedNoticeMethod
+	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.Response{
 		Message: "SUCCESS",
 		Error:   nil,
