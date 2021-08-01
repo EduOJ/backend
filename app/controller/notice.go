@@ -9,14 +9,13 @@ import (
 	"net/smtp"
 )
 
-func SendMessage (senderId uint, recerverId uint, message string,c echo.Context) (err error){
-	sender := utils.GetSender(senderId)
-	receiverPreferedNoticeMethod := utils.GetReceiverPreferedNoticeMethod(recerverId)
-	receiverNoticeAddress := utils.GetReceiverNoticeAddress(recerverId)
-	if receiverPreferedNoticeMethod == "email" {
+func SendMessage (senderName string, recerverName string, message string,c echo.Context) (err error){
+	receiver,_ := utils.FindUser(recerverName)
+	sender,_ := utils.FindUser(senderName)
+	if receiver.PreferedNoticeMethod == "email" {
 		//use mail module to send message
 		//not valid now
-		smtp.SendMail(receiverNoticeAddress,nil,sender,nil,nil)
+		smtp.SendMail("nil",nil,sender.Nickname,nil,nil)
 		return c.JSON(http.StatusOK,response.Response{"SENDMESSAGE_SUCCESSFUL",nil,client.User{}})
 	}
 	//add more if
