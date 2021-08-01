@@ -174,7 +174,7 @@ func EditPreferedNoticeMethod (c echo.Context) error {
 	user := c.Get("user").(models.User)
 	//waiting for add other ways
 	if req.PreferedNoticeMethod != "email" {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("Method_Not_Found", nil))
+		return c.JSON(http.StatusNotFound, response.ErrorResp("METHOD_NOT_FOUND", nil))
 	}
 	user.PreferedNoticeMethod = req.PreferedNoticeMethod
 	user.NoticeAddress = req.NoticeAddress
