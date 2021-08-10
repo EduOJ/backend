@@ -14,6 +14,7 @@ import (
 	runEvent "github.com/EduOJ/backend/event/run"
 	submissionEvent "github.com/EduOJ/backend/event/submission"
 	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-mail/mail"
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -139,6 +140,14 @@ func initGorm(toMigrate ...bool) {
 
 	// Cause we need to wait until all logs are wrote to the db
 	// So we dont close db connection here.
+}
+
+func initMail() {
+	d := mail.NewDialer(viper.GetString("email.host"), viper.GetInt("email.port"), viper.GetString("email.username"), viper.GetString("email.password"))
+	if viper.GetBool("email.tls") {
+		d.StartTLSPolicy = mail.MandatoryStartTLS
+	}
+	base.Mail = *d
 }
 
 func initStorage() {

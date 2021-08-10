@@ -8,6 +8,7 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net/http"
@@ -41,9 +42,12 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 
 func Logged(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user := c.Get("user")
-		if user == nil {
+		user, ok := c.Get("user").(models.User)
+		if !ok {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp("AUTH_NEED_TOKEN", nil))
+		}
+		if viper.GetBool("email.need_verification") && !user.EmailVerified {
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp("AUTH_NEED_EMAIL_VERIFICATION", nil))
 		}
 		return next(c)
 	}

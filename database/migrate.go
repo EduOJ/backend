@@ -1189,6 +1189,64 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropColumn(&Grade{}, "ClassID")
 			},
 		},
+		// add EmailVerified column
+		{
+			ID: "add_email_verified_column_to_users_table",
+			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					EmailVerified bool
+				}
+				return tx.AutoMigrate(&User{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type User struct {
+					EmailVerified bool
+				}
+				return tx.Migrator().DropColumn(&User{}, "email_verified")
+			},
+		},
+		// add EmailVerificationToken table
+		{
+			ID: "add_email_verification_token_table",
+			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					ID uint
+				}
+				type EmailVerificationToken struct {
+					ID     uint `gorm:"primaryKey" json:"id"`
+					UserID uint
+					User   *User
+					Email  string
+					Token  string
+
+					Used bool
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&EmailVerificationToken{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type User struct {
+					ID uint
+				}
+				type EmailVerificationToken struct {
+					ID     uint `gorm:"primaryKey" json:"id"`
+					UserID uint
+					User   *User
+					Email  string
+					Token  string
+
+					Used bool
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().DropTable(&EmailVerificationToken{})
+			},
+		},
 		{
 			ID: "remove_delete_at_field_in_grades",
 			Migrate: func(tx *gorm.DB) error {
