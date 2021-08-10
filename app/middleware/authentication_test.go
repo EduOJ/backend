@@ -65,12 +65,26 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 	e.POST("/test_allowGuest", testAllowGuestController, middleware.AllowGuest)
 
 	testUser := models.User{
-		Username: "testAuthenticationMiddle",
-		Nickname: "testAuthenticationMiddle",
-		Email:    "testAuthenticationMiddle@e.com",
-		Password: "",
+		Username:      "testAuthenticationMiddle",
+		Nickname:      "testAuthenticationMiddle",
+		Email:         "testAuthenticationMiddle@e.com",
+		Password:      "",
+		EmailVerified: true,
+	}
+	unverifiedUser := models.User{
+		Username:      "testAuthenticationMiddle1",
+		Nickname:      "testAuthenticationMiddle1",
+		Email:         "testAuthenticationMiddle1@e.com",
+		Password:      "",
+		EmailVerified: false,
 	}
 	assert.NoError(t, base.DB.Save(&testUser).Error)
+	assert.NoError(t, base.DB.Save(&unverifiedUser).Error)
+
+	unverifiedUserToken := models.Token{
+		Token: utils.RandStr(32),
+		User:  unverifiedUser,
+	}
 
 	activeToken := models.Token{
 		Token: utils.RandStr(32),
@@ -92,6 +106,7 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 		UpdatedAt:  time.Now().Add(-1 * time.Second * time.Duration(720000)),
 		RememberMe: true,
 	}
+	assert.NoError(t, base.DB.Save(&unverifiedUserToken).Error)
 	assert.NoError(t, base.DB.Save(&activeToken).Error)
 	assert.NoError(t, base.DB.Save(&expiredToken).Error)
 	assert.NoError(t, base.DB.Save(&activeRememberMeToken).Error)
@@ -190,6 +205,17 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("AUTH_NEED_TOKEN", nil), resp)
+	})
+
+	t.Run("testUnverifiedUserFail", func(t *testing.T) {
+		t.Parallel()
+		LoginCheckReq := makeReq(t, "POST", "/test_loginCheck", nil)
+		LoginCheckReq.Header.Set("Authorization", unverifiedUserToken.Token)
+		httpResp := makeResp(LoginCheckReq, e)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("AUTH_NEED_EMAIL_VERIFICATION", nil), resp)
 	})
 
 	t.Run("testLoginCheckSuccess", func(t *testing.T) {
