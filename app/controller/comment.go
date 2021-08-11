@@ -20,16 +20,13 @@ func CreateComment(c echo.Context) error {
 		return err
 	}
 
-	user, ok := c.Get("user").(models.User)
-	if !ok {
-		panic("could not convert my user into type models.User")
-	}
+	user := c.Get("user").(models.User)
+
 
 	newReaction := models.Reaction{
 		TargetType: "comment",
 	}
 	utils.PanicIfDBError(base.DB.Save(&newReaction), "could not save reaction")
-
 	var newComment models.Comment
 
 	if req.FatherID != 0 {
@@ -138,86 +135,145 @@ func AddReaction(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-	user, ok := c.Get("user").(models.User)
-	if !ok {
-		panic("could not convert my user into type models.User")
-	}
+	user := c.Get("user").(models.User)
 
 	if req.TargetType == "comment" {
 		var comment models.Comment
 		base.DB.Model(&models.Comment{}).
 			Preload("Reaction").
 			First(&comment, uint(req.TargetID))
+		var targetReaction models.Reaction
+		if comment.ReactionID == 0 {
+			// don't have reaction
+			targetReaction = models.Reaction{
+				TargetType: "comment",
+			}
+			comment.Reaction = targetReaction
+		} else {
+			targetReaction = comment.Reaction
+		}
 
 		maps := make(map[string][]uint)
-		if req.IFAddAction {
-			if comment.Reaction.Details == "" {
-				maps[req.EmojiType] = make([]uint, 2)
-				maps[req.EmojiType][0] = 1
-				maps[req.EmojiType][1] = uint(user.ID)
-			} else {
-				err := json.Unmarshal([]byte(comment.Reaction.Details), &maps)
-				if err != nil {
-					panic(errors.Wrap(err, "could not marshal reaction map"))
-				}
-				_, key := maps[req.EmojiType]
-				if key {
-					//operator is not zero
-					for _, v := range maps[req.EmojiType] {
-						if uint(v) == uint(user.ID) {
-							return c.JSON(http.StatusBadRequest, response.ErrorResp("can't action twice!", nil))
-						}
-					}
-					maps[req.EmojiType] = append(maps[req.EmojiType], uint(user.ID))
-					maps[req.EmojiType][0] += 1
-				} else {
-					maps[req.EmojiType] = make([]uint, 2)
-					maps[req.EmojiType][0] = 1
-					maps[req.EmojiType][1] = uint(user.ID)
-				}
-			}
-			jsonStr, err := json.Marshal(maps)
+		if targetReaction.Details == "" {
+			maps[req.EmojiType] = make([]uint, 2)
+			maps[req.EmojiType][0] = 1
+			maps[req.EmojiType][1] = uint(user.ID)
+		} else {
+			err := json.Unmarshal([]byte(targetReaction.Details), &maps)
 			if err != nil {
 				panic(errors.Wrap(err, "could not marshal reaction map"))
 			}
-			comment.Reaction.Details = string(jsonStr)
-			utils.PanicIfDBError(base.DB.Save(&(comment.Reaction)), "save reaction error")
-		} else {
-			//delete action
-			if comment.Reaction.Details == "" {
-				panic("this should not happen, logic in error!")
-			} else {
-				json.Unmarshal([]byte(comment.Reaction.Details), &maps)
-				_, key := maps[req.EmojiType]
-				if key {
-					pos := -1
-					for k, v := range maps[req.EmojiType] {
-						//skip the first, standing for counts
-						if k != 0 && v == uint(user.ID) {
-							pos = k
-							break
-						}
+			_, key := maps[req.EmojiType]
+			if key {
+				//operator is not zero
+				for _, v := range maps[req.EmojiType] {
+					if uint(v) == uint(user.ID) {
+						return c.JSON(http.StatusBadRequest, response.ErrorResp("can't action twice!", nil))
 					}
-					if pos == -1 {
-						panic("should not happen, you have not actived")
-					} else {
-						maps[req.EmojiType] = append(maps[req.EmojiType][:pos], maps[req.EmojiType][pos+1:]...)
-						maps[req.EmojiType][0] -= 1
-					}
-					jsonStr, err := json.Marshal(maps)
-					if err != nil {
-						panic(errors.Wrap(err, "could not marshal reaction map"))
-					}
-					comment.Reaction.Details = string(jsonStr)
-					utils.PanicIfDBError(base.DB.Save(&comment.Reaction), "save reaction error")
-				} else {
-					return c.JSON(http.StatusBadRequest, response.ErrorResp("you have not actived!", nil))
 				}
+				maps[req.EmojiType] = append(maps[req.EmojiType], uint(user.ID))
+				maps[req.EmojiType][0] += 1
+			} else {
+				maps[req.EmojiType] = make([]uint, 2)
+				maps[req.EmojiType][0] = 1
+				maps[req.EmojiType][1] = uint(user.ID)
 			}
 		}
+		jsonStr, err := json.Marshal(maps)
+		if err != nil {
+			panic(errors.Wrap(err, "could not marshal reaction map"))
+		}
+		targetReaction.Details = string(jsonStr)
+		utils.PanicIfDBError(base.DB.Save(&(targetReaction)), "save reaction error")
+
+		if comment.ReactionID == 0 {
+			comment.Reaction = targetReaction
+			utils.PanicIfDBError(base.DB.Save(&comment), "save reaction error")
+		}
+
 	} else {
 		// todo: implement this
 	}
+
+
+	return c.JSON(http.StatusCreated, response.AddReactionResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			Content string
+		}{
+			"you have successfully " + req.EmojiType + "ed the comment",
+		},
+	})
+
+}
+
+// DeleteReaction deletes a reaction, assert frontend have checked if the operation is illegaled
+func DeleteReaction(c echo.Context) error {
+	req := request.DeleteReactionRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+	user := c.Get("user").(models.User)
+
+	if req.TargetType == "comment" {
+		var comment models.Comment
+		base.DB.Model(&models.Comment{}).
+			Preload("Reaction").
+			First(&comment, uint(req.TargetID))
+		var targetReaction models.Reaction
+		if comment.ReactionID == 0 {
+			// don't have reaction
+			targetReaction = models.Reaction{
+				TargetType: "comment",
+			}
+			comment.Reaction = targetReaction
+		} else {
+			targetReaction = comment.Reaction
+		}
+
+		maps := make(map[string][]uint)
+		//delete action
+		if targetReaction.Details == "" {
+			panic("this should not happen, logic in error!")
+		} else {
+			json.Unmarshal([]byte(targetReaction.Details), &maps)
+			_, key := maps[req.EmojiType]
+			if key {
+				pos := -1
+				for k, v := range maps[req.EmojiType] {
+					//skip the first, standing for counts
+					if k != 0 && v == uint(user.ID) {
+						pos = k
+						break
+					}
+				}
+				if pos == -1 {
+					panic("should not happen, you have not actived")
+				} else {
+					maps[req.EmojiType] = append(maps[req.EmojiType][:pos], maps[req.EmojiType][pos+1:]...)
+					maps[req.EmojiType][0] -= 1
+				}
+				jsonStr, err := json.Marshal(maps)
+				if err != nil {
+					panic(errors.Wrap(err, "could not marshal reaction map"))
+				}
+				targetReaction.Details = string(jsonStr)
+				utils.PanicIfDBError(base.DB.Save(&targetReaction), "save reaction error")
+			} else {
+				return c.JSON(http.StatusBadRequest, response.ErrorResp("you have not actived!", nil))
+			}
+		}
+
+		if comment.ReactionID == 0 {
+			comment.Reaction = targetReaction
+			utils.PanicIfDBError(base.DB.Save(&comment), "save reaction error")
+		}
+
+	} else {
+		// todo: implement this
+	}
+
 
 	return c.JSON(http.StatusCreated, response.AddReactionResponse{
 		Message: "SUCCESS",
