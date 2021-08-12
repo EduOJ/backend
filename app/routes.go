@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/EduOJ/backend/app/controller"
 	"github.com/EduOJ/backend/app/middleware"
+	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/labstack/echo/v4"
@@ -329,4 +330,5 @@ func Register(e *echo.Echo) {
 			return nil
 		})
 	}
+	_, _ = event.FireEvent("register_router", e)
 }

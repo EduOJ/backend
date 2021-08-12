@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -126,6 +127,19 @@ func UpdateMe(c echo.Context) error {
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
+	type Noticejson struct {
+		PreferedNoticeMethod string
+		NoticeAddress string
+	}
+	noticejson := Noticejson{
+		PreferedNoticeMethod: req.PreferedNoticeMethod,
+		NoticeAddress: req.NoticeAddress,
+	}
+	noticejson_byte, err := json.Marshal(noticejson)
+	if err != nil {
+		println("could not creat json")
+	}
+	user.PreferedNoticeMethod = string(noticejson_byte)
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",
