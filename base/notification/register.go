@@ -16,7 +16,7 @@ func register(name string) {
 
 func SendMessage(receiver *models.User, title string, message string) {
 	method := receiver.PreferedNoticeMethod
-	result, err := event.FireEvent(fmt.Sprintf("%s_send_message", method), receiver.data[method], title, message)
+	result, err := event.FireEvent(fmt.Sprintf("%s_send_message", method), receiver, title, message)
 	if err != nil {
 		//panic
 		//事件不存在？
