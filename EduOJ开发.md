@@ -22,8 +22,8 @@
         	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
         	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
         	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
-        	PreferedNoticeMethod string
-        	NoticeAddress string
+        	PreferedNoticeMethod string `json:"preferednoticemethod" form:"preferednoticemethod" query:"preferednoticemethod"`
+        	NoticeAddress string `json:"noticeaddress" form:"noticeaddress" query:"noticeaddress"`
         }
         ```
 
@@ -67,36 +67,13 @@
 
         
 
-3. 修改现有的已经注册的通知功能
+3. 展示各个通知方式的使用情况
 
    1. 设计思路
-      - 查询得到`RegistedPreferedNoticeMethod`中需要修改的字段
-      - 重新赋值
-      - 对整个`user`表进行遍历，更新每个使用原有通知渠道的用户为新渠道
-
-4. 展示现有的已经注册的通知方式
-
-   1. 设计思路
-      - 简单遍历输出`RegistedPreferedNoticeMethod`
-
-5. 展示各个通知方式的使用情况
-
-   1. 设计思路
-      - 遍历数据库表`user`，记录每个用户的`PreferedNoticeMethod`，将该json字段使用`json.Unmarshal`解析存入一个结构
+      - 遍历数据库表`user`，记录每个用户的`PreferedNoticeMethod`，将该json字段使用`json.Unmarshal`解析并统计，实现统计各个方式的具体使用情况
       - 输出通知方式使用用户数量
 
-6. 删除禁用已经注册过的通知方式
-
-   1. 设计思路
-      - 删除`RegistedPreferedNoticeMethod`中部分字段
-      - 对整个`user`表进行遍历，修改使用被删通知渠道的用户的通知渠道为默认渠道
-
-7. 得到现有已经注册过的通知方法个数
-
-    	1. 设计思路
-        - 遍历`RegistedPreferedNoticeMethod`，输出已经注册的通知渠道个数
-
-8. 绑定用户方式
+4. 初始化路由
 
    1. 设计思路
 
@@ -104,7 +81,7 @@
 
       - 添加路由：调用函数`event.FireEvent`在`router`中触发“regist_router"事件
 
-      - 使用时在init时应该调用`RegistListener`注册"register_router"
+        2. 使用范例：使用时在init时应该调用`RegistListener`注册"register_router"
 
         ```go
         func init() {
@@ -126,7 +103,7 @@
 
       - 解析接收者的`NoticeDetail`得到收件地址
 
-      - 触发新的事件：`XXX_send_message`，XXX代表通知渠道，事件应该由渠道开发者书写名称，如果名称不匹配，会造成FireEvent的panic，错误信息返回在err当中，向渠道开发者返回触发事件失败log，帮助其调整修复代码。
+      - 触发新的事件：`XXX_send_message`，XXX代表通知渠道，事件应该由渠道开发者书写名称并且**注册**（调用函数`registlistener`)，如果名称不匹配，会造成FireEvent的panic，错误信息返回在err当中，向渠道开发者返回触发事件失败log，帮助其调整修复代码。
 
       - 若事件触发成功，但由于一些原因，包含但不限于：邮箱被封、邮箱空号、网路问题。返回的报错信息会在函数返回值中呈现，应该对其解析理解，向系统使用者报出具体的失败原因。
 
