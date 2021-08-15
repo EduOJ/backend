@@ -16,8 +16,8 @@ type User struct {
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 	Password string `json:"-"`
-	PreferedNoticeMethod string `gorm:"prefered_notice_method"`
-	NoticeAddress string `gorm:"notice_address"`
+	PreferedNoticeMethod string `json:"preferred_notice_method"`
+	NoticeAddress string `json:"notice_address"`
 
 	Roles      []UserHasRole `json:"roles"`
 	RoleLoaded bool          `gorm:"-" json:"-"`

@@ -208,24 +208,6 @@
    len(ShowUsedMethod())
    ```
 
-- ## 绑定用户方式
-
-1. 设计思路
-
-   - event模块通过go `reflect`来实现事务功能
-
-   - 添加路由：调用函数`event.FireEvent`在`router`中触发“regist_router"事件
-
-   - 使用时在init时应该调用`RegistListener`注册"register_router"
-
-     ```go
-     func init() {
-     	event.RegisterListener("register_rouer", func(e *echo.Echo) {
-     		e.POST("/bind_sms", ...)
-     	})
-     }
-     ```
-
 
 - ## 发送消息
 

@@ -70,14 +70,14 @@
 
   使用范例：
 
-  ​	功能：绑定sms服务
+  ​	功能：balabal
 
   ​	启动时
 
   ```go
   func init() {
   	event.RegisterListener("register_rouer", func(e *echo.Echo) {
-  		e.POST("/bind_sms", ...)
+  		e.POST("/balabal", ...)
   	})
   }
   ```

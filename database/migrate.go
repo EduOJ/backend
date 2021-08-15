@@ -1173,6 +1173,25 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropColumn(&Grade{}, "ClassID")
 			},
 		},
+		{
+			// add PreferredNoticeMethod and address
+			ID: "add_preferred_notice_method_and_notice_address",
+			Migrate: func(tx *gorm.DB) (err error) {
+				type User struct {
+					PreferedNoticeMethod string `gorm:"preferred_notice_method"`
+					NoticeAddress string `gorm:"notice_address"`
+				}
+				return tx.AutoMigrate(&User{})
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				type User struct{}
+				err = tx.Migrator().DropColumn(&User{}, "prefered_notice_method")
+				if err != nil {
+					return
+				}
+				return tx.Migrator().DropColumn(&User{}, "notice_address")
+			},
+		},
 	})
 }
 
