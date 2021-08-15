@@ -46,11 +46,11 @@
 
      该部分可见，前端传来的`PreferedNoticeMethod`会被存入对应的数据库中`user`表中`PreferedNoticeMethod`一列，而前端传来的`PreferedNoticeMethod`和`NoticeAddress`会被序列化为`json`字符串存入`user`表中`NoticeAddress`列
 
-     开发者在得到`user`的信息后，若想知道具体的渠道偏好与通知地址，可以调用`json.UnMarshal`将其反虚拟化解析
+     开发者在得到`user`的信息后，若想知道具体的渠道偏好与通知地址，可以调用`json.UnMarshal`将其反序列化解析
 
 - ## 注册功能模块
 
-  EduOJ为通知渠道开发者预留了功能函数`notification.register`
+  EduOJ为通知渠道开发者预留了功能函数`func Register(name string)`
 
   函数接收一个字符串作为新的功能模块名
 
@@ -130,9 +130,9 @@
 
               ​	管理员短信服务欠费
 
-          	2. 收件人通知地址错误
-
-          	3. ......
+             	2. 收件人通知地址错误
+           	
+             	3. ......
 
 - ## 通知系统其他功能
 
