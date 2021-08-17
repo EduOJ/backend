@@ -51,6 +51,8 @@ var FieldTranslations = map[string]string{
 	"UserID":             "用户ID",
 	"Tried":              "选取尝试过题目",
 	"Passed":             "选取通过题目",
+	"PreferredNoticeMethod":              "通知渠道",
+	"NoticeAccount":             "通知地址",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

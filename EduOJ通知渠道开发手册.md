@@ -7,8 +7,8 @@
      通知系统为通知渠道开发者预留了`user`表中两列内容，分别是：
 
      ```go
-     	PreferedNoticeMethod string `gorm:"prefered_notice_method"`
-     	NoticeAddress string `gorm:"notice_address"`
+     	PreferredNoticeMethod string `gorm:"preferred_notice_method"`
+     	NoticeAccount string `gorm:"notice_account"`
      ```
 
      这两列分别记录了用户的通知渠道偏好和通知渠道地址。
@@ -28,23 +28,23 @@
      函数内关于通知部分的代码如下
 
      ```go
-     user.PreferedNoticeMethod = req.PreferedNoticeMethod
+     user.PreferredNoticeMethod = req.PreferredNoticeMethod
      	type Noticejson struct {
-     		PreferedNoticeMethod string
-     		NoticeAddress string
+     		PreferredNoticeMethod string
+     		NoticeAccount string
      	}
      	noticejson := Noticejson{
-     		PreferedNoticeMethod: req.PreferedNoticeMethod,
-     		NoticeAddress: req.NoticeAddress,
+     		PreferredNoticeMethod: req.PreferredNoticeMethod,
+     		NoticeAccount: req.NoticeAccount,
      	}
      	noticejson_byte, err := json.Marshal(noticejson)
      	if err != nil {
      		println("could not creat json")
      	}
-     	user.NoticeAddress = string(noticejson_byte)
+     	user.NoticeAccount = string(noticejson_byte)
      ```
 
-     该部分可见，前端传来的`PreferedNoticeMethod`会被存入对应的数据库中`user`表中`PreferedNoticeMethod`一列，而前端传来的`PreferedNoticeMethod`和`NoticeAddress`会被序列化为`json`字符串存入`user`表中`NoticeAddress`列
+     该部分可见，前端传来的`PreferredNoticeMethod`会被存入对应的数据库中`user`表中`PreferredNoticeMethod`一列，而前端传来的`PreferredNoticeMethod`和`NoticeAccount`会被序列化为`json`字符串存入`user`表中`NoticeAccount`列
 
      开发者在得到`user`的信息后，若想知道具体的渠道偏好与通知地址，可以调用`json.UnMarshal`将其反序列化解析
 
@@ -94,7 +94,7 @@
 
   请注意，调用通知接口时，会使用事件名称作为`fireevent`对象，所以通知渠道开发者开发的发送通知的函数监听器名称，应当遵守命名规范。
 
-  命名规范应当遵守：`%s_send_message`, 其中`%s`代表具体通知渠道名称，应当与数据库字段`PreferedNoticeMethod`相一致。
+  命名规范应当遵守：`%s_send_message`, 其中`%s`代表具体通知渠道名称，应当与数据库字段`PreferredNoticeMethod`相一致。
 
   具体范例如下：
 

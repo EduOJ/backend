@@ -5,17 +5,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-var RegistedPreferedNoticedMethod []string
+var RegistedPreferredNoticedMethod []string
 
 //func Register is used to add a new method in RegistedNoticeMethod
 //todo registe the method as a new event
 func Register(name string,sendmessage func(string)error) error{
-	for _,m := range RegistedPreferedNoticedMethod {
+	for _,m := range RegistedPreferredNoticedMethod {
 		if m == name {
 			return errors.New("notice method already registered")
 		}
 	}
-	RegistedPreferedNoticedMethod = append(RegistedPreferedNoticedMethod, name)
+	RegistedPreferredNoticedMethod = append(RegistedPreferredNoticedMethod, name)
 	eventname := name + "_send_message"
 	event.RegisterListener(eventname,sendmessage)
 	//..

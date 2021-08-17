@@ -17,6 +17,9 @@ type UserForAdmin struct {
 
 	Roles  []Role  `json:"roles"`
 	Grades []Grade `json:"grades"`
+
+	PreferredNoticeMethod string `json:"preferred_notice_method"`
+	NoticeAccount string `json:"notice_account"`
 }
 
 func (p *User) convert(user *models.User) {
@@ -39,6 +42,8 @@ func (p *UserForAdmin) convert(user *models.User) {
 	p.Email = user.Email
 	p.Roles = GetRoleSlice(user.Roles)
 	p.Grades = GetGradeSlice(user.Grades)
+	p.PreferredNoticeMethod = user.PreferredNoticeMethod
+	p.NoticeAccount = user.NoticeAccount
 }
 
 func GetUser(user *models.User) *User {

@@ -11,40 +11,40 @@
       - `NoticeDetail` 存入一个`json`字符串记录用户的通知信息
 
         ```go
-        PreferedNoticeMethod string `gorm:"prefered_notice_method"`
+        PreferredNoticeMethod string `gorm:"preferred_notice_method"`
         NoticeDetail string
         ```
 
-      - 修改request/user中结构体 `updateme`,添加两个string字段，分别为`PreferedNoticeMethod` 和 `NoticeAddress`
+      - 修改request/user中结构体 `updateme`,添加两个string字段，分别为`PreferredNoticeMethod` 和 `NoticeAccount`
 
         ```go
         type UpdateMeRequest struct {
         	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
         	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
         	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
-        	PreferedNoticeMethod string `json:"preferednoticemethod" form:"preferednoticemethod" query:"preferednoticemethod"`
-        	NoticeAddress string `json:"noticeaddress" form:"noticeaddress" query:"noticeaddress"`
+        	PreferredNoticeMethod string `json:"preferrednoticemethod" form:"preferrednoticemethod" query:"preferrednoticemethod"`
+        	NoticeAccount string `json:"noticeaccount" form:"noticeaccount" query:"noticeaccount"`
         }
         ```
 
-      - `PreferedNoticeMethod`和`NoticeAddress`将会以`json`字符串的格式存入数据库`user`表中`PreferedNoticeMethod`列，需要用到 `json.Marshal`将结构体序列化，取用时`json.UnMarshal`将其解析。
+      - `PreferredNoticeMethod`和`NoticeAccount`将会以`json`字符串的格式存入数据库`user`表中`PreferredNoticeMethod`列，需要用到 `json.Marshal`将结构体序列化，取用时`json.UnMarshal`将其解析。
 
       - 以下代码中`NoticeDetail`仅包含一部分信息，应该修改代码存入更长的json
 
         ```go
         type Noticejson struct {
-        		PreferedNoticeMethod string
-        		NoticeAddress string
+        		PreferredNoticeMethod string
+        		NoticeAccount string
         	}
         	noticejson := Noticejson{
-        		PreferedNoticeMethod: req.PreferedNoticeMethod,
-        		NoticeAddress: req.NoticeAddress,
+        		PreferredNoticeMethod: req.PreferredNoticeMethod,
+        		NoticeAccount: req.NoticeAccount,
         	}
         	noticejson_byte, err := json.Marshal(noticejson)
         	if err != nil {
         		println("could not creat json")
         	}
-        	user.PreferedNoticeMethod = req.PreferedNoticeMethod
+        	user.PreferredNoticeMethod = req.PreferredNoticeMethod
         user.NoticeDetail = string(notice_byte)
         ```
 
@@ -54,13 +54,13 @@
 
    1. 设计思路
 
-      - 在`notification`包下的全局变量`RegistedPreferedNoticeMethod`用于记录已经注册启用的通知模块
+      - 在`notification`包下的全局变量`RegistedPreferredNoticeMethod`用于记录已经注册启用的通知模块
 
       - 在注册时应该校验传入数据，防止类似同名方式出现
 
         ```go
         func register(name string) {
-        	RegistedPreferedNoticedMethod = append(RegistedPreferedNoticedMethod, name)
+        	RegistedPreferredNoticedMethod = append(RegistedPreferredNoticedMethod, name)
         	//..
         }
         ```
@@ -70,7 +70,7 @@
 3. 展示各个通知方式的使用情况
 
    1. 设计思路
-      - 遍历数据库表`user`，记录每个用户的`PreferedNoticeMethod`，将该json字段使用`json.Unmarshal`解析并统计，实现统计各个方式的具体使用情况
+      - 遍历数据库表`user`，记录每个用户的`PreferredNoticeMethod`，将该json字段使用`json.Unmarshal`解析并统计，实现统计各个方式的具体使用情况
       - 输出通知方式使用用户数量
 
 4. 初始化路由
@@ -99,7 +99,7 @@
 
       - 参数设计：接收者，发送标题，发送内容，...
 
-      - 查询接收者的`PreferedNoticeMethod`
+      - 查询接收者的`PreferredNoticeMethod`
 
       - 解析接收者的`NoticeDetail`得到收件地址
 
@@ -109,7 +109,7 @@
 
         ```go
         func SendMessage(receiver *models.User, title string, message string) {
-        	method := receiver.PreferedNoticeMethod
+        	method := receiver.PreferredNoticeMethod
         	result, err := event.FireEvent(fmt.Sprintf("%s_send_message", method), receiver, title, message)
         	if err != nil {
         		//panic

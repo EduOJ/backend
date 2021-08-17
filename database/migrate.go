@@ -1174,22 +1174,22 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 		},
 		{
-			// add PreferredNoticeMethod and address
-			ID: "add_preferred_notice_method_and_notice_address",
+			// add PreferredNoticeMethod and account
+			ID: "add_preferred_notice_method_and_notice_account",
 			Migrate: func(tx *gorm.DB) (err error) {
 				type User struct {
-					PreferedNoticeMethod string `gorm:"preferred_notice_method"`
-					NoticeAddress string `gorm:"notice_address"`
+					PreferredNoticeMethod string `gorm:"preferred_notice_method"`
+					NoticeAccount string `gorm:"notice_account"`
 				}
 				return tx.AutoMigrate(&User{})
 			},
 			Rollback: func(tx *gorm.DB) (err error) {
 				type User struct{}
-				err = tx.Migrator().DropColumn(&User{}, "prefered_notice_method")
+				err = tx.Migrator().DropColumn(&User{}, "preferred_notice_method")
 				if err != nil {
 					return
 				}
-				return tx.Migrator().DropColumn(&User{}, "notice_address")
+				return tx.Migrator().DropColumn(&User{}, "notice_account")
 			},
 		},
 	})

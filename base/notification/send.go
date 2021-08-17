@@ -11,10 +11,10 @@ import (
 //if err != nil it means the listener is bad:not registered?error name?...
 //mErr != nil means sendmessage failed but not because of the Notification Channel developer,you may check the sender's account
 func SendMessage(receiver *models.User, title string, message string) error {
-	method := receiver.PreferedNoticeMethod
+	method := receiver.PreferredNoticeMethod
 	result, err := event.FireEvent(fmt.Sprintf("%s_send_message", method), receiver, title, message)
 	flag := false
-	for _, m := range RegistedPreferedNoticedMethod {
+	for _, m := range RegistedPreferredNoticedMethod {
 		if m == method {
 			flag = true
 			break
