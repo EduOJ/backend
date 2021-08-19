@@ -10,7 +10,7 @@ func ShowUsedMethod() {
 //realize:traverse the slice RegisteredNoticeMethod and check if the name is in
 // 			if so :remove ;
 //			if not :do nothing and print log
-func DeleteRegistedMethod(name string) {
+func DeleteRegisteredMethod(name string) {
 
 }
 

@@ -7,14 +7,12 @@ import (
 	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/notification"
 	"github.com/EduOJ/backend/base/utils"
-	"github.com/EduOJ/backend/database"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSendMessage(t *testing.T) {
-	defer database.SetupDatabaseForTest()()
 	t.Parallel()
 
 	receiver1 := models.User{
@@ -36,7 +34,6 @@ func TestSendMessage(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&receiver1).Error)
 	assert.NoError(t, base.DB.Create(&receiver2).Error)
 
-	notification.RegistedPreferredNoticedMethod = append(notification.RegistedPreferredNoticedMethod, "test_send_message_registered_method")
 	event.RegisterListener("test_send_message_registered_method_send_message", func(receiver *models.User, title, message string) error {
 		if title == "send_message_success_title" {
 			return nil

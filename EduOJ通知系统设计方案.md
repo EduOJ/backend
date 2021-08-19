@@ -155,13 +155,13 @@
 
 1. 设计思路
 
-   - 在`notification`包下的全局变量`RegistedPreferredNoticeMethod`用于记录已经注册启用的通知模块
+   - 在`notification`包下的全局变量`RegisteredPreferredNoticeMethod`用于记录已经注册启用的通知模块
 
    - 在注册时应该校验传入数据，防止类似同名方式出现
 
      ```go
      func Register(name string) {
-     	RegistedPreferredNoticedMethod = append(RegistedPreferredNoticedMethod, name)
+     	RegisteredPreferredNoticedMethod = append(RegisteredPreferredNoticedMethod, name)
      	//..
      }
      ```
@@ -186,14 +186,14 @@
 
 1. 设计思路
 
-   - 删除`RegistedPreferredNoticeMethod`中部分字段
+   - 删除`RegisteredPreferredNoticeMethod`中部分字段
 
    - 对整个`user`表进行遍历，修改使用被删通知渠道的用户的通知渠道为默认渠道
 
    - 
 
      ```go
-     func DeleteRegistedMethod() {
+     func DeleteRegisteredMethod() {
      
      }
      ```

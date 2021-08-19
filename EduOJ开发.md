@@ -54,13 +54,13 @@
 
    1. 设计思路
 
-      - 在`notification`包下的全局变量`RegistedPreferredNoticeMethod`用于记录已经注册启用的通知模块
+      - 在`notification`包下的全局变量`RegisteredPreferredNoticeMethod`用于记录已经注册启用的通知模块
 
       - 在注册时应该校验传入数据，防止类似同名方式出现
 
         ```go
         func register(name string) {
-        	RegistedPreferredNoticedMethod = append(RegistedPreferredNoticedMethod, name)
+        	RegisteredPreferredNoticedMethod = append(RegisteredPreferredNoticedMethod, name)
         	//..
         }
         ```

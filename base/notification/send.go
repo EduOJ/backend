@@ -14,7 +14,7 @@ var ErrNoticeMethodNotRigisted = errors.New("notice method not registered")
 func SendMessage(receiver *models.User, title string, message string) error {
 	method := receiver.PreferredNoticeMethod
 	flag := false
-	for _, m := range RegistedPreferredNoticedMethod {
+	for _, m := range RegisteredPreferredNoticedMethod {
 		if m == method {
 			flag = true
 			break

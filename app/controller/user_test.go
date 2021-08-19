@@ -731,7 +731,7 @@ func TestUpdateUserMe(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&user4).Error)
 	assert.NoError(t, base.DB.Create(&user5).Error)
 	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
-	notification.RegistedPreferredNoticedMethod = []string {
+	notification.RegisteredPreferredNoticedMethod = []string {
 		"test_method_1", "test_method_2", "test_method_3", "test_method_4",
 	}
 	failTests := []failTest{
