@@ -19,7 +19,7 @@ type UserForAdmin struct {
 	Grades []Grade `json:"grades"`
 
 	PreferredNoticeMethod string `json:"preferred_notice_method"`
-	NoticeAccount string `json:"notice_account"`
+	NoticeAccount         string `json:"notice_account"`
 }
 
 func (p *User) convert(user *models.User) {

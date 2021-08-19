@@ -126,7 +126,7 @@ func UpdateMe(c echo.Context) error {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
 	PreferredNoticeMethodFound := false
-	for _,m := range notification.RegisteredPreferredNoticedMethod {
+	for _, m := range notification.RegisteredPreferredNoticedMethod {
 		if m == req.PreferredNoticeMethod {
 			PreferredNoticeMethodFound = true
 			break

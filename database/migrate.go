@@ -1179,7 +1179,7 @@ func GetMigration() *gormigrate.Gormigrate {
 			Migrate: func(tx *gorm.DB) (err error) {
 				type User struct {
 					PreferredNoticeMethod string `gorm:"preferred_notice_method"`
-					NoticeAccount string `gorm:"notice_account"`
+					NoticeAccount         string `gorm:"notice_account"`
 				}
 				return tx.AutoMigrate(&User{})
 			},

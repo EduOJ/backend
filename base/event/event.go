@@ -25,7 +25,7 @@ func RegisterListener(eventName string, listener interface{}) {
 // Args will be passed to all registered listeners.
 // Returns a slice of results, each result is a slice of interface {},
 // representing the return value of each call.
-func FireEvepnt(eventName string, args ...interface{}) (result [][]interface{}, err error) {
+func FireEvent(eventName string, args ...interface{}) (result [][]interface{}, err error) {
 	eventLock.RLock()
 	defer eventLock.RUnlock()
 	defer func() {

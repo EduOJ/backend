@@ -18,9 +18,9 @@ func TestRegister(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
-		assert.NoError(t, notification.Register("register_success_method",testSendingFunc))
+		assert.NoError(t, notification.Register("register_success_method", testSendingFunc))
 		found := false
-		for _,m := range notification.RegisteredPreferredNoticedMethod {
+		for _, m := range notification.RegisteredPreferredNoticedMethod {
 			if m == "register_success_method" {
 				found = true
 				break
@@ -36,7 +36,7 @@ func TestRegister(t *testing.T) {
 
 	t.Run("AlreadyExist", func(t *testing.T) {
 		t.Parallel()
-		event.RegisterListener("register_existing_method_send_message",testSendingFunc)
+		event.RegisterListener("register_existing_method_send_message", testSendingFunc)
 		assert.ErrorIs(t, notification.Register("register_existing_method", func(s string) error {
 			return errors.New("another sending message method")
 		}), notification.ErrMethodAlreadyExist)
@@ -48,5 +48,3 @@ func TestRegister(t *testing.T) {
 	})
 
 }
-
-

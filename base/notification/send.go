@@ -6,6 +6,7 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 )
+
 var ErrNoticeMethodNotRigisted = errors.New("notice method not registered")
 
 //func SendMessage is used to use FireEvent to launch a listener already registered like "email_send_message"
@@ -33,4 +34,3 @@ func SendMessage(receiver *models.User, title string, message string) error {
 	return errors.Wrap(result[0][0].(error), "failed to send message")
 	return nil
 }
-

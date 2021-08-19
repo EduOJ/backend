@@ -17,11 +17,11 @@ type GetMeRequest struct {
 }
 
 type UpdateMeRequest struct {
-	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
-	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
-	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
+	Username              string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
+	Nickname              string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
+	Email                 string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 	PreferredNoticeMethod string `json:"preferrednoticemethod" form:"preferrednoticemethod" query:"preferrednoticemethod" validate:"required"`
-	NoticeAccount string `json:"noticeaccount" form:"noticeaccount" query:"noticeaccount" validate:"required"`
+	NoticeAccount         string `json:"noticeaccount" form:"noticeaccount" query:"noticeaccount" validate:"required"`
 }
 
 type ChangePasswordRequest struct {

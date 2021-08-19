@@ -678,52 +678,52 @@ func TestUpdateUserMe(t *testing.T) {
 	t.Parallel()
 
 	user1 := models.User{
-		Username:             "test_update_me_1",
-		Nickname:             "test_update_me_1_nick",
-		Email:                "test_update_me_1@mail.com",
-		Password:             utils.HashPassword("test_update_me_1_password"),
+		Username:              "test_update_me_1",
+		Nickname:              "test_update_me_1_nick",
+		Email:                 "test_update_me_1@mail.com",
+		Password:              utils.HashPassword("test_update_me_1_password"),
 		PreferredNoticeMethod: "test_method_1",
-		NoticeAccount:        `{"test_method_1": "test_method_account_1""}`,
+		NoticeAccount:         `{"test_method_1": "test_method_account_1""}`,
 	}
 	user2 := models.User{
-		Username: "test_update_me_2",
-		Nickname: "test_update_me_2_nick",
-		Email:    "test_update_me_2@mail.com",
-		Password: utils.HashPassword("test_update_me_2_password"),
+		Username:              "test_update_me_2",
+		Nickname:              "test_update_me_2_nick",
+		Email:                 "test_update_me_2@mail.com",
+		Password:              utils.HashPassword("test_update_me_2_password"),
 		PreferredNoticeMethod: "test_method_2",
-		NoticeAccount:        `{"test_method_2": "test_method_account_2"}`,
+		NoticeAccount:         `{"test_method_2": "test_method_account_2"}`,
 	}
 	user3 := models.User{
-		Username: "test_update_me_3",
-		Nickname: "test_update_me_3_nick",
-		Email:    "test_update_me_3@mail.com",
-		Password: utils.HashPassword("test_update_me_3_password"),
+		Username:              "test_update_me_3",
+		Nickname:              "test_update_me_3_nick",
+		Email:                 "test_update_me_3@mail.com",
+		Password:              utils.HashPassword("test_update_me_3_password"),
 		PreferredNoticeMethod: "test_method_3",
-		NoticeAccount:        `{"test_method_3": "test_method_account_3"}`,
+		NoticeAccount:         `{"test_method_3": "test_method_account_3"}`,
 	}
 	user4 := models.User{
-		Username: "test_update_me_4",
-		Nickname: "test_update_me_4_nick",
-		Email:    "test_update_me_4@mail.com",
-		Password: utils.HashPassword("test_update_me_4_password"),
+		Username:              "test_update_me_4",
+		Nickname:              "test_update_me_4_nick",
+		Email:                 "test_update_me_4@mail.com",
+		Password:              utils.HashPassword("test_update_me_4_password"),
 		PreferredNoticeMethod: "test_method_4",
-		NoticeAccount:        `{"test_method_4": "test_method_account_4"}`,
+		NoticeAccount:         `{"test_method_4": "test_method_account_4"}`,
 	}
 	user5 := models.User{
-		Username: "test_update_me_5",
-		Nickname: "test_update_me_5_nick",
-		Email:    "test_update_me_5@mail.com",
-		Password: utils.HashPassword("test_update_me_5_password"),
+		Username:              "test_update_me_5",
+		Nickname:              "test_update_me_5_nick",
+		Email:                 "test_update_me_5@mail.com",
+		Password:              utils.HashPassword("test_update_me_5_password"),
 		PreferredNoticeMethod: "test_method_2",
-		NoticeAccount:        `{"test_method_2": "test_method_account_2"}`,
+		NoticeAccount:         `{"test_method_2": "test_method_account_2"}`,
 	}
 	dummyUserForConflict := models.User{
-		Username: "test_update_me_conflict",
-		Nickname: "test_update_me_conflict_nick",
-		Email:    "test_update_me_conflict@mail.com",
-		Password: utils.HashPassword("test_update_me_conflict_pwd"),
+		Username:              "test_update_me_conflict",
+		Nickname:              "test_update_me_conflict_nick",
+		Email:                 "test_update_me_conflict@mail.com",
+		Password:              utils.HashPassword("test_update_me_conflict_pwd"),
 		PreferredNoticeMethod: "test_method_conflict",
-		NoticeAccount:        "test_method_account_conflict",
+		NoticeAccount:         "test_method_account_conflict",
 	}
 	assert.NoError(t, base.DB.Create(&user1).Error)
 	assert.NoError(t, base.DB.Create(&user2).Error)
@@ -731,7 +731,7 @@ func TestUpdateUserMe(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&user4).Error)
 	assert.NoError(t, base.DB.Create(&user5).Error)
 	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
-	notification.RegisteredPreferredNoticedMethod = []string {
+	notification.RegisteredPreferredNoticedMethod = []string{
 		"test_method_1", "test_method_2", "test_method_3", "test_method_4",
 	}
 	failTests := []failTest{
@@ -740,11 +740,11 @@ func TestUpdateUserMe(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("user.updateMe"),
 			req: request.UpdateMeRequest{
-				Username: "",
-				Nickname: "",
-				Email:    "",
-				PreferredNoticeMethod:   "",
-				NoticeAccount:   "",
+				Username:              "",
+				Nickname:              "",
+				Email:                 "",
+				PreferredNoticeMethod: "",
+				NoticeAccount:         "",
 			},
 			reqOptions: []reqOption{
 				applyUser(user1),
@@ -787,11 +787,11 @@ func TestUpdateUserMe(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("user.updateMe"),
 			req: request.UpdateMeRequest{
-				Username: "test_update_me_conflict",
-				Nickname: "test_update_me_2_nick",
-				Email:    "test_update_me_2@mail.com",
+				Username:              "test_update_me_conflict",
+				Nickname:              "test_update_me_2_nick",
+				Email:                 "test_update_me_2@mail.com",
 				PreferredNoticeMethod: "test_method_2",
-				NoticeAccount:        `{"test_method_2": "test_method_account_2"}`,
+				NoticeAccount:         `{"test_method_2": "test_method_account_2"}`,
 			},
 			reqOptions: []reqOption{
 				applyUser(user2),
@@ -804,11 +804,11 @@ func TestUpdateUserMe(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("user.updateMe"),
 			req: request.UpdateMeRequest{
-				Username: "test_update_me_3",
-				Nickname: "test_update_me_3_nick",
-				Email:    "test_update_me_conflict@mail.com",
+				Username:              "test_update_me_3",
+				Nickname:              "test_update_me_3_nick",
+				Email:                 "test_update_me_conflict@mail.com",
 				PreferredNoticeMethod: "test_method_3",
-				NoticeAccount:        `{"test_method_3": "test_method_account_3"}`,
+				NoticeAccount:         `{"test_method_3": "test_method_account_3"}`,
 			},
 			reqOptions: []reqOption{
 				applyUser(user3),
@@ -821,11 +821,11 @@ func TestUpdateUserMe(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("user.updateMe"),
 			req: request.UpdateMeRequest{
-				Username: "test_update_me_4",
-				Nickname: "test_update_me_4_nick",
-				Email:    "test_update_me_4@mail.com",
+				Username:              "test_update_me_4",
+				Nickname:              "test_update_me_4_nick",
+				Email:                 "test_update_me_4@mail.com",
 				PreferredNoticeMethod: "test_method_not_found",
-				NoticeAccount:        `{"test_method_not_found": "test_method_account_not_found"}`,
+				NoticeAccount:         `{"test_method_not_found": "test_method_account_not_found"}`,
 			},
 			reqOptions: []reqOption{
 				applyUser(user4),
@@ -838,11 +838,11 @@ func TestUpdateUserMe(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("user.updateMe"),
 			req: request.UpdateMeRequest{
-				Username: "test_update_me_5",
-				Nickname: "test_update_me_5_nick",
-				Email:    "test_update_me_5@mail.com",
+				Username:              "test_update_me_5",
+				Nickname:              "test_update_me_5_nick",
+				Email:                 "test_update_me_5@mail.com",
 				PreferredNoticeMethod: "test_method_1",
-				NoticeAccount:        "test_method_account_invalid",
+				NoticeAccount:         "test_method_account_invalid",
 			},
 			reqOptions: []reqOption{
 				applyUser(user5),
@@ -873,19 +873,19 @@ func TestUpdateUserMe(t *testing.T) {
 		{
 			name: "Success",
 			user: models.User{
-				Username: "test_update_me_04",
-				Nickname: "test_update_me_04_nick",
-				Email:    "test_update_me_04@mail.com",
-				Password: utils.HashPassword("test_update_me_04_password"),
+				Username:              "test_update_me_04",
+				Nickname:              "test_update_me_04_nick",
+				Email:                 "test_update_me_04@mail.com",
+				Password:              utils.HashPassword("test_update_me_04_password"),
 				PreferredNoticeMethod: "test_method_1",
-				NoticeAccount:        `{"test_method_1": "test_method_account_1"}`,
+				NoticeAccount:         `{"test_method_1": "test_method_account_1"}`,
 			},
 			req: request.UpdateMeRequest{
-				Username: "test_update_me_success_04",
-				Nickname: "test_update_me_success_04",
-				Email:    "test_update_me_success_04@e.com",
+				Username:              "test_update_me_success_04",
+				Nickname:              "test_update_me_success_04",
+				Email:                 "test_update_me_success_04@e.com",
 				PreferredNoticeMethod: "test_method_1",
-				NoticeAccount:        `{"test_method_1": "test_method_account_1"}`,
+				NoticeAccount:         `{"test_method_1": "test_method_account_1"}`,
 			},
 			roleName:   nil,
 			roleTarget: nil,
@@ -893,19 +893,19 @@ func TestUpdateUserMe(t *testing.T) {
 		{
 			name: "SuccessWithRole",
 			user: models.User{
-				Username: "test_update_me_05",
-				Nickname: "test_update_me_05_nick",
-				Email:    "test_update_me_05@mail.com",
-				Password: utils.HashPassword("test_update_me_05_password"),
+				Username:              "test_update_me_05",
+				Nickname:              "test_update_me_05_nick",
+				Email:                 "test_update_me_05@mail.com",
+				Password:              utils.HashPassword("test_update_me_05_password"),
 				PreferredNoticeMethod: "test_method_1",
-				NoticeAccount:        `{"test_method_1": "test_method_account_1"}`,
+				NoticeAccount:         `{"test_method_1": "test_method_account_1"}`,
 			},
 			req: request.UpdateMeRequest{
-				Username: "test_update_me_success_05",
-				Nickname: "test_update_me_success_05",
-				Email:    "test_update_me_success_05@e.com",
+				Username:              "test_update_me_success_05",
+				Nickname:              "test_update_me_success_05",
+				Email:                 "test_update_me_success_05@e.com",
 				PreferredNoticeMethod: "test_method_2",
-				NoticeAccount:        `{"test_method_2": "test_method_account_2"}`,
+				NoticeAccount:         `{"test_method_2": "test_method_account_2"}`,
 			},
 			roleName:   &testRole.Name,
 			roleTarget: classA,
