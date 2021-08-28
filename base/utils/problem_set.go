@@ -115,3 +115,41 @@ func RefreshGrades(problemSet *models.ProblemSet) error {
 	problemSet.Grades = grades
 	return nil
 }
+
+func GetGrades(problemSet *models.ProblemSet) error {
+	gradeLock.Lock()
+	defer gradeLock.Unlock()
+	gradeSet := make(map[uint]bool)
+	for _, g := range problemSet.Grades {
+		gradeSet[g.UserID] = true
+	}
+	grades := make([]*models.Grade, 0, len(problemSet.Class.Students)-len(problemSet.Grades))
+	copy(grades, problemSet.Grades)
+	detail := make(map[uint]uint)
+	for _, p := range problemSet.Problems {
+		detail[p.ID] = 0
+	}
+	emptyDetail, err := json.Marshal(detail)
+	if err != nil {
+		return errors.Wrap(err, "could not marshal grade detail when getting grades")
+	}
+	for _, u := range problemSet.Class.Students {
+		if gradeSet[u.ID] {
+			continue
+		}
+		newGrade := models.Grade{
+			UserID:       u.ID,
+			ProblemSetID: problemSet.ID,
+			ClassID:      problemSet.ClassID,
+			Detail:       emptyDetail,
+			Total:        0,
+		}
+		grades = append(grades, &newGrade)
+	}
+	err = base.DB.Create(&grades).Error
+	if err != nil {
+		return errors.Wrap(err, "could not create grades when getting grades")
+	}
+	problemSet.Grades = append(problemSet.Grades, grades...)
+	return nil
+}

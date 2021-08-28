@@ -483,3 +483,26 @@ func RefreshGrades(c echo.Context) error {
 		},
 	})
 }
+
+func GetGrades(c echo.Context) error {
+	problemSet := models.ProblemSet{}
+	if err := base.DB.Preload("Problems").Preload("Class.Students").Preload("Grades").
+		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get problem set for getting grades"))
+	}
+	if err := utils.GetGrades(&problemSet); err != nil {
+		panic(errors.Wrap(err, "could not get grades"))
+	}
+	return c.JSON(http.StatusOK, response.GetGradesResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.ProblemSetWithGrades `json:"grades"`
+		}{
+			resource.GetProblemSetWithGrades(&problemSet),
+		},
+	})
+}
