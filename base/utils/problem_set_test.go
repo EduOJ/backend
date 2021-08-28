@@ -389,6 +389,7 @@ func TestRefreshGrades(t *testing.T) {
 			problem1.ID: 100,
 			problem2.ID: 100,
 		})
+		assert.NoError(t, err)
 		j2, err := json.Marshal(map[uint]uint{
 			problem1.ID: 0,
 			problem2.ID: 60,
@@ -426,6 +427,7 @@ func TestRefreshGrades(t *testing.T) {
 			problem1.ID: 100,
 			problem2.ID: 0,
 		})
+		assert.NoError(t, err)
 		j2, err := json.Marshal(map[uint]uint{
 			problem1.ID: 0,
 			problem2.ID: 80,
@@ -442,6 +444,184 @@ func TestRefreshGrades(t *testing.T) {
 			ProblemSetID: ps.ID,
 			Detail:       j2,
 			Total:        80,
+		})
+	})
+}
+
+func TestGetGrades(t *testing.T) {
+	t.Parallel()
+
+	problem1 := models.Problem{
+		Name:        "test_get_grades_1_name",
+		Description: "test_get_grades_1_description",
+		MemoryLimit: 1024,
+		TimeLimit:   1000,
+	}
+	problem2 := models.Problem{
+		Name:        "test_get_grades_2_name",
+		Description: "test_get_grades_2_description",
+		MemoryLimit: 2048,
+		TimeLimit:   2000,
+	}
+	assert.NoError(t, base.DB.Create(&problem1).Error)
+	assert.NoError(t, base.DB.Create(&problem2).Error)
+	init := func(id int) (u1, u2 *models.User, ps *models.ProblemSet) {
+		user1 := models.User{
+			Username: fmt.Sprintf("test_get_grades_%d_1_username", id),
+			Nickname: fmt.Sprintf("test_get_grades_%d_1_nickname", id),
+			Email:    fmt.Sprintf("test_get_grades_%d_1@mail.com", id),
+			Password: fmt.Sprintf("test_get_grades_%d_1_password", id),
+		}
+		user2 := models.User{
+			Username: fmt.Sprintf("test_get_grades_%d_2_username", id),
+			Nickname: fmt.Sprintf("test_get_grades_%d_2_nickname", id),
+			Email:    fmt.Sprintf("test_get_grades_%d_2@mail.com", id),
+			Password: fmt.Sprintf("test_get_grades_%d_2_password", id),
+		}
+		assert.NoError(t, base.DB.Create(&user1).Error)
+		assert.NoError(t, base.DB.Create(&user2).Error)
+		class := models.Class{
+			Name:        fmt.Sprintf("test_get_grades_%d_name", id),
+			CourseName:  fmt.Sprintf("test_get_grades_%d_course_name", id),
+			Description: fmt.Sprintf("test_get_grades_%d_description", id),
+			InviteCode:  GenerateInviteCode(),
+			Managers:    nil,
+			Students: []*models.User{
+				&user1,
+				&user2,
+			},
+			ProblemSets: nil,
+		}
+		assert.NoError(t, base.DB.Create(&class).Error)
+		problemSet := models.ProblemSet{
+			ClassID:     class.ID,
+			Name:        fmt.Sprintf("test_get_grades_%d_name", id),
+			Description: fmt.Sprintf("test_get_grades_%d_description", id),
+			Problems: []*models.Problem{
+				&problem1,
+				&problem2,
+			},
+			Grades:    nil,
+			StartTime: time.Now().Add(time.Hour),
+			EndTime:   time.Now().Add(2 * time.Hour),
+		}
+		assert.NoError(t, base.DB.Create(&problemSet).Error)
+		problemSet.Class = &class
+		return &user1, &user2, &problemSet
+	}
+
+	t.Run("Empty", func(t *testing.T) {
+		t.Parallel()
+		u1, u2, problemSet := init(0)
+		var ps models.ProblemSet
+		j, err := json.Marshal(map[uint]uint{
+			problem1.ID: 0,
+			problem2.ID: 0,
+		})
+		assert.NoError(t, err)
+		assert.NoError(t, base.DB.
+			Preload("Class.Students").
+			Preload("Grades").
+			Preload("Problems").
+			First(&ps, problemSet.ID).Error)
+		assert.NoError(t, GetGrades(&ps))
+		checkGrade(t, &models.Grade{
+			UserID:       u1.ID,
+			ProblemSetID: ps.ID,
+			Detail:       j,
+			Total:        0,
+		})
+		checkGrade(t, &models.Grade{
+			UserID:       u2.ID,
+			ProblemSetID: ps.ID,
+			Detail:       j,
+			Total:        0,
+		})
+	})
+	t.Run("Partially", func(t *testing.T) {
+		t.Parallel()
+		u1, u2, problemSet := init(1)
+		var ps models.ProblemSet
+		j1, err := json.Marshal(map[uint]uint{
+			problem1.ID: 100,
+			problem2.ID: 100,
+		})
+		j2, err := json.Marshal(map[uint]uint{
+			problem1.ID: 0,
+			problem2.ID: 0,
+		})
+		grade1 := models.Grade{
+			UserID:       u1.ID,
+			ProblemSetID: problemSet.ID,
+			Detail:       j1,
+			Total:        200,
+		}
+		assert.NoError(t, err)
+		assert.NoError(t, base.DB.Create(&grade1).Error)
+		assert.NoError(t, base.DB.
+			Preload("Class.Students").
+			Preload("Grades").
+			Preload("Problems").
+			First(&ps, problemSet.ID).Error)
+		assert.NoError(t, GetGrades(&ps))
+		checkGrade(t, &models.Grade{
+			UserID:       u1.ID,
+			ProblemSetID: ps.ID,
+			Detail:       j1,
+			Total:        200,
+		})
+		checkGrade(t, &models.Grade{
+			UserID:       u2.ID,
+			ProblemSetID: ps.ID,
+			Detail:       j2,
+			Total:        0,
+		})
+	})
+	t.Run("Full", func(t *testing.T) {
+		t.Parallel()
+		u1, u2, problemSet := init(2)
+		var ps models.ProblemSet
+		j1, err := json.Marshal(map[uint]uint{
+			problem1.ID: 20,
+			problem2.ID: 100,
+		})
+		assert.NoError(t, err)
+		j2, err := json.Marshal(map[uint]uint{
+			problem1.ID: 60,
+			problem2.ID: 0,
+		})
+		assert.NoError(t, err)
+		grade1 := models.Grade{
+			UserID:       u1.ID,
+			ProblemSetID: problemSet.ID,
+			Detail:       j1,
+			Total:        120,
+		}
+		grade2 := models.Grade{
+			UserID:       u2.ID,
+			ProblemSetID: problemSet.ID,
+			Detail:       j2,
+			Total:        60,
+		}
+		assert.NoError(t, base.DB.Create(&grade1).Error)
+		assert.NoError(t, base.DB.Create(&grade2).Error)
+		assert.NoError(t, base.DB.
+			Preload("Class.Students").
+			Preload("Grades").
+			Preload("Problems").
+			First(&ps, problemSet.ID).Error)
+		assert.NoError(t, GetGrades(&ps))
+		checkGrade(t, &models.Grade{
+			UserID:       u1.ID,
+			ProblemSetID: ps.ID,
+			Detail:       j1,
+			Total:        120,
+		})
+		checkGrade(t, &models.Grade{
+			UserID:       u2.ID,
+			ProblemSetID: ps.ID,
+			Detail:       j2,
+			Total:        60,
 		})
 	})
 }

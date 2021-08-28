@@ -1201,7 +1201,7 @@ func TestRefreshGrades(t *testing.T) {
 	t.Parallel()
 	user1 := createUserForTest(t, "refresh_grades", 1)
 	user2 := createUserForTest(t, "refresh_grades", 2)
-	class := createClassForTest(t, "refresh_grades_fail", 0, nil, []*models.User{&user1, &user2})
+	class := createClassForTest(t, "refresh_grades", 0, nil, []*models.User{&user1, &user2})
 	problemSet := createProblemSetForTest(t, "refresh_grades_fail", 0, &class, nil, inProgress)
 	failTests := []failTest{
 		{
@@ -1348,6 +1348,7 @@ func TestRefreshGrades(t *testing.T) {
 			problem1.ID: 40,
 			problem2.ID: 0,
 		})
+		assert.NoError(t, err)
 		j2, err := json.Marshal(map[uint]uint{
 			problem1.ID: 0,
 			problem2.ID: 100,
@@ -1399,6 +1400,300 @@ func TestRefreshGrades(t *testing.T) {
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, response.RefreshGradesResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemSetWithGrades `json:"grades"`
+			}{
+				resource.GetProblemSetWithGrades(&expectedProblemSet),
+			},
+		}, resp)
+	})
+}
+
+func TestGetGrades(t *testing.T) {
+	t.Parallel()
+	user1 := createUserForTest(t, "get_grades", 1)
+	user2 := createUserForTest(t, "get_grades", 2)
+	class := createClassForTest(t, "get_grades", 0, nil, []*models.User{&user1, &user2})
+	problemSet := createProblemSetForTest(t, "get_grades_fail", 0, &class, nil, inProgress)
+	failTests := []failTest{
+		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.GetGrades", -1, problemSet.ID),
+			req:    request.GetGradesRequest{},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "NonExistingProblemSet",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.GetGrades", class.ID, -1),
+			req:    request.GetGradesRequest{},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("problemSet.GetGrades", class.ID, -1),
+			req:    request.GetGradesRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "GetGrades")
+
+	problem1 := createProblemForTest(t, "get_grades", 1, nil, user1)
+	problem2 := createProblemForTest(t, "get_grades", 2, nil, user1)
+
+	t.Run("Empty", func(t *testing.T) {
+		t.Parallel()
+		ps := createProblemSetForTest(t, "get_grades_empty", 0, &class, []models.Problem{problem1, problem2}, inProgress)
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
+		databaseProblemSet := models.ProblemSet{}
+		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet, ps.ID).Error)
+		j, err := json.Marshal(map[uint]uint{
+			problem1.ID: 0,
+			problem2.ID: 0,
+		})
+		assert.NoError(t, err)
+		for i := range ps.Problems {
+			ps.Problems[i].TestCases = nil
+		}
+		expectedProblemSet := models.ProblemSet{
+			ID:          ps.ID,
+			ClassID:     class.ID,
+			Class:       nil,
+			Name:        ps.Name,
+			Description: ps.Description,
+			Problems:    ps.Problems,
+			Grades: []*models.Grade{
+				{
+					ID:           databaseProblemSet.Grades[0].ID,
+					UserID:       user1.ID,
+					User:         nil,
+					ProblemSetID: ps.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       j,
+					Total:        0,
+					CreatedAt:    databaseProblemSet.Grades[0].CreatedAt,
+					UpdatedAt:    databaseProblemSet.Grades[0].UpdatedAt,
+				},
+				{
+					ID:           databaseProblemSet.Grades[1].ID,
+					UserID:       user2.ID,
+					User:         nil,
+					ProblemSetID: ps.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       j,
+					Total:        0,
+					CreatedAt:    databaseProblemSet.Grades[1].CreatedAt,
+					UpdatedAt:    databaseProblemSet.Grades[1].UpdatedAt,
+				},
+			},
+			StartTime: ps.StartTime,
+			EndTime:   ps.EndTime,
+			CreatedAt: ps.CreatedAt,
+			UpdatedAt: databaseProblemSet.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}
+		assert.Equal(t, expectedProblemSet, databaseProblemSet)
+		resp := response.GetGradesResponse{}
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetGradesResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemSetWithGrades `json:"grades"`
+			}{
+				resource.GetProblemSetWithGrades(&expectedProblemSet),
+			},
+		}, resp)
+	})
+	t.Run("Partially", func(t *testing.T) {
+		t.Parallel()
+		ps := createProblemSetForTest(t, "get_grades_partially", 0, &class, []models.Problem{problem1, problem2}, inProgress)
+		j1, err := json.Marshal(map[uint]uint{
+			problem1.ID: 40,
+			problem2.ID: 0,
+		})
+		assert.NoError(t, err)
+		j2, err := json.Marshal(map[uint]uint{
+			problem1.ID: 0,
+			problem2.ID: 0,
+		})
+		assert.NoError(t, err)
+		grade1 := models.Grade{
+			UserID:       user1.ID,
+			ProblemSetID: ps.ID,
+			ClassID:      class.ID,
+			Detail:       j1,
+			Total:        40,
+		}
+		assert.NoError(t, err)
+		assert.NoError(t, base.DB.Create(&grade1).Error)
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
+		databaseProblemSet := models.ProblemSet{}
+		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet, ps.ID).Error)
+
+		assert.NoError(t, err)
+		expectedProblemSet := models.ProblemSet{
+			ID:          ps.ID,
+			ClassID:     class.ID,
+			Class:       nil,
+			Name:        ps.Name,
+			Description: ps.Description,
+			Problems:    ps.Problems,
+			Grades: []*models.Grade{
+				{
+					ID:           databaseProblemSet.Grades[0].ID,
+					UserID:       user1.ID,
+					User:         nil,
+					ProblemSetID: ps.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       j1,
+					Total:        40,
+					CreatedAt:    databaseProblemSet.Grades[0].CreatedAt,
+					UpdatedAt:    databaseProblemSet.Grades[0].UpdatedAt,
+				},
+				{
+					ID:           databaseProblemSet.Grades[1].ID,
+					UserID:       user2.ID,
+					User:         nil,
+					ProblemSetID: ps.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       j2,
+					Total:        0,
+					CreatedAt:    databaseProblemSet.Grades[1].CreatedAt,
+					UpdatedAt:    databaseProblemSet.Grades[1].UpdatedAt,
+				},
+			},
+			StartTime: ps.StartTime,
+			EndTime:   ps.EndTime,
+			CreatedAt: ps.CreatedAt,
+			UpdatedAt: databaseProblemSet.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}
+		assert.Equal(t, expectedProblemSet, databaseProblemSet)
+		resp := response.GetGradesResponse{}
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetGradesResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				*resource.ProblemSetWithGrades `json:"grades"`
+			}{
+				resource.GetProblemSetWithGrades(&expectedProblemSet),
+			},
+		}, resp)
+	})
+	t.Run("Full", func(t *testing.T) {
+		t.Parallel()
+		ps := createProblemSetForTest(t, "get_grades_full", 0, &class, []models.Problem{problem1, problem2}, inProgress)
+		j1, err := json.Marshal(map[uint]uint{
+			problem1.ID: 40,
+			problem2.ID: 0,
+		})
+		assert.NoError(t, err)
+		j2, err := json.Marshal(map[uint]uint{
+			problem1.ID: 100,
+			problem2.ID: 30,
+		})
+		assert.NoError(t, err)
+		grade1 := models.Grade{
+			UserID:       user1.ID,
+			ProblemSetID: ps.ID,
+			ClassID:      class.ID,
+			Detail:       j1,
+			Total:        40,
+		}
+		assert.NoError(t, err)
+		assert.NoError(t, base.DB.Create(&grade1).Error)
+		grade2 := models.Grade{
+			UserID:       user2.ID,
+			ProblemSetID: ps.ID,
+			ClassID:      class.ID,
+			Detail:       j2,
+			Total:        130,
+		}
+		assert.NoError(t, err)
+		assert.NoError(t, base.DB.Create(&grade2).Error)
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
+		databaseProblemSet := models.ProblemSet{}
+		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet, ps.ID).Error)
+
+		assert.NoError(t, err)
+		expectedProblemSet := models.ProblemSet{
+			ID:          ps.ID,
+			ClassID:     class.ID,
+			Class:       nil,
+			Name:        ps.Name,
+			Description: ps.Description,
+			Problems:    ps.Problems,
+			Grades: []*models.Grade{
+				{
+					ID:           databaseProblemSet.Grades[0].ID,
+					UserID:       user1.ID,
+					User:         nil,
+					ProblemSetID: ps.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       j1,
+					Total:        40,
+					CreatedAt:    databaseProblemSet.Grades[0].CreatedAt,
+					UpdatedAt:    databaseProblemSet.Grades[0].UpdatedAt,
+				},
+				{
+					ID:           databaseProblemSet.Grades[1].ID,
+					UserID:       user2.ID,
+					User:         nil,
+					ProblemSetID: ps.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       j2,
+					Total:        130,
+					CreatedAt:    databaseProblemSet.Grades[1].CreatedAt,
+					UpdatedAt:    databaseProblemSet.Grades[1].UpdatedAt,
+				},
+			},
+			StartTime: ps.StartTime,
+			EndTime:   ps.EndTime,
+			CreatedAt: ps.CreatedAt,
+			UpdatedAt: databaseProblemSet.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}
+		assert.Equal(t, expectedProblemSet, databaseProblemSet)
+		resp := response.GetGradesResponse{}
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetGradesResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {

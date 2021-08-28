@@ -108,8 +108,7 @@ func RefreshGrades(problemSet *models.ProblemSet) error {
 		}
 		grades = append(grades, &grade)
 	}
-	err := base.DB.Create(&grades).Error
-	if err != nil {
+	if err := base.DB.Create(&grades).Error; err != nil {
 		return errors.Wrap(err, "could not create grades when refreshing grades")
 	}
 	problemSet.Grades = grades
@@ -121,6 +120,7 @@ func GetGrades(problemSet *models.ProblemSet) error {
 	defer gradeLock.Unlock()
 	gradeSet := make(map[uint]bool)
 	for _, g := range problemSet.Grades {
+		//fmt.Println(g)
 		gradeSet[g.UserID] = true
 	}
 	grades := make([]*models.Grade, 0, len(problemSet.Class.Students)-len(problemSet.Grades))
@@ -146,9 +146,10 @@ func GetGrades(problemSet *models.ProblemSet) error {
 		}
 		grades = append(grades, &newGrade)
 	}
-	err = base.DB.Create(&grades).Error
-	if err != nil {
-		return errors.Wrap(err, "could not create grades when getting grades")
+	if len(grades) > 0 {
+		if err = base.DB.Create(&grades).Error; err != nil {
+			return errors.Wrap(err, "could not create grades when getting grades")
+		}
 	}
 	problemSet.Grades = append(problemSet.Grades, grades...)
 	return nil
