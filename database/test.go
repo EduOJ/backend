@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"github.com/EduOJ/backend/base"
+	"github.com/spf13/viper"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -16,6 +17,7 @@ func SetupDatabaseForTest() func() {
 		Logger:                                   logger.Default.LogMode(logger.Silent),
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
+	viper.Set("database.dialect", "sqlite")
 	if err != nil {
 		fmt.Print(err)
 		panic(err)

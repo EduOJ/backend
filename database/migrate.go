@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/EduOJ/backend/base"
 	"github.com/go-gormigrate/gormigrate/v2"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
@@ -576,6 +578,9 @@ func GetMigration() *gormigrate.Gormigrate {
 				if err != nil {
 					return err
 				}
+				if viper.GetString("database.dialect") == "sqlite" {
+					return nil
+				}
 				return tx.Migrator().DropConstraint(&Submission{}, "fk_submissions_language")
 			},
 		},
@@ -728,6 +733,9 @@ func GetMigration() *gormigrate.Gormigrate {
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`
 					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				if viper.GetString("database.dialect") == "sqlite" {
+					return nil
 				}
 				return tx.Migrator().DropConstraint(&Problem{}, "fk_submissions_language")
 			},
@@ -1097,7 +1105,15 @@ func GetMigration() *gormigrate.Gormigrate {
 					UpdatedAt time.Time      `json:"-"`
 					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
-				return tx.Migrator().DropIndex(&Grade{}, "grade_user_problem_set")
+				if tx.Migrator().HasIndex(&Grade{}, "grade_user_problem_set") {
+					return tx.Migrator().DropIndex(&Grade{}, "grade_user_problem_set")
+				} else {
+					if viper.GetString("database.dialect") != "sqlite" {
+						return errors.New("Missing grade_user_problem_set index")
+					} else {
+						return nil
+					}
+				}
 			},
 		},
 		{
