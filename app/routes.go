@@ -102,6 +102,7 @@ func Register(e *echo.Echo) {
 		middleware.ValidateParams(map[string]string{
 			"id":           "NOT_FOUND",
 			"test_case_id": "TEST_CASE_NOT_FOUND",
+			"cause_id":     "CAUSE_NOT_FOUND",
 		}),
 		middleware.Logged,
 		middleware.HasPermission(middleware.OrPermission{
@@ -134,6 +135,18 @@ func Register(e *echo.Echo) {
 	updateProblem.PUT("/admin/problem/:id/test_case/:test_case_id", controller.UpdateTestCase).Name = "problem.updateTestCase"
 	updateProblem.DELETE("/admin/problem/:id/test_case/all", controller.DeleteTestCases).Name = "problem.deleteTestCases"
 	updateProblem.DELETE("/admin/problem/:id/test_case/:test_case_id", controller.DeleteTestCase).Name = "problem.deleteTestCase"
+	// cause APIs
+	api.GET("/problem/:id/test_case/:test_case_id/cause/:cause_id", controller.Todo,
+		middleware.ValidateParams(map[string]string{
+			"id":           "NOT_FOUND",
+			"test_case_id": "TEST_CASE_NOT_FOUND",
+			"cause_id":     "CAUSE_NOT_FOUND",
+		}),
+		middleware.Logged,
+	).Name = "problem.getCause"
+	readProblemSecret.GET("/problem/:id/test_case/:test_case_id/causes", controller.Todo).Name = "problem.getCauses"
+	updateProblem.PUT("/problem/:id/test_case/:test_case_id/cause/:cause_id", controller.Todo).Name = "problem.updateCause"
+	updateProblem.DELETE("/problem/:id/test_case/:test_case_id/cause/:cause_id", controller.Todo).Name = "problem.deleteCause"
 
 	// submission APIs
 	submission := api.Group("",

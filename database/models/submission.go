@@ -64,7 +64,7 @@ type Run struct {
 	Status             string `json:"status"`
 	MemoryUsed         uint   `json:"memory_used"` // Byte
 	TimeUsed           uint   `json:"time_used"`   // ms
-	OutputStrippedHash string `json:"output_stripped_hash"`
+	OutputStrippedHash string `json:"output_stripped_hash" gorm:"index;not null;size:255;default:''"`
 
 	CreatedAt time.Time      `sql:"index" json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
