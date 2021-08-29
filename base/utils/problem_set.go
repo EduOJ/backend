@@ -115,7 +115,7 @@ func RefreshGrades(problemSet *models.ProblemSet) error {
 	return nil
 }
 
-func GetGrades(problemSet *models.ProblemSet) error {
+func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	gradeLock.Lock()
 	defer gradeLock.Unlock()
 	gradeSet := make(map[uint]bool)

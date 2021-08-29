@@ -477,7 +477,7 @@ func RefreshGrades(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.ProblemSetWithGrades `json:"grades"`
+			*resource.ProblemSetWithGrades `json:"problem_set"`
 		}{
 			resource.GetProblemSetWithGrades(&problemSet),
 		},
@@ -493,14 +493,14 @@ func GetGrades(c echo.Context) error {
 		}
 		panic(errors.Wrap(err, "could not get problem set for getting grades"))
 	}
-	if err := utils.GetGrades(&problemSet); err != nil {
+	if err := utils.CreateEmptyGrades(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not get grades"))
 	}
 	return c.JSON(http.StatusOK, response.GetGradesResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.ProblemSetWithGrades `json:"grades"`
+			*resource.ProblemSetWithGrades `json:"problem_set"`
 		}{
 			resource.GetProblemSetWithGrades(&problemSet),
 		},

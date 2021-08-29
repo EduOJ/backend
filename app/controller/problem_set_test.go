@@ -1308,7 +1308,7 @@ func TestRefreshGrades(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.ProblemSetWithGrades `json:"grades"`
+				*resource.ProblemSetWithGrades `json:"problem_set"`
 			}{
 				resource.GetProblemSetWithGrades(&expectedProblemSet),
 			},
@@ -1403,7 +1403,7 @@ func TestRefreshGrades(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.ProblemSetWithGrades `json:"grades"`
+				*resource.ProblemSetWithGrades `json:"problem_set"`
 			}{
 				resource.GetProblemSetWithGrades(&expectedProblemSet),
 			},
@@ -1522,7 +1522,7 @@ func TestGetGrades(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.ProblemSetWithGrades `json:"grades"`
+				*resource.ProblemSetWithGrades `json:"problem_set"`
 			}{
 				resource.GetProblemSetWithGrades(&expectedProblemSet),
 			},
@@ -1605,7 +1605,7 @@ func TestGetGrades(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.ProblemSetWithGrades `json:"grades"`
+				*resource.ProblemSetWithGrades `json:"problem_set"`
 			}{
 				resource.GetProblemSetWithGrades(&expectedProblemSet),
 			},
@@ -1697,7 +1697,7 @@ func TestGetGrades(t *testing.T) {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				*resource.ProblemSetWithGrades `json:"grades"`
+				*resource.ProblemSetWithGrades `json:"problem_set"`
 			}{
 				resource.GetProblemSetWithGrades(&expectedProblemSet),
 			},

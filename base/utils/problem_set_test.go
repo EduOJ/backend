@@ -524,7 +524,7 @@ func TestGetGrades(t *testing.T) {
 			Preload("Grades").
 			Preload("Problems").
 			First(&ps, problemSet.ID).Error)
-		assert.NoError(t, GetGrades(&ps))
+		assert.NoError(t, CreateEmptyGrades(&ps))
 		checkGrade(t, &models.Grade{
 			UserID:       u1.ID,
 			ProblemSetID: ps.ID,
@@ -563,7 +563,7 @@ func TestGetGrades(t *testing.T) {
 			Preload("Grades").
 			Preload("Problems").
 			First(&ps, problemSet.ID).Error)
-		assert.NoError(t, GetGrades(&ps))
+		assert.NoError(t, CreateEmptyGrades(&ps))
 		checkGrade(t, &models.Grade{
 			UserID:       u1.ID,
 			ProblemSetID: ps.ID,
@@ -610,7 +610,7 @@ func TestGetGrades(t *testing.T) {
 			Preload("Grades").
 			Preload("Problems").
 			First(&ps, problemSet.ID).Error)
-		assert.NoError(t, GetGrades(&ps))
+		assert.NoError(t, CreateEmptyGrades(&ps))
 		checkGrade(t, &models.Grade{
 			UserID:       u1.ID,
 			ProblemSetID: ps.ID,

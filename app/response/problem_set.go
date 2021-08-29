@@ -86,7 +86,7 @@ type GetGradesResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.ProblemSetWithGrades `json:"grades"`
+		*resource.ProblemSetWithGrades `json:"problem_set"`
 	} `json:"data"`
 }
 
@@ -94,6 +94,6 @@ type RefreshGradesResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.ProblemSetWithGrades `json:"grades"`
+		*resource.ProblemSetWithGrades `json:"problem_set"`
 	} `json:"data"`
 }
