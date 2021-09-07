@@ -113,7 +113,7 @@ func Register(e *echo.Echo) {
 		middleware.Logged,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"}),
 	).Name = "problem.createProblem"
-	api.DELETE("/problem/:id", controller.DeleteProblem,
+	api.DELETE("/admin/problem/:id", controller.DeleteProblem,
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
