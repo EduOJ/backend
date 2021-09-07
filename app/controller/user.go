@@ -165,6 +165,27 @@ func ChangePassword(c echo.Context) error {
 	})
 }
 
+func EditPreferedNoticeMethod (c echo.Context) error {
+	req := request. EditPreferedNoticeMethodRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	user := c.Get("user").(models.User)
+	//waiting for add other ways
+	if req.PreferedNoticeMethod != "email" {
+		return c.JSON(http.StatusNotFound, response.ErrorResp("METHOD_NOT_FOUND", nil))
+	}
+	user.PreferedNoticeMethod = req.PreferedNoticeMethod
+	user.NoticeAddress = req.NoticeAddress
+	utils.PanicIfDBError(base.DB.Save(&user), "could not update user")
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:	nil,
+	})
+}
+
 func GetClassesIManage(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	var classes []models.Class
