@@ -1455,11 +1455,10 @@ func TestGetGrades(t *testing.T) {
 
 	runFailTests(t, failTests, "GetGrades")
 
-	problem1 := createProblemForTest(t, "get_grades", 1, nil, user1)
-	problem2 := createProblemForTest(t, "get_grades", 2, nil, user1)
-
 	t.Run("Empty", func(t *testing.T) {
 		t.Parallel()
+		problem1 := createProblemForTest(t, "get_grades", 1, nil, user1)
+		problem2 := createProblemForTest(t, "get_grades", 2, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_empty", 0, &class, []models.Problem{problem1, problem2}, inProgress)
 		httpResp := makeResp(makeReq(t, "GET",
 			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
@@ -1530,6 +1529,8 @@ func TestGetGrades(t *testing.T) {
 	})
 	t.Run("Partially", func(t *testing.T) {
 		t.Parallel()
+		problem1 := createProblemForTest(t, "get_grades", 3, nil, user1)
+		problem2 := createProblemForTest(t, "get_grades", 4, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_partially", 0, &class, []models.Problem{problem1, problem2}, inProgress)
 		j1, err := json.Marshal(map[uint]uint{
 			problem1.ID: 40,
@@ -1613,6 +1614,8 @@ func TestGetGrades(t *testing.T) {
 	})
 	t.Run("Full", func(t *testing.T) {
 		t.Parallel()
+		problem1 := createProblemForTest(t, "get_grades", 5, nil, user1)
+		problem2 := createProblemForTest(t, "get_grades", 6, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_full", 0, &class, []models.Problem{problem1, problem2}, inProgress)
 		j1, err := json.Marshal(map[uint]uint{
 			problem1.ID: 40,

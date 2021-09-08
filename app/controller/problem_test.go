@@ -49,17 +49,17 @@ func checkObjectNonExist(t *testing.T, bucketName, objectName string) {
 	return
 }
 
-func createProblemForTest(t *testing.T, name string, id int, attachmentFile *fileContent, creator models.User) (problem models.Problem) {
+func createProblemForTest(t *testing.T, name string, testID int, attachmentFile *fileContent, creator models.User) (problem models.Problem) {
 	problem = models.Problem{
-		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, id),
-		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, id),
+		Name:               fmt.Sprintf("problem_for_testing_%s_%d", name, testID),
+		Description:        fmt.Sprintf("a problem used to test API: %s(%d)", name, testID),
 		AttachmentFileName: "",
 		Public:             true,
 		Privacy:            false,
 		MemoryLimit:        1024,
 		TimeLimit:          1000,
 		LanguageAllowed:    []string{"test_language"},
-		BuildArg:           fmt.Sprintf("test_%s_build_arg_%d", name, id),
+		BuildArg:           fmt.Sprintf("test_%s_build_arg_%d", name, testID),
 		CompareScriptName:  "cmp1",
 	}
 	if attachmentFile != nil {
