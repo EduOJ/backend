@@ -1458,8 +1458,8 @@ func TestGetGrades(t *testing.T) {
 
 	t.Run("Empty", func(t *testing.T) {
 		t.Parallel()
-		user1 := createUserForTest(t, "get_grades", 2)
-		user2 := createUserForTest(t, "get_grades", 3)
+		user1 := createUserForTest(t, "get_grades", 3)
+		user2 := createUserForTest(t, "get_grades", 4)
 		class := createClassForTest(t, "get_grades", 4, nil, []*models.User{&user1, &user2})
 		problem1 := createProblemForTest(t, "get_grades", 1, nil, user1)
 		problem2 := createProblemForTest(t, "get_grades", 2, nil, user1)
