@@ -1458,6 +1458,9 @@ func TestGetGrades(t *testing.T) {
 
 	t.Run("Empty", func(t *testing.T) {
 		t.Parallel()
+		user1 := createUserForTest(t, "get_grades", 2)
+		user2 := createUserForTest(t, "get_grades", 3)
+		class := createClassForTest(t, "get_grades", 4, nil, []*models.User{&user1, &user2})
 		problem1 := createProblemForTest(t, "get_grades", 1, nil, user1)
 		problem2 := createProblemForTest(t, "get_grades", 2, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_empty", 0, &class, []models.Problem{problem1, problem2}, inProgress)
@@ -1530,6 +1533,9 @@ func TestGetGrades(t *testing.T) {
 	})
 	t.Run("Partially", func(t *testing.T) {
 		t.Parallel()
+		user1 := createUserForTest(t, "get_grades", 5)
+		user2 := createUserForTest(t, "get_grades", 6)
+		class := createClassForTest(t, "get_grades", 7, nil, []*models.User{&user1, &user2})
 		problem1 := createProblemForTest(t, "get_grades", 3, nil, user1)
 		problem2 := createProblemForTest(t, "get_grades", 4, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_partially", 0, &class, []models.Problem{problem1, problem2}, inProgress)
@@ -1615,6 +1621,9 @@ func TestGetGrades(t *testing.T) {
 	})
 	t.Run("Full", func(t *testing.T) {
 		t.Parallel()
+		user1 := createUserForTest(t, "get_grades", 8)
+		user2 := createUserForTest(t, "get_grades", 9)
+		class := createClassForTest(t, "get_grades", 10, nil, []*models.User{&user1, &user2})
 		problem1 := createProblemForTest(t, "get_grades", 5, nil, user1)
 		problem2 := createProblemForTest(t, "get_grades", 6, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_full", 0, &class, []models.Problem{problem1, problem2}, inProgress)
