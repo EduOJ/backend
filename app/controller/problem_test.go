@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
@@ -421,6 +422,7 @@ func TestGetProblems(t *testing.T) {
 		Offset   int               `json:"offset"`
 		Prev     *string           `json:"prev"`
 		Next     *string           `json:"next"`
+		Passes   []sql.NullBool
 	}
 
 	successTests := []struct {
@@ -444,6 +446,11 @@ func TestGetProblems(t *testing.T) {
 					&problem1,
 					&problem2,
 					&problem3,
+				},
+				Passes: []sql.NullBool{
+					{false, false},
+					{false, false},
+					{false, false},
 				},
 				Total:  3,
 				Count:  3,
@@ -470,6 +477,12 @@ func TestGetProblems(t *testing.T) {
 					&problem3,
 					&problem4,
 				},
+				Passes: []sql.NullBool{
+					{false, false},
+					{false, false},
+					{false, false},
+					{false, false},
+				},
 				Total:  4,
 				Count:  4,
 				Offset: 0,
@@ -495,6 +508,7 @@ func TestGetProblems(t *testing.T) {
 				Offset:   0,
 				Prev:     nil,
 				Next:     nil,
+				Passes:   []sql.NullBool{},
 			},
 			isAdmin: false,
 		},
@@ -517,6 +531,9 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 				Prev:   nil,
 				Next:   nil,
+				Passes: []sql.NullBool{
+					{false, false},
+				},
 			},
 			isAdmin: false,
 		},
@@ -539,6 +556,10 @@ func TestGetProblems(t *testing.T) {
 				Count:  2,
 				Offset: 0,
 				Prev:   nil,
+				Passes: []sql.NullBool{
+					{false, false},
+					{false, false},
+				},
 				Next: getUrlStringPointer("problem.getProblems", map[string]string{
 					"limit":  "2",
 					"offset": "2",
@@ -561,6 +582,10 @@ func TestGetProblems(t *testing.T) {
 					&problem1,
 					&problem2,
 				},
+				Passes: []sql.NullBool{
+					{true, true},
+					{true, true},
+				},
 				Total:  2,
 				Count:  2,
 				Offset: 0,
@@ -582,6 +607,9 @@ func TestGetProblems(t *testing.T) {
 			respData: respData{
 				Problems: []*models.Problem{
 					&problem3,
+				},
+				Passes: []sql.NullBool{
+					{false, false},
 				},
 				Total:  1,
 				Count:  1,
@@ -617,14 +645,14 @@ func TestGetProblems(t *testing.T) {
 						Message: "SUCCESS",
 						Error:   nil,
 						Data: struct {
-							Problems []resource.ProblemForAdmin `json:"problems"`
-							Total    int                        `json:"total"`
-							Count    int                        `json:"count"`
-							Offset   int                        `json:"offset"`
-							Prev     *string                    `json:"prev"`
-							Next     *string                    `json:"next"`
+							Problems []resource.ProblemSummaryForAdmin `json:"problems"`
+							Total    int                               `json:"total"`
+							Count    int                               `json:"count"`
+							Offset   int                               `json:"offset"`
+							Prev     *string                           `json:"prev"`
+							Next     *string                           `json:"next"`
 						}{
-							Problems: resource.GetProblemForAdminSlice(test.respData.Problems),
+							Problems: resource.GetProblemSummaryForAdminSlice(test.respData.Problems, test.respData.Passes),
 							Total:    test.respData.Total,
 							Count:    test.respData.Count,
 							Offset:   test.respData.Offset,
@@ -647,7 +675,7 @@ func TestGetProblems(t *testing.T) {
 							Prev     *string                   `json:"prev"`
 							Next     *string                   `json:"next"`
 						}{
-							Problems: resource.GetProblemSummarySlice(test.respData.Problems),
+							Problems: resource.GetProblemSummarySlice(test.respData.Problems, test.respData.Passes),
 							Total:    test.respData.Total,
 							Count:    test.respData.Count,
 							Offset:   test.respData.Offset,

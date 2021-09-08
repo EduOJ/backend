@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
@@ -106,19 +108,28 @@ func GetProblems(c echo.Context) error {
 		}
 		panic(err)
 	}
+	var passed []sql.NullBool
+	_, _, _, err = utils.Paginator(query.Select("(select true from submissions s where problems.id = s.problem_id and s.status = 'ACCEPTED' and s.user_id = ? limit 1) as passed", req.UserID), req.Limit, req.Offset, c.Request().URL, &passed)
+	log.Debug(passed)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
+		}
+		panic(err)
+	}
 	if isAdmin {
 		return c.JSON(http.StatusOK, response.GetProblemsResponseForAdmin{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				Problems []resource.ProblemForAdmin `json:"problems"`
-				Total    int                        `json:"total"`
-				Count    int                        `json:"count"`
-				Offset   int                        `json:"offset"`
-				Prev     *string                    `json:"prev"`
-				Next     *string                    `json:"next"`
+				Problems []resource.ProblemSummaryForAdmin `json:"problems"`
+				Total    int                               `json:"total"`
+				Count    int                               `json:"count"`
+				Offset   int                               `json:"offset"`
+				Prev     *string                           `json:"prev"`
+				Next     *string                           `json:"next"`
 			}{
-				Problems: resource.GetProblemForAdminSlice(problems),
+				Problems: resource.GetProblemSummaryForAdminSlice(problems, passed),
 				Total:    total,
 				Count:    len(problems),
 				Offset:   req.Offset,
@@ -138,7 +149,7 @@ func GetProblems(c echo.Context) error {
 			Prev     *string                   `json:"prev"`
 			Next     *string                   `json:"next"`
 		}{
-			Problems: resource.GetProblemSummarySlice(problems),
+			Problems: resource.GetProblemSummarySlice(problems, passed),
 			Total:    total,
 			Count:    len(problems),
 			Offset:   req.Offset,
