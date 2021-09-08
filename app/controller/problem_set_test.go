@@ -1241,11 +1241,10 @@ func TestRefreshGrades(t *testing.T) {
 
 	runFailTests(t, failTests, "RefreshGrades")
 
-	problem1 := createProblemForTest(t, "refresh_grades", 1, nil, user1)
-	problem2 := createProblemForTest(t, "refresh_grades", 2, nil, user1)
-
 	t.Run("Empty", func(t *testing.T) {
 		t.Parallel()
+		problem1 := createProblemForTest(t, "refresh_grades", 1, nil, user1)
+		problem2 := createProblemForTest(t, "refresh_grades", 2, nil, user1)
 		ps := createProblemSetForTest(t, "refresh_grades_empty", 0, &class, []models.Problem{problem1, problem2}, inProgress)
 		httpResp := makeResp(makeReq(t, "POST",
 			base.Echo.Reverse("problemSet.RefreshGrades", class.ID, ps.ID), nil, applyAdminUser))
@@ -1316,6 +1315,8 @@ func TestRefreshGrades(t *testing.T) {
 	})
 	t.Run("MaxAndLimit", func(t *testing.T) {
 		t.Parallel()
+		problem1 := createProblemForTest(t, "refresh_grades", 3, nil, user1)
+		problem2 := createProblemForTest(t, "refresh_grades", 4, nil, user1)
 		ps := createProblemSetForTest(t, "refresh_grades_max_and_limit", 0, &class, []models.Problem{problem1, problem2}, inProgress)
 		createSubmission := func(user *models.User, problem *models.Problem, status string, score uint, timeOffset time.Duration) {
 			submission := createSubmissionForTest(t, "refresh_grades_max_and_limit", 0, problem, user, nil, 0, "ACCEPTED")
