@@ -16,13 +16,13 @@ type GetCommentRequest struct {
 }
 
 type AddReactionRequest struct {
-	EmojiType   string `json:"emoji_type" form:"emoji_type" query:"emoji_type"`
-	TargetID    uint   `json:"target_id" form:"target_id" query:"target_id" `
-	TargetType  string `json:"target_type" form:"target_type" query:"target_type"`
+	EmojiType  string `json:"emoji_type" form:"emoji_type" query:"emoji_type"`
+	TargetID   uint   `json:"target_id" form:"target_id" query:"target_id" `
+	TargetType string `json:"target_type" form:"target_type" query:"target_type"`
 }
 
 type DeleteReactionRequest struct {
-	EmojiType   string `json:"emoji_type" form:"emoji_type" query:"emoji_type"`
-	TargetID    uint   `json:"target_id" form:"target_id" query:"target_id" `
-	TargetType  string `json:"target_type" form:"target_type" query:"target_type"`
+	EmojiType  string `json:"emoji_type" form:"emoji_type" query:"emoji_type"`
+	TargetID   uint   `json:"target_id" form:"target_id" query:"target_id" `
+	TargetType string `json:"target_type" form:"target_type" query:"target_type"`
 }

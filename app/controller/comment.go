@@ -22,7 +22,6 @@ func CreateComment(c echo.Context) error {
 
 	user := c.Get("user").(models.User)
 
-
 	newReaction := models.Reaction{
 		TargetType: "comment",
 	}
@@ -195,7 +194,6 @@ func AddReaction(c echo.Context) error {
 		// todo: implement this
 	}
 
-
 	return c.JSON(http.StatusCreated, response.AddReactionResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -274,7 +272,6 @@ func DeleteReaction(c echo.Context) error {
 		// todo: implement this
 	}
 
-
 	return c.JSON(http.StatusCreated, response.AddReactionResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -294,12 +291,10 @@ func DeleteComment(c echo.Context) error {
 		panic("could not convert my user into type models.User")
 	}
 
-
 	commentID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		panic(errors.Wrap(err, "could find target comment id"))
 	}
-
 
 	var comment models.Comment
 	base.DB.Model(&models.Comment{}).
