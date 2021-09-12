@@ -25,5 +25,4 @@ type DeleteReactionRequest struct {
 	EmojiType   string `json:"emoji_type" form:"emoji_type" query:"emoji_type"`
 	TargetID    uint   `json:"target_id" form:"target_id" query:"target_id" `
 	TargetType  string `json:"target_type" form:"target_type" query:"target_type"`
-	IFAddAction bool   `json:"if_add_action" form:"if_add_action" query:"if_add_action"`
 }
