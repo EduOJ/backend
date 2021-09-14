@@ -7,7 +7,6 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
@@ -110,7 +109,6 @@ func GetProblems(c echo.Context) error {
 	}
 	var passed []sql.NullBool
 	_, _, _, err = utils.Paginator(query.Select("(select true from submissions s where problems.id = s.problem_id and s.status = 'ACCEPTED' and s.user_id = ? limit 1) as passed", req.UserID), req.Limit, req.Offset, c.Request().URL, &passed)
-	log.Debug(passed)
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {
 			return herr.Response(c)
