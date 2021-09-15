@@ -34,20 +34,6 @@ type CreateProblemResponse struct {
 }
 
 
-type UpdateTagResponse struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-	} `json:"data"`
-}
-
-type DeleteTagResponse struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-	} `json:"data"`
-}
-
 type GetProblemResponseForAdmin struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
