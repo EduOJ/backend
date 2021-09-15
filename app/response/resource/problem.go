@@ -39,6 +39,7 @@ type ProblemForAdmin struct {
 	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCaseForAdmin `json:"test_cases"`
+	Tags []models.Tag
 }
 
 type Problem struct {
@@ -53,6 +54,7 @@ type Problem struct {
 	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCase `json:"test_cases"`
+	Tags []models.Tag
 }
 
 type ProblemSummary struct {
@@ -65,6 +67,7 @@ type ProblemSummary struct {
 	TimeLimit         uint     `json:"time_limit"`   // ms
 	LanguageAllowed   []string `json:"language_allowed"`
 	CompareScriptName string   `json:"compare_script_name"`
+	Tags []models.Tag
 }
 
 type ProblemSummaryForAdmin struct {
@@ -80,6 +83,8 @@ type ProblemSummaryForAdmin struct {
 	LanguageAllowed   []string `json:"language_allowed"`
 	BuildArg          string   `json:"build_arg"` // E.g.  O2=false
 	CompareScriptName string   `json:"compare_script_name"`
+
+	Tags []models.Tag
 }
 
 func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {
@@ -124,10 +129,14 @@ func (p *ProblemForAdmin) convert(problem *models.Problem) {
 	p.Privacy = problem.Privacy
 	p.BuildArg = problem.BuildArg
 
+	p.Tags = problem.Tags
+
 	p.TestCases = make([]TestCaseForAdmin, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
 		p.TestCases[i].convert(&testCase)
 	}
+
+
 }
 
 func (p *ProblemSummaryForAdmin) convert(problem *models.Problem, passed sql.NullBool) {
@@ -143,6 +152,8 @@ func (p *ProblemSummaryForAdmin) convert(problem *models.Problem, passed sql.Nul
 	p.Privacy = problem.Privacy
 	p.BuildArg = problem.BuildArg
 	p.Passed = passed.Bool
+
+	p.Tags = problem.Tags
 }
 
 func (p *Problem) convert(problem *models.Problem) {

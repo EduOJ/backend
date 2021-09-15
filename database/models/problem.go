@@ -50,10 +50,19 @@ type Problem struct {
 	CompareScript     Script               `json:"compare_script"`
 
 	TestCases []TestCase `json:"test_cases"`
+	Tags []Tag `json:"tags" gorm:"OnDelete:CASCADE"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
+}
+
+
+type Tag struct{
+	ID uint `gorm:"primaryKey" json:"id"`
+	ProblemID uint
+	Name string
+	CreatedAt time.Time      `json:"created_at"`
 }
 
 func (p Problem) GetID() uint {
@@ -66,6 +75,13 @@ func (p Problem) TypeName() string {
 
 func (p *Problem) LoadTestCases() {
 	err := base.DB.Model(p).Association("TestCases").Find(&p.TestCases)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (p *Problem) LoadTags() {
+	err := base.DB.Model(p).Association("Tags").Find(&p.Tags)
 	if err != nil {
 		panic(err)
 	}

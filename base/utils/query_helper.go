@@ -121,6 +121,7 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 		return nil, gorm.ErrRecordNotFound
 	}
 	problem.LoadTestCases()
+	problem.LoadTags()
 	return &problem, nil
 }
 

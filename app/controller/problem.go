@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
@@ -222,6 +223,24 @@ func CreateProblem(c echo.Context) error {
 		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))
 	}
 
+
+	var tags []string
+	err = json.Unmarshal([]byte(req.Tags),&tags)
+	if err != nil{
+		panic(err)
+	}
+
+	for _, tag := range tags {
+		temp := models.Tag{
+			Name: tag,
+			ProblemID: problem.ID,
+		}
+		utils.PanicIfDBError(base.DB.Create(&temp), "could not create tags")
+		problem.Tags = append(problem.Tags, temp)
+	}
+	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
+
+
 	return c.JSON(http.StatusCreated, response.CreateProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -322,6 +341,87 @@ func DeleteProblem(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
+	})
+}
+
+
+func UpdateTags(c echo.Context) error {
+	req := request.UpdateTagsRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+
+	problem, err := utils.FindProblem(c.Param("id"), nil)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
+		panic(err)
+	}
+
+	var tags []string
+	err = json.Unmarshal([]byte(req.Tags),&tags)
+	if err != nil{
+		panic(err)
+	}
+
+	for _, tag := range tags {
+		temp := models.Tag{
+			Name: tag,
+			ProblemID: problem.ID,
+		}
+		utils.PanicIfDBError(base.DB.Create(&temp), "could not create tags")
+		problem.Tags = append(problem.Tags, temp)
+	}
+	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
+
+	return c.JSON(http.StatusCreated, response.UpdateTagResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+		}{},
+	})
+}
+
+
+func DeleteTags(c echo.Context) error {
+	req := request.DeleteTagsRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+
+	problem, err := utils.FindProblem(c.Param("id"), nil)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
+		panic(err)
+	}
+
+	var tags []string
+	err = json.Unmarshal([]byte(req.Tags),&tags)
+	if err != nil{
+		panic(err)
+	}
+
+	for _, tag := range tags {
+		for i, tagIn := range problem.Tags {
+			if tagIn.Name == tag {
+				problem.Tags = append(problem.Tags[:i], problem.Tags[i+1:]...)
+				utils.PanicIfDBError(base.DB.Delete(&tagIn), "could not delete tagIn")
+				break
+			}
+		}
+	}
+	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
+
+	return c.JSON(http.StatusCreated, response.DeleteTagResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+		}{},
 	})
 }
 
