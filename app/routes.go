@@ -52,6 +52,7 @@ func Register(e *echo.Echo) {
 	)
 	user.GET("/user/me", controller.GetMe).Name = "user.getMe"
 	user.PUT("/user/me", controller.UpdateMe).Name = "user.updateMe"
+	user.POST("/user/email_verification", controller.VerifyEmail).Name = "user.email.verify"
 	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
 	user.GET("/user/me/managing_classes", controller.GetClassesIManage).Name = "user.getClassesIManage"
 	user.GET("/user/me/taking_classes", controller.GetClassesITake).Name = "user.getClassesITake"

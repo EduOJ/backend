@@ -5,6 +5,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
@@ -75,6 +76,7 @@ func Register(c echo.Context) error {
 		Password: hashed,
 	}
 	utils.PanicIfDBError(base.DB.Create(&user), "could not create user")
+	event.FireEvent("register", &user)
 	token := models.Token{
 		Token: utils.RandStr(32),
 		User:  user,

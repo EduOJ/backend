@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func GetUser(c echo.Context) error {
@@ -125,6 +126,9 @@ func UpdateMe(c echo.Context) error {
 	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
+	if user.Email != req.Email {
+		user.EmailVerified = false
+	}
 	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
@@ -233,5 +237,50 @@ func GetUserProblemInfo(c echo.Context) error {
 			PassedCount: int(passedCount),
 			Rank:        0, // TODO: develop this
 		},
+	})
+}
+
+func VerifyEmail(c echo.Context) error {
+	req := request.VerifyEmailRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	user := c.Get("user").(models.User)
+	var code models.EmailVerificationToken
+	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusUnauthorized, response.EmailVerificationResponse{
+				Message: "WRONG_CODE",
+				Error:   nil,
+				Data:    nil,
+			})
+		} else {
+			panic(err)
+		}
+	}
+	if code.CreatedAt.Before(time.Now().Add(-30 * time.Minute)) {
+		return c.JSON(http.StatusRequestTimeout, response.EmailVerificationResponse{
+			Message: "CODE_EXPIRED",
+			Error:   nil,
+			Data:    nil,
+		})
+	}
+	if code.Used {
+		return c.JSON(http.StatusRequestTimeout, response.EmailVerificationResponse{
+			Message: "CODE_USED",
+			Error:   nil,
+			Data:    nil,
+		})
+	}
+	code.Used = true
+	utils.PanicIfDBError(base.DB.Save(&code), "could not save verification code")
+	user.EmailVerified = true
+	utils.PanicIfDBError(base.DB.Save(&user), "could not save user")
+	return c.JSON(http.StatusOK, response.EmailVerificationResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
 	})
 }
