@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestGetUser(t *testing.T) {
@@ -850,6 +851,10 @@ func TestUpdateUserMe(t *testing.T) {
 				assert.Equal(t, test.req.Nickname, databaseUser.Nickname)
 				assert.Equal(t, test.req.Email, databaseUser.Email)
 				assert.Equal(t, test.user.Roles, databaseUser.Roles)
+
+				if test.req.Email != test.user.Email {
+					assert.False(t, databaseUser.EmailVerified)
+				}
 			})
 		}
 	})
@@ -1162,5 +1167,129 @@ func TestGetUserProblemInfo(t *testing.T) {
 				Rank:        0,
 			},
 		}, resp)
+	})
+}
+
+func TestVerifyEmail(t *testing.T) {
+	t.Parallel()
+	user := models.User{
+		Username: "test_verify_email_username",
+		Nickname: "test_verify_email_nickname",
+		Email:    "test_verify_email@e.com",
+		Password: "test_verify_email_passwd",
+	}
+	base.DB.Create(&user)
+	code := models.EmailVerificationToken{
+		User:  &user,
+		Email: user.Email,
+		Token: "QwE12",
+		Used:  false,
+	}
+	base.DB.Create(&code)
+	oldCode := models.EmailVerificationToken{
+		User:  &user,
+		Email: user.Email,
+		Token: "QwE21",
+		Used:  false,
+	}
+	base.DB.Create(&oldCode)
+	oldCode.CreatedAt = time.Now().Add(-100 * time.Minute)
+	base.DB.Save(&oldCode)
+	usedCode := models.EmailVerificationToken{
+		User:  &user,
+		Email: user.Email,
+		Token: "QwA21",
+		Used:  true,
+	}
+	base.DB.Create(&usedCode)
+	failTests := []failTest{
+		{
+			name:   "WithoutParams",
+			method: "POST",
+			path:   base.Echo.Reverse("user.email.verify"),
+			req:    request.VerifyEmailRequest{},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusBadRequest,
+			resp: response.Response{
+				Message: "VALIDATION_ERROR",
+				Error: []interface{}{
+					map[string]interface{}{
+						"field":       "Token",
+						"reason":      "required",
+						"translation": "验证码为必填字段",
+					},
+				},
+				Data: nil,
+			},
+		},
+		{
+			name:   "OldCode",
+			method: "POST",
+			path:   base.Echo.Reverse("user.email.verify"),
+			req:    request.VerifyEmailRequest{Token: oldCode.Token},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusRequestTimeout,
+			resp: response.Response{
+				Message: "CODE_EXPIRED",
+				Error:   nil,
+				Data:    nil,
+			},
+		},
+		{
+			name:   "UsedCode",
+			method: "POST",
+			path:   base.Echo.Reverse("user.email.verify"),
+			req:    request.VerifyEmailRequest{Token: usedCode.Token},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusRequestTimeout,
+			resp: response.Response{
+				Message: "CODE_USED",
+				Error:   nil,
+				Data:    nil,
+			},
+		},
+
+		{
+			name:   "WRONG_CODE",
+			method: "POST",
+			path:   base.Echo.Reverse("user.email.verify"),
+			req:    request.VerifyEmailRequest{Token: "QWERT"},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusUnauthorized,
+			resp: response.Response{
+				Message: "WRONG_CODE",
+				Error:   nil,
+				Data:    nil,
+			},
+		},
+	}
+
+	runFailTests(t, failTests, "VerifyEmail")
+
+	t.Run("VerifyEmailSuccess", func(t *testing.T) {
+		t.Parallel()
+
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.email.verify"),
+			request.VerifyEmailRequest{Token: code.Token}, applyUser(user)))
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		resp := response.EmailVerificationResponse{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.EmailVerificationResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data:    nil,
+		}, resp)
+		base.DB.Find(&user, user.ID)
+		assert.True(t, user.EmailVerified)
+		base.DB.Find(&code, code.ID)
+		assert.True(t, code.Used)
 	})
 }

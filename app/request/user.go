@@ -35,3 +35,7 @@ type GetClassesITakeRequest struct {
 
 type GetUserProblemInfoRequest struct {
 }
+
+type VerifyEmailRequest struct {
+	Token string `json:"token" form:"token" query:"token" validate:"required,max=5,min=5"`
+}

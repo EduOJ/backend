@@ -51,6 +51,7 @@ var FieldTranslations = map[string]string{
 	"UserID":             "用户ID",
 	"Tried":              "选取尝试过题目",
 	"Passed":             "选取通过题目",
+	"Token":              "验证码",
 }
 
 // RegisterDefaultTranslations registers a set of default translations

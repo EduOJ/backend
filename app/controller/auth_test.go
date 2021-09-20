@@ -309,6 +309,7 @@ func TestRegister(t *testing.T) {
 		assert.NoError(t, base.DB.Where("email = ?", "test_register_3@mail.com").First(&databaseUser).Error)
 		// resp == database
 		jsonEQ(t, resp.Data.User, resource.GetUserForAdmin(&databaseUser))
+		assert.False(t, databaseUser.EmailVerified)
 		token := models.Token{}
 		assert.NoError(t, base.DB.Where("token = ?", resp.Data.Token).Last(&token).Error)
 		// token == database
