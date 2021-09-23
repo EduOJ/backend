@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -125,24 +124,13 @@ func UpdateMe(c echo.Context) error {
 	if count > 1 || (count == 1 && user.Username != req.Username) {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
-	PreferredNoticeMethodFound := false
-	for _, m := range notification.RegisteredPreferredNoticedMethod {
-		if m == req.PreferredNoticeMethod {
-			PreferredNoticeMethodFound = true
-			break
-		}
-	}
-	if PreferredNoticeMethodFound == false {
+	if !notification.CheckNoticeMethod(req.PreferredNoticeMethod) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("METHOD_NOT_FOUND", nil))
 	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
 	user.PreferredNoticeMethod = req.PreferredNoticeMethod
-	if !json.Valid([]byte(req.NoticeAccount)) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_ACCOUNT", nil))
-	}
-	user.NoticeAccount = req.NoticeAccount
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",

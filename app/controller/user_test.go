@@ -6,7 +6,6 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/base/notification"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
@@ -731,9 +730,7 @@ func TestUpdateUserMe(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&user4).Error)
 	assert.NoError(t, base.DB.Create(&user5).Error)
 	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
-	notification.RegisteredPreferredNoticedMethod = []string{
-		"test_method_1", "test_method_2", "test_method_3", "test_method_4",
-	}
+	
 	failTests := []failTest{
 		{
 			name:   "WithoutParams",
@@ -744,7 +741,6 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname:              "",
 				Email:                 "",
 				PreferredNoticeMethod: "",
-				NoticeAccount:         "",
 			},
 			reqOptions: []reqOption{
 				applyUser(user1),
@@ -773,11 +769,6 @@ func TestUpdateUserMe(t *testing.T) {
 						"reason":      "required",
 						"translation": "通知渠道为必填字段",
 					},
-					map[string]interface{}{
-						"field":       "NoticeAccount",
-						"reason":      "required",
-						"translation": "通知地址为必填字段",
-					},
 				},
 				Data: nil,
 			},
@@ -791,7 +782,6 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname:              "test_update_me_2_nick",
 				Email:                 "test_update_me_2@mail.com",
 				PreferredNoticeMethod: "test_method_2",
-				NoticeAccount:         `{"test_method_2": "test_method_account_2"}`,
 			},
 			reqOptions: []reqOption{
 				applyUser(user2),
@@ -808,7 +798,6 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname:              "test_update_me_3_nick",
 				Email:                 "test_update_me_conflict@mail.com",
 				PreferredNoticeMethod: "test_method_3",
-				NoticeAccount:         `{"test_method_3": "test_method_account_3"}`,
 			},
 			reqOptions: []reqOption{
 				applyUser(user3),
@@ -825,30 +814,12 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname:              "test_update_me_4_nick",
 				Email:                 "test_update_me_4@mail.com",
 				PreferredNoticeMethod: "test_method_not_found",
-				NoticeAccount:         `{"test_method_not_found": "test_method_account_not_found"}`,
 			},
 			reqOptions: []reqOption{
 				applyUser(user4),
 			},
 			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("METHOD_NOT_FOUND", nil),
-		},
-		{
-			name:   "InvalidNoticeAccount",
-			method: "PUT",
-			path:   base.Echo.Reverse("user.updateMe"),
-			req: request.UpdateMeRequest{
-				Username:              "test_update_me_5",
-				Nickname:              "test_update_me_5_nick",
-				Email:                 "test_update_me_5@mail.com",
-				PreferredNoticeMethod: "test_method_1",
-				NoticeAccount:         "test_method_account_invalid",
-			},
-			reqOptions: []reqOption{
-				applyUser(user5),
-			},
-			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("INVALID_ACCOUNT", nil),
 		},
 	}
 
@@ -885,7 +856,6 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname:              "test_update_me_success_04",
 				Email:                 "test_update_me_success_04@e.com",
 				PreferredNoticeMethod: "test_method_1",
-				NoticeAccount:         `{"test_method_1": "test_method_account_1"}`,
 			},
 			roleName:   nil,
 			roleTarget: nil,
@@ -905,7 +875,6 @@ func TestUpdateUserMe(t *testing.T) {
 				Nickname:              "test_update_me_success_05",
 				Email:                 "test_update_me_success_05@e.com",
 				PreferredNoticeMethod: "test_method_2",
-				NoticeAccount:         `{"test_method_2": "test_method_account_2"}`,
 			},
 			roleName:   &testRole.Name,
 			roleTarget: classA,
@@ -930,7 +899,6 @@ func TestUpdateUserMe(t *testing.T) {
 				assert.Equal(t, test.req.Nickname, resp.Data.Nickname)
 				assert.Equal(t, test.req.Email, resp.Data.Email)
 				assert.Equal(t, test.req.PreferredNoticeMethod, resp.Data.PreferredNoticeMethod)
-				assert.Equal(t, test.req.NoticeAccount, resp.Data.NoticeAccount)
 				assert.Equal(t, resource.GetRoleSlice(test.user.Roles), resp.Data.Roles)
 				databaseUser := models.User{}
 				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
@@ -940,7 +908,6 @@ func TestUpdateUserMe(t *testing.T) {
 				assert.Equal(t, test.req.Email, databaseUser.Email)
 				assert.Equal(t, test.req.Email, databaseUser.Email)
 				assert.Equal(t, test.req.PreferredNoticeMethod, databaseUser.PreferredNoticeMethod)
-				assert.Equal(t, test.req.NoticeAccount, databaseUser.NoticeAccount)
 			})
 		}
 	})
