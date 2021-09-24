@@ -389,7 +389,7 @@ judger:
 	if err := utils.CreateBucket("submissions"); err != nil {
 		panic(err)
 	}
-	for i :=1; i<=4; i++ {
+	for i := 1; i <= 4; i++ {
 		if err := nnotification.Register(fmt.Sprintf("test_method_%d", i)); err != nil {
 			panic(err)
 		}

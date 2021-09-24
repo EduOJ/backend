@@ -64,7 +64,7 @@ func SendMessage(receiver *models.User, title string, message string, extras map
 	} else {
 		var found bool
 		account, found = data[method]
-		if ! found {
+		if !found {
 			return errors.New(fmt.Sprintf("receiver's %s account not found!", method))
 		}
 	}

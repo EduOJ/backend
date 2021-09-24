@@ -730,7 +730,7 @@ func TestUpdateUserMe(t *testing.T) {
 	assert.NoError(t, base.DB.Create(&user4).Error)
 	assert.NoError(t, base.DB.Create(&user5).Error)
 	assert.NoError(t, base.DB.Create(&dummyUserForConflict).Error)
-	
+
 	failTests := []failTest{
 		{
 			name:   "WithoutParams",
