@@ -7,10 +7,15 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"sync"
 	"time"
 )
 
+var gradeLock sync.Mutex
+
 func UpdateGrade(submission *models.Submission) error {
+	gradeLock.Lock()
+	defer gradeLock.Unlock()
 	if submission.ProblemSetID == 0 {
 		return nil
 	}
@@ -53,5 +58,99 @@ func UpdateGrade(submission *models.Submission) error {
 		detail[submission.ProblemID] = submission.Score
 	}
 	grade.Detail, err = json.Marshal(detail)
+	if err != nil {
+		return err
+	}
 	return base.DB.Save(&grade).Error
+}
+
+func RefreshGrades(problemSet *models.ProblemSet) error {
+	gradeLock.Lock()
+	defer gradeLock.Unlock()
+	if err := base.DB.Delete(&models.Grade{}, "problem_set_id = ?", problemSet.ID).Error; err != nil {
+		return err
+	}
+	var grades []*models.Grade
+	for _, u := range problemSet.Class.Students {
+		grade := models.Grade{
+			UserID:       u.ID,
+			ProblemSetID: problemSet.ID,
+			ClassID:      problemSet.ClassID,
+			Detail:       nil,
+			Total:        0,
+		}
+		detail := make(map[uint]uint)
+		for _, p := range problemSet.Problems {
+			var score uint = 0
+			submission := models.Submission{}
+			err := base.DB.
+				Where("user_id = ?", u.ID).
+				Where("problem_id = ?", p.ID).
+				Where("problem_set_id = ?", problemSet.ID).
+				Where("created_at < ?", problemSet.EndTime).
+				Order("score desc").
+				Order("created_at desc").
+				First(&submission).Error
+			if err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					return errors.Wrap(err, "could not get submission when refreshing grades")
+				}
+			} else {
+				score = submission.Score
+			}
+			detail[p.ID] = score
+			grade.Total += score
+		}
+		var err error
+		grade.Detail, err = json.Marshal(detail)
+		if err != nil {
+			return errors.Wrap(err, "could not marshal grade detail when refreshing grades")
+		}
+		grades = append(grades, &grade)
+	}
+	if err := base.DB.Create(&grades).Error; err != nil {
+		return errors.Wrap(err, "could not create grades when refreshing grades")
+	}
+	problemSet.Grades = grades
+	return nil
+}
+
+func CreateEmptyGrades(problemSet *models.ProblemSet) error {
+	gradeLock.Lock()
+	defer gradeLock.Unlock()
+	gradeSet := make(map[uint]bool)
+	for _, g := range problemSet.Grades {
+		//fmt.Println(g)
+		gradeSet[g.UserID] = true
+	}
+	grades := make([]*models.Grade, 0, len(problemSet.Class.Students)-len(problemSet.Grades))
+	copy(grades, problemSet.Grades)
+	detail := make(map[uint]uint)
+	for _, p := range problemSet.Problems {
+		detail[p.ID] = 0
+	}
+	emptyDetail, err := json.Marshal(detail)
+	if err != nil {
+		return errors.Wrap(err, "could not marshal grade detail when getting grades")
+	}
+	for _, u := range problemSet.Class.Students {
+		if gradeSet[u.ID] {
+			continue
+		}
+		newGrade := models.Grade{
+			UserID:       u.ID,
+			ProblemSetID: problemSet.ID,
+			ClassID:      problemSet.ClassID,
+			Detail:       emptyDetail,
+			Total:        0,
+		}
+		grades = append(grades, &newGrade)
+	}
+	if len(grades) > 0 {
+		if err = base.DB.Create(&grades).Error; err != nil {
+			return errors.Wrap(err, "could not create grades when getting grades")
+		}
+	}
+	problemSet.Grades = append(problemSet.Grades, grades...)
+	return nil
 }
