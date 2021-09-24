@@ -6,6 +6,7 @@
 // 	* Registering a event listener for sending message in group "{channel name}_send_message".
 // To send a message:
 // 	* Use function SendMessage.
+
 package notification
 
 import (
