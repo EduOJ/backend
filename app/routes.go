@@ -114,7 +114,7 @@ func Register(e *echo.Echo) {
 		middleware.Logged,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"}),
 	).Name = "problem.createProblem"
-	api.DELETE("/problem/:id", controller.DeleteProblem,
+	api.DELETE("/admin/problem/:id", controller.DeleteProblem,
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
@@ -226,6 +226,17 @@ func Register(e *echo.Echo) {
 			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
 		}),
 	)
+	problemSetGrades := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id":       "NOT_FOUND",
+			"class_id": "CLASS_NOT_FOUND",
+		}),
+		middleware.Logged,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "read_answers"},
+		}),
+	)
 	api.GET("/class/:class_id/problem_set/:problem_set_id", controller.GetProblemSet,
 		middleware.ValidateParams(map[string]string{
 			"id":       "NOT_FOUND",
@@ -256,7 +267,7 @@ func Register(e *echo.Echo) {
 				A: middleware.ScopedPermission{P: "read_problem_secrets", T: "class", IdFieldName: "class_id"},
 				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
-		})).Name = "problemSet.getProblemSetProblemInputFile"
+		})).Name = "problemSet.getProblemSetProblemInputFile" // TODO: refactor these middleware into groups
 	problemSetProblem.GET("/class/:class_id/problem_set/:problem_set_id/problem/:id/test_case/:test_case_id/output_file", controller.GetProblemSetProblemOutputFile,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.CustomPermission{
@@ -267,6 +278,8 @@ func Register(e *echo.Echo) {
 				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
 		})).Name = "problemSet.getProblemSetProblemOutputFile"
+	problemSetGrades.GET("/class/:class_id/problem_set/:id/grades", controller.GetGrades).Name = "problemSet.GetGrades"
+	problemSetGrades.POST("/class/:class_id/problem_set/:id/grades/refresh", controller.RefreshGrades).Name = "problemSet.RefreshGrades"
 
 	// problem set submission APIs
 	problemSetSubmission := api.Group("",

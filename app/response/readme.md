@@ -6,7 +6,7 @@ Common return codes.
 |        SUCCESS         |         正常          |
 |     INTERNAL_ERROR     |     服务器内部错误      |
 |    VALIDATION_ERROR    | 验证错误, 详见error字段 |
-
+|        NOT_FOUND       |      找不到指定对象     |
 
 # Authentication
 
@@ -65,21 +65,12 @@ Common return codes.
 
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
 |     CONFLICT_EMAIL     |        邮箱重复        |
 |    CONFLICT_USERNAME   |       用户名重复       |
 
 #### AdminDeleteUser
 
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
-
 #### AdminGetUser
-
-|         message        |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
 
 #### AdminGetUsers
 
@@ -102,10 +93,6 @@ Common return codes.
 
 ### GetUser
 
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到指定user   |
-
 ### GetUsers
 
 |         message         |         结果         |
@@ -123,21 +110,10 @@ Common return codes.
 ### CreateProblem
 
 ### GetProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 
 ### GetRandomProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到公开problem  |
-
 
 ### GetProblemAttachmentFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|         NOT_FOUND       |     错误的problem     |
-|   ATTACHMENT_NOT_FOUND  |     无法找到指定附件    |
 
 ### GetProblems
 |         message         |         结果         |
@@ -145,50 +121,23 @@ Common return codes.
 |     INVALID_STATUS      |     无效的状态设置     |
 
 ### UpdateProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 
 ### DeleteProblem
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到指定problem  |
 
 ### CreateTestCase
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     错误的problem     |
 |      INVALID_FILE       |        缺少文件       |
 
 ### UpdateTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
-
 
 ### DeleteTestCase
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### DeleteTestCases
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
 
 ### GetTestCaseInputFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ### GetTestCaseOutputFile
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |    无法找到problem    |
-|   TEST_CASE_NOT_FOUND   |   无法找到test case   |
 
 ## Image
 ### CreateImage
@@ -201,41 +150,31 @@ Common return codes.
 ### CreateSubmission
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     错误的problem     |
 |     INVALID_LANGUAGE    |       无效的语言       |
 |       INVALID_FILE      |        缺少文件       |
 
 ### GetSubmission
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### GetSubmissions
 
 ### GetSubmissionCode
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### GetRunOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |  SUBMISSION_NOT_FOUND   |   无法找到submission   |
-|        NOT_FOUND        |      无法找到run       |
 |   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### GetRunCompilerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |  SUBMISSION_NOT_FOUND   |   无法找到submission   |
-|        NOT_FOUND        |      无法找到run       |
 |   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### GetRunComparerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
 |  SUBMISSION_NOT_FOUND   |   无法找到submission   |
-|        NOT_FOUND        |      无法找到run       |
 |   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 # Judger
@@ -251,38 +190,22 @@ Common return codes.
 ### CreateClass
 
 ### GetClass
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### GetClassesIManage
 
 ### GetClassesITake
 
 ### UpdateClass
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### RefreshInviteCode
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### AddStudents
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### DeleteStudents
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 
 ### JoinClass
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     无法找到class      |
 |    WRONG_INVITE_CODE    |      错误的邀请码       |
 |    ALREADY_IN_CLASS     |   用户已是该class学生   |
 
@@ -291,89 +214,44 @@ Common return codes.
 ## ProblemSet
 
 ### CreateProblemSet
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|      CLASS_NOT_FOUND    |     无法找到class      |
 
 ### CloneProblemSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|       CLASS_NOT_FOUND        |       无法找到class      |
-|      SOURCE_NOT_FOUND        | 无法找到复制源problem set |
 
 ### GetProblemSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
-|        CLASS_NOT_FOUND       |        无法找到class     |
 
 ### UpdateProblemSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
 
 ### AddProblemsToSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
 
 ### DeleteProblemsFromSet
-|            message           |          结果           |
-|:----------------------------:|:----------------------:|
-|           NOT_FOUND          |    无法找到problem set   |
 
 ### DeleteProblemSet
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|     CLASS_NOT_FOUND     |     无法找到class      |
 
 ### GetProblemSetProblem
-|            message           |            结果           |
-|:----------------------------:|:-------------------------:|
-|           NOT_FOUND          |       无法找到problem      |
-|     PROBLEM_SET_NOT_FOUND    | 无法找到problem set或 class |
 
 ### GetProblemSetProblemInputFile
-|            message           |            结果           |
-|:----------------------------:|:-------------------------:|
-|           NOT_FOUND          |       无法找到problem      |
-|     PROBLEM_SET_NOT_FOUND    | 无法找到problem set或 class |
 
 ### GetProblemSetProblemOutputFile
-|            message           |            结果           |
-|:----------------------------:|:-------------------------:|
-|           NOT_FOUND          |       无法找到problem      |
-|     PROBLEM_SET_NOT_FOUND    | 无法找到problem set或 class |
+
+### RefreshGrades
 
 ## ProblemSetSubmission
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|  PROBLEM_SET_NOT_FOUND  |  无法找到problem set  |
-
 
 ### ProblemSetCreateSubmission
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |     错误的problem     |
 |     INVALID_LANGUAGE    |       无效的语言       |
 |       INVALID_FILE      |        缺少文件       |
 
 ### ProblemSetGetSubmission
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### ProblemSetGetSubmissions
 
 ### ProblemSetGetSubmissionCode
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|        NOT_FOUND        |   无法找到submission   |
 
 ### ProblemSetGetRunOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |      无法找到run       |
 |   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### ProblemSetGetRunInput
@@ -381,11 +259,9 @@ Common return codes.
 ### ProblemSetGetRunCompilerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |      无法找到run       |
 |   JUDGEMENT_UNFINISHED  |       评测未完成       |
 
 ### ProblemSetGetRunComparerOutput
 |         message         |         结果          |
 |:-----------------------:|:--------------------:|
-|        NOT_FOUND        |      无法找到run       |
 |   JUDGEMENT_UNFINISHED  |       评测未完成       |
