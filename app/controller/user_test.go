@@ -818,7 +818,7 @@ func TestUpdateUserMe(t *testing.T) {
 			reqOptions: []reqOption{
 				applyUser(user4),
 			},
-			statusCode: http.StatusNotFound,
+			statusCode: http.StatusBadRequest,
 			resp:       response.ErrorResp("METHOD_NOT_FOUND", nil),
 		},
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -102,5 +103,5 @@ func TestSetAccount(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
-	m.Run()
+	os.Exit(m.Run())
 }

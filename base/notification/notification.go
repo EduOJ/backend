@@ -79,7 +79,7 @@ func SendMessage(receiver *models.User, title string, message string, extras map
 	return nil
 }
 
-func SetAccount(method string, user *models.User, account string) error {
+func SetAccount(method string, user *models.User, account interface{}) error {
 	if !CheckNoticeMethod(method) {
 		return ErrNoticeMethodNotRigisted
 	}
