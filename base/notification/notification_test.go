@@ -39,14 +39,14 @@ func TestSendMessage(t *testing.T) {
 		PreferredNoticeMethod: "test_send_message_unregistered_method",
 		NoticeAccount:         `{"test_send_message_unregistered_method": "test_send_message_unregistered_account"}`,
 	}
-	//receiver3 := models.User{
-	//	Username:              "test_send_message_3",
-	//	Nickname:              "test_send_message_3nick",
-	//	Email:                 "test_send_message_3@mail.com",
-	//	Password:              utils.HashPassword("test_send_message_3_password"),
-	//	PreferredNoticeMethod: "test_send_message_unregistered_method",
-	//	NoticeAccount:         `{""}`,
-	//}
+	receiver3 := models.User{
+		Username:              "test_send_message_3",
+		Nickname:              "test_send_message_3nick",
+		Email:                 "test_send_message_3@mail.com",
+		Password:              utils.HashPassword("test_send_message_3_password"),
+		PreferredNoticeMethod: "test_send_message_registered_method",
+		NoticeAccount:         ``,
+	}
 
 	event.RegisterListener("test_send_message_registered_method_send_message", func(account interface{}, title, message string, extras map[string]interface{}) error {
 		if title == "send_message_success_title" {
@@ -67,11 +67,12 @@ func TestSendMessage(t *testing.T) {
 		t.Parallel()
 		assert.ErrorIs(t, SendMessage(&receiver2, "send_message_not_registered_title", "send_message_not_registered_message", map[string]interface{}{}), ErrNoticeMethodNotRigisted)
 	})
-
-	//t.Run("NoNoticeAccount", func(t *testing.T) {
-	//	t.Parallel()
-	//	assert.ErrorIs(t, SendMessage(&receiver3, "send_message_no_notice_account_title", "send_message_no_notice_account", map[string]interface{}{}), ErrNoticeMethodNotRigisted)
-	//})
+	t.Run("NoNoticeAccount", func(t *testing.T) {
+		t.Parallel()
+		err := SendMessage(&receiver3, "send_message_no_account_title", "send_message_no_account_message", map[string]interface{}{})
+		assert.NotNil(t, err)
+		assert.Equal(t, "receiver's test_send_message_registered_method account not found!", err.(error).Error())
+	})
 
 	t.Run("SendFailed", func(t *testing.T) {
 		t.Parallel()
@@ -89,7 +90,7 @@ func TestSetAccount(t *testing.T) {
 		Email:                 "test_set_account@mail.com",
 		Password:              "test_set_account_pwd",
 		PreferredNoticeMethod: "test_set_account",
-		NoticeAccount:         "{}",
+		NoticeAccount:         "",
 	}
 	assert.NoError(t, Register("test_account_method"))
 	assert.NoError(t, base.DB.Create(&user).Error)
