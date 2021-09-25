@@ -21,7 +21,7 @@ import (
 
 var registeredPreferredNoticedMethod = make(map[string]struct{})
 var ErrMethodAlreadyExist = errors.New("notice method already registered")
-var ErrNoticeMethodNotRigisted = errors.New("notice method not registered")
+var ErrNoticeMethodNotRigisted = errors.New("notice methord not registered")
 var methodLock sync.RWMutex
 
 // func Register is used to add a new method in RegisteredNoticeMethod

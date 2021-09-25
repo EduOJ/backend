@@ -84,12 +84,12 @@ Common return codes.
 
 ### UpdateMe
 
-|         message         |         结果          |
-|:-----------------------:|:--------------------:|
-|     CONFLICT_EMAIL     |        邮箱重复         |
-|    CONFLICT_USERNAME   |       用户名重复        |
-|    METHOD_NOT_FOUND    |     用户偏好设置不存在    |
-|    INVALID_ACCOUNT     |       非法的账户信息     |
+|         message                        |         结果          |
+|:--------------------------------------:|:--------------------:|
+|     CONFLICT_EMAIL                    |        邮箱重复         |
+|    CONFLICT_USERNAME                  |       用户名重复        |
+|    NOTIFICATION_METHOD_NOT_FOUND       |     用户偏好设置不存在    |
+|    INVALID_ACCOUNT                     |       非法的账户信息     |
 
 ### GetUser
 

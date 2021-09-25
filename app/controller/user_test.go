@@ -819,7 +819,7 @@ func TestUpdateUserMe(t *testing.T) {
 				applyUser(user4),
 			},
 			statusCode: http.StatusBadRequest,
-			resp:       response.ErrorResp("METHOD_NOT_FOUND", nil),
+			resp:       response.ErrorResp("NOTIFICATION_METHOD_NOT_FOUND", nil),
 		},
 	}
 

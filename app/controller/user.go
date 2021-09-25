@@ -125,7 +125,7 @@ func UpdateMe(c echo.Context) error {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
 	if !notification.CheckNoticeMethod(req.PreferredNoticeMethod) {
-		return c.JSON(http.StatusBadRequest, response.ErrorResp("METHOD_NOT_FOUND", nil))
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("NOTIFICATION_METHOD_NOT_FOUND", nil))
 	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
