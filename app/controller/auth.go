@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
 func Login(c echo.Context) error {
@@ -154,6 +155,48 @@ func RequestResetPassword(c echo.Context) error {
 		}
 	}()
 	return c.JSON(http.StatusOK, response.RequestResetPasswordResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
+
+func DoResetPassword(c echo.Context) error {
+	req := request.DoResetPasswordRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	user := models.User{}
+	err = base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			panic(errors.Wrap(err, "could not query username or email"))
+		}
+	}
+	var code models.EmailVerificationToken
+	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp("WRONG_CODE", nil))
+		} else {
+			panic(err)
+		}
+	}
+	if code.CreatedAt.Before(time.Now().Add(-30 * time.Minute)) {
+		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_EXPIRED", nil))
+	}
+	if code.Used {
+		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_USED", nil))
+	}
+	code.Used = true
+	utils.PanicIfDBError(base.DB.Save(&code), "could not save verification code")
+	user.Password = utils.HashPassword(req.Password)
+	utils.PanicIfDBError(base.DB.Save(&user), "could not save user")
+	base.DB.Where("user_id = ?", user.ID).Delete(models.Token{}) // logout existing user
+	return c.JSON(http.StatusOK, response.EmailVerificationResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
