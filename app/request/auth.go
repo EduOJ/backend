@@ -19,3 +19,7 @@ type RegisterRequest struct {
 type EmailRegistered struct {
 	Email string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 }
+
+type RequestResetPasswordRequest struct {
+	UsernameOrEmail string `json:"username" form:"username" query:"username" validate:"required,min=5,username|email"`
+}

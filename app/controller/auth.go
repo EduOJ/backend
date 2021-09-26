@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -141,6 +142,52 @@ func EmailRegistered(c echo.Context) error {
 		return c.JSON(http.StatusConflict, response.ErrorResp("EMAIL_REGISTERED", nil))
 	}
 	return c.JSON(http.StatusOK, response.Response{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
+
+func RequestResetPassword(c echo.Context) error {
+	req := request.RequestResetPasswordRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+	user := models.User{}
+	err := base.DB.Where("email = ? or username = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			panic(errors.Wrap(err, "could not query username or email"))
+		}
+	}
+	if !user.EmailVerified {
+		return c.JSON(http.StatusNotAcceptable, response.ErrorResp("EMAIL_NOT_VERIFIED", nil))
+	}
+	verification := models.EmailVerificationToken{
+		User:  &user,
+		Email: user.Email,
+		Token: utils.RandStr(5),
+		Used:  false,
+	}
+	if err := base.DB.Save(&verification).Error; err != nil {
+		panic(err)
+	}
+	buf := new(bytes.Buffer)
+	if err := base.Template.Execute(buf, map[string]string{
+		"Code":     verification.Token,
+		"Nickname": user.Nickname,
+	}); err != nil {
+		panic(err)
+	}
+	//log.Debug(buf.String())
+	go func() {
+		if err := utils.SendMail(user.Email, "Your email verification code for reset password", buf.String()); err != nil {
+			panic(err)
+		}
+	}()
+	return c.JSON(http.StatusOK, response.RequestResetPasswordResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,

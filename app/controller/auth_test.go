@@ -355,3 +355,68 @@ func TestEmailRegistered(t *testing.T) {
 		}, resp)
 	})
 }
+
+func TestRequestResetPassword(t *testing.T) {
+	t.Parallel()
+	user := createUserForTest(t, "RequestResetPassword", 0)
+	user.EmailVerified = true
+	base.DB.Save(user)
+	notVerifiedUser := createUserForTest(t, "RequestResetPassword", 1)
+	failTests := []failTest{
+		{
+			name:       "EmptyParams",
+			method:     "POST",
+			path:       base.Echo.Reverse("auth.resetPassword"),
+			req:        nil,
+			reqOptions: nil,
+			statusCode: 400,
+			resp: response.Response{
+				Message: "VALIDATION_ERROR",
+				Error: []interface{}{
+					map[string]interface{}{
+						"field":       "UsernameOrEmail",
+						"reason":      "required",
+						"translation": "用户名为必填字段",
+					},
+				},
+				Data: nil,
+			},
+		},
+		{
+			name:   "NotFoundUser",
+			method: "POST",
+			path:   base.Echo.Reverse("auth.resetPassword"),
+			req: request.RequestResetPasswordRequest{
+				UsernameOrEmail: "request_reset_not_found",
+			},
+			reqOptions: nil,
+			statusCode: 404,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "NotVerifiedUser",
+			method: "POST",
+			path:   base.Echo.Reverse("auth.resetPassword"),
+			req: request.RequestResetPasswordRequest{
+				UsernameOrEmail: notVerifiedUser.Email,
+			},
+			reqOptions: nil,
+			statusCode: http.StatusNotAcceptable,
+			resp:       response.ErrorResp("EMAIL_NOT_VERIFIED", nil),
+		},
+	}
+	runFailTests(t, failTests, "RequestResetPassword")
+
+	httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("auth.resetPassword"),
+		request.RequestResetPasswordRequest{
+			UsernameOrEmail: user.Email,
+		}))
+	assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+	resp := response.RequestResetPasswordResponse{}
+	mustJsonDecode(httpResp, &resp)
+	assert.Equal(t, response.RequestResetPasswordResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	}, resp)
+}

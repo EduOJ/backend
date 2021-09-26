@@ -44,6 +44,8 @@ func Register(e *echo.Echo) {
 	auth.POST("/auth/login/webauthn", controller.FinishLogin).Name = "auth.webauthn.finishLogin"
 	auth.POST("/auth/register", controller.Register).Name = "auth.register"
 	auth.GET("/auth/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
+	auth.POST("/auth/password_reset", controller.RequestResetPassword).Name = "auth.resetPassword"
+	//auth.PUT("/auth/password_reset", controller.DoResetPassword).Name = "auth.resetPassword"
 
 	// user APIs
 	user := api.Group("", middleware.Logged)
