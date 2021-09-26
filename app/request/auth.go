@@ -23,3 +23,9 @@ type EmailRegistered struct {
 type RequestResetPasswordRequest struct {
 	UsernameOrEmail string `json:"username" form:"username" query:"username" validate:"required,min=5,username|email"`
 }
+
+type DoResetPasswordRequest struct {
+	UsernameOrEmail string `json:"username" form:"username" query:"username" validate:"required,min=5,username|email"`
+	Token           string `json:"token" form:"token" query:"token" validate:"required,max=5,min=5"`
+	Password        string `json:"password" form:"password" query:"password" validate:"required,max=30,min=5"`
+}
