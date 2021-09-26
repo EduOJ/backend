@@ -21,3 +21,9 @@ type LoginResponse struct {
 		Token string                `json:"token"`
 	} `json:"data"`
 }
+
+type RequestResetPasswordResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    interface{} `json:"data"`
+}

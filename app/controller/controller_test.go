@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"hash/fnv"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -338,6 +339,7 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
+	utils.SetTest()
 	viper.SetConfigType("yaml")
 	configFile := bytes.NewBufferString(`debug: true
 server:
@@ -389,6 +391,7 @@ judger:
 		panic(err)
 	}
 
+	base.Template, err = template.New("foo").Parse(`{{.Nickname}},{{.Code}}`)
 	//log.Disable()
 
 	os.Exit(m.Run())

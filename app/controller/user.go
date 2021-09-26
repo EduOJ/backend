@@ -251,28 +251,16 @@ func VerifyEmail(c echo.Context) error {
 	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusUnauthorized, response.EmailVerificationResponse{
-				Message: "WRONG_CODE",
-				Error:   nil,
-				Data:    nil,
-			})
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp("WRONG_CODE", nil))
 		} else {
 			panic(err)
 		}
 	}
 	if code.CreatedAt.Before(time.Now().Add(-30 * time.Minute)) {
-		return c.JSON(http.StatusRequestTimeout, response.EmailVerificationResponse{
-			Message: "CODE_EXPIRED",
-			Error:   nil,
-			Data:    nil,
-		})
+		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_EXPIRED", nil))
 	}
 	if code.Used {
-		return c.JSON(http.StatusRequestTimeout, response.EmailVerificationResponse{
-			Message: "CODE_USED",
-			Error:   nil,
-			Data:    nil,
-		})
+		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_USED", nil))
 	}
 	code.Used = true
 	utils.PanicIfDBError(base.DB.Save(&code), "could not save verification code")

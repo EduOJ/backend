@@ -12,6 +12,23 @@ type DialSender interface {
 
 var sender = (DialSender)(&base.Mail)
 
+type fakeSender struct {
+	messages []*mail.Message
+}
+
+func (f *fakeSender) DialAndSend(m ...*mail.Message) error {
+	f.messages = append(f.messages, m...)
+	return nil
+}
+
+func SetTest() {
+	sender = &fakeSender{}
+}
+
+func GetTestMessages() []*mail.Message {
+	return sender.(*fakeSender).messages
+}
+
 func SendMail(address string, subject string, message string) error {
 
 	m := mail.NewMessage()
