@@ -2,6 +2,7 @@ package resource
 
 import (
 	"database/sql"
+	"encoding/json"
 	"github.com/EduOJ/backend/database/models"
 )
 
@@ -39,7 +40,7 @@ type ProblemForAdmin struct {
 	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCaseForAdmin `json:"test_cases"`
-	Tags []models.Tag
+	Tags      []Tag
 }
 
 type Problem struct {
@@ -54,7 +55,19 @@ type Problem struct {
 	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCase `json:"test_cases"`
-	Tags []models.Tag
+	Tags      []Tag      `json:"tags"`
+}
+
+type Tag struct {
+	Name string
+}
+
+func (t *Tag) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.Name)
+}
+
+func (t *Tag) Convert(tt *models.Tag) {
+	t.Name = tt.Name
 }
 
 type ProblemSummary struct {
@@ -67,7 +80,7 @@ type ProblemSummary struct {
 	TimeLimit         uint     `json:"time_limit"`   // ms
 	LanguageAllowed   []string `json:"language_allowed"`
 	CompareScriptName string   `json:"compare_script_name"`
-	Tags []models.Tag
+	Tags              []Tag
 }
 
 type ProblemSummaryForAdmin struct {
@@ -84,7 +97,7 @@ type ProblemSummaryForAdmin struct {
 	BuildArg          string   `json:"build_arg"` // E.g.  O2=false
 	CompareScriptName string   `json:"compare_script_name"`
 
-	Tags []models.Tag
+	Tags []Tag
 }
 
 func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {
@@ -129,13 +142,16 @@ func (p *ProblemForAdmin) convert(problem *models.Problem) {
 	p.Privacy = problem.Privacy
 	p.BuildArg = problem.BuildArg
 
-	p.Tags = problem.Tags
+	p.Tags = make([]Tag, len(problem.Tags))
+
+	for i, t := range problem.Tags {
+		p.Tags[i].Convert(&t)
+	}
 
 	p.TestCases = make([]TestCaseForAdmin, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
 		p.TestCases[i].convert(&testCase)
 	}
-
 
 }
 
@@ -153,7 +169,11 @@ func (p *ProblemSummaryForAdmin) convert(problem *models.Problem, passed sql.Nul
 	p.BuildArg = problem.BuildArg
 	p.Passed = passed.Bool
 
-	p.Tags = problem.Tags
+	p.Tags = make([]Tag, len(problem.Tags))
+
+	for i, t := range problem.Tags {
+		p.Tags[i].Convert(&t)
+	}
 }
 
 func (p *Problem) convert(problem *models.Problem) {
@@ -165,6 +185,12 @@ func (p *Problem) convert(problem *models.Problem) {
 	p.TimeLimit = problem.TimeLimit
 	p.LanguageAllowed = problem.LanguageAllowed
 	p.CompareScriptName = problem.CompareScriptName
+
+	p.Tags = make([]Tag, len(problem.Tags))
+
+	for i, t := range problem.Tags {
+		p.Tags[i].Convert(&t)
+	}
 
 	p.TestCases = make([]TestCase, len(problem.TestCases))
 	for i, testCase := range problem.TestCases {
@@ -181,6 +207,12 @@ func (p *ProblemSummary) convert(problem *models.Problem, passed sql.NullBool) {
 	p.LanguageAllowed = problem.LanguageAllowed
 	p.CompareScriptName = problem.CompareScriptName
 	p.Passed = passed.Bool
+
+	p.Tags = make([]Tag, len(problem.Tags))
+
+	for i, t := range problem.Tags {
+		p.Tags[i].Convert(&t)
+	}
 }
 
 func GetProblemForAdmin(problem *models.Problem) *ProblemForAdmin {

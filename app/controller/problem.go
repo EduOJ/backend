@@ -2,7 +2,6 @@ package controller
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
@@ -101,7 +100,7 @@ func GetProblems(c echo.Context) error {
 	}
 
 	var problems []*models.Problem
-	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &problems)
+	total, prevUrl, nextUrl, err := utils.Paginator(query.WithContext(c.Request().Context()).Preload("Tags"), req.Limit, req.Offset, c.Request().URL, &problems)
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {
 			return herr.Response(c)
@@ -223,23 +222,15 @@ func CreateProblem(c echo.Context) error {
 		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))
 	}
 
-
-	var tags []string
-	err = json.Unmarshal([]byte(req.Tags),&tags)
-	if err != nil{
-		panic(err)
-	}
-
-	for _, tag := range tags {
-		temp := models.Tag{
+	//base.DB.Delete(&problem.Tags)
+	tags := make([]models.Tag, 0, len(req.Tags))
+	for _, tag := range req.Tags {
+		tags = append(tags, models.Tag{
 			Name: tag,
-			ProblemID: problem.ID,
-		}
-		utils.PanicIfDBError(base.DB.Create(&temp), "could not create tags")
-		problem.Tags = append(problem.Tags, temp)
+		})
 	}
-	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
 
+	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
 
 	return c.JSON(http.StatusCreated, response.CreateProblemResponse{
 		Message: "SUCCESS",
@@ -300,27 +291,17 @@ func UpdateProblem(c echo.Context) error {
 	problem.BuildArg = req.BuildArg
 	problem.CompareScriptName = req.CompareScriptName
 
-	for len(problem.Tags) > 0{
-		utils.PanicIfDBError(base.DB.Delete(&problem.Tags[0]), "could not delete tagIn")
-		problem.Tags = append(problem.Tags[:0],problem.Tags[1:]...)
+	//base.DB.Delete(&problem.Tags)
+	tags := make([]models.Tag, 0, len(req.Tags))
+	for _, tag := range req.Tags {
+		tags = append(tags, models.Tag{
+			Name: tag,
+		})
 	}
-
-
-	var tags []string
-	err = json.Unmarshal([]byte(req.Tags),&tags)
-	if err != nil{
+	err = base.DB.Model(&problem).Association("Tags").Replace(&tags)
+	if err != nil {
 		panic(err)
 	}
-	for _, tag := range tags {
-
-		temp := models.Tag{
-			Name: tag,
-			ProblemID: problem.ID,
-		}
-		utils.PanicIfDBError(base.DB.Create(&temp), "could not create tags")
-		problem.Tags = append(problem.Tags, temp)
-	}
-
 
 	utils.PanicIfDBError(base.DB.Save(&problem), "could not update problem")
 	return c.JSON(http.StatusOK, response.UpdateProblemResponse{
@@ -366,7 +347,6 @@ func DeleteProblem(c echo.Context) error {
 		Data:    nil,
 	})
 }
-
 
 func CreateTestCase(c echo.Context) error {
 

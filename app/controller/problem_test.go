@@ -1354,7 +1354,16 @@ func TestUpdateProblem(t *testing.T) {
 						"privacy":             fmt.Sprint(*test.req.Privacy),
 					})
 				} else {
-					data = test.req
+					data = addFieldContentSlice([]reqContent{}, map[string]string{
+						"name":                test.req.Name,
+						"description":         test.req.Description,
+						"memory_limit":        fmt.Sprint(test.req.MemoryLimit),
+						"time_limit":          fmt.Sprint(test.req.TimeLimit),
+						"language_allowed":    test.req.LanguageAllowed,
+						"compare_script_name": fmt.Sprint(test.req.CompareScriptName),
+						"public":              fmt.Sprint(*test.req.Public),
+						"privacy":             fmt.Sprint(*test.req.Privacy),
+					})
 				}
 				httpResp := makeResp(makeReq(t, "PUT", path, data, headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},

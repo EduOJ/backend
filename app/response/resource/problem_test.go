@@ -87,6 +87,7 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 			TimeLimit:          1000,
 			LanguageAllowed:    []string{"test_get_problem_language_allowed_0", "test_language"},
 			CompareScriptName:  "cmp1",
+			Tags:               []resource.Tag{},
 			TestCases: []resource.TestCase{
 				{
 					ID:        0,
@@ -117,6 +118,7 @@ func TestGetProblemAndGetProblemForAdmin(t *testing.T) {
 			LanguageAllowed:    []string{"test_get_problem_language_allowed_0", "test_language"},
 			BuildArg:           "test_get_problem_build_arg_0",
 			CompareScriptName:  "cmp1",
+			Tags:               []resource.Tag{},
 			TestCases: []resource.TestCaseForAdmin{
 				{
 					ID:             0,
@@ -154,6 +156,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				TimeLimit:          1000,
 				LanguageAllowed:    []string{"test_get_problem_slice_language_allowed_1", "test_language"},
 				CompareScriptName:  "cmp1",
+				Tags:               []resource.Tag{},
 				TestCases: []resource.TestCase{
 					{
 						ID:        0,
@@ -171,6 +174,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				TimeLimit:          1000,
 				LanguageAllowed:    []string{"test_get_problem_slice_language_allowed_2", "test_language"},
 				CompareScriptName:  "cmp1",
+				Tags:               []resource.Tag{},
 				TestCases: []resource.TestCase{
 					{
 						ID:        0,
@@ -203,6 +207,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				LanguageAllowed:    []string{"test_get_problem_slice_language_allowed_1", "test_language"},
 				BuildArg:           "test_get_problem_slice_build_arg_1",
 				CompareScriptName:  "cmp1",
+				Tags:               []resource.Tag{},
 				TestCases: []resource.TestCaseForAdmin{
 					{
 						ID:             0,
@@ -225,6 +230,7 @@ func TestGetProblemSliceAndGetProblemForAdminSlice(t *testing.T) {
 				LanguageAllowed:    []string{"test_get_problem_slice_language_allowed_2", "test_language"},
 				BuildArg:           "test_get_problem_slice_build_arg_2",
 				CompareScriptName:  "cmp1",
+				Tags:               []resource.Tag{},
 				TestCases: []resource.TestCaseForAdmin{
 					{
 						ID:             0,

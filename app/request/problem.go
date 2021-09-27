@@ -13,7 +13,7 @@ type CreateProblemRequest struct {
 	BuildArg          string `json:"build_arg" form:"build_arg" query:"build_arg" validate:"max=255"`                               // E.g.  O2=false
 	CompareScriptName string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
 
-	Tags string `json:"tags" form:"tags" query:"tags"`
+	Tags []string `json:"tags" form:"tags" query:"tags"`
 }
 
 type UpdateProblemRequest struct {
@@ -29,9 +29,8 @@ type UpdateProblemRequest struct {
 	BuildArg          string `json:"build_arg" form:"build_arg" query:"build_arg" validate:"max=255"`                               // E.g.  O2=false
 	CompareScriptName string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
 
-	Tags string `json:"tags" form:"tags" query:"tags"`
+	Tags []string `json:"tags" form:"tags" query:"tags"`
 }
-
 
 type DeleteProblemRequest struct {
 }

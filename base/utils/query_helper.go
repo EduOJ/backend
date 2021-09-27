@@ -109,7 +109,7 @@ func FindUser(id string) (*models.User, error) {
 func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	problem := models.Problem{}
 	query := base.DB
-	err := query.Where("id = ?", id).First(&problem).Error
+	err := query.Preload("Tags").Where("id = ?", id).First(&problem).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
