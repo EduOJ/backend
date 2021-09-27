@@ -50,19 +50,18 @@ type Problem struct {
 	CompareScript     Script               `json:"compare_script"`
 
 	TestCases []TestCase `json:"test_cases"`
-	Tags []Tag `json:"tags" gorm:"OnDelete:CASCADE"`
+	Tags      []Tag      `json:"tags" gorm:"OnDelete:CASCADE"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
-
-type Tag struct{
-	ID uint `gorm:"primaryKey" json:"id"`
+type Tag struct {
+	ID        uint `gorm:"primaryKey" json:"id"`
 	ProblemID uint
-	Name string
-	CreatedAt time.Time      `json:"created_at"`
+	Name      string
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (p Problem) GetID() uint {

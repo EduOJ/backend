@@ -40,7 +40,7 @@ type ProblemForAdmin struct {
 	CompareScriptName string   `json:"compare_script_name"`
 
 	TestCases []TestCaseForAdmin `json:"test_cases"`
-	Tags      []Tag
+	Tags      []Tag              `json:"tags"`
 }
 
 type Problem struct {
@@ -66,6 +66,10 @@ func (t *Tag) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.Name)
 }
 
+func (t *Tag) UnmarshalJSON(b []byte) error {
+	return json.Unmarshal(b, &t.Name)
+}
+
 func (t *Tag) Convert(tt *models.Tag) {
 	t.Name = tt.Name
 }
@@ -80,7 +84,7 @@ type ProblemSummary struct {
 	TimeLimit         uint     `json:"time_limit"`   // ms
 	LanguageAllowed   []string `json:"language_allowed"`
 	CompareScriptName string   `json:"compare_script_name"`
-	Tags              []Tag
+	Tags              []Tag    `json:"tags"`
 }
 
 type ProblemSummaryForAdmin struct {
@@ -97,7 +101,7 @@ type ProblemSummaryForAdmin struct {
 	BuildArg          string   `json:"build_arg"` // E.g.  O2=false
 	CompareScriptName string   `json:"compare_script_name"`
 
-	Tags []Tag
+	Tags []Tag `json:"tags"`
 }
 
 func (t *TestCaseForAdmin) convert(testCase *models.TestCase) {

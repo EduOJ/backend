@@ -94,6 +94,16 @@ func GetProblems(c echo.Context) error {
 				Group("problem_id"),
 		)
 	}
+	if req.Tags != "" {
+		tags := strings.Split(req.Tags, ",")
+		query = query.Where("id in (?)",
+			base.DB.Table("tags").
+				Where("name in (?)", tags).
+				Group("problem_id").
+				Having("count(*) = ?", len(tags)).
+				Select("problem_id"),
+		)
+	}
 
 	if where != nil {
 		query = query.Where(where)
@@ -223,13 +233,15 @@ func CreateProblem(c echo.Context) error {
 	}
 
 	//base.DB.Delete(&problem.Tags)
-	tags := make([]models.Tag, 0, len(req.Tags))
-	for _, tag := range req.Tags {
-		tags = append(tags, models.Tag{
-			Name: tag,
-		})
+	var tags []models.Tag
+	if req.Tags != "" {
+		for _, tag := range strings.Split(req.Tags, ",") {
+			tags = append(tags, models.Tag{
+				Name: tag,
+			})
+		}
 	}
-
+	problem.Tags = tags
 	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
 
 	return c.JSON(http.StatusCreated, response.CreateProblemResponse{
@@ -292,11 +304,13 @@ func UpdateProblem(c echo.Context) error {
 	problem.CompareScriptName = req.CompareScriptName
 
 	//base.DB.Delete(&problem.Tags)
-	tags := make([]models.Tag, 0, len(req.Tags))
-	for _, tag := range req.Tags {
-		tags = append(tags, models.Tag{
-			Name: tag,
-		})
+	var tags []models.Tag
+	if req.Tags != "" {
+		for _, tag := range strings.Split(req.Tags, ",") {
+			tags = append(tags, models.Tag{
+				Name: tag,
+			})
+		}
 	}
 	err = base.DB.Model(&problem).Association("Tags").Replace(&tags)
 	if err != nil {

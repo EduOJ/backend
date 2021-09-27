@@ -33,7 +33,6 @@ type CreateProblemResponse struct {
 	} `json:"data"`
 }
 
-
 type GetProblemResponseForAdmin struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
