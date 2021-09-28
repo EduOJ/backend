@@ -1500,7 +1500,7 @@ func TestUpdateProblem(t *testing.T) {
 				test.expectedProblem.UpdatedAt = databaseProblem.UpdatedAt
 				test.expectedProblem.DeletedAt = databaseProblem.DeletedAt
 				if len(test.expectedProblem.Tags) != 0 {
-					for i, _ := range databaseProblem.Tags {
+					for i := range databaseProblem.Tags {
 						databaseProblem.Tags[i].ID = 0
 						databaseProblem.Tags[i].CreatedAt = time.Time{}
 						databaseProblem.Tags[i].ProblemID = 0
