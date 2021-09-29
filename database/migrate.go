@@ -1204,6 +1204,42 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.AutoMigrate(&Grade{})
 			},
 		},
+		{
+			ID: "add_tags_and_tag_for_problem",
+			Migrate: func(tx *gorm.DB) error {
+				type Tag struct {
+					ID        uint `gorm:"primaryKey" json:"id"`
+					ProblemID uint
+					Name      string
+					CreatedAt time.Time `json:"created_at"`
+				}
+				type Problem struct {
+					Tags []Tag `json:"tags" gorm:"OnDelete:CASCADE"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Tag{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Tag struct {
+					ID        uint `gorm:"primaryKey" json:"id"`
+					ProblemID uint
+					Name      string
+					CreatedAt time.Time `json:"created_at"`
+				}
+				type Problem struct {
+					Tags []Tag `json:"tags" gorm:"OnDelete:CASCADE"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				tx.Migrator().DropColumn(&Problem{}, "tags")
+				return tx.Migrator().DropTable(&Tag{})
+			},
+		},
 	})
 }
 

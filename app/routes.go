@@ -130,6 +130,7 @@ func Register(e *echo.Echo) {
 	readProblemSecret.GET("/problem/:id/test_case/:test_case_id/input_file", controller.GetTestCaseInputFile).Name = "problem.getTestCaseInputFile"
 	readProblemSecret.GET("/problem/:id/test_case/:test_case_id/output_file", controller.GetTestCaseOutputFile).Name = "problem.getTestCaseOutputFile"
 	updateProblem.PUT("/admin/problem/:id", controller.UpdateProblem).Name = "problem.updateProblem"
+
 	updateProblem.POST("/admin/problem/:id/test_case", controller.CreateTestCase).Name = "problem.createTestCase"
 	updateProblem.PUT("/admin/problem/:id/test_case/:test_case_id", controller.UpdateTestCase).Name = "problem.updateTestCase"
 	updateProblem.DELETE("/admin/problem/:id/test_case/all", controller.DeleteTestCases).Name = "problem.deleteTestCases"
