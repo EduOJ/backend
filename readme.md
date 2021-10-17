@@ -1,3 +1,13 @@
+
+<div align="center">
+
+# EduOJ
+
+[![codecov](https://codecov.io/gh/EduOJ/backend/branch/master/graph/badge.svg?token=5A6UTFJL0J)](https://codecov.io/gh/EduOJ/backend)
+[![Go Report Card](https://goreportcard.com/badge/github.com/eduoj/backend)](https://goreportcard.com/report/github.com/eduoj/backend)
+[![Test](https://github.com/EduOJ/backend/actions/workflows/%20test.yml/badge.svg)](https://github.com/EduOJ/backend/actions/workflows/%20test.yml)
+</div>
+
 # License.
 
 This project is licensed under
