@@ -5,6 +5,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/notification"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
@@ -123,9 +124,13 @@ func UpdateMe(c echo.Context) error {
 	if count > 1 || (count == 1 && user.Username != req.Username) {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
 	}
+	if !notification.CheckNoticeMethod(req.PreferredNoticeMethod) {
+		return c.JSON(http.StatusBadRequest, response.ErrorResp("NOTIFICATION_METHOD_NOT_FOUND", nil))
+	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
 	user.Email = req.Email
+	user.PreferredNoticeMethod = req.PreferredNoticeMethod
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",

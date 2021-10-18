@@ -1190,18 +1190,24 @@ func GetMigration() *gormigrate.Gormigrate {
 			},
 		},
 		{
-			ID: "remove_delete_at_field_in_grades",
-			Migrate: func(tx *gorm.DB) error {
-				type Grade struct {
-					ID uint `gorm:"primaryKey" json:"id"`
+
+			// add PreferredNoticeMethod and account
+			ID: "add_preferred_notice_method_and_notice_account",
+			Migrate: func(tx *gorm.DB) (err error) {
+				type User struct {
+					PreferredNoticeMethod string `gorm:"preferred_notice_method"`
+					NoticeAccount         string `gorm:"notice_account"`
 				}
-				return tx.Migrator().DropColumn(&Grade{}, "deleted_at")
+				return tx.AutoMigrate(&User{})
 			},
-			Rollback: func(tx *gorm.DB) error {
-				type Grade struct {
-					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+			Rollback: func(tx *gorm.DB) (err error) {
+				type User struct{}
+				err = tx.Migrator().DropColumn(&User{}, "preferred_notice_method")
+				if err != nil {
+					return
 				}
-				return tx.AutoMigrate(&Grade{})
+				return tx.Migrator().DropColumn(&User{}, "notice_account")
+
 			},
 		},
 		{

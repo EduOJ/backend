@@ -10,6 +10,7 @@ import (
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/exit"
+	nnotification "github.com/EduOJ/backend/base/notification"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/base/validator"
 	"github.com/EduOJ/backend/database"
@@ -387,6 +388,11 @@ judger:
 	}
 	if err := utils.CreateBucket("submissions"); err != nil {
 		panic(err)
+	}
+	for i := 1; i <= 4; i++ {
+		if err := nnotification.Register(fmt.Sprintf("test_method_%d", i)); err != nil {
+			panic(err)
+		}
 	}
 
 	//log.Disable()

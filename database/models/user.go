@@ -11,11 +11,13 @@ import (
 )
 
 type User struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	Username string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
-	Nickname string `gorm:"index:nickname" json:"nickname"`
-	Email    string `gorm:"unique_index" json:"email"`
-	Password string `json:"-"`
+	ID                    uint   `gorm:"primaryKey" json:"id"`
+	Username              string `gorm:"unique_index" json:"username" validate:"required,max=30,min=5,username"`
+	Nickname              string `gorm:"index:nickname" json:"nickname"`
+	Email                 string `gorm:"unique_index" json:"email"`
+	Password              string `json:"-"`
+	PreferredNoticeMethod string `json:"preferred_notice_method"`
+	NoticeAccount         string `json:"notice_account"`
 
 	Roles      []UserHasRole `json:"roles"`
 	RoleLoaded bool          `gorm:"-" json:"-"`
@@ -33,6 +35,13 @@ type User struct {
 	Credentials []WebauthnCredential
 }
 
+/*
+	"msg": {
+		"phonenumber": 123456789,
+	}, "wechat": {
+		"wechatID": xxx,
+	}
+*/
 func (u *User) WebAuthnID() (ret []byte) {
 	ret = make([]byte, 8)
 	binary.LittleEndian.PutUint64(ret, uint64(u.ID))
@@ -49,6 +58,9 @@ func (u *User) WebAuthnDisplayName() string {
 
 func (u *User) WebAuthnIcon() string {
 	return ""
+}
+func (u *User) WebAuthPreferredNoticeMethod() string {
+	return u.PreferredNoticeMethod
 }
 
 func (u *User) WebAuthnCredentials() []webauthn.Credential {
