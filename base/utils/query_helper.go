@@ -90,7 +90,7 @@ func Sorter(query *gorm.DB, orderBy string, columns ...string) (*gorm.DB, error)
 
 func FindUser(id string) (*models.User, error) {
 	user := models.User{}
-	err := base.DB.Where("id = ?", id).First(&user).Error
+	_, err := strconv.Atoi(id)
 	if err != nil {
 		err = base.DB.Where("username = ?", id).First(&user).Error
 		if err != nil {
@@ -98,6 +98,18 @@ func FindUser(id string) (*models.User, error) {
 				return nil, err
 			} else {
 				return nil, errors.Wrap(err, "could not query user")
+			}
+		}
+	} else {
+		err = base.DB.Where("id = ?", id).First(&user).Error
+		if err != nil {
+			err = base.DB.Where("username = ?", id).First(&user).Error
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, err
+				} else {
+					return nil, errors.Wrap(err, "could not query user")
+				}
 			}
 		}
 	}
