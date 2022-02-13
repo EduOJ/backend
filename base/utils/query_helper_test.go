@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -55,6 +56,41 @@ func TestFindUser(t *testing.T) {
 		foundUser, err := FindUser(user.Username)
 		if foundUser != nil {
 			assert.Equal(t, user, *foundUser)
+		}
+		assert.NoError(t, err)
+	})
+	t.Run("findUserSuccessWithNumberUsername", func(t *testing.T) {
+		user := models.User{
+			Username: "123456789",
+			Nickname: "test_find_number_user_name_nickname",
+			Email:    "test_find_number_user_name@mail.com",
+			Password: "test_find_number_user_name_password",
+		}
+		assert.NoError(t, base.DB.Create(&user).Error)
+		foundUser, err := FindUser(user.Username)
+		if foundUser != nil {
+			assert.Equal(t, user, *foundUser)
+		}
+		assert.NoError(t, err)
+	})
+	t.Run("fundUserSuccessWithIDFirst", func(t *testing.T) {
+		user1 := models.User{
+			Username: "test_find_user_with_id_first_nickname1",
+			Nickname: "test_find_user_with_id_first_nickname1",
+			Email:    "test_find_user_with_id_first1@mail.com",
+			Password: "test_find_user_with_id_first_password2",
+		}
+		assert.NoError(t, base.DB.Create(&user1).Error)
+		user2 := models.User{
+			Username: strconv.Itoa(int(user1.ID)),
+			Nickname: "test_find_user_with_id_first_nickname2",
+			Email:    "test_find_user_with_id_first2@mail.com",
+			Password: "test_find_user_with_id_first_password2",
+		}
+		assert.NoError(t, base.DB.Create(&user2).Error)
+		foundUser, err := FindUser(strconv.Itoa(int(user1.ID)))
+		if foundUser != nil {
+			assert.Equal(t, user1, *foundUser)
 		}
 		assert.NoError(t, err)
 	})
