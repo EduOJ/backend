@@ -223,7 +223,7 @@ Note:
 
 func findRole(id string) (*models.Role, error) {
 	role := models.Role{}
-	err := base.DB.Set("gorm:auto_preload", true).Where("id = ?", id).First(&role).Error
+	_, err := strconv.Atoi(id)
 	if err != nil {
 		err = base.DB.Set("gorm:auto_preload", true).Where("name = ?", id).First(&role).Error
 		if err != nil {
@@ -231,6 +231,18 @@ func findRole(id string) (*models.Role, error) {
 				return nil, errors.New("role record not found")
 			} else {
 				return nil, errors.Wrap(err, "could not query role")
+			}
+		}
+	} else {
+		err = base.DB.Set("gorm:auto_preload", true).Where("id = ?", id).First(&role).Error
+		if err != nil {
+			err = base.DB.Set("gorm:auto_preload", true).Where("name = ?", id).First(&role).Error
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, errors.New("role record not found")
+				} else {
+					return nil, errors.Wrap(err, "could not query role")
+				}
 			}
 		}
 	}
