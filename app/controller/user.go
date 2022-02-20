@@ -34,6 +34,14 @@ func GetUser(c echo.Context) error {
 	})
 }
 
+// @summary      Get current user's information.
+// @description  Get current user's information.
+// @router       /user/me [GET]
+// @produce      json
+// @tags Auth
+// @success      200      {object}  response.GetMeResponse
+// @failure      500      {object}  response.Response
+// @security     ApiKeyAuth
 func GetMe(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	if !user.RoleLoaded {
