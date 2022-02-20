@@ -1,6 +1,6 @@
 module github.com/EduOJ/backend
 
-go 1.14
+go 1.15
 
 require (
 	github.com/duo-labs/webauthn v0.0.0-20200714211715-1daaee874e43
