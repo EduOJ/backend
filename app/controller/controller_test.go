@@ -392,7 +392,9 @@ judger:
 	}
 
 	base.Template, err = template.New("foo").Parse(`{{.Nickname}},{{.Code}}`)
-	//log.Disable()
+	if err != nil {
+		panic(err)
+	}
 
 	os.Exit(m.Run())
 }

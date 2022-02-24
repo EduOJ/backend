@@ -28,7 +28,6 @@ func SendVerificationEmail(user *models.User) {
 			log.Errorf("%+v\n", err)
 			return
 		}
-		log.Debug(buf.String())
 		if err := utils.SendMail(user.Email, "Your email verification code", buf.String()); err != nil {
 			log.Errorf("%+v\n", err)
 			return

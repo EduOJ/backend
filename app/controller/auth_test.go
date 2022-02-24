@@ -391,7 +391,7 @@ func TestRequestResetPassword(t *testing.T) {
 				UsernameOrEmail: "request_reset_not_found",
 			},
 			reqOptions: nil,
-			statusCode: 404,
+			statusCode: http.StatusNotFound,
 			resp:       response.ErrorResp("NOT_FOUND", nil),
 		},
 		{

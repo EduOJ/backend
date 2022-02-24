@@ -182,7 +182,6 @@ func RequestResetPassword(c echo.Context) error {
 	}); err != nil {
 		panic(err)
 	}
-	//log.Debug(buf.String())
 	go func() {
 		if err := utils.SendMail(user.Email, "Your email verification code for reset password", buf.String()); err != nil {
 			panic(err)
