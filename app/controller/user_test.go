@@ -860,6 +860,84 @@ func TestUpdateUserMe(t *testing.T) {
 	})
 }
 
+func TestUpdateEmail(t *testing.T) {
+	t.Parallel()
+
+	user := models.User{
+		Username:      "test_update_email_1",
+		Nickname:      "test_update_email_1_nick",
+		Email:         "test_update_email_1@mail.com",
+		EmailVerified: true,
+	}
+	assert.NoError(t, base.DB.Create(&user).Error)
+
+	failTests := []failTest{
+		{
+			name:   "ModifyVerifiedEmail",
+			method: "PUT",
+			path:   base.Echo.Reverse("user.updateEmail"),
+			req: request.UpdateEmailRequest{
+				Username: "test_update_email_1",
+				OldEmail: "test_update_email_1@mail.com",
+				NewEmail: "test_update_email_1_new@mail.com",
+			},
+			reqOptions: []reqOption{
+				applyUser(user),
+			},
+			statusCode: http.StatusForbidden,
+			resp: response.Response{
+				Message: "EMAIL_VERIFIED",
+				Error:   nil,
+				Data:    nil,
+			},
+		},
+	}
+
+	runFailTests(t, failTests, "UpdateEmail")
+
+	successTests := []struct {
+		name string
+		user models.User
+		req  request.UpdateEmailRequest
+	}{
+		{
+			name: "Success",
+			user: models.User{
+				Username:      "test_update_email_2",
+				Nickname:      "test_update_email_2_nick",
+				Email:         "test_update_email_2@mail.com",
+				EmailVerified: false,
+				Password:      utils.HashPassword("test_update_me_2_password"),
+			},
+			req: request.UpdateEmailRequest{
+				Username: "test_update_email_2",
+				OldEmail: "test_update_email_2@mail.com",
+				NewEmail: "test_update_email_2_new@mail.com",
+			},
+		},
+	}
+
+	t.Run("testUpdateEmailSuccess", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range successTests {
+			test := test
+			t.Run("testUpdateEmail"+test.name, func(t *testing.T) {
+				t.Parallel()
+				assert.NoError(t, base.DB.Create(&test.user).Error)
+				httpResp := makeResp(makeReq(t, "PUT", base.Echo.Reverse("user.updateEmail"), test.req, applyUser(test.user)))
+				resp := response.UpdateEmailResponse{}
+				mustJsonDecode(httpResp, &resp)
+				assert.Equal(t, test.req.Username, resp.Data.Username)
+				assert.Equal(t, test.req.NewEmail, resp.Data.Email)
+				databaseUser := models.User{}
+				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
+				assert.Equal(t, test.req.Username, databaseUser.Username)
+				assert.Equal(t, test.req.NewEmail, databaseUser.Email)
+			})
+		}
+	})
+}
+
 func TestChangePassword(t *testing.T) {
 	t.Parallel()
 

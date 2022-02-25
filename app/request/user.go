@@ -22,6 +22,12 @@ type UpdateMeRequest struct {
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 }
 
+type UpdateEmailRequest struct {
+	Username string `json:"username" form:"username" query:"username" validate:"required,max=30,min=5,username"`
+	OldEmail string `json:"old_email" form:"old_email" query:"old_email" validate:"required,email,max=320,min=5"`
+	NewEmail string `json:"new_email" form:"new_email" query:"new_email" validate:"required,email,max=320,min=5"`
+}
+
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" form:"old_password" query:"old_password" validate:"required,max=30,min=5"`
 	NewPassword string `json:"new_password" form:"new_password" query:"new_password" validate:"required,max=30,min=5"`

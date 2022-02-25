@@ -150,6 +150,48 @@ func UpdateMe(c echo.Context) error {
 	})
 }
 
+func UpdateEmail(c echo.Context) error {
+	user, ok := c.Get("user").(models.User)
+	if !ok {
+		panic("could not convert my user into type models.User")
+	}
+	if !user.RoleLoaded {
+		user.LoadRoles()
+	}
+	req := request.UpdateEmailRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	count := int64(0)
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.OldEmail).Count(&count), "could not query user count")
+	if count > 1 || (count == 1 && user.Email != req.OldEmail) {
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
+	}
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
+	if count > 1 || (count == 1 && user.Username != req.Username) {
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
+	}
+	if user.Email != req.OldEmail {
+		user.EmailVerified = false
+	}
+	if user.EmailVerified == false {
+		user.Email = req.NewEmail
+	} else {
+		return c.JSON(http.StatusForbidden, response.ErrorResp("EMAIL_VERIFIED", nil))
+	}
+	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update email")
+	return c.JSON(http.StatusOK, response.UpdateEmailResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.UserForAdmin `json:"user"`
+		}{
+			resource.GetUserForAdmin(&user),
+		},
+	})
+}
+
 func ChangePassword(c echo.Context) error {
 	req := request.ChangePasswordRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
