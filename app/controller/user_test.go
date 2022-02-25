@@ -833,6 +833,12 @@ func TestUpdateUserMe(t *testing.T) {
 			t.Run("testUpdateMe"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.NoError(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&models.EmailVerificationToken{
+					User:  &test.user,
+					Email: test.user.Email,
+					Token: "test_token" + test.name,
+					Used:  false,
+				}).Error)
 				if test.roleName != nil {
 					test.user.GrantRole(*test.roleName, test.roleTarget)
 				}
@@ -854,6 +860,9 @@ func TestUpdateUserMe(t *testing.T) {
 
 				if test.req.Email != test.user.Email {
 					assert.False(t, databaseUser.EmailVerified)
+					count := int64(0)
+					assert.NoError(t, base.DB.Model(&models.EmailVerificationToken{}).Where("user_id = ?", databaseUser.ID).Count(&count).Error)
+					assert.Zero(t, count)
 				}
 			})
 		}
@@ -877,9 +886,7 @@ func TestUpdateEmail(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("user.updateEmail"),
 			req: request.UpdateEmailRequest{
-				Username: "test_update_email_1",
-				OldEmail: "test_update_email_1@mail.com",
-				NewEmail: "test_update_email_1_new@mail.com",
+				Email: "test_update_email_1_new@mail.com",
 			},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -910,9 +917,7 @@ func TestUpdateEmail(t *testing.T) {
 				Password:      utils.HashPassword("test_update_me_2_password"),
 			},
 			req: request.UpdateEmailRequest{
-				Username: "test_update_email_2",
-				OldEmail: "test_update_email_2@mail.com",
-				NewEmail: "test_update_email_2_new@mail.com",
+				Email: "test_update_email_2_new@mail.com",
 			},
 		},
 	}
@@ -924,15 +929,23 @@ func TestUpdateEmail(t *testing.T) {
 			t.Run("testUpdateEmail"+test.name, func(t *testing.T) {
 				t.Parallel()
 				assert.NoError(t, base.DB.Create(&test.user).Error)
+				assert.NoError(t, base.DB.Create(&models.EmailVerificationToken{
+					User:  &test.user,
+					Email: test.user.Email,
+					Token: "test_token" + test.name,
+					Used:  false,
+				}).Error)
 				httpResp := makeResp(makeReq(t, "PUT", base.Echo.Reverse("user.updateEmail"), test.req, applyUser(test.user)))
 				resp := response.UpdateEmailResponse{}
 				mustJsonDecode(httpResp, &resp)
-				assert.Equal(t, test.req.Username, resp.Data.Username)
-				assert.Equal(t, test.req.NewEmail, resp.Data.Email)
+				assert.Equal(t, test.req.Email, resp.Data.Email)
 				databaseUser := models.User{}
 				assert.NoError(t, base.DB.First(&databaseUser, test.user.ID).Error)
-				assert.Equal(t, test.req.Username, databaseUser.Username)
-				assert.Equal(t, test.req.NewEmail, databaseUser.Email)
+				assert.Equal(t, test.req.Email, databaseUser.Email)
+				assert.False(t, databaseUser.EmailVerified)
+				count := int64(0)
+				assert.NoError(t, base.DB.Model(&models.EmailVerificationToken{}).Where("user_id = ?", databaseUser.ID).Count(&count).Error)
+				assert.Zero(t, count)
 			})
 		}
 	})

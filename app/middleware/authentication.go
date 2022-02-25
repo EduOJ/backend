@@ -42,11 +42,19 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 
 func Logged(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := c.Get("user").(models.User)
+		_, ok := c.Get("user").(models.User)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp("AUTH_NEED_TOKEN", nil))
 		}
-		if viper.GetBool("email.need_verification") && !user.EmailVerified {
+		return next(c)
+	}
+}
+
+func EmailVerified(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := c.Get("user").(models.User)
+		// for some APIs, we allow guest access, but for logged user, we require email verification.
+		if ok && viper.GetBool("email.need_verification") && !user.EmailVerified {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp("AUTH_NEED_EMAIL_VERIFICATION", nil))
 		}
 		return next(c)

@@ -13,7 +13,6 @@ import (
 	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func GetUser(c echo.Context) error {
@@ -136,6 +135,7 @@ func UpdateMe(c echo.Context) error {
 	user.Nickname = req.Nickname
 	if user.Email != req.Email {
 		user.EmailVerified = false
+		base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
 	}
 	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
@@ -155,31 +155,22 @@ func UpdateEmail(c echo.Context) error {
 	if !ok {
 		panic("could not convert my user into type models.User")
 	}
-	if !user.RoleLoaded {
-		user.LoadRoles()
-	}
 	req := request.UpdateEmailRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
 	}
+	if user.EmailVerified {
+		return c.JSON(http.StatusNotAcceptable, response.ErrorResp("EMAIL_VERIFIED", nil))
+	}
 	count := int64(0)
-	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.OldEmail).Count(&count), "could not query user count")
-	if count > 1 || (count == 1 && user.Email != req.OldEmail) {
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
+	if count > 1 || (count == 1 && user.Email != req.Email) {
 		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
 	}
-	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("username = ?", req.Username).Count(&count), "could not query user count")
-	if count > 1 || (count == 1 && user.Username != req.Username) {
-		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_USERNAME", nil))
-	}
-	if user.Email != req.OldEmail {
-		user.EmailVerified = false
-	}
-	if user.EmailVerified == false {
-		user.Email = req.NewEmail
-	} else {
-		return c.JSON(http.StatusForbidden, response.ErrorResp("EMAIL_VERIFIED", nil))
-	}
+	user.EmailVerified = false
+	base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
+	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update email")
 	return c.JSON(http.StatusOK, response.UpdateEmailResponse{
 		Message: "SUCCESS",
@@ -287,38 +278,5 @@ func GetUserProblemInfo(c echo.Context) error {
 			PassedCount: int(passedCount),
 			Rank:        0, // TODO: develop this
 		},
-	})
-}
-
-func VerifyEmail(c echo.Context) error {
-	req := request.VerifyEmailRequest{}
-	err, ok := utils.BindAndValidate(&req, c)
-	if !ok {
-		return err
-	}
-	user := c.Get("user").(models.User)
-	var code models.EmailVerificationToken
-	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusUnauthorized, response.ErrorResp("WRONG_CODE", nil))
-		} else {
-			panic(err)
-		}
-	}
-	if code.CreatedAt.Before(time.Now().Add(-30 * time.Minute)) {
-		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_EXPIRED", nil))
-	}
-	if code.Used {
-		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_USED", nil))
-	}
-	code.Used = true
-	utils.PanicIfDBError(base.DB.Save(&code), "could not save verification code")
-	user.EmailVerified = true
-	utils.PanicIfDBError(base.DB.Save(&user), "could not save user")
-	return c.JSON(http.StatusOK, response.EmailVerificationResponse{
-		Message: "SUCCESS",
-		Error:   nil,
-		Data:    nil,
 	})
 }

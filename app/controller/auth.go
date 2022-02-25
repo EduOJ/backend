@@ -194,6 +194,42 @@ func RequestResetPassword(c echo.Context) error {
 	})
 }
 
+func ResendEmailVerification(c echo.Context) error {
+	user, ok := c.Get("user").(models.User)
+	if !ok {
+		panic("could not convert my user into type models.User")
+	}
+	if user.EmailVerified {
+		return c.JSON(http.StatusNotAcceptable, response.ErrorResp("EMAIL_VERIFIED", nil))
+	}
+	verification := models.EmailVerificationToken{
+		User:  &user,
+		Email: user.Email,
+		Token: utils.RandStr(5),
+		Used:  false,
+	}
+	if err := base.DB.Save(&verification).Error; err != nil {
+		panic(err)
+	}
+	buf := new(bytes.Buffer)
+	if err := base.Template.Execute(buf, map[string]string{
+		"Code":     verification.Token,
+		"Nickname": user.Nickname,
+	}); err != nil {
+		panic(err)
+	}
+	go func() {
+		if err := utils.SendMail(user.Email, "Your email verification code for reset password", buf.String()); err != nil {
+			panic(err)
+		}
+	}()
+	return c.JSON(http.StatusOK, response.RequestResetPasswordResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
+
 func DoResetPassword(c echo.Context) error {
 	req := request.DoResetPasswordRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
@@ -229,6 +265,42 @@ func DoResetPassword(c echo.Context) error {
 	user.Password = utils.HashPassword(req.Password)
 	utils.PanicIfDBError(base.DB.Save(&user), "could not save user")
 	base.DB.Where("user_id = ?", user.ID).Delete(models.Token{}) // logout existing user
+	return c.JSON(http.StatusOK, response.EmailVerificationResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data:    nil,
+	})
+}
+
+func VerifyEmail(c echo.Context) error {
+	req := request.VerifyEmailRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	user := c.Get("user").(models.User)
+	if user.EmailVerified {
+		return c.JSON(http.StatusNotAcceptable, response.ErrorResp("EMAIL_VERIFIED", nil))
+	}
+	var code models.EmailVerificationToken
+	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusUnauthorized, response.ErrorResp("WRONG_CODE", nil))
+		} else {
+			panic(err)
+		}
+	}
+	if code.CreatedAt.Before(time.Now().Add(-30 * time.Minute)) {
+		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_EXPIRED", nil))
+	}
+	if code.Used {
+		return c.JSON(http.StatusRequestTimeout, response.ErrorResp("CODE_USED", nil))
+	}
+	code.Used = true
+	utils.PanicIfDBError(base.DB.Save(&code), "could not save verification code")
+	user.EmailVerified = true
+	utils.PanicIfDBError(base.DB.Save(&user), "could not save user")
 	return c.JSON(http.StatusOK, response.EmailVerificationResponse{
 		Message: "SUCCESS",
 		Error:   nil,
