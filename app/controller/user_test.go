@@ -861,8 +861,10 @@ func TestUpdateUserMe(t *testing.T) {
 				if test.req.Email != test.user.Email {
 					assert.False(t, databaseUser.EmailVerified)
 					count := int64(0)
-					assert.NoError(t, base.DB.Model(&models.EmailVerificationToken{}).Where("user_id = ?", databaseUser.ID).Count(&count).Error)
+					assert.NoError(t, base.DB.Model(&models.EmailVerificationToken{}).Where("user_id = ? and email != ?", databaseUser.ID, databaseUser.Email).Count(&count).Error)
 					assert.Zero(t, count)
+					assert.NoError(t, base.DB.Model(&models.EmailVerificationToken{}).Where("user_id = ? and email = ?", databaseUser.ID, databaseUser.Email).Count(&count).Error)
+					assert.Equal(t, int64(1), count)
 				}
 			})
 		}
@@ -891,7 +893,7 @@ func TestUpdateEmail(t *testing.T) {
 			reqOptions: []reqOption{
 				applyUser(user),
 			},
-			statusCode: http.StatusForbidden,
+			statusCode: http.StatusNotAcceptable,
 			resp: response.Response{
 				Message: "EMAIL_VERIFIED",
 				Error:   nil,
@@ -945,7 +947,7 @@ func TestUpdateEmail(t *testing.T) {
 				assert.False(t, databaseUser.EmailVerified)
 				count := int64(0)
 				assert.NoError(t, base.DB.Model(&models.EmailVerificationToken{}).Where("user_id = ?", databaseUser.ID).Count(&count).Error)
-				assert.Zero(t, count)
+				assert.Equal(t, count, int64(1))
 			})
 		}
 	})
@@ -1270,6 +1272,13 @@ func TestVerifyEmail(t *testing.T) {
 		Password: "test_verify_email_passwd",
 	}
 	base.DB.Create(&user)
+	sucUser := models.User{
+		Username: "test_verify_email2_username",
+		Nickname: "test_verify_email2_nickname",
+		Email:    "test_verify_email2@e.com",
+		Password: "test_verify_email2_passwd",
+	}
+	base.DB.Create(&sucUser)
 	code := models.EmailVerificationToken{
 		User:  &user,
 		Email: user.Email,
@@ -1277,6 +1286,13 @@ func TestVerifyEmail(t *testing.T) {
 		Used:  false,
 	}
 	base.DB.Create(&code)
+	sucCode := models.EmailVerificationToken{
+		User:  &sucUser,
+		Email: sucUser.Email,
+		Token: "QwE1X",
+		Used:  false,
+	}
+	base.DB.Create(&sucCode)
 	oldCode := models.EmailVerificationToken{
 		User:  &user,
 		Email: user.Email,
@@ -1369,7 +1385,7 @@ func TestVerifyEmail(t *testing.T) {
 		t.Parallel()
 
 		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.email.verify"),
-			request.VerifyEmailRequest{Token: code.Token}, applyUser(user)))
+			request.VerifyEmailRequest{Token: sucCode.Token}, applyUser(sucUser)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.EmailVerificationResponse{}
 		mustJsonDecode(httpResp, &resp)
@@ -1378,9 +1394,9 @@ func TestVerifyEmail(t *testing.T) {
 			Error:   nil,
 			Data:    nil,
 		}, resp)
-		base.DB.Find(&user, user.ID)
-		assert.True(t, user.EmailVerified)
-		base.DB.Find(&code, code.ID)
-		assert.True(t, code.Used)
+		base.DB.Find(&sucUser, sucUser.ID)
+		assert.True(t, sucUser.EmailVerified)
+		base.DB.Find(&sucCode, sucCode.ID)
+		assert.True(t, sucCode.Used)
 	})
 }

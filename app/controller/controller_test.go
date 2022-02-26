@@ -348,6 +348,8 @@ server:
     - http://127.0.0.1:8000
 judger:
   token: judger_token
+email:
+  inTest: true
 `)
 	err := viper.ReadConfig(configFile)
 	judgerAuthorize = headerOption{

@@ -246,7 +246,7 @@ func DoResetPassword(c echo.Context) error {
 		}
 	}
 	var code models.EmailVerificationToken
-	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
+	err = base.DB.Where("user_id = ? and token = ? and email = ?", user.ID, req.Token, user.Email).First(&code).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp("WRONG_CODE", nil))
@@ -283,7 +283,7 @@ func VerifyEmail(c echo.Context) error {
 		return c.JSON(http.StatusNotAcceptable, response.ErrorResp("EMAIL_VERIFIED", nil))
 	}
 	var code models.EmailVerificationToken
-	err = base.DB.Where("user_id = ? and token = ?", user.ID, req.Token).First(&code).Error
+	err = base.DB.Where("user_id = ? and token = ? and email = ?", user.ID, req.Token, user.Email).First(&code).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResp("WRONG_CODE", nil))

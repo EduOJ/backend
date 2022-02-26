@@ -7,6 +7,7 @@ import (
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
+	"github.com/EduOJ/backend/event/register"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -133,12 +134,16 @@ func UpdateMe(c echo.Context) error {
 	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
-	if user.Email != req.Email {
+	emailChanged := user.Email != req.Email
+	if emailChanged {
 		user.EmailVerified = false
-		base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
 	}
 	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
+	if emailChanged {
+		base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
+		register.SendVerificationEmail(&user)
+	}
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -172,6 +177,7 @@ func UpdateEmail(c echo.Context) error {
 	base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
 	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update email")
+	register.SendVerificationEmail(&user)
 	return c.JSON(http.StatusOK, response.UpdateEmailResponse{
 		Message: "SUCCESS",
 		Error:   nil,

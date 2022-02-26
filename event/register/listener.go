@@ -6,10 +6,11 @@ import (
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
+	"github.com/spf13/viper"
 )
 
 func SendVerificationEmail(user *models.User) {
-	go func() {
+	action := func() {
 		verification := models.EmailVerificationToken{
 			User:  user,
 			Email: user.Email,
@@ -18,6 +19,9 @@ func SendVerificationEmail(user *models.User) {
 		}
 		if err := base.DB.Save(&verification).Error; err != nil {
 			log.Error("Error saving email verification code:", err)
+			return
+		}
+		if viper.GetBool("email.inTest") {
 			return
 		}
 		buf := new(bytes.Buffer)
@@ -33,5 +37,10 @@ func SendVerificationEmail(user *models.User) {
 			return
 		}
 		return
-	}()
+	}
+	if viper.GetBool("email.inTest") {
+		action()
+	} else {
+		go action()
+	}
 }
