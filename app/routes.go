@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"github.com/EduOJ/backend/app/controller"
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/base/log"
@@ -8,12 +9,16 @@ import (
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/viper"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"net/http"
 	"net/http/pprof"
 )
 
 func Register(e *echo.Echo) {
 	utils.InitOrigin()
+
+	e.GET("/doc/*", echoSwagger.WrapHandler)
+
 	e.Use(middleware.Recover)
 	e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
 		AllowOrigins:     utils.Origins,
@@ -343,4 +348,9 @@ func Register(e *echo.Echo) {
 			return nil
 		})
 	}
+	data, err := json.MarshalIndent(e.Routes(), "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	log.Debug(string(data))
 }
