@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.10.0
 	github.com/gabriel-vasile/mimetype v1.1.2
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
+	github.com/go-mail/mail v2.3.1+incompatible
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.4.1
@@ -32,7 +33,9 @@ require (
 	github.com/xlab/treeprint v1.0.0
 	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
 	google.golang.org/protobuf v1.25.0 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
+	gopkg.in/mail.v2 v2.3.1 // indirect
 	gorm.io/datatypes v1.0.0
 	gorm.io/driver/mysql v1.0.4
 	gorm.io/driver/postgres v1.0.8
