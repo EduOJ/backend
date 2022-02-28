@@ -4,7 +4,7 @@ package docs
 
 import "github.com/swaggo/swag"
 
-const docTemplate_swagger = `{
+const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "swagger": "2.0",
     "info": {
@@ -242,6 +242,54 @@ const docTemplate_swagger = `{
                     }
                 }
             }
+        },
+        "/user/update_email": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Change current user's email only if the email is not verified.\nThe new email can not be the same as other users'.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update current user's email if not verified.",
+                "parameters": [
+                    {
+                        "description": "New email",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.UpdateEmailResponse"
+                        }
+                    },
+                    "406": {
+                        "description": "Email verified, with message ` + "`" + `EMAIL_VERIFIED` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "New email confilct, with message ` + "`" + `CONFLICT_EMAIL` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -300,6 +348,19 @@ const docTemplate_swagger = `{
                 "username": {
                     "type": "string",
                     "maxLength": 30,
+                    "minLength": 5
+                }
+            }
+        },
+        "request.UpdateEmailRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 320,
                     "minLength": 5
                 }
             }
@@ -454,6 +515,43 @@ const docTemplate_swagger = `{
                 }
             }
         },
+        "response.UpdateEmailResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "description": "Email is the user's email.",
+                            "type": "string"
+                        },
+                        "id": {
+                            "description": "ID is the user's id.",
+                            "type": "integer"
+                        },
+                        "nickname": {
+                            "description": "Nickname is the user's nickname, usually the student name if used in schools.",
+                            "type": "string"
+                        },
+                        "roles": {
+                            "description": "Role is the user's role, and is used to obtain the permissions of a user.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/resource.Role"
+                            }
+                        },
+                        "username": {
+                            "description": "Username is the user's username, usually the student ID if used in schools.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ValidationError": {
             "type": "object",
             "properties": {
@@ -478,8 +576,8 @@ const docTemplate_swagger = `{
     }
 }`
 
-// SwaggerInfo_swagger holds exported Swagger Info so clients can modify it
-var SwaggerInfo_swagger = &swag.Spec{
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+var SwaggerInfo = &swag.Spec{
 	Version:          "0.1.0",
 	Host:             "",
 	BasePath:         "/api",
@@ -487,9 +585,9 @@ var SwaggerInfo_swagger = &swag.Spec{
 	Title:            "EduOJ Backend",
 	Description:      "The backend module for the EduOJ project.",
 	InfoInstanceName: "swagger",
-	SwaggerTemplate:  docTemplate_swagger,
+	SwaggerTemplate:  docTemplate,
 }
 
 func init() {
-	swag.Register(SwaggerInfo_swagger.InstanceName(), SwaggerInfo_swagger)
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }

@@ -39,9 +39,9 @@ func GetUser(c echo.Context) error {
 // @description  Get current user's information.
 // @router       /user/me [GET]
 // @produce      json
-// @tags Auth
-// @success      200      {object}  response.GetMeResponse
-// @failure      500      {object}  response.Response
+// @tags         Auth
+// @success      200  {object}  response.GetMeResponse
+// @failure      500  {object}  response.Response
 // @security     ApiKeyAuth
 func GetMe(c echo.Context) error {
 	user := c.Get("user").(models.User)
@@ -155,6 +155,17 @@ func UpdateMe(c echo.Context) error {
 	})
 }
 
+// @summary      Update current user's email if not verified.
+// @description  Change current user's email only if the email is not verified.
+// @description  The new email can not be the same as other users'.
+// @router       /user/update_email [PUT]
+// @produce      json
+// @tags         User
+// @param        request  body      request.UpdateEmailRequest  true  "New email"
+// @success      200      {object}  response.UpdateEmailResponse
+// @failure      406      {object}  response.Response  "Email verified, with message `EMAIL_VERIFIED`"
+// @failure      409      {object}  response.Response  "New email confilct, with message `CONFLICT_EMAIL`"
+// @security     ApiKeyAuth
 func UpdateEmail(c echo.Context) error {
 	user, ok := c.Get("user").(models.User)
 	if !ok {

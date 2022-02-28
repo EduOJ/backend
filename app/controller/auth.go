@@ -21,13 +21,13 @@ import (
 // @description  user's personal data.
 // @router       /auth/login [POST]
 // @produce      json
-// @tags Auth
+// @tags         Auth
 // @param        request  body      request.LoginRequest  true  "The login request."
 // @success      200      {object}  response.LoginResponse
 // @failure      500      {object}  response.Response
-// @failure 400 {object} response.Response{data=[]response.ValidationError} "Validation error"
-// @failure 404 {object} response.Response "Wrong username, with message `WRONG_USERNAME`"
-// @failure 403 {object} response.Response "Wrong password, with message `WRONG_PASSWORD`"
+// @failure      400      {object}  response.Response{data=[]response.ValidationError}  "Validation error"
+// @failure      404      {object}  response.Response                                   "Wrong username, with message `WRONG_USERNAME`"
+// @failure      403      {object}  response.Response                                   "Wrong password, with message `WRONG_PASSWORD`"
 func Login(c echo.Context) error {
 	req := request.LoginRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
@@ -72,13 +72,13 @@ func Login(c echo.Context) error {
 // @description  user's personal data.
 // @router       /auth/register [POST]
 // @produce      json
-// @tags Auth
+// @tags         Auth
 // @param        request  body      request.RegisterRequest  true  "The register request."
 // @success      201      {object}  response.RegisterResponse
 // @failure      500      {object}  response.Response
-// @failure 400 {object} response.Response{data=[]response.ValidationError} "Validation error"
-// @failure 409 {object} response.Response "Email registered, with message `CONFLICT_EMAIL`"
-// @failure 409 {object} response.Response "Username registered, with message `WRONG_PASSWORD`"
+// @failure      400      {object}  response.Response{data=[]response.ValidationError}  "Validation error"
+// @failure      409      {object}  response.Response                                   "Email registered, with message `CONFLICT_EMAIL`"
+// @failure      409      {object}  response.Response                                   "Username registered, with message `WRONG_PASSWORD`"
 func Register(c echo.Context) error {
 	req := request.RegisterRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
@@ -125,12 +125,12 @@ func Register(c echo.Context) error {
 // @Description  EmailRegistered returns if an email is registered. It is mainly used for client side validation.
 // @router       /auth/email_registered [GET]
 // @produce      json
-// @tags Auth
-// @param        email  query      string  true  "The email registered request."
-// @success      200      {object}  response.Response "Email unregistered, with message `SUCCESS`"
-// @failure      500      {object}  response.Response
-// @failure 400 {object} response.Response{data=[]response.ValidationError} "Validation error"
-// @failure 409 {object} response.Response "Email registered, with message `CONFLICT_EMAIL`"
+// @tags         Auth
+// @param        email  query     string             true  "The email registered request."
+// @success      200    {object}  response.Response  "Email unregistered, with message `SUCCESS`"
+// @failure      500    {object}  response.Response
+// @failure      400    {object}  response.Response{data=[]response.ValidationError}  "Validation error"
+// @failure      409    {object}  response.Response                                   "Email registered, with message `CONFLICT_EMAIL`"
 func EmailRegistered(c echo.Context) error {
 	req := request.EmailRegistered{}
 	err, ok := utils.BindAndValidate(&req, c)
