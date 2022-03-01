@@ -27,3 +27,15 @@ type RequestResetPasswordResponse struct {
 	Error   interface{} `json:"error"`
 	Data    interface{} `json:"data"`
 }
+
+type ResendEmailVerificationResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    interface{} `json:"data"`
+}
+
+type EmailVerificationResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    interface{} `json:"data"`
+}

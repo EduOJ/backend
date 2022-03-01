@@ -1,5 +1,23 @@
 basePath: /api
 definitions:
+  request.DoResetPasswordRequest:
+    properties:
+      password:
+        maxLength: 30
+        minLength: 5
+        type: string
+      token:
+        maxLength: 5
+        minLength: 5
+        type: string
+      username:
+        minLength: 5
+        type: string
+    required:
+    - password
+    - token
+    - username
+    type: object
   request.LoginRequest:
     properties:
       password:
@@ -46,6 +64,14 @@ definitions:
     - password
     - username
     type: object
+  request.RequestResetPasswordRequest:
+    properties:
+      username:
+        minLength: 5
+        type: string
+    required:
+    - username
+    type: object
   request.UpdateEmailRequest:
     properties:
       email:
@@ -54,6 +80,15 @@ definitions:
         type: string
     required:
     - email
+    type: object
+  request.VerifyEmailRequest:
+    properties:
+      token:
+        maxLength: 5
+        minLength: 5
+        type: string
+    required:
+    - token
     type: object
   resource.Permission:
     properties:
@@ -103,6 +138,13 @@ definitions:
           in schools.
         type: string
     type: object
+  response.EmailVerificationResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
   response.GetMeResponse:
     properties:
       data:
@@ -132,6 +174,23 @@ definitions:
       message:
         type: string
     type: object
+  response.GetUserResponse:
+    properties:
+      data:
+        properties:
+          email:
+            type: string
+          id:
+            type: integer
+          nickname:
+            type: string
+          username:
+            type: string
+        type: object
+      error: {}
+      message:
+        type: string
+    type: object
   response.LoginResponse:
     properties:
       data:
@@ -154,6 +213,20 @@ definitions:
           user:
             $ref: '#/definitions/resource.UserForAdmin'
         type: object
+      error: {}
+      message:
+        type: string
+    type: object
+  response.RequestResetPasswordResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  response.ResendEmailVerificationResponse:
+    properties:
+      data: {}
       error: {}
       message:
         type: string
@@ -293,6 +366,96 @@ paths:
       summary: Login into an account using email/username and password.
       tags:
       - Auth
+  /auth/password_reset:
+    post:
+      description: |-
+        Request a password reset by email or username. Will check for if the user's email is
+        verified, then send an email with a token to reset the password. The token will be valid
+        for 30 minitues.
+      parameters:
+      - description: username or email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RequestResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.RequestResetPasswordResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "406":
+          description: Email not verified, with message `EMAIL_NOT_VERIFIED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Request a password reset.
+      tags:
+      - Auth
+    put:
+      description: |-
+        Do a password reset by email or username. Will check the if the given code is valid, then reset
+        the password, logging out all sessions.
+      parameters:
+      - description: username or email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DoResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.EmailVerificationResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "403":
+          description: invalid token, with message `WRONG_CODE`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "408":
+          description: the verification code is used, with message `CODE_USED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Do a password reset.
+      tags:
+      - Auth
   /auth/register:
     post:
       description: |-
@@ -334,6 +497,79 @@ paths:
       summary: Register an account, and login into that account.
       tags:
       - Auth
+  /user/{id}:
+    get:
+      description: |-
+        Get a specific user's basic information by user id or username.
+        If a user's username happens to be another's id, this API will find the user by ID.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUserResponse'
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get specific user's information.
+      tags:
+      - Auth
+  /user/email_verification:
+    post:
+      description: |-
+        Verify a user's email. Will check for if the user's email is
+        verified, then send an email with a token to verify The token will be valid
+        for 30 minitues.
+      parameters:
+      - description: token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.EmailVerificationResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "403":
+          description: invalid token, with message `WRONG_CODE`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "408":
+          description: the verification code is used, with message `CODE_USED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify a user's email.
+      tags:
+      - Auth
   /user/me:
     get:
       description: Get current user's information.
@@ -351,6 +587,28 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get current user's information.
+      tags:
+      - Auth
+  /user/resend_email_verification:
+    post:
+      description: |-
+        Resend a verification email. Will check for if the user's email is already
+        verified, then send an email with a token to verify the email. The token will be valid
+        for 30 minitues.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.ResendEmailVerificationResponse'
+        "406":
+          description: Email verified, with message `EMAIL_VERIFIED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Resend a verification email.
       tags:
       - Auth
   /user/update_email:

@@ -2,6 +2,9 @@ package controller
 
 import (
 	"bytes"
+	"net/http"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -12,8 +15,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"net/http"
-	"time"
 )
 
 // @summary      Login into an account using email/username and password.
@@ -149,6 +150,19 @@ func EmailRegistered(c echo.Context) error {
 	})
 }
 
+// @summary      Request a password reset.
+// @description  Request a password reset by email or username. Will check for if the user's email is
+// @description  verified, then send an email with a token to reset the password. The token will be valid
+// @description  for 30 minitues.
+// @router       /auth/password_reset [POST]
+// @produce      json
+// @tags         Auth
+// @param        request  body      request.RequestResetPasswordRequest                 true  "username or email"
+// @success      200      {object}  response.RequestResetPasswordResponse               "email sent"
+// @failure      400      {object}  response.Response{data=[]response.ValidationError}  "Validation error"
+// @success      404      {object}  response.Response                                   "user not found, with message `NOT_FOUND`"
+// @failure      406      {object}  response.Response                                   "Email not verified, with message `EMAIL_NOT_VERIFIED`"
+// @security     ApiKeyAuth
 func RequestResetPassword(c echo.Context) error {
 	req := request.RequestResetPasswordRequest{}
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
@@ -194,6 +208,16 @@ func RequestResetPassword(c echo.Context) error {
 	})
 }
 
+// @summary      Resend a verification email.
+// @description  Resend a verification email. Will check for if the user's email is already
+// @description  verified, then send an email with a token to verify the email. The token will be valid
+// @description  for 30 minitues.
+// @router       /user/resend_email_verification [POST]
+// @produce      json
+// @tags         Auth
+// @success      200  {object}  response.ResendEmailVerificationResponse  "email sent"
+// @failure      406  {object}  response.Response                         "Email verified, with message `EMAIL_VERIFIED`"
+// @security     ApiKeyAuth
 func ResendEmailVerification(c echo.Context) error {
 	user, ok := c.Get("user").(models.User)
 	if !ok {
@@ -223,13 +247,27 @@ func ResendEmailVerification(c echo.Context) error {
 			panic(err)
 		}
 	}()
-	return c.JSON(http.StatusOK, response.RequestResetPasswordResponse{
+	return c.JSON(http.StatusOK, response.ResendEmailVerificationResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
 	})
 }
 
+// @summary      Do a password reset.
+// @description  Do a password reset by email or username. Will check the if the given code is valid, then reset
+// @description  the password, logging out all sessions.
+// @router       /auth/password_reset [PUT]
+// @produce      json
+// @tags         Auth
+// @param        request  body      request.DoResetPasswordRequest                      true  "username or email"
+// @success      200      {object}  response.EmailVerificationResponse                  "email sent"
+// @failure      400      {object}  response.Response{data=[]response.ValidationError}  "Validation error"
+// @success      403      {object}  response.Response                                   "invalid token, with message `WRONG_CODE`"
+// @success      408      {object}  response.Response                                   "the verification code is expired, with message `CODE_EXPIRED`"
+// @success      408      {object}  response.Response                                   "the verification code is used, with message `CODE_USED`"
+// @success      404      {object}  response.Response                                   "user not found, with message `NOT_FOUND`"
+// @security     ApiKeyAuth
 func DoResetPassword(c echo.Context) error {
 	req := request.DoResetPasswordRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
@@ -272,6 +310,21 @@ func DoResetPassword(c echo.Context) error {
 	})
 }
 
+// @summary      Verify a user's email.
+// @description  Verify a user's email. Will check for if the user's email is
+// @description  verified, then send an email with a token to verify The token will be valid
+// @description  for 30 minitues.
+// @router       /user/email_verification [POST]
+// @produce      json
+// @tags         Auth
+// @param        request  body      request.VerifyEmailRequest                      true "token"
+// @success      200      {object}  response.EmailVerificationResponse                  "email sent"
+// @failure      400      {object}  response.Response{data=[]response.ValidationError}  "Validation error"
+// @success      403      {object}  response.Response                                   "invalid token, with message `WRONG_CODE`"
+// @success      408      {object}  response.Response                                   "the verification code is expired, with message `CODE_EXPIRED`"
+// @success      408      {object}  response.Response                                   "the verification code is used, with message `CODE_USED`"
+// @success      404      {object}  response.Response                                   "user not found, with message `NOT_FOUND`"
+// @security     ApiKeyAuth
 func VerifyEmail(c echo.Context) error {
 	req := request.VerifyEmailRequest{}
 	err, ok := utils.BindAndValidate(&req, c)

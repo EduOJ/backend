@@ -148,6 +148,148 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/password_reset": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Do a password reset by email or username. Will check the if the given code is valid, then reset\nthe password, logging out all sessions.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Do a password reset.",
+                "parameters": [
+                    {
+                        "description": "username or email",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DoResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "email sent",
+                        "schema": {
+                            "$ref": "#/definitions/response.EmailVerificationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.ValidationError"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "invalid token, with message ` + "`" + `WRONG_CODE` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found, with message ` + "`" + `NOT_FOUND` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "408": {
+                        "description": "the verification code is used, with message ` + "`" + `CODE_USED` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Request a password reset by email or username. Will check for if the user's email is\nverified, then send an email with a token to reset the password. The token will be valid\nfor 30 minitues.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request a password reset.",
+                "parameters": [
+                    {
+                        "description": "username or email",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RequestResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "email sent",
+                        "schema": {
+                            "$ref": "#/definitions/response.RequestResetPasswordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.ValidationError"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "user not found, with message ` + "`" + `NOT_FOUND` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "406": {
+                        "description": "Email not verified, with message ` + "`" + `EMAIL_NOT_VERIFIED` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Register an account, and login into that account. A token will be returned, together with the\nuser's personal data.",
@@ -212,6 +354,81 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/email_verification": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Verify a user's email. Will check for if the user's email is\nverified, then send an email with a token to verify The token will be valid\nfor 30 minitues.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify a user's email.",
+                "parameters": [
+                    {
+                        "description": "token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.VerifyEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "email sent",
+                        "schema": {
+                            "$ref": "#/definitions/response.EmailVerificationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.ValidationError"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "invalid token, with message ` + "`" + `WRONG_CODE` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found, with message ` + "`" + `NOT_FOUND` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "408": {
+                        "description": "the verification code is used, with message ` + "`" + `CODE_USED` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/user/me": {
             "get": {
                 "security": [
@@ -236,6 +453,37 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/resend_email_verification": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Resend a verification email. Will check for if the user's email is already\nverified, then send an email with a token to verify the email. The token will be valid\nfor 30 minitues.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Resend a verification email.",
+                "responses": {
+                    "200": {
+                        "description": "email sent",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResendEmailVerificationResponse"
+                        }
+                    },
+                    "406": {
+                        "description": "Email verified, with message ` + "`" + `EMAIL_VERIFIED` + "`" + `",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -290,9 +538,70 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a specific user's basic information by user id or username.\nIf a user's username happens to be another's id, this API will find the user by ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get specific user's information.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetUserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found, with message ` + "`" + `NOT_FOUND` + "`" + `",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "request.DoResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "token",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 5
+                },
+                "token": {
+                    "type": "string",
+                    "maxLength": 5,
+                    "minLength": 5
+                },
+                "username": {
+                    "type": "string",
+                    "minLength": 5
+                }
+            }
+        },
         "request.LoginRequest": {
             "type": "object",
             "required": [
@@ -352,6 +661,18 @@ const docTemplate = `{
                 }
             }
         },
+        "request.RequestResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "minLength": 5
+                }
+            }
+        },
         "request.UpdateEmailRequest": {
             "type": "object",
             "required": [
@@ -361,6 +682,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "maxLength": 320,
+                    "minLength": 5
+                }
+            }
+        },
+        "request.VerifyEmailRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "maxLength": 5,
                     "minLength": 5
                 }
             }
@@ -428,6 +762,16 @@ const docTemplate = `{
                 }
             }
         },
+        "response.EmailVerificationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "response.GetMeResponse": {
             "type": "object",
             "properties": {
@@ -455,6 +799,32 @@ const docTemplate = `{
                         },
                         "username": {
                             "description": "Username is the user's username, usually the student ID if used in schools.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "integer"
+                        },
+                        "nickname": {
+                            "type": "string"
+                        },
+                        "username": {
                             "type": "string"
                         }
                     }
@@ -499,6 +869,26 @@ const docTemplate = `{
                         }
                     }
                 },
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RequestResetPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ResendEmailVerificationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
                 "error": {},
                 "message": {
                     "type": "string"
