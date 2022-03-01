@@ -2,6 +2,9 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/pprof"
+
 	"github.com/EduOJ/backend/app/controller"
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/base/log"
@@ -10,8 +13,6 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/viper"
 	echoSwagger "github.com/swaggo/echo-swagger"
-	"net/http"
-	"net/http/pprof"
 )
 
 func Register(e *echo.Echo) {
@@ -46,6 +47,8 @@ func Register(e *echo.Echo) {
 	auth.GET("/auth/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
 	auth.POST("/auth/password_reset", controller.RequestResetPassword).Name = "auth.resetPassword"
 	auth.PUT("/auth/password_reset", controller.DoResetPassword).Name = "auth.doResetPassword"
+	auth.POST("/auth/email_verification", controller.VerifyEmail).Name = "auth.email.verify"
+	auth.POST("/auth/resend_email_verification", controller.ResendEmailVerification).Name = "auth.email.resend_verification"
 
 	// user APIs
 	user := api.Group("", middleware.Logged)
@@ -62,8 +65,6 @@ func Register(e *echo.Echo) {
 	user.GET("/user/me", controller.GetMe).Name = "user.getMe"
 	user.PUT("/user/me", controller.UpdateMe).Name = "user.updateMe"
 	user.PUT("/user/update_email", controller.UpdateEmail).Name = "user.updateEmail"
-	user.POST("/user/email_verification", controller.VerifyEmail).Name = "user.email.verify"
-	user.POST("/user/resend_email_verification", controller.ResendEmailVerification).Name = "user.email.resend_verification"
 	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
 	user.GET("/user/me/managing_classes", controller.GetClassesIManage).Name = "user.getClassesIManage"
 	user.GET("/user/me/taking_classes", controller.GetClassesITake).Name = "user.getClassesITake"

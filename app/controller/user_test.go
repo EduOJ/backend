@@ -2,6 +2,10 @@ package controller_test
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -9,9 +13,6 @@ import (
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestGetUser(t *testing.T) {
@@ -1313,7 +1314,7 @@ func TestVerifyEmail(t *testing.T) {
 		{
 			name:   "WithoutParams",
 			method: "POST",
-			path:   base.Echo.Reverse("user.email.verify"),
+			path:   base.Echo.Reverse("auth.email.verify"),
 			req:    request.VerifyEmailRequest{},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1334,7 +1335,7 @@ func TestVerifyEmail(t *testing.T) {
 		{
 			name:   "OldCode",
 			method: "POST",
-			path:   base.Echo.Reverse("user.email.verify"),
+			path:   base.Echo.Reverse("auth.email.verify"),
 			req:    request.VerifyEmailRequest{Token: oldCode.Token},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1349,7 +1350,7 @@ func TestVerifyEmail(t *testing.T) {
 		{
 			name:   "UsedCode",
 			method: "POST",
-			path:   base.Echo.Reverse("user.email.verify"),
+			path:   base.Echo.Reverse("auth.email.verify"),
 			req:    request.VerifyEmailRequest{Token: usedCode.Token},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1365,7 +1366,7 @@ func TestVerifyEmail(t *testing.T) {
 		{
 			name:   "WRONG_CODE",
 			method: "POST",
-			path:   base.Echo.Reverse("user.email.verify"),
+			path:   base.Echo.Reverse("auth.email.verify"),
 			req:    request.VerifyEmailRequest{Token: "QWERT"},
 			reqOptions: []reqOption{
 				applyUser(user),
@@ -1384,7 +1385,7 @@ func TestVerifyEmail(t *testing.T) {
 	t.Run("VerifyEmailSuccess", func(t *testing.T) {
 		t.Parallel()
 
-		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("user.email.verify"),
+		httpResp := makeResp(makeReq(t, "POST", base.Echo.Reverse("auth.email.verify"),
 			request.VerifyEmailRequest{Token: sucCode.Token}, applyUser(sucUser)))
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		resp := response.EmailVerificationResponse{}
