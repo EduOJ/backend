@@ -41,14 +41,6 @@ type UpdateMeResponse struct {
 	} `json:"data"`
 }
 
-type UpdateEmailResponse struct {
-	Message string      `json:"message"`
-	Error   interface{} `json:"error"`
-	Data    struct {
-		*resource.UserForAdmin `json:"user"`
-	} `json:"data"`
-}
-
 type GetClassesIManageResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`

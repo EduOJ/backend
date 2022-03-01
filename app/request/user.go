@@ -21,11 +21,6 @@ type UpdateMeRequest struct {
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 }
-
-type UpdateEmailRequest struct {
-	Email string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
-}
-
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" form:"old_password" query:"old_password" validate:"required,max=30,min=5"`
 	NewPassword string `json:"new_password" form:"new_password" query:"new_password" validate:"required,max=30,min=5"`

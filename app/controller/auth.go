@@ -12,9 +12,11 @@ import (
 	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
+	"github.com/EduOJ/backend/event/register"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // @summary      Login into an account using email/username and password.
@@ -358,5 +360,50 @@ func VerifyEmail(c echo.Context) error {
 		Message: "SUCCESS",
 		Error:   nil,
 		Data:    nil,
+	})
+}
+
+// @summary      Update current user's email if not verified.
+// @description  Change current user's email only if the email is not verified.
+// @description  The new email can not be the same as other users'.
+// @router       /user/update_email [PUT]
+// @produce      json
+// @tags         Auth
+// @param        request  body      request.UpdateEmailRequest  true  "New email"
+// @success      200      {object}  response.UpdateEmailResponse
+// @failure      406      {object}  response.Response  "Email verified, with message `EMAIL_VERIFIED`"
+// @failure      409      {object}  response.Response  "New email confilct, with message `CONFLICT_EMAIL`"
+// @security     ApiKeyAuth
+func UpdateEmail(c echo.Context) error {
+	user, ok := c.Get("user").(models.User)
+	if !ok {
+		panic("could not convert my user into type models.User")
+	}
+	req := request.UpdateEmailRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	if user.EmailVerified {
+		return c.JSON(http.StatusNotAcceptable, response.ErrorResp("EMAIL_VERIFIED", nil))
+	}
+	count := int64(0)
+	utils.PanicIfDBError(base.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count), "could not query user count")
+	if count > 1 || (count == 1 && user.Email != req.Email) {
+		return c.JSON(http.StatusConflict, response.ErrorResp("CONFLICT_EMAIL", nil))
+	}
+	user.EmailVerified = false
+	base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
+	user.Email = req.Email
+	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update email")
+	register.SendVerificationEmail(&user)
+	return c.JSON(http.StatusOK, response.UpdateEmailResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.UserForAdmin `json:"user"`
+		}{
+			resource.GetUserForAdmin(&user),
+		},
 	})
 }
