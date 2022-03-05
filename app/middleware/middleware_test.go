@@ -111,6 +111,8 @@ server:
   port: 8080
   origin:
     - http://127.0.0.1:8000
+email:
+  need_verification: true
 auth:
   session_timeout: 1200
   remember_me_timeout: 604800

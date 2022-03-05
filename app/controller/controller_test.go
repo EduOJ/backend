@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"hash/fnv"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -338,6 +339,7 @@ func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) 
 func TestMain(m *testing.M) {
 	defer database.SetupDatabaseForTest()()
 	defer exit.SetupExitForTest()()
+	utils.SetTest()
 	viper.SetConfigType("yaml")
 	configFile := bytes.NewBufferString(`debug: true
 server:
@@ -346,6 +348,8 @@ server:
     - http://127.0.0.1:8000
 judger:
   token: judger_token
+email:
+  inTest: true
 `)
 	err := viper.ReadConfig(configFile)
 	judgerAuthorize = headerOption{
@@ -389,7 +393,10 @@ judger:
 		panic(err)
 	}
 
-	//log.Disable()
+	base.Template, err = template.New("foo").Parse(`{{.Nickname}},{{.Code}}`)
+	if err != nil {
+		panic(err)
+	}
 
 	os.Exit(m.Run())
 }

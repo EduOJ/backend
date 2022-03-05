@@ -11,9 +11,11 @@ import (
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/base/validator"
 	"github.com/EduOJ/backend/database"
+	"github.com/EduOJ/backend/event/register"
 	runEvent "github.com/EduOJ/backend/event/run"
 	submissionEvent "github.com/EduOJ/backend/event/submission"
 	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-mail/mail"
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -25,6 +27,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"html/template"
 	"os"
 )
 
@@ -54,6 +57,7 @@ func initEvent() {
 	log.Debug("Initializing Event System.")
 	event.RegisterListener("run", runEvent.NotifyGetSubmissionPoll)
 	event.RegisterListener("submission", submissionEvent.UpdateGrade)
+	event.RegisterListener("register", register.SendVerificationEmail)
 }
 
 func startEcho() {
@@ -139,6 +143,19 @@ func initGorm(toMigrate ...bool) {
 
 	// Cause we need to wait until all logs are wrote to the db
 	// So we dont close db connection here.
+}
+
+func initMail() {
+	var err error
+	d := mail.NewDialer(viper.GetString("email.host"), viper.GetInt("email.port"), viper.GetString("email.username"), viper.GetString("email.password"))
+	if viper.GetBool("email.tls") {
+		d.StartTLSPolicy = mail.MandatoryStartTLS
+	}
+	base.Mail = *d
+	base.Template, err = template.ParseFiles("template/email_verification.html")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func initStorage() {

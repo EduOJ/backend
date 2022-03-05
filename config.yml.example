@@ -32,3 +32,12 @@ webauthn:
   domain: localhost
   origin: http://localhost
   icon: http://localhost/favicon.ico
+email:
+  from: example@example.com
+  host: smtp.example.com
+  port: 587
+  username: user
+  password: pass
+  tls: true
+  need_verification: true
+
