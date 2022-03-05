@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"github.com/EduOJ/backend/base/log"
 	"net/http"
 	"time"
 
@@ -135,7 +136,7 @@ func Register(c echo.Context) error {
 // @failure      400    {object}  response.Response{data=[]response.ValidationError}  "Validation error"
 // @failure      409    {object}  response.Response                                   "Email registered, with message `CONFLICT_EMAIL`"
 func EmailRegistered(c echo.Context) error {
-	req := request.EmailRegistered{}
+	req := request.EmailRegisteredRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
@@ -245,8 +246,8 @@ func ResendEmailVerification(c echo.Context) error {
 		panic(err)
 	}
 	go func() {
-		if err := utils.SendMail(user.Email, "Your email verification code for reset password", buf.String()); err != nil {
-			panic(err)
+		if err := utils.SendMail(user.Email, "Your email verification code for email verification", buf.String()); err != nil {
+			log.Fatal(err)
 		}
 	}()
 	return c.JSON(http.StatusOK, response.ResendEmailVerificationResponse{

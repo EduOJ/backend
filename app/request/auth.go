@@ -20,7 +20,7 @@ type UpdateEmailRequest struct {
 	Email string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 }
 
-type EmailRegistered struct {
+type EmailRegisteredRequest struct {
 	Email string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 }
 

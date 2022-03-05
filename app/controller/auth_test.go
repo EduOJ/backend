@@ -329,7 +329,7 @@ func TestEmailRegistered(t *testing.T) {
 	base.DB.Create(&user)
 	t.Run("testEmailRegisteredConflict", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("auth.emailRegistered"), request.EmailRegistered{
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("auth.emailRegistered"), request.EmailRegisteredRequest{
 			Email: "test_email_registered@e.com",
 		}))
 		resp := response.Response{}
@@ -343,7 +343,7 @@ func TestEmailRegistered(t *testing.T) {
 	})
 	t.Run("testEmailRegisteredSuccess", func(t *testing.T) {
 		t.Parallel()
-		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("auth.emailRegistered"), request.EmailRegistered{
+		httpResp := makeResp(makeReq(t, "GET", base.Echo.Reverse("auth.emailRegistered"), request.EmailRegisteredRequest{
 			Email: "test_email_registered_0@e.com",
 		}))
 		resp := response.Response{}
