@@ -62,15 +62,30 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 	e.Use(middleware.Authentication)
 	e.POST("/test_authentication", testController)
 	e.POST("/test_loginCheck", testController, middleware.Logged)
+	e.POST("/test_loginCheckEmail", testAllowGuestController, middleware.EmailVerified, middleware.AllowGuest)
 	e.POST("/test_allowGuest", testAllowGuestController, middleware.AllowGuest)
 
 	testUser := models.User{
-		Username: "testAuthenticationMiddle",
-		Nickname: "testAuthenticationMiddle",
-		Email:    "testAuthenticationMiddle@e.com",
-		Password: "",
+		Username:      "testAuthenticationMiddle",
+		Nickname:      "testAuthenticationMiddle",
+		Email:         "testAuthenticationMiddle@e.com",
+		Password:      "",
+		EmailVerified: true,
+	}
+	unverifiedUser := models.User{
+		Username:      "testAuthenticationMiddle1",
+		Nickname:      "testAuthenticationMiddle1",
+		Email:         "testAuthenticationMiddle1@e.com",
+		Password:      "",
+		EmailVerified: false,
 	}
 	assert.NoError(t, base.DB.Save(&testUser).Error)
+	assert.NoError(t, base.DB.Save(&unverifiedUser).Error)
+
+	unverifiedUserToken := models.Token{
+		Token: utils.RandStr(32),
+		User:  unverifiedUser,
+	}
 
 	activeToken := models.Token{
 		Token: utils.RandStr(32),
@@ -92,6 +107,7 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 		UpdatedAt:  time.Now().Add(-1 * time.Second * time.Duration(720000)),
 		RememberMe: true,
 	}
+	assert.NoError(t, base.DB.Save(&unverifiedUserToken).Error)
 	assert.NoError(t, base.DB.Save(&activeToken).Error)
 	assert.NoError(t, base.DB.Save(&expiredToken).Error)
 	assert.NoError(t, base.DB.Save(&activeRememberMeToken).Error)
@@ -190,6 +206,60 @@ func TestAuthenticationLoginCheckAndAllowGuest(t *testing.T) {
 		mustJsonDecode(httpResp, &resp)
 		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
 		assert.Equal(t, response.ErrorResp("AUTH_NEED_TOKEN", nil), resp)
+	})
+
+	t.Run("testUnverifiedUserFail", func(t *testing.T) {
+		t.Parallel()
+		LoginCheckReq := makeReq(t, "POST", "/test_loginCheckEmail", nil)
+		LoginCheckReq.Header.Set("Authorization", unverifiedUserToken.Token)
+		httpResp := makeResp(LoginCheckReq, e)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("AUTH_NEED_EMAIL_VERIFICATION", nil), resp)
+	})
+
+	t.Run("testUnverifiedUserFail", func(t *testing.T) {
+		t.Parallel()
+		LoginCheckReq := makeReq(t, "POST", "/test_loginCheckEmail", nil)
+		LoginCheckReq.Header.Set("Authorization", unverifiedUserToken.Token)
+		httpResp := makeResp(LoginCheckReq, e)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("AUTH_NEED_EMAIL_VERIFICATION", nil), resp)
+	})
+
+	t.Run("testEmailWithGuestAndUnverifiedUser", func(t *testing.T) {
+		t.Parallel()
+		req := makeReq(t, "POST", "/test_loginCheckEmail", nil)
+		req.Header.Set("Authorization", unverifiedUserToken.Token)
+		httpResp := makeResp(req, e)
+		resp := response.Response{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusUnauthorized, httpResp.StatusCode)
+		assert.Equal(t, response.ErrorResp("AUTH_NEED_EMAIL_VERIFICATION", nil), resp)
+	})
+
+	t.Run("testEmailWithGuest", func(t *testing.T) {
+		t.Parallel()
+		httpResp := makeResp(makeReq(t, "POST", "/test_loginCheckEmail", nil), e)
+		resp := struct {
+			Message string      `json:"message"`
+			Error   interface{} `json:"error"`
+			Data    struct {
+				Username   string
+				Nickname   string
+				Email      string
+				Password   string
+				RoleLoaded bool
+				Roles      []models.UserHasRole
+			}
+		}{}
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		assert.True(t, resp.Data.RoleLoaded)
+		assert.Equal(t, []models.UserHasRole{}, resp.Data.Roles)
 	})
 
 	t.Run("testLoginCheckSuccess", func(t *testing.T) {

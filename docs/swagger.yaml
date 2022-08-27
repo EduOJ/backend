@@ -1,0 +1,651 @@
+basePath: /api
+definitions:
+  request.DoResetPasswordRequest:
+    properties:
+      password:
+        maxLength: 30
+        minLength: 5
+        type: string
+      token:
+        maxLength: 5
+        minLength: 5
+        type: string
+      username:
+        minLength: 5
+        type: string
+    required:
+    - password
+    - token
+    - username
+    type: object
+  request.LoginRequest:
+    properties:
+      password:
+        description: The password of the user logging in.
+        example: password
+        maxLength: 30
+        minLength: 5
+        type: string
+      remember_me:
+        description: If true, the created token will last longer.
+        example: false
+        type: boolean
+      username:
+        description: The username or email of the user logging in.
+        example: username
+        maxLength: 30
+        minLength: 5
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  request.RegisterRequest:
+    properties:
+      email:
+        maxLength: 320
+        minLength: 5
+        type: string
+      nickname:
+        maxLength: 30
+        minLength: 1
+        type: string
+      password:
+        maxLength: 30
+        minLength: 5
+        type: string
+      username:
+        maxLength: 30
+        minLength: 5
+        type: string
+    required:
+    - email
+    - nickname
+    - password
+    - username
+    type: object
+  request.RequestResetPasswordRequest:
+    properties:
+      username:
+        minLength: 5
+        type: string
+    required:
+    - username
+    type: object
+  request.UpdateEmailRequest:
+    properties:
+      email:
+        maxLength: 320
+        minLength: 5
+        type: string
+    required:
+    - email
+    type: object
+  request.VerifyEmailRequest:
+    properties:
+      token:
+        maxLength: 5
+        minLength: 5
+        type: string
+    required:
+    - token
+    type: object
+  resource.Permission:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  resource.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/resource.Permission'
+        type: array
+      target:
+        type: string
+      target_id:
+        type: integer
+    type: object
+  resource.UserForAdmin:
+    description: UserForAdmin is a user with additional, credential data, only accessible
+      by people has permission, e.g. admin can access to all user's credential data,
+      and a user can access to his/her credential data.
+    properties:
+      email:
+        description: Email is the user's email.
+        type: string
+      id:
+        description: ID is the user's id.
+        type: integer
+      nickname:
+        description: Nickname is the user's nickname, usually the student name if
+          used in schools.
+        type: string
+      roles:
+        description: Role is the user's role, and is used to obtain the permissions
+          of a user.
+        items:
+          $ref: '#/definitions/resource.Role'
+        type: array
+      username:
+        description: Username is the user's username, usually the student ID if used
+          in schools.
+        type: string
+    type: object
+  response.EmailVerificationResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  response.GetMeResponse:
+    properties:
+      data:
+        properties:
+          email:
+            description: Email is the user's email.
+            type: string
+          id:
+            description: ID is the user's id.
+            type: integer
+          nickname:
+            description: Nickname is the user's nickname, usually the student name
+              if used in schools.
+            type: string
+          roles:
+            description: Role is the user's role, and is used to obtain the permissions
+              of a user.
+            items:
+              $ref: '#/definitions/resource.Role'
+            type: array
+          username:
+            description: Username is the user's username, usually the student ID if
+              used in schools.
+            type: string
+        type: object
+      error: {}
+      message:
+        type: string
+    type: object
+  response.GetUserResponse:
+    properties:
+      data:
+        properties:
+          email:
+            type: string
+          id:
+            type: integer
+          nickname:
+            type: string
+          username:
+            type: string
+        type: object
+      error: {}
+      message:
+        type: string
+    type: object
+  response.LoginResponse:
+    properties:
+      data:
+        properties:
+          token:
+            type: string
+          user:
+            $ref: '#/definitions/resource.UserForAdmin'
+        type: object
+      error: {}
+      message:
+        type: string
+    type: object
+  response.RegisterResponse:
+    properties:
+      data:
+        properties:
+          token:
+            type: string
+          user:
+            $ref: '#/definitions/resource.UserForAdmin'
+        type: object
+      error: {}
+      message:
+        type: string
+    type: object
+  response.RequestResetPasswordResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  response.ResendEmailVerificationResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  response.UpdateEmailResponse:
+    properties:
+      data:
+        properties:
+          email:
+            description: Email is the user's email.
+            type: string
+          id:
+            description: ID is the user's id.
+            type: integer
+          nickname:
+            description: Nickname is the user's nickname, usually the student name
+              if used in schools.
+            type: string
+          roles:
+            description: Role is the user's role, and is used to obtain the permissions
+              of a user.
+            items:
+              $ref: '#/definitions/resource.Role'
+            type: array
+          username:
+            description: Username is the user's username, usually the student ID if
+              used in schools.
+            type: string
+        type: object
+      error: {}
+      message:
+        type: string
+    type: object
+  response.ValidationError:
+    properties:
+      field:
+        type: string
+      reason:
+        type: string
+      translation:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: The backend module for the EduOJ project.
+  title: EduOJ Backend
+  version: 0.1.0
+paths:
+  /auth/email_registered:
+    get:
+      description: EmailRegistered returns if an email is registered. It is mainly
+        used for client side validation.
+      parameters:
+      - description: The email registered request.
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email unregistered, with message `SUCCESS`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "409":
+          description: Email registered, with message `CONFLICT_EMAIL`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: EmailRegistered returns if an email is registered.
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      description: |-
+        Login into an account using email/username and password. A token will be returned, together with the
+        user's personal data.
+      parameters:
+      - description: The login request.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LoginResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "403":
+          description: Wrong password, with message `WRONG_PASSWORD`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Wrong username, with message `WRONG_USERNAME`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login into an account using email/username and password.
+      tags:
+      - Auth
+  /auth/password_reset:
+    post:
+      description: |-
+        Request a password reset by email or username. Will check for if the user's email is
+        verified, then send an email with a token to reset the password. The token will be valid
+        for 30 minitues.
+      parameters:
+      - description: username or email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RequestResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.RequestResetPasswordResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "406":
+          description: Email not verified, with message `EMAIL_NOT_VERIFIED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Request a password reset.
+      tags:
+      - Auth
+    put:
+      description: |-
+        Do a password reset by email or username. Will check the if the given code is valid, then reset
+        the password, logging out all sessions.
+      parameters:
+      - description: username or email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DoResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.EmailVerificationResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "403":
+          description: invalid token, with message `WRONG_CODE`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "408":
+          description: the verification code is used, with message `CODE_USED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Do a password reset.
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      description: |-
+        Register an account, and login into that account. A token will be returned, together with the
+        user's personal data.
+      parameters:
+      - description: The register request.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.RegisterResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "409":
+          description: Username registered, with message `WRONG_PASSWORD`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Register an account, and login into that account.
+      tags:
+      - Auth
+  /user/{id}:
+    get:
+      description: |-
+        Get a specific user's basic information by user id or username.
+        If a user's username happens to be another's id, this API will find the user by ID.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUserResponse'
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get specific user's information.
+      tags:
+      - Auth
+  /user/email_verification:
+    post:
+      description: |-
+        Verify a user's email. Will check for if the user's email is
+        verified, then send an email with a token to verify The token will be valid
+        for 30 minitues.
+      parameters:
+      - description: token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.EmailVerificationResponse'
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ValidationError'
+                  type: array
+              type: object
+        "403":
+          description: invalid token, with message `WRONG_CODE`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: user not found, with message `NOT_FOUND`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "408":
+          description: the verification code is used, with message `CODE_USED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify a user's email.
+      tags:
+      - Auth
+  /user/me:
+    get:
+      description: Get current user's information.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetMeResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user's information.
+      tags:
+      - Auth
+  /user/resend_email_verification:
+    post:
+      description: |-
+        Resend a verification email. Will check for if the user's email is already
+        verified, then send an email with a token to verify the email. The token will be valid
+        for 30 minitues.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email sent
+          schema:
+            $ref: '#/definitions/response.ResendEmailVerificationResponse'
+        "406":
+          description: Email verified, with message `EMAIL_VERIFIED`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Resend a verification email.
+      tags:
+      - Auth
+  /user/update_email:
+    put:
+      description: |-
+        Change current user's email only if the email is not verified.
+        The new email can not be the same as other users'.
+      parameters:
+      - description: New email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UpdateEmailResponse'
+        "406":
+          description: Email verified, with message `EMAIL_VERIFIED`
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: New email confilct, with message `CONFLICT_EMAIL`
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update current user's email if not verified.
+      tags:
+      - User
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

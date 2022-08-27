@@ -135,7 +135,7 @@ func FinishLogin(c echo.Context) error {
 	if !user.RoleLoaded {
 		user.LoadRoles()
 	}
-	return c.JSON(http.StatusOK, response.RegisterResponse{
+	return c.JSON(http.StatusOK, response.LoginResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {

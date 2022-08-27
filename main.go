@@ -1,7 +1,15 @@
+// @title                       EduOJ Backend
+// @version                     0.1.0
+// @description                 The backend module for the EduOJ project.
+// @BasePath                    /api
+// @securityDefinitions.apikey  ApiKeyAuth
+// @in                          header
+// @name                        Authorization
 package main
 
 import (
 	"github.com/EduOJ/backend/base/log"
+	_ "github.com/EduOJ/backend/docs"
 	"os"
 )
 
