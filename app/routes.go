@@ -167,6 +167,12 @@ func Register(e *echo.Echo) {
 	submission.GET("/submission/:submission_id/run/:id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
 	submission.GET("/submission/:submission_id/run/:id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
+	// solution APIs
+	// api.POST("/admin/solution", controller.CreateSolution,
+	// 	middleware.Logged, middleware.EmailVerified,
+	// 	middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution"}),
+	// ).Name = "solution.createSolution"
+
 	// log API
 	api.GET("/admin/logs", controller.AdminGetLogs,
 		middleware.Logged, middleware.EmailVerified,
