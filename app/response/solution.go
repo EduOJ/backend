@@ -16,7 +16,7 @@ type GetSolutionsResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		Problems []resource.ProblemSummary `json:"problems"`
+		Problems []resource.ProblemSummary `json:"problems"`		// 这里是否需要把problem都改成solution? --Noah
 		Total    int                       `json:"total"`
 		Count    int                       `json:"count"`
 		Offset   int                       `json:"offset"`
