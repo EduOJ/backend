@@ -15,3 +15,11 @@ type Solution struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
+
+func (s Solution) GetID() uint {
+	return s.ID
+}
+
+func (s Solution) TypeName() string {
+	return "solution"
+}

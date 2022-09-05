@@ -25,17 +25,6 @@ func GetSolution(c echo.Context) error {
 	} else if err != nil {
 		panic(err)
 	}
-	if user.Can("read_solution_secrets", solution) || user.Can("read_solution_secrets") {
-		return c.JSON(http.StatusOK, response.GetSolutionResponseForAdmin{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				*resource.SolutionForAdmin `json:"problem"`
-			}{
-				resource.GetSolutonForAdmin(solution),
-			},
-		})
-	}
 	return c.JSON(http.StatusOK, response.GetSolutionResponse{
 		Message: "SUCCESS",
 		Error:   nil,
