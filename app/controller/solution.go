@@ -45,12 +45,6 @@ func GetSolutions(c echo.Context) error {
 
 	query := base.DB.Model(&models.Solution{}).Order("id ASC").Omit("Description") // Force order by id asc.
 
-	user := c.Get("user").(models.User)
-	isAdmin := user.Can("manage_solution")
-	if !isAdmin {
-		query = query.Where("public = ?", true)
-	}
-
 	if req.Search != "" {
 		id, _ := strconv.ParseUint(req.Search, 10, 64)
 		query = query.Where("id = ? or name like ?", id, "%"+req.Search+"%")
@@ -82,27 +76,6 @@ func GetSolutions(c echo.Context) error {
 		panic(err)
 	}
 
-	if isAdmin {
-		return c.JSON(http.StatusOK, response.GetSolutionsResponseForAdmin{
-			Message: "SUCCESS",
-			Error:   nil,
-			Data: struct {
-				Solutions []resource.SolutionSummaryForAdmin `json:"solutions"`
-				Total     int                                `json:"total"`
-				Count     int                                `json:"count"`
-				Offset    int                                `json:"offset"`
-				Prev      *string                            `json:"prev"`
-				Next      *string                            `json:"next"`
-			}{
-				Solutions: resource.GetSolutionSummaryForAdminSlice(solutions, passed),
-				Total:     total,
-				Count:     len(solutions),
-				Offset:    req.Offset,
-				Prev:      prevUrl,
-				Next:      nextUrl,
-			},
-		})
-	}
 	return c.JSON(http.StatusOK, response.GetSolutionsResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -114,7 +87,7 @@ func GetSolutions(c echo.Context) error {
 			Prev      *string                    `json:"prev"`
 			Next      *string                    `json:"next"`
 		}{
-			Solutions: resource.GetSolutionSummarySlice(solutions, passed),
+			Solutions: resource.GetSolutionSummarySlice(solutions),
 			Total:     total,
 			Count:     len(solutions),
 			Offset:    req.Offset,
@@ -135,17 +108,6 @@ func CreateSolution(c echo.Context) error {
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
 		return err
-	}
-	var public, privacy bool
-	if req.Public == nil {
-		public = false
-	} else {
-		public = *req.Public
-	}
-	if req.Privacy == nil {
-		privacy = false
-	} else {
-		privacy = *req.Privacy
 	}
 
 	solution := models.Solution{
