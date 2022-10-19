@@ -2,13 +2,14 @@ package database
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"time"
 )
 
 func GetMigration() *gormigrate.Gormigrate {
@@ -331,6 +332,38 @@ func GetMigration() *gormigrate.Gormigrate {
 					return
 				}
 				err = tx.Migrator().DropTable("problems")
+				if err != nil {
+					return
+				}
+				return
+			},
+		},
+		// add solutions
+		{
+			ID: "add_solutions",
+			Migrate: func(tx *gorm.DB) (err error) {
+
+				type Solution struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					ProblemID   uint   `json:"problem_id"`
+					Name        string `sql:"index" json:"name"`
+					Author      string `sql:"index" json:"auther"`
+					Description string `json:"description"`
+					Likes       uint   `json:"likes"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				err = tx.AutoMigrate(&Solution{})
+				if err != nil {
+					return
+				}
+				return
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				err = tx.Migrator().DropTable("solutions")
 				if err != nil {
 					return
 				}

@@ -1,29 +1,27 @@
 package response
 
-import (
-	"github.com/EduOJ/backend/app/response/resource"
-)
+import "github.com/EduOJ/backend/app/response/resource"
 
-type GetSolutionResponse struct {
+type GetSolutionCommentResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.Solution `json:"solution"`
+		*resource.SolutionComment `json:"solution"`
 	} `json:"data"`
 }
 
-type CreateSolutionResponse struct {
+type CreateSolutionCommentResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.Solution `json:"solution"`
+		*resource.SolutionComment `json:"solution"`
 	} `json:"data"`
 }
 
-type UpdateSolutionResponse struct {
+type UpdateSolutionCommentResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.Solution `json:"solution"`
+		*resource.SolutionComment `json:"solutiong_comment"`
 	} `json:"data"`
 }

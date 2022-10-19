@@ -168,10 +168,16 @@ func Register(e *echo.Echo) {
 	submission.GET("/submission/:submission_id/run/:id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
 	// solution APIs
-	// api.POST("/admin/solution", controller.CreateSolution,
-	// 	middleware.Logged, middleware.EmailVerified,
-	// 	middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution"}),
-	// ).Name = "solution.createSolution"
+	solution := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id": "NOT_FOUND",
+		}),
+		middleware.Logged, middleware.EmailVerified)
+	api.POST("/solution", controller.CreateSolution,
+		middleware.Logged, middleware.EmailVerified,
+		middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution"}),
+	).Name = "solution.createSolution"
+	solution.GET("/solution/:id", controller.GetSolution).Name = "solution.getSolution"
 
 	// log API
 	api.GET("/admin/logs", controller.AdminGetLogs,

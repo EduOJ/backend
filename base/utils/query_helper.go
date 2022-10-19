@@ -2,15 +2,16 @@ package utils
 
 import (
 	"fmt"
-	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/database/models"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database/models"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 func Paginator(query *gorm.DB, limit, offset int, requestURL *url.URL, output interface{}) (total int, prevUrl, nextUrl *string, err error) {
@@ -137,10 +138,10 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	return &problem, nil
 }
 
-func FindSolution(id string, user *models.User) (*models.Solution, error) {
+func FindSolution(id string) (*models.Solution, error) {
 	solution := models.Solution{}
 	query := base.DB
-	err := query.Preload("Tags").Where("id = ?", id).First(&solution).Error
+	err := query.Where("id = ?", id).First(&solution).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err

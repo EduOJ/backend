@@ -7,9 +7,13 @@ import (
 )
 
 type Solution struct {
-	ID          uint   `gorm:"primaryKey" json:"id"`
-	Name        string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
+	ID uint `gorm:"primaryKey" json:"id"`
+
+	ProblemID   uint   `json:"problem_id"`
+	Name        string `sql:"index" json:"name"`
+	Author      string `sql:"index" json:"auther"`
 	Description string `json:"description"`
+	Likes       uint   `json:"likes"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
@@ -20,6 +24,6 @@ func (s Solution) GetID() uint {
 	return s.ID
 }
 
-func (s Solution) TypeName() string {
-	return "solution"
+func (s Solution) GetProblemID() uint {
+	return s.ProblemID
 }
