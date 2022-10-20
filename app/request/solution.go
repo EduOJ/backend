@@ -1,24 +1,21 @@
 package request
 
 type CreateSolutionRequest struct {
-	ProblemID   uint   `json:"problem_id" from:"problem_id" query:"problem_id" validate:"required"`
+	ProblemID   uint   `json:"problemID" form:"problemID" query:"problemID" validate:"required"`
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
-	Author      string `json:"author" form:"suthor" query:"author" validate:"required"`
+	Author      string `json:"author" form:"author" query:"author" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
-	// Public      *bool  `json:"public" form:"public" query:"public" validate:"required"`
-	Likes uint `json:"likes" from:"likes" querry:"likes" validate:"required"`
 }
 
 type GetSolutionRequest struct {
 }
 
 type UpdateSolutionRequest struct {
-	ProblemID   uint   `json:"problem_id" from:"problem_id" query:"problem_id" validate:"required"`
+	ProblemID   uint   `json:"problemID" form:"problemID" query:"problemID" validate:"required"`
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
-	Author      string `json:"author" form:"suthor" query:"author" validate:"required"`
+	Author      string `json:"author" form:"author" query:"author" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
-	// Public      *bool  `json:"public" form:"public" query:"public" validate:"required"`
-	Likes uint `json:"likes" from:"likes" querry:"likes" validate:"required"`
+	Likes       uint   `json:"likes" form:"likes" query:"likes" validate:"required"`
 }
 
 // type GetSolutionsRequest struct {

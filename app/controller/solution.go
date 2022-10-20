@@ -44,7 +44,7 @@ func CreateSolution(c echo.Context) error {
 		Name:        req.Name,
 		Author:      req.Author,
 		Description: req.Description,
-		Likes:       req.Likes,
+		Likes:       0,
 	}
 	utils.PanicIfDBError(base.DB.Create(&solution), "could not create solution")
 
