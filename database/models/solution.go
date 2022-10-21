@@ -9,9 +9,9 @@ import (
 type Solution struct {
 	ID uint `gorm:"primaryKey" json:"id"`
 
-	ProblemID   uint   `json:"problem_id"`
-	Name        string `sql:"index" json:"name"`
-	Author      string `sql:"index" json:"auther"`
+	ProblemID   uint   `sql:"index" json:"problem_id"`
+	Name        string `json:"name"`
+	Author      string `json:"auther"`
 	Description string `json:"description"`
 	Likes       uint   `json:"likes"`
 

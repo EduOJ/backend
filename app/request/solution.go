@@ -7,7 +7,8 @@ type CreateSolutionRequest struct {
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
 }
 
-type GetSolutionRequest struct {
+type GetSolutionsRequest struct {
+	ProblemID string `json:"problemID" form:"problemID" query:"problemID" validate:"required"`
 }
 
 type UpdateSolutionRequest struct {

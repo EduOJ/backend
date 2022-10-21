@@ -1,6 +1,8 @@
 package resource
 
-import "github.com/EduOJ/backend/database/models"
+import (
+	"github.com/EduOJ/backend/database/models"
+)
 
 type Solution struct {
 	ID uint `json:"id"`
@@ -25,4 +27,12 @@ func GetSolution(solution *models.Solution) *Solution {
 	s := Solution{}
 	s.convert(solution)
 	return &s
+}
+
+func GetSolutions(solutions []*models.Solution) (profiles []Solution) {
+	profiles = make([]Solution, len(solutions))
+	for i, solution := range solutions {
+		profiles[i].convert(solution)
+	}
+	return
 }

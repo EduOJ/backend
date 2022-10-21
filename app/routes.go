@@ -177,7 +177,7 @@ func Register(e *echo.Echo) {
 		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution"}),
 	).Name = "solution.createSolution"
-	solution.GET("/solution/:id", controller.GetSolution).Name = "solution.getSolution"
+	solution.GET("/solutions", controller.GetSolutions).Name = "solution.getSolutions"
 
 	// log API
 	api.GET("/admin/logs", controller.AdminGetLogs,

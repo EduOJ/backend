@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
@@ -10,24 +11,33 @@ import (
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
-func GetSolution(c echo.Context) error {
-	solution, err := utils.FindSolution(c.Param("id"))
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-	} else if err != nil {
+func GetSolutions(c echo.Context) error {
+	req := request.GetSolutionsRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+	problemID, _ := strconv.ParseUint(req.ProblemID, 10, 64)
+	query := base.DB.Model(&models.Solution{}).Order("problem_id ASC").Where("problem_id = ?", problemID)
+	var solutions []*models.Solution
+
+	err := query.Find(&solutions).Error
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
+		}
 		panic(err)
 	}
-	return c.JSON(http.StatusOK, response.GetSolutionResponse{
+
+	return c.JSON(http.StatusOK, response.GetSolutionsResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
-			*resource.Solution `json:"solution"`
+			Solutions []resource.Solution `json:"solutions"`
 		}{
-			resource.GetSolution(solution),
+			Solutions: resource.GetSolutions(solutions),
 		},
 	})
 }
@@ -57,5 +67,4 @@ func CreateSolution(c echo.Context) error {
 			resource.GetSolution(&solution),
 		},
 	})
-
 }
