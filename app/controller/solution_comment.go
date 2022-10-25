@@ -15,12 +15,17 @@ import (
 )
 
 func GetSolutionComments(c echo.Context) error {
-	sc, err := utils.FindSolutionComments(c.Param("id"))
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
-	} else if err != nil {
-		panic(err)
+	sc := []models.SolutionComment{}
+	query := base.DB
+	err := query.Where("SolutionID = ?", c.Param("id")).Find(&sc).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			panic(errors.Wrap(err, "could not query solution comment"))
+		}
 	}
+
 	return c.JSON(http.StatusOK, response.GetSolutionCommentsResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -32,7 +37,7 @@ func GetSolutionComments(c echo.Context) error {
 	})
 }
 
-func CreateSolutions(c echo.Context) error {
+func CreateSolutionComment(c echo.Context) error {
 	req := request.CreateSolutionCommentRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
@@ -56,5 +61,32 @@ func CreateSolutions(c echo.Context) error {
 			resource.GetSolutionComment(&comment),
 		},
 	})
+}
 
+func GetCommentTree(c echo.Context) error {
+	solutionComments := []models.SolutionComment{}
+	query := base.DB
+	err := query.Where("SolutionID = ?", c.Param("id")).Find(&solutionComments).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			panic(errors.Wrap(err, "could not query solution comment"))
+		}
+	}
+
+	commentNodes := make([]resource.SolutionCommentNode, len(solutionComments))
+	for i, solutionComment := range solutionComments {
+		commentNodes[i].ConvertCommentToNode(&solutionComment)
+	}
+
+	return c.JSON(http.StatusOK, response.GetCommentTreeResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			*resource.SolutionCommentTree `json:"solution_comment_tree"`
+		}{
+			resource.GetSolutionCommentTree(commentNodes),
+		},
+	})
 }
