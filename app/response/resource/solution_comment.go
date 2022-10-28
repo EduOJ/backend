@@ -25,11 +25,3 @@ func GetSolutionComment(solutionComment *models.SolutionComment) *SolutionCommen
 	sc.convert(solutionComment)
 	return &sc
 }
-
-func GetSolutionComments(solutionComments []models.SolutionComment) []SolutionComment {
-	scs := make([]SolutionComment, 0)
-	for _, sc := range solutionComments {
-		scs = append(scs, *GetSolutionComment(&sc))
-	}
-	return scs
-}
