@@ -370,6 +370,37 @@ func GetMigration() *gormigrate.Gormigrate {
 				return
 			},
 		},
+		// add solution_comments
+		{
+			ID: "add_solution_comments",
+			Migrate: func(tx *gorm.DB) (err error) {
+
+				type SolutionComment struct {
+					ID uint `gorm:"primaryKey" json:"id"`
+
+					SolutionID  uint   `sql:"index" json:"solution_id"`
+					FatherNode  uint   `json:"father_node"`
+					Description string `json:"description"`
+					Speaker     string `json:"speaker"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				err = tx.AutoMigrate(&SolutionComment{})
+				if err != nil {
+					return
+				}
+				return
+			},
+			Rollback: func(tx *gorm.DB) (err error) {
+				err = tx.Migrator().DropTable("solution_comments")
+				if err != nil {
+					return
+				}
+				return
+			},
+		},
 		{
 			// add default problem role
 			ID: "add_default_problem_role",

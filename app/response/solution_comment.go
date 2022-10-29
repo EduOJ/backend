@@ -6,7 +6,7 @@ type GetSolutionCommentResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.SolutionComment `json:"solution"`
+		*resource.SolutionComment `json:"solution_comment"`
 	} `json:"data"`
 }
 
@@ -14,7 +14,7 @@ type CreateSolutionCommentResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.SolutionComment `json:"solution"`
+		*resource.SolutionComment `json:"solution_comment_create"`
 	} `json:"data"`
 }
 
@@ -22,15 +22,15 @@ type UpdateSolutionCommentResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.SolutionComment `json:"solutiong_comment"`
+		*resource.SolutionComment `json:"solution_comment"`
 	} `json:"data"`
 }
 
-type GetCommentTreeResponse struct {
+type GetSolutionCommentsResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
-		*resource.SolutionCommentTree `json:"solution_comment_tree"`
+		SolutionComments []resource.SolutionComment `json:"solution_comments"`
 	} `json:"data"`
 }
 
