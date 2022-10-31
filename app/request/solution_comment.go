@@ -1,15 +1,16 @@
 package request
 
 type CreateSolutionCommentRequest struct {
-	SolutionID  uint   `json:"solution_id" from:"solution_id" query:"solution_id" validate:"required"`
-	FatherNode  uint   `json:"father_node" from:"father_node" query:"father_node" validate:"father_node"`
-	Description string `json:"description" from:"description" query:"description" validate:"description"`
-	Speaker     string `json:"speaker" from:"speaker" query:"speaker" validate:"speaker"`
+	SolutionID  uint   `json:"solutionId" form:"solutionId" query:"solutionId" validate:"required"`
+	FatherNode  uint   `json:"fatherNode" form:"fatherNode" query:"fatherNode" validate:"required"`
+	Description string `json:"reply" form:"reply" query:"reply" validate:"required"`
+	Speaker     string `json:"speaker" form:"speaker" query:"speaker" validate:"required"`
+	IsRoot      bool   `json:"isRoot" form:"isRoot" query:"isRoot" validate:"required"`
 }
 
 type UpdateSolutionCommentRequest struct {
-	SolutionID  uint   `json:"solution_id" from:"solution_id" query:"solution_id" validate:"required"`
-	FatherNode  uint   `json:"father_node" from:"father_node" query:"father_node" validate:"father_node"`
-	Description string `json:"description" from:"description" query:"description" validate:"description"`
-	Speaker     string `json:"speaker" from:"speaker" query:"speaker" validate:"speaker"`
+	SolutionID  uint   `json:"solutionId" form:"solutionId" query:"solutionId" validate:"required"`
+	FatherNode  uint   `json:"fatherNode" form:"fatherNode" query:"fatherNode" validate:"required"`
+	Description string `json:"reply" form:"reply" query:"reply" validate:"required"`
+	Speaker     string `json:"speaker" form:"speaker" query:"speaker" validate:"required"`
 }

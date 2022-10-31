@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/EduOJ/backend/app/request"
@@ -17,7 +18,7 @@ import (
 func GetSolutionComments(c echo.Context) error {
 	sc := []models.SolutionComment{}
 	query := base.DB
-	err := query.Where("SolutionID = ?", c.Param("id")).Find(&sc).Error
+	err := query.Where("solution_id = ?", c.Param("solutionId")).Find(&sc).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -43,9 +44,16 @@ func CreateSolutionComment(c echo.Context) error {
 	if !ok {
 		return err
 	}
+	var FatherNode uint
+	if req.IsRoot {
+		FatherNode = 0
+	} else {
+		FatherNode = req.FatherNode
+	}
+	fmt.Println("aaaaaaaaaaaaaaaaaaaaaa")
 	comment := models.SolutionComment{
 		SolutionID:  req.SolutionID,
-		FatherNode:  req.FatherNode,
+		FatherNode:  FatherNode,
 		Description: req.Description,
 		Speaker:     req.Speaker,
 	}

@@ -179,6 +179,18 @@ func Register(e *echo.Echo) {
 	).Name = "solution.createSolution"
 	solution.GET("/solutions", controller.GetSolutions).Name = "solution.getSolutions"
 
+	// solution comments APIs
+	solution_comments := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id": "NOT_FOUND",
+		}),
+		middleware.Logged, middleware.EmailVerified)
+	api.POST("/solution/comment", controller.CreateSolutionComment,
+		middleware.Logged, middleware.EmailVerified,
+		middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution_comment"}),
+	).Name = "solution.createSolutionComment"
+	solution_comments.GET("/solution/comments", controller.GetSolutionComments).Name = "solution.getSolutionComments"
+
 	// log API
 	api.GET("/admin/logs", controller.AdminGetLogs,
 		middleware.Logged, middleware.EmailVerified,
