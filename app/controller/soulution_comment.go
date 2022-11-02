@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/EduOJ/backend/app/request"
@@ -50,7 +49,6 @@ func CreateSolutionComment(c echo.Context) error {
 	} else {
 		FatherNode = req.FatherNode
 	}
-	fmt.Println("aaaaaaaaaaaaaaaaaaaaaa")
 	comment := models.SolutionComment{
 		SolutionID:  req.SolutionID,
 		FatherNode:  FatherNode,

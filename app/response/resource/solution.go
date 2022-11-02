@@ -19,6 +19,7 @@ func (s *Solution) convert(solution *models.Solution) {
 
 	s.ProblemID = solution.ProblemID
 	s.Name = solution.Name
+	s.Author = solution.Author
 	s.Description = solution.Description
 	s.Likes = solution.Likes
 }
