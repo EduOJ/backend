@@ -8,6 +8,10 @@ type CreateSolutionCommentRequest struct {
 	IsRoot      bool   `json:"isRoot" form:"isRoot" query:"isRoot" validate:"required"`
 }
 
+type GetSolutionCommentsTreeRequest struct {
+	SolutionID string `json:"solutionID" form:"solutionID" query:"solutionID" validate:"required"`
+}
+
 type UpdateSolutionCommentRequest struct {
 	SolutionID  uint   `json:"solutionId" form:"solutionId" query:"solutionId" validate:"required"`
 	FatherNode  uint   `json:"fatherNode" form:"fatherNode" query:"fatherNode" validate:"required"`

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
@@ -68,9 +69,16 @@ func CreateSolutionComment(c echo.Context) error {
 }
 
 func GetCommentTree(c echo.Context) error {
+	req := request.GetSolutionCommentsTreeRequest{}
+	if err, ok := utils.BindAndValidate(&req, c); !ok {
+		return err
+	}
+
+	solutionID, _ := strconv.ParseUint(req.SolutionID, 10, 64)
+
 	solutionComments := []models.SolutionComment{}
-	query := base.DB
-	err := query.Where("SolutionID = ?", c.Param("id")).Find(&solutionComments).Error
+	query := base.DB.Model(&models.SolutionComment{})
+	err := query.Where("solution_id = ?", solutionID).Find(&solutionComments).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
