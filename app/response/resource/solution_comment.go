@@ -56,7 +56,7 @@ func (cn *SolutionCommentNode) ConvertCommentToNode(solutionComment *models.Solu
 
 func (commentNode *SolutionCommentNode) GetKids(commentNodes []SolutionCommentNode) {
 	for _, cn := range commentNodes {
-		if cn.FatherNode == commentNode.FatherNode {
+		if cn.FatherNode == commentNode.ID {
 			cn.GetKids(commentNodes)
 			commentNode.Kids = append(commentNode.Kids, cn)
 		}
