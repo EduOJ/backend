@@ -350,7 +350,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					Name        string `sql:"index" json:"name"`
 					Author      string `sql:"index" json:"auther"`
 					Description string `json:"description"`
-					Likes       uint   `json:"likes"`
+					Likes       string `json:"likes"`
 
 					CreatedAt time.Time      `json:"created_at"`
 					UpdatedAt time.Time      `json:"-"`

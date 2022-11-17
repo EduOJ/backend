@@ -19,3 +19,11 @@ type GetSolutionsResponse struct {
 		Solutions []resource.Solution `json:"solutions"`
 	} `json:"data"`
 }
+
+type GetLikesResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		Likes resource.Likes `json:"likes"`
+	} `json:"data"`
+}

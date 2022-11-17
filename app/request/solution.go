@@ -16,7 +16,13 @@ type UpdateSolutionRequest struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required,max=255"`
 	Author      string `json:"author" form:"author" query:"author" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:"required"`
-	Likes       uint   `json:"likes" form:"likes" query:"likes" validate:"required"`
+	Likes       string `json:"likes" form:"likes" query:"likes" validate:"required"`
+}
+
+type LikesRequest struct {
+	SolutionId uint `json:"solutionId" form:"solutionId" query:"solutionId" validate:"required"`
+	UserId     uint `json:"userId" form:"userId" query:"userId" validate:"required"`
+	IsLike     int  `json:"isLike" form:"isLike" query:"isLike"`
 }
 
 // type GetSolutionsRequest struct {

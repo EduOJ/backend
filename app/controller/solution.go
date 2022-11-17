@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
@@ -11,6 +13,8 @@ import (
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 func GetSolutions(c echo.Context) error {
@@ -54,7 +58,7 @@ func CreateSolution(c echo.Context) error {
 		Name:        req.Name,
 		Author:      req.Author,
 		Description: req.Description,
-		Likes:       0,
+		Likes:       "",
 	}
 	utils.PanicIfDBError(base.DB.Create(&solution), "could not create solution")
 
@@ -65,6 +69,72 @@ func CreateSolution(c echo.Context) error {
 			*resource.Solution `json:"solution"`
 		}{
 			resource.GetSolution(&solution),
+		},
+	})
+}
+
+func GetLikes(c echo.Context) error {
+	req := request.LikesRequest{}
+	err, ok := utils.BindAndValidate(&req, c)
+	if !ok {
+		return err
+	}
+	solution := models.Solution{}
+	query := base.DB.Model(&models.Solution{})
+	err = query.Where("id = ?", req.SolutionId).Find(&solution).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		} else {
+			panic(errors.Wrap(err, "could not query solution"))
+		}
+	}
+	// err = query.Where("id = ?", req.SolutionId).Update("likes", "").Error
+	// fmt.Println(solution.Likes)
+	// "1,2,3,4"
+	likeList := strings.Split(solution.Likes, ",")
+	// likeList := strings.Split("2,3,4,", ",")
+	// fmt.Println(likeList)
+	count := len(likeList) - 1
+	isLike := false
+	// fmt.Println(count)
+	switch req.IsLike {
+	case 1:
+		newLikes := solution.Likes + fmt.Sprint(req.UserId) + ","
+		query.Where("id = ?", req.SolutionId).Update("likes", newLikes)
+		count = count + 1
+		isLike = true
+		// fmt.Println(newLikes)
+	case -1:
+		newLikes := strings.Replace(solution.Likes, fmt.Sprint(req.UserId)+",", "", -1)
+		query.Where("id = ?", req.SolutionId).Update("likes", newLikes)
+		count = count - 1
+		isLike = false
+		// fmt.Println(newLikes)
+
+	default:
+		for i := 0; i < count; i++ {
+			// fmt.Print(i)
+			// fmt.Print(": ")
+			// fmt.Println(likeList[i])
+			if fmt.Sprint(req.UserId) == likeList[i] {
+				isLike = true
+			}
+		}
+	}
+
+	likes := &models.Likes{
+		Count:  count,
+		IsLike: isLike,
+	}
+
+	return c.JSON(http.StatusOK, response.GetLikesResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			Likes resource.Likes `json:"likes"`
+		}{
+			Likes: *resource.GetLikes(likes),
 		},
 	})
 }

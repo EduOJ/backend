@@ -178,6 +178,7 @@ func Register(e *echo.Echo) {
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution"}),
 	).Name = "solution.createSolution"
 	solution.GET("/solutions", controller.GetSolutions).Name = "solution.getSolutions"
+	solution.GET("/likes", controller.GetLikes).Name = "solution.likes"
 
 	// solution comments APIs
 	solution_comments := api.Group("",

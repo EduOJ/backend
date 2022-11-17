@@ -13,11 +13,16 @@ type Solution struct {
 	Name        string `json:"name"`
 	Author      string `json:"auther"`
 	Description string `json:"description"`
-	Likes       uint   `json:"likes"`
+	Likes       string `json:"likes"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
+}
+
+type Likes struct {
+	Count  int  `json:"count"`
+	IsLike bool `json:"isLike"`
 }
 
 func (s Solution) GetID() uint {
