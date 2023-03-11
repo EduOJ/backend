@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/database"
 )

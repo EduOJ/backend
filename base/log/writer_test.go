@@ -1,6 +1,9 @@
 package log
 
 import (
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/exit"
@@ -8,8 +11,6 @@ import (
 	log2 "github.com/EduOJ/backend/database/models/log"
 	"github.com/kami-zh/go-capturer"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestConsoleWriter(t *testing.T) {

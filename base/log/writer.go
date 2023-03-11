@@ -2,9 +2,10 @@ package log
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/EduOJ/backend/database/models/log"
 	"github.com/fatih/color"
-	"strings"
 
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/event"
@@ -98,5 +99,9 @@ func (w *databaseWriter) init() {
 }
 
 func (w *eventWriter) log(l Log) {
-	go event.FireEvent("log", l)
+	go (func() {
+		if _, err := event.FireEvent("log", l); err != nil {
+			panic(err)
+		}
+	})()
 }

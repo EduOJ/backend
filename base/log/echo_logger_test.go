@@ -1,21 +1,13 @@
 package log
 
 import (
-	"github.com/labstack/gommon/log"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/labstack/gommon/log"
+	"github.com/stretchr/testify/assert"
 )
-
-type errJson struct {
-	log.JSON
-}
-
-func (j errJson) MarshalJSON() ([]byte, error) {
-	return nil, errors.New("test error")
-}
 
 func TestEchoLogger(t *testing.T) {
 	oldLogger := logger0

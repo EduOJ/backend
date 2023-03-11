@@ -2,15 +2,16 @@ package utils
 
 import (
 	"fmt"
-	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/database/models"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database/models"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 func Paginator(query *gorm.DB, limit, offset int, requestURL *url.URL, output interface{}) (total int, prevUrl, nextUrl *string, err error) {

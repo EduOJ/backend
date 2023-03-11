@@ -3,6 +3,10 @@ package controller
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
@@ -15,9 +19,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"net/http"
-	"sync"
-	"time"
 )
 
 var taskLock sync.Mutex

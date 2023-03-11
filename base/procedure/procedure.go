@@ -1,8 +1,9 @@
 package procedure
 
 import (
-	"github.com/pkg/errors"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 var handlers = map[string]interface{}{}
@@ -21,7 +22,6 @@ func RegisterProcedure(procedureName string, handler interface{}) {
 }
 
 // CallProcedure calls the procedure with given name, providing the procedure with given args and returns what the procedure returns as return value.
-//
 func CallProcedure(procedureName string, args ...interface{}) (result []interface{}, err error) {
 	defer func() {
 		if p := recover(); p != nil {

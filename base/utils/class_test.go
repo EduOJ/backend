@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"regexp"
-	"testing"
 )
 
 func checkInviteCode(t *testing.T, code string) {

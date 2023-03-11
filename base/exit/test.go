@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-//noinspection GoVetCopyLock
+// noinspection GoVetCopyLock
 func SetupExitForTest() func() {
 	testExitLock.Lock()
 	oldWG := QuitWG

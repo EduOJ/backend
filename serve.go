@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/EduOJ/backend/base/exit"
-	"github.com/EduOJ/backend/base/log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/EduOJ/backend/base/exit"
+	"github.com/EduOJ/backend/base/log"
 )
 
 func serve() {

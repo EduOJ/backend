@@ -2,6 +2,7 @@ package register
 
 import (
 	"bytes"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
@@ -36,7 +37,6 @@ func SendVerificationEmail(user *models.User) {
 			log.Errorf("%+v\n", err)
 			return
 		}
-		return
 	}
 	if viper.GetBool("email.inTest") {
 		action()

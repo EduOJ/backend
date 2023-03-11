@@ -1,17 +1,19 @@
 package middleware_test
 
 import (
+	"time"
+
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"time"
 
-	"github.com/EduOJ/backend/base"
 	"net/http"
 	"testing"
+
+	"github.com/EduOJ/backend/base"
 )
 
 func testController(context echo.Context) error {

@@ -2,14 +2,15 @@ package middleware_test
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
 type testClass struct {
@@ -65,10 +66,18 @@ func TestHasPermission(t *testing.T) {
 	base.DB.Create(&permRole)
 	base.DB.Create(&globalAdminRole)
 	base.DB.Create(&globalPermRole)
-	adminRole.AddPermission("all")
-	permRole.AddPermission("testPerm")
-	globalAdminRole.AddPermission("all")
-	globalPermRole.AddPermission("testPerm")
+	if err := adminRole.AddPermission("all"); err != nil {
+		panic(err)
+	}
+	if err := permRole.AddPermission("testPerm"); err != nil {
+		panic(err)
+	}
+	if err := globalAdminRole.AddPermission("all"); err != nil {
+		panic(err)
+	}
+	if err := globalPermRole.AddPermission("testPerm"); err != nil {
+		panic(err)
+	}
 
 	testHasPermUserWithoutPerms := models.User{
 		Username: "testHasPermUserWithoutPerms",
@@ -257,6 +266,7 @@ func TestHasPermission(t *testing.T) {
 	e.POST("/noUser/test_perm_global", testController, middleware.HasPermission(middleware.UnscopedPermission{P: "testPerm"}))
 
 	for _, user := range users {
+		user := user
 		t.Run(user.Username, func(t *testing.T) {
 			t.Parallel()
 			for _, permTest := range permTests {

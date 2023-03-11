@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
+	"runtime/debug"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"net/http"
-	"runtime/debug"
 )
 
 func Recover(next echo.HandlerFunc) echo.HandlerFunc {

@@ -3,12 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/datatypes"
-	"testing"
-	"time"
 )
 
 func createJSONForTest(t *testing.T, in interface{}) datatypes.JSON {
@@ -546,6 +547,7 @@ func TestGetGrades(t *testing.T) {
 			problem1.ID: 100,
 			problem2.ID: 100,
 		})
+		assert.NoError(t, err)
 		j2, err := json.Marshal(map[uint]uint{
 			problem1.ID: 0,
 			problem2.ID: 0,

@@ -1,9 +1,10 @@
 package models
 
 import (
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type TestClass struct {
@@ -50,7 +51,7 @@ func TestUser_GrantRole(t *testing.T) {
 func TestCan(t *testing.T) {
 	t.Parallel()
 
-	base.DB.AutoMigrate(&TestClass{})
+	assert.NoError(t, base.DB.AutoMigrate(&TestClass{}))
 	classA := TestClass{}
 	classB := TestClass{}
 	base.DB.Create(&classA)
@@ -79,12 +80,24 @@ func TestCan(t *testing.T) {
 	base.DB.Create(&admin)
 	base.DB.Create(&globalRole)
 	base.DB.Create(&globalAdmin)
-	teacher.AddPermission("permission_teacher")
-	teacher.AddPermission("permission_both")
-	assistant.AddPermission("permission_both")
-	admin.AddPermission("all")
-	globalRole.AddPermission("global_permission")
-	globalAdmin.AddPermission("all")
+	if err := teacher.AddPermission("permission_teacher"); err != nil {
+		panic(err)
+	}
+	if err := teacher.AddPermission("permission_both"); err != nil {
+		panic(err)
+	}
+	if err := assistant.AddPermission("permission_both"); err != nil {
+		panic(err)
+	}
+	if err := admin.AddPermission("all"); err != nil {
+		panic(err)
+	}
+	if err := globalRole.AddPermission("global_permission"); err != nil {
+		panic(err)
+	}
+	if err := globalAdmin.AddPermission("all"); err != nil {
+		panic(err)
+	}
 
 	testUser0 := User{
 		Username: "test_user_0",

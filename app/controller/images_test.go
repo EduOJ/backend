@@ -4,6 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
@@ -12,12 +19,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"io/ioutil"
-	"mime/multipart"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 func TestGetImage(t *testing.T) {

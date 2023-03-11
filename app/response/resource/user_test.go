@@ -1,10 +1,11 @@
 package resource_test
 
 import (
+	"testing"
+
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetUserGetUserForAdminAndGetUserSlice(t *testing.T) {

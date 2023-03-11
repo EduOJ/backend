@@ -3,11 +3,12 @@ package models
 import (
 	"encoding/binary"
 	"encoding/json"
+	"time"
+
 	"github.com/EduOJ/backend/base"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"time"
 )
 
 type User struct {

@@ -3,21 +3,22 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
-	"github.com/duo-labs/webauthn/protocol"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
 )
 
 var cac = cache.New(5*time.Minute, 10*time.Minute)
@@ -118,6 +119,9 @@ func FinishLogin(c echo.Context) error {
 		panic(errors.New("not registered"))
 	}
 	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", nil))
+	}
 	parsedResponse, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(b))
 	if err != nil {
 		panic(errors.Wrap(err, "could not parse response"))

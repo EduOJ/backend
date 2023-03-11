@@ -3,6 +3,10 @@ package utils
 import (
 	"bytes"
 	"context"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/database"
@@ -12,9 +16,6 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func TestMain(m *testing.M) {

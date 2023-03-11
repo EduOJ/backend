@@ -3,13 +3,14 @@ package utils
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"sync"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"net/url"
-	"sync"
-	"time"
 )
 
 var bucketsCreated sync.Map

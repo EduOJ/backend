@@ -94,7 +94,7 @@ func (l *logger) logWithLevelString(level Level, message string) {
 		Message: message,
 		Caller:  caller,
 	}
-	if l.ready == false {
+	if !l.ready {
 		// Logger don't been initialized yet.
 		// So we should just output to stdout.
 		(&consoleWriter{}).log(log)

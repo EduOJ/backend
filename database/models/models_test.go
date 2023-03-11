@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/EduOJ/backend/base/exit"
-	"github.com/EduOJ/backend/database"
 	"os"
 	"testing"
+
+	"github.com/EduOJ/backend/base/exit"
+	"github.com/EduOJ/backend/database"
 )
 
 func TestMain(m *testing.M) {

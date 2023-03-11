@@ -3,6 +3,12 @@ package controller_test
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -11,11 +17,6 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"net/http"
-	"strconv"
-	"testing"
-	"time"
 )
 
 const (
@@ -153,39 +154,51 @@ func TestCreateSubmission(t *testing.T) {
 	runFailTests(t, failTests, "CreateSubmission")
 
 	successfulTests := []struct {
-		name          string
-		testCaseCount int
-		problemPublic bool
-		requestUser   int // 0->normalUser / 1->problemCreator / 2->adminUser
-		response      resource.SubmissionDetail
+		name            string
+		testCaseCount   int
+		problemPublic   bool
+		requestUser     int // 0->normalUser / 1->problemCreator / 2->adminUser
+		response        resource.SubmissionDetail
+		problemLanguage string
 	}{
 		// testCreateSubmissionWithoutTestCases
 		{
-			name:          "WithoutTestCases",
-			testCaseCount: 0,
-			problemPublic: true,
-			requestUser:   normalUser,
+			name:            "WithoutTestCases",
+			testCaseCount:   0,
+			problemPublic:   true,
+			requestUser:     normalUser,
+			problemLanguage: "test_language",
 		},
 		// testCreateSubmissionPublicProblem
 		{
-			name:          "PublicProblem",
-			testCaseCount: 1,
-			problemPublic: true,
-			requestUser:   normalUser,
+			name:            "PublicProblem",
+			testCaseCount:   1,
+			problemPublic:   true,
+			requestUser:     normalUser,
+			problemLanguage: "test_language",
 		},
 		// testCreateSubmissionCreator
 		{
-			name:          "Creator",
-			testCaseCount: 2,
-			problemPublic: true,
-			requestUser:   problemCreator,
+			name:            "Creator",
+			testCaseCount:   2,
+			problemPublic:   true,
+			requestUser:     problemCreator,
+			problemLanguage: "test_language",
 		},
 		// testCreateSubmissionAdmin
 		{
-			name:          "Admin",
-			testCaseCount: 5,
-			problemPublic: true,
-			requestUser:   adminUser,
+			name:            "Admin",
+			testCaseCount:   5,
+			problemPublic:   true,
+			requestUser:     adminUser,
+			problemLanguage: "test_language",
+		},
+		{
+			name:            "AnyLanguage",
+			testCaseCount:   5,
+			problemPublic:   true,
+			requestUser:     normalUser,
+			problemLanguage: "any",
 		},
 	}
 	t.Run("testCreateSubmissionSuccess", func(t *testing.T) {
@@ -197,7 +210,7 @@ func TestCreateSubmission(t *testing.T) {
 				t.Parallel()
 				creator := createUserForTest(t, "test_create_submission", i)
 				problem := createProblemForTest(t, "test_create_submission", i, nil, creator)
-				problem.LanguageAllowed = []string{"test_language", "golang"}
+				problem.LanguageAllowed = []string{test.problemLanguage}
 				assert.NoError(t, base.DB.Save(&problem).Error)
 				for j := 0; j < test.testCaseCount; j++ {
 					createTestCaseForTest(t, problem, testCaseData{
@@ -437,7 +450,7 @@ func TestGetSubmission(t *testing.T) {
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				expectedSubmissionDetail := resource.GetSubmissionDetail(&submission)
-				expectedSubmissionDetail.CreatedAt.UTC()
+				expectedSubmissionDetail.CreatedAt = expectedSubmissionDetail.CreatedAt.UTC()
 				assert.Equal(t, response.GetSubmissionResponse{
 					Message: "SUCCESS",
 					Error:   nil,
