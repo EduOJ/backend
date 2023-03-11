@@ -1,10 +1,11 @@
 package main
 
 import (
+	"os"
+
 	"github.com/EduOJ/backend/base/log"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"os"
 )
 
 type _opt struct {

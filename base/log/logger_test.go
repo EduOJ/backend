@@ -2,10 +2,11 @@ package log
 
 import (
 	"fmt"
-	"github.com/kami-zh/go-capturer"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/kami-zh/go-capturer"
+	"github.com/stretchr/testify/assert"
 )
 
 type fakeWriter struct {

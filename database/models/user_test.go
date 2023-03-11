@@ -1,9 +1,10 @@
 package models
 
 import (
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type TestClass struct {

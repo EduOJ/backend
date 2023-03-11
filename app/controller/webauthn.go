@@ -3,6 +3,11 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
@@ -14,10 +19,6 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
 )
 
 var cac = cache.New(5*time.Minute, 10*time.Minute)

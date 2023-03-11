@@ -8,9 +8,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/EduOJ/backend/base/log"
 	_ "github.com/EduOJ/backend/docs"
-	"os"
 )
 
 func main() {

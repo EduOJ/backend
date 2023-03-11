@@ -2,6 +2,7 @@ package register
 
 import (
 	"bytes"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"

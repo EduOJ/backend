@@ -1,6 +1,10 @@
 package controller_test
 
 import (
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -8,9 +12,6 @@ import (
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
-	"time"
 )
 
 type testClass struct {

@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"gorm.io/gorm"
-	"time"
 )
 
 const PriorityDefault = uint8(127)

@@ -2,14 +2,15 @@ package middleware_test
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
 type testClass struct {

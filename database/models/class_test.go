@@ -1,10 +1,11 @@
 package models
 
 import (
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"testing"
 )
 
 func TestAddStudentsAndDeleteStudentsByID(t *testing.T) {

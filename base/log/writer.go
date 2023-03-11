@@ -2,9 +2,10 @@ package log
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/EduOJ/backend/database/models/log"
 	"github.com/fatih/color"
-	"strings"
 
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/event"

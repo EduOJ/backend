@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/EduOJ/backend/base/exit"
 	"github.com/EduOJ/backend/database"
 	"github.com/kami-zh/go-capturer"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"reflect"
-	"testing"
 )
 
 type fakeLogger struct {

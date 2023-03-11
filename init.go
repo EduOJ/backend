@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
+	"os"
+
 	"github.com/EduOJ/backend/app"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/event"
@@ -27,8 +30,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"html/template"
-	"os"
 )
 
 func readConfig() {

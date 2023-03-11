@@ -1,15 +1,16 @@
 package middleware
 
 import (
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type hasRole struct {

@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
@@ -11,8 +14,6 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"net/http"
-	"time"
 )
 
 func Authentication(next echo.HandlerFunc) echo.HandlerFunc {

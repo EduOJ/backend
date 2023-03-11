@@ -2,11 +2,12 @@ package resource_test
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func createRunForTest(name string, submissionId uint, id uint) models.Run {

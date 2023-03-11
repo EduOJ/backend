@@ -2,14 +2,15 @@ package utils
 
 import (
 	"fmt"
-	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/database/models"
-	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 	"net/url"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database/models"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func getUrlStringPointer(rawUrl url.URL, paras map[string]string) *string {

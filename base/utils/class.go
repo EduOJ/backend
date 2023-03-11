@@ -1,9 +1,10 @@
 package utils
 
 import (
+	"sync"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
-	"sync"
 )
 
 var inviteCodeLock sync.Mutex

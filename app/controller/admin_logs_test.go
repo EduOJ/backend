@@ -2,14 +2,15 @@ package controller_test
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	log2 "github.com/EduOJ/backend/database/models/log"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
 func TestAdminGetLogs(t *testing.T) {

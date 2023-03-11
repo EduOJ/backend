@@ -1,9 +1,10 @@
 package event
 
 import (
-	"github.com/pkg/errors"
 	"reflect"
 	"sync"
+
+	"github.com/pkg/errors"
 )
 
 var eventLock = sync.RWMutex{}

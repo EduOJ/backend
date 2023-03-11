@@ -1,8 +1,9 @@
 package response
 
 import (
-	"github.com/EduOJ/backend/database/models"
 	"time"
+
+	"github.com/EduOJ/backend/database/models"
 )
 
 type GetTaskResponse struct {

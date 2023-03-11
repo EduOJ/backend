@@ -3,6 +3,10 @@ package controller_test
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -11,9 +15,6 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestCreateProblemSet(t *testing.T) {

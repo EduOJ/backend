@@ -1,11 +1,12 @@
 package log
 
 import (
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/base/event"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestLogEvent(t *testing.T) {

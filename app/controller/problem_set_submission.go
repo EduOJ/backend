@@ -3,6 +3,10 @@ package controller
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"path/filepath"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -13,9 +17,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"net/http"
-	"path/filepath"
-	"time"
 )
 
 func ProblemSetCreateSubmission(c echo.Context) error {

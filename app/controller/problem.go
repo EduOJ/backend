@@ -3,6 +3,11 @@ package controller
 import (
 	"database/sql"
 	"fmt"
+	"math/rand"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -13,10 +18,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"math/rand"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func GetProblem(c echo.Context) error {

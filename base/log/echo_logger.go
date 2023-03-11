@@ -2,9 +2,10 @@ package log
 
 import (
 	"encoding/json"
-	"github.com/labstack/gommon/log"
 	"io"
 	. "os"
+
+	"github.com/labstack/gommon/log"
 )
 
 // EchoLogger is a fake logger for echo.

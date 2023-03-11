@@ -2,10 +2,11 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestUserHasRoleMarshalJSON(t *testing.T) {

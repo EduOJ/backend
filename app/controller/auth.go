@@ -2,9 +2,10 @@ package controller
 
 import (
 	"bytes"
-	"github.com/EduOJ/backend/base/log"
 	"net/http"
 	"time"
+
+	"github.com/EduOJ/backend/base/log"
 
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"

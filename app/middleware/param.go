@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"github.com/EduOJ/backend/app/response"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
+
+	"github.com/EduOJ/backend/app/response"
+	"github.com/labstack/echo/v4"
 )
 
 func ValidateParams(intParams map[string]string) func(next echo.HandlerFunc) echo.HandlerFunc {

@@ -4,6 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -14,12 +21,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"testing"
-	"time"
 )
 
 var inputTextBase64 = "aW5wdXQgdGV4dAo="

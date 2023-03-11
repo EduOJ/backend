@@ -3,6 +3,12 @@ package middleware_test
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/EduOJ/backend/app"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/exit"
@@ -12,11 +18,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func jsonEQ(t *testing.T, expected, actual interface{}) {

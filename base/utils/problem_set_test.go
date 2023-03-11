@@ -3,12 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/datatypes"
-	"testing"
-	"time"
 )
 
 func createJSONForTest(t *testing.T, in interface{}) datatypes.JSON {

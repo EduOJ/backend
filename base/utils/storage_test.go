@@ -3,13 +3,14 @@ package utils
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"strconv"
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"strconv"
-	"testing"
 )
 
 func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) {

@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/EduOJ/backend/database"
 	"time"
+
+	"github.com/EduOJ/backend/database"
 )
 
 type Language struct {

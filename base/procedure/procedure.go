@@ -1,8 +1,9 @@
 package procedure
 
 import (
-	"github.com/pkg/errors"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 var handlers = map[string]interface{}{}

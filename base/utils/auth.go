@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"sync"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"sync"
-	"time"
 )
 
 var initAuth sync.Once

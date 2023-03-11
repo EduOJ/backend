@@ -3,6 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
+	"syscall"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
@@ -11,12 +18,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xlab/treeprint"
 	"gorm.io/gorm"
-	"io"
-	"os"
-	"os/signal"
-	"strconv"
-	"strings"
-	"syscall"
 )
 
 // For role granting.

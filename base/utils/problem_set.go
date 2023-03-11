@@ -2,13 +2,14 @@ package utils
 
 import (
 	"encoding/json"
+	"sync"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"sync"
-	"time"
 )
 
 var gradeLock sync.Mutex

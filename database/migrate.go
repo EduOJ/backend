@@ -2,13 +2,14 @@ package database
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"time"
 )
 
 func GetMigration() *gormigrate.Gormigrate {

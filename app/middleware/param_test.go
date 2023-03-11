@@ -1,13 +1,14 @@
 package middleware_test
 
 import (
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
 func TestValidateParams(t *testing.T) {

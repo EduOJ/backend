@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -10,8 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
 )
 
 func AdminCreateUser(c echo.Context) error {
