@@ -450,7 +450,7 @@ func TestGetSubmission(t *testing.T) {
 				mustJsonDecode(httpResp, &resp)
 				assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 				expectedSubmissionDetail := resource.GetSubmissionDetail(&submission)
-				expectedSubmissionDetail.CreatedAt.UTC()
+				expectedSubmissionDetail.CreatedAt = expectedSubmissionDetail.CreatedAt.UTC()
 				assert.Equal(t, response.GetSubmissionResponse{
 					Message: "SUCCESS",
 					Error:   nil,

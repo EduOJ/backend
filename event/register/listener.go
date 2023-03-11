@@ -37,7 +37,6 @@ func SendVerificationEmail(user *models.User) {
 			log.Errorf("%+v\n", err)
 			return
 		}
-		return
 	}
 	if viper.GetBool("email.inTest") {
 		action()

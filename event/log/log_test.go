@@ -20,6 +20,8 @@ func TestLogEvent(t *testing.T) {
 		Message: "123",
 		Caller:  "233",
 	}
-	event.FireEvent("test_log_event", log)
+	if _, err := event.FireEvent("test_log_event", log); err != nil {
+		panic(err)
+	}
 	assert.Equal(t, log, lastLog)
 }

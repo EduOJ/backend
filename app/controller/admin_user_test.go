@@ -545,7 +545,9 @@ func TestAdminGetUser(t *testing.T) {
 		Target: &dummy,
 	}
 	base.DB.Create(&testRole)
-	testRole.AddPermission("testAdminGetUserPerm")
+	if err := testRole.AddPermission("testAdminGetUserPerm"); err != nil {
+		panic(err)
+	}
 
 	successTests := []struct {
 		name       string

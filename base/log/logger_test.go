@@ -21,8 +21,7 @@ func (f *fakeWriter) log(l Log) {
 }
 
 func TestLogger(t *testing.T) {
-	var l _logger
-	l = &logger{}
+	var l _logger = &logger{}
 	l.setReady()
 	w := &fakeWriter{}
 	l.addWriter(w)
@@ -67,8 +66,7 @@ func TestLogger(t *testing.T) {
 }
 
 func TestRemoveLogger(t *testing.T) {
-	var l _logger
-	l = &logger{}
+	var l _logger = &logger{}
 	l.setReady()
 	w1 := &fakeWriter{}
 	w2 := &fakeWriter{}
@@ -104,8 +102,7 @@ func TestLogWithLevelString(t *testing.T) {
 }
 
 func TestLogNotReady(t *testing.T) {
-	var l _logger
-	l = &logger{}
+	var l _logger = &logger{}
 
 	levels := []struct {
 		Level
@@ -155,8 +152,7 @@ func TestLogNotReady(t *testing.T) {
 }
 
 func TestIsReady(t *testing.T) {
-	var l _logger
-	l = &logger{}
+	var l _logger = &logger{}
 	assert.Equal(t, false, l.isReady())
 	l.setReady()
 	assert.Equal(t, true, l.isReady())

@@ -81,10 +81,14 @@ func (h headerOption) make(r *http.Request) {
 func (q queryOption) make(r *http.Request) {
 	for k, v := range q {
 		for _, s := range v {
-			r.URL.Query().Add(k, s)
+			q := r.URL.Query()
+			q.Add(k, s)
+			r.URL.RawQuery = q.Encode()
 		}
 	}
 }
+
+var _ = queryOption{} // explictly mark as used
 
 func makeReq(t *testing.T, method string, path string, data interface{}, options ...reqOption) *http.Request {
 	j, err := json.Marshal(data)

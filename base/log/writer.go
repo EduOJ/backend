@@ -99,5 +99,9 @@ func (w *databaseWriter) init() {
 }
 
 func (w *eventWriter) log(l Log) {
-	go event.FireEvent("log", l)
+	go (func() {
+		if _, err := event.FireEvent("log", l); err != nil {
+			panic(err)
+		}
+	})()
 }

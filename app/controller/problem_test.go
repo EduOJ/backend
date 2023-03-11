@@ -49,7 +49,6 @@ func checkObjectNonExist(t *testing.T, bucketName, objectName string) {
 	_, err := base.Storage.StatObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
 	assert.Equal(t, 404, err.(minio.ErrorResponse).StatusCode)
 	assert.Equal(t, "NoSuchKey", err.(minio.ErrorResponse).Code)
-	return
 }
 
 func createProblemForTest(t *testing.T, name string, testID int, attachmentFile *fileContent, creator models.User) (problem models.Problem) {
@@ -466,9 +465,9 @@ func TestGetProblems(t *testing.T) {
 					&problem3,
 				},
 				Passes: []sql.NullBool{
-					{false, false},
-					{false, false},
-					{false, false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
 				},
 				Total:  3,
 				Count:  3,
@@ -497,11 +496,11 @@ func TestGetProblems(t *testing.T) {
 					&problem5,
 				},
 				Passes: []sql.NullBool{
-					{false, false},
-					{false, false},
-					{false, false},
-					{false, false},
-					{false, false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
 				},
 				Total:  5,
 				Count:  5,
@@ -555,7 +554,7 @@ func TestGetProblems(t *testing.T) {
 		//		Prev:     nil,
 		//		Next:     nil,
 		//		Passes:   []sql.NullBool{
-		//			{false, false},
+		//			{Bool: false, Valid: false},
 		//		},
 		//	},
 		//	isAdmin: false,
@@ -601,7 +600,7 @@ func TestGetProblems(t *testing.T) {
 				Prev:   nil,
 				Next:   nil,
 				Passes: []sql.NullBool{
-					{false, false},
+					{Bool: false, Valid: false},
 				},
 			},
 			isAdmin: false,
@@ -626,8 +625,8 @@ func TestGetProblems(t *testing.T) {
 				Offset: 0,
 				Prev:   nil,
 				Passes: []sql.NullBool{
-					{false, false},
-					{false, false},
+					{Bool: false, Valid: false},
+					{Bool: false, Valid: false},
 				},
 				Next: getUrlStringPointer("problem.getProblems", map[string]string{
 					"limit":  "2",
@@ -652,8 +651,8 @@ func TestGetProblems(t *testing.T) {
 					&problem2,
 				},
 				Passes: []sql.NullBool{
-					{true, true},
-					{true, true},
+					{Bool: true, Valid: true},
+					{Bool: true, Valid: true},
 				},
 				Total:  2,
 				Count:  2,
@@ -678,7 +677,7 @@ func TestGetProblems(t *testing.T) {
 					&problem3,
 				},
 				Passes: []sql.NullBool{
-					{false, false},
+					{Bool: false, Valid: false},
 				},
 				Total:  1,
 				Count:  1,

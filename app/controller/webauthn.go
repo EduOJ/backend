@@ -119,6 +119,9 @@ func FinishLogin(c echo.Context) error {
 		panic(errors.New("not registered"))
 	}
 	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, response.ErrorResp("INTERNAL_ERROR", nil))
+	}
 	parsedResponse, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(b))
 	if err != nil {
 		panic(errors.Wrap(err, "could not parse response"))

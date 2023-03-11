@@ -107,7 +107,9 @@ func Register(c echo.Context) error {
 		Password: hashed,
 	}
 	utils.PanicIfDBError(base.DB.Create(&user), "could not create user")
-	event.FireEvent("register", &user)
+	if _, err := event.FireEvent("register", &user); err != nil {
+		panic(err)
+	}
 	token := models.Token{
 		Token: utils.RandStr(32),
 		User:  user,

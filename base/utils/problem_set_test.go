@@ -547,6 +547,7 @@ func TestGetGrades(t *testing.T) {
 			problem1.ID: 100,
 			problem2.ID: 100,
 		})
+		assert.NoError(t, err)
 		j2, err := json.Marshal(map[uint]uint{
 			problem1.ID: 0,
 			problem2.ID: 0,

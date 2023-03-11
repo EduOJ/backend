@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"time"
 
 	"github.com/EduOJ/backend/app/request"
@@ -72,13 +71,6 @@ func ProblemSetCreateSubmission(c echo.Context) error {
 	if file == nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
-
-	ext := filepath.Ext(file.Filename)
-
-	if ext != "" {
-		ext = ext[1:]
-	}
-
 	priority := models.PriorityDefault + 8
 
 	submission := models.Submission{

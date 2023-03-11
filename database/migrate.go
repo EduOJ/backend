@@ -1051,14 +1051,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					UpdatedAt time.Time      `json:"-"`
 					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
-				type User struct {
-					ID     uint    `gorm:"primaryKey" json:"id"`
-					Grades []Grade `json:"grades"`
-				}
-				type Class struct {
-					ID          uint         `gorm:"primaryKey" json:"id"`
-					ProblemSets []ProblemSet `json:"problem_sets"`
-				}
 				err = tx.Migrator().DropTable("problems_in_problem_sets")
 				if err != nil {
 					return
@@ -1162,7 +1154,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				if err != nil {
 					return err
 				}
-				for true {
+				for {
 					ok, err := it.Next()
 					if err != nil || !ok {
 						return err
@@ -1170,7 +1162,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					grade := &grades[it.index]
 					grade.ClassID = grade.ProblemSet.ClassID
 				}
-				return nil
 			},
 			Rollback: func(tx *gorm.DB) error {
 				type Grade struct {

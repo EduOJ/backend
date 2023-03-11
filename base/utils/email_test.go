@@ -17,7 +17,8 @@ func TestSendMail(t *testing.T) {
 	assert.Equal(t, []string{""}, message.GetHeader("From"))
 	assert.Equal(t, []string{"a.com"}, message.GetHeader("To"))
 	x := bytes.Buffer{}
-	message.WriteTo(&x)
+	_, err = message.WriteTo(&x)
+	assert.NoError(t, err)
 	messageRead := strings.SplitN(x.String(), "\r\n\r\n", 2)[1]
 	assert.Equal(t, "123", messageRead)
 }

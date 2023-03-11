@@ -82,6 +82,9 @@ func (s *Submission) LoadRuns() {
 func (s *Submission) AfterDelete(tx *gorm.DB) (err error) {
 	var runs []Run
 	err = tx.Where("submission_id = ?", s.ID).Find(&runs).Error
+	if err != nil {
+		return err
+	}
 	if len(runs) == 0 {
 		return nil
 	}

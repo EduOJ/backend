@@ -14,7 +14,6 @@ type _opt struct {
 
 var parser *flags.Parser
 var opt _opt
-var open = os.Open
 var args []string
 
 func init() {

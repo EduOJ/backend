@@ -52,7 +52,9 @@ func TestGetUser(t *testing.T) {
 		Target: &dummy,
 	}
 	base.DB.Create(&testRole)
-	testRole.AddPermission("testGetUserPerm")
+	if err := testRole.AddPermission("testGetUserPerm"); err != nil {
+		panic(err)
+	}
 
 	successTests := []struct {
 		name       string
@@ -613,7 +615,9 @@ func TestGetUserMe(t *testing.T) {
 		Target: &dummy,
 	}
 	base.DB.Create(&testRole)
-	testRole.AddPermission("all")
+	if err := testRole.AddPermission("all"); err != nil {
+		panic(err)
+	}
 
 	successTests := []struct {
 		name       string
@@ -784,7 +788,9 @@ func TestUpdateUserMe(t *testing.T) {
 		Target: &dummy,
 	}
 	base.DB.Create(&testRole)
-	testRole.AddPermission("all")
+	if err := testRole.AddPermission("all"); err != nil {
+		panic(err)
+	}
 
 	successTests := []struct {
 		name       string

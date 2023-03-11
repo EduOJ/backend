@@ -100,7 +100,9 @@ func TestLogin(t *testing.T) {
 		Target: &dummy,
 	}
 	base.DB.Create(&adminRole)
-	adminRole.AddPermission("all")
+	if err := adminRole.AddPermission("all"); err != nil {
+		panic(err)
+	}
 
 	successTests := []struct {
 		name       string

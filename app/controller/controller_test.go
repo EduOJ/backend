@@ -47,7 +47,9 @@ func initGeneralTestingUsers() {
 		Target: nil,
 	}
 	base.DB.Create(&adminRole)
-	_ = adminRole.AddPermission("all")
+	if err := adminRole.AddPermission("all"); err != nil {
+		panic(err)
+	}
 	adminUser := models.User{
 		Username: "test_admin_user",
 		Nickname: "test_admin_nickname",
@@ -138,8 +140,7 @@ func runFailTests(t *testing.T, tests []failTest, groupName string) {
 			test := test
 			t.Run("test"+groupName+test.name, func(t *testing.T) {
 				t.Parallel()
-				var req *http.Request
-				req = makeReq(t, test.method, test.path, test.req, test.reqOptions...)
+				req := makeReq(t, test.method, test.path, test.req, test.reqOptions...)
 				httpResp := makeResp(req)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
@@ -222,10 +223,14 @@ func (h headerOption) make(r *http.Request) {
 func (q queryOption) make(r *http.Request) {
 	for k, v := range q {
 		for _, s := range v {
-			r.URL.Query().Add(k, s)
+			q := r.URL.Query()
+			q.Add(k, s)
+			r.URL.RawQuery = q.Encode()
 		}
 	}
 }
+
+var _ = queryOption{} // explictly mark this type used
 
 type reqContent interface {
 	add(r *multipart.Writer) error
@@ -257,7 +262,7 @@ func (c *fileContent) add(w *multipart.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	b, err := ioutil.ReadAll(c.reader)
+	b, _ := ioutil.ReadAll(c.reader)
 	_, err = io.Copy(fw, bytes.NewReader(b))
 	if err != nil {
 		return err
