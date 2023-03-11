@@ -2,7 +2,7 @@ on:
   pull_request:
   push:
     branches: ["*"]
-
+name: Pre commit hooks
 jobs:
   main:
     runs-on: ubuntu-latest
