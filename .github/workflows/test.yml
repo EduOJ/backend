@@ -18,6 +18,8 @@ jobs:
         run: go mod download
       - name: Go Test
         run: go test ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
   test-race:
     strategy:
       matrix:
