@@ -32,6 +32,7 @@ require (
 	github.com/swaggo/swag v1.8.0
 	github.com/xlab/treeprint v1.0.0
 	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
+	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect

@@ -40,4 +40,3 @@ email:
   password: pass
   tls: true
   need_verification: true
-
