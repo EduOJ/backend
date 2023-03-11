@@ -10,10 +10,11 @@ Common return codes.
 
 # Authentication
 
-|       message        |       结果       |
-|:--------------------:|:---------------:|
-| AUTH_SESSION_EXPIRED |   session超时    |
-|   AUTH_NEED_TOKEN    |   未提供token    |
+|           message            |    结果     |
+|:----------------------------:|:----------:|
+|     AUTH_SESSION_EXPIRED     | session超时 |
+|       AUTH_NEED_TOKEN        | 未提供token |
+| AUTH_NEED_EMAIL_VERIFICATION |  邮箱未验证  |
 
 # Permission
 

@@ -3,6 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
+	"syscall"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
@@ -11,12 +18,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xlab/treeprint"
 	"gorm.io/gorm"
-	"io"
-	"os"
-	"os/signal"
-	"strconv"
-	"strings"
-	"syscall"
 )
 
 // For role granting.
@@ -119,9 +120,17 @@ Note:
 			r.Target = &args[2]
 		}
 		err = base.DB.Create(&r).Error
+		if err != nil {
+			log.Error(err)
+			break
+		}
 	case "list-roles", "lr":
 		// (list-roles|lr) [<role_id|role_name>]
 		err = validateArgumentsCount(len(args), 1, 2)
+		if err != nil {
+			log.Error(err)
+			break
+		}
 		tree := treeprint.New()
 		tree.SetValue("Roles")
 		if len(args) == 1 {
@@ -183,6 +192,10 @@ Note:
 	case "delete-role", "dr":
 		// (delete-role|dr) <role_id|role_name>
 		err = validateArgumentsCount(len(args), 2, 2)
+		if err != nil {
+			log.Error(err)
+			break
+		}
 		var role *models.Role
 		role, err := findRole(args[1])
 		if err != nil {
@@ -212,7 +225,9 @@ Note:
 			log.Error(err)
 			break
 		}
-		role.AddPermission(args[2])
+		if err := role.AddPermission(args[2]); err != nil {
+			panic(err)
+		}
 	case "quit", "q":
 		return true
 	default:
@@ -223,7 +238,7 @@ Note:
 
 func findRole(id string) (*models.Role, error) {
 	role := models.Role{}
-	err := base.DB.Set("gorm:auto_preload", true).Where("id = ?", id).First(&role).Error
+	_, err := strconv.Atoi(id)
 	if err != nil {
 		err = base.DB.Set("gorm:auto_preload", true).Where("name = ?", id).First(&role).Error
 		if err != nil {
@@ -231,6 +246,18 @@ func findRole(id string) (*models.Role, error) {
 				return nil, errors.New("role record not found")
 			} else {
 				return nil, errors.Wrap(err, "could not query role")
+			}
+		}
+	} else {
+		err = base.DB.Set("gorm:auto_preload", true).Where("id = ?", id).First(&role).Error
+		if err != nil {
+			err = base.DB.Set("gorm:auto_preload", true).Where("name = ?", id).First(&role).Error
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, errors.New("role record not found")
+				} else {
+					return nil, errors.Wrap(err, "could not query role")
+				}
 			}
 		}
 	}
@@ -256,5 +283,4 @@ func listRole(root treeprint.Tree, role *models.Role) {
 	for _, perm := range role.Permissions {
 		roleNode.AddNode(color.GreenString(perm.Name) + "[" + color.MagentaString("%d", perm.ID) + "]")
 	}
-	return
 }

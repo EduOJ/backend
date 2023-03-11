@@ -1,10 +1,11 @@
 package main
 
 import (
+	"os"
+
 	"github.com/EduOJ/backend/base/exit"
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
-	"os"
 )
 
 func clean() {

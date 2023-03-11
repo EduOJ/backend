@@ -2,12 +2,13 @@ package models
 
 import (
 	"fmt"
-	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/database"
-	"github.com/stretchr/testify/assert"
 	"hash/fnv"
 	"testing"
 	"time"
+
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database"
+	"github.com/stretchr/testify/assert"
 )
 
 func hashStringToTime(s string) time.Time {

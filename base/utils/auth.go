@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"sync"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"sync"
-	"time"
 )
 
 var initAuth sync.Once
@@ -14,10 +15,13 @@ var SessionTimeout time.Duration
 var RememberMeTimeout time.Duration
 var SessionCount int
 
-func initAuthConfig() {
+func init() {
 	viper.SetDefault("auth.session_timeout", 1200)
 	viper.SetDefault("auth.remember_me_timeout", 604800)
 	viper.SetDefault("auth.session_count", 10)
+}
+
+func initAuthConfig() {
 	SessionTimeout = time.Second * viper.GetDuration("auth.session_timeout")
 	RememberMeTimeout = time.Second * viper.GetDuration("auth.remember_me_timeout")
 	SessionCount = viper.GetInt("auth.session_timeout")

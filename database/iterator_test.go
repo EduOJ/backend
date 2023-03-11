@@ -1,12 +1,13 @@
 package database
 
 import (
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"testing"
-	"time"
 )
 
 type TestingObject struct {

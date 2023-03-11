@@ -2,6 +2,9 @@ package utils
 
 import (
 	"context"
+	"mime/multipart"
+	"net/http"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
@@ -11,8 +14,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"mime/multipart"
-	"net/http"
 )
 
 func PanicIfDBError(db *gorm.DB, message string) {

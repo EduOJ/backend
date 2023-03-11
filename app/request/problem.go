@@ -12,6 +12,8 @@ type CreateProblemRequest struct {
 	LanguageAllowed   string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
 	BuildArg          string `json:"build_arg" form:"build_arg" query:"build_arg" validate:"max=255"`                               // E.g.  O2=false
 	CompareScriptName string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
+
+	Tags string `json:"tags" form:"tags" query:"tags"`
 }
 
 type UpdateProblemRequest struct {
@@ -26,6 +28,8 @@ type UpdateProblemRequest struct {
 	LanguageAllowed   string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
 	BuildArg          string `json:"build_arg" form:"build_arg" query:"build_arg" validate:"max=255"`                               // E.g.  O2=false
 	CompareScriptName string `json:"compare_script_name" form:"compare_script_name" query:"compare_script_name" validate:"required"`
+
+	Tags string `json:"tags" form:"tags" query:"tags"`
 }
 
 type DeleteProblemRequest struct {
@@ -69,6 +73,8 @@ type GetProblemsRequest struct {
 
 	Tried  bool `json:"tried" form:"tried" query:"tried"`
 	Passed bool `json:"passed" form:"passed" query:"passed"`
+
+	Tags string `json:"tags" form:"tags" query:"tags"`
 }
 
 type GetRandomProblemRequest struct {

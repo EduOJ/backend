@@ -3,6 +3,10 @@ package controller_test
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -11,9 +15,6 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestCreateProblemSet(t *testing.T) {
@@ -1199,9 +1200,9 @@ func TestGetProblemSetProblemOutputFile(t *testing.T) {
 
 func TestRefreshGrades(t *testing.T) {
 	t.Parallel()
-	user1 := createUserForTest(t, "refresh_grades", 1)
-	user2 := createUserForTest(t, "refresh_grades", 2)
-	class := createClassForTest(t, "refresh_grades", 0, nil, []*models.User{&user1, &user2})
+	user1 := createUserForTest(t, "refresh_grades", -1)
+	user2 := createUserForTest(t, "refresh_grades", -2)
+	class := createClassForTest(t, "refresh_grades", -1, nil, []*models.User{&user1, &user2})
 	problemSet := createProblemSetForTest(t, "refresh_grades_fail", 0, &class, nil, inProgress)
 	failTests := []failTest{
 		{
@@ -1243,6 +1244,9 @@ func TestRefreshGrades(t *testing.T) {
 
 	t.Run("Empty", func(t *testing.T) {
 		t.Parallel()
+		user1 := createUserForTest(t, "refresh_grades", 1)
+		user2 := createUserForTest(t, "refresh_grades", 2)
+		class := createClassForTest(t, "refresh_grades", 0, nil, []*models.User{&user1, &user2})
 		problem1 := createProblemForTest(t, "refresh_grades", 1, nil, user1)
 		problem2 := createProblemForTest(t, "refresh_grades", 2, nil, user1)
 		ps := createProblemSetForTest(t, "refresh_grades_empty", 0, &class, []models.Problem{problem1, problem2}, inProgress)
@@ -1315,6 +1319,10 @@ func TestRefreshGrades(t *testing.T) {
 	})
 	t.Run("MaxAndLimit", func(t *testing.T) {
 		t.Parallel()
+
+		user1 := createUserForTest(t, "refresh_grades", 3)
+		user2 := createUserForTest(t, "refresh_grades", 4)
+		class := createClassForTest(t, "refresh_grades", 1, nil, []*models.User{&user1, &user2})
 		problem1 := createProblemForTest(t, "refresh_grades", 3, nil, user1)
 		problem2 := createProblemForTest(t, "refresh_grades", 4, nil, user1)
 		ps := createProblemSetForTest(t, "refresh_grades_max_and_limit", 0, &class, []models.Problem{problem1, problem2}, inProgress)

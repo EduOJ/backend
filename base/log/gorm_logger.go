@@ -3,11 +3,12 @@ package log
 import (
 	"context"
 	"errors"
+	"strings"
+	"time"
+
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	logger2 "gorm.io/gorm/logger"
-	"strings"
-	"time"
 )
 
 // // Interface logger interface

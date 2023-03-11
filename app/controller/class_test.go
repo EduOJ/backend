@@ -2,6 +2,10 @@ package controller_test
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"testing"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -10,9 +14,6 @@ import (
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"net/http"
-	"regexp"
-	"testing"
 )
 
 func checkInviteCode(t *testing.T, code string) {

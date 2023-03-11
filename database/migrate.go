@@ -2,13 +2,14 @@ package database
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"time"
 )
 
 func GetMigration() *gormigrate.Gormigrate {
@@ -1050,14 +1051,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					UpdatedAt time.Time      `json:"-"`
 					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
-				type User struct {
-					ID     uint    `gorm:"primaryKey" json:"id"`
-					Grades []Grade `json:"grades"`
-				}
-				type Class struct {
-					ID          uint         `gorm:"primaryKey" json:"id"`
-					ProblemSets []ProblemSet `json:"problem_sets"`
-				}
 				err = tx.Migrator().DropTable("problems_in_problem_sets")
 				if err != nil {
 					return
@@ -1161,7 +1154,7 @@ func GetMigration() *gormigrate.Gormigrate {
 				if err != nil {
 					return err
 				}
-				for true {
+				for {
 					ok, err := it.Next()
 					if err != nil || !ok {
 						return err
@@ -1169,7 +1162,6 @@ func GetMigration() *gormigrate.Gormigrate {
 					grade := &grades[it.index]
 					grade.ClassID = grade.ProblemSet.ClassID
 				}
-				return nil
 			},
 			Rollback: func(tx *gorm.DB) error {
 				type Grade struct {
@@ -1189,6 +1181,64 @@ func GetMigration() *gormigrate.Gormigrate {
 				return tx.Migrator().DropColumn(&Grade{}, "ClassID")
 			},
 		},
+		// add EmailVerified column
+		{
+			ID: "add_email_verified_column_to_users_table",
+			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					EmailVerified bool
+				}
+				return tx.AutoMigrate(&User{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type User struct {
+					EmailVerified bool
+				}
+				return tx.Migrator().DropColumn(&User{}, "email_verified")
+			},
+		},
+		// add EmailVerificationToken table
+		{
+			ID: "add_email_verification_token_table",
+			Migrate: func(tx *gorm.DB) error {
+				type User struct {
+					ID uint
+				}
+				type EmailVerificationToken struct {
+					ID     uint `gorm:"primaryKey" json:"id"`
+					UserID uint
+					User   *User
+					Email  string
+					Token  string
+
+					Used bool
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&EmailVerificationToken{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type User struct {
+					ID uint
+				}
+				type EmailVerificationToken struct {
+					ID     uint `gorm:"primaryKey" json:"id"`
+					UserID uint
+					User   *User
+					Email  string
+					Token  string
+
+					Used bool
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.Migrator().DropTable(&EmailVerificationToken{})
+			},
+		},
 		{
 			ID: "remove_delete_at_field_in_grades",
 			Migrate: func(tx *gorm.DB) error {
@@ -1202,6 +1252,47 @@ func GetMigration() *gormigrate.Gormigrate {
 					DeletedAt gorm.DeletedAt `json:"deleted_at"`
 				}
 				return tx.AutoMigrate(&Grade{})
+			},
+		},
+		{
+			ID: "add_tags_and_tag_for_problem",
+			Migrate: func(tx *gorm.DB) error {
+				type Tag struct {
+					ID        uint `gorm:"primaryKey" json:"id"`
+					ProblemID uint
+					Name      string
+					CreatedAt time.Time `json:"created_at"`
+				}
+				type Problem struct {
+					ID                 uint   `gorm:"primaryKey" json:"id"`
+					Name               string `sql:"index" json:"name" gorm:"size:255;default:'';not null"`
+					Description        string `json:"description"`
+					AttachmentFileName string `json:"attachment_file_name" gorm:"size:255;default:'';not null"`
+					Public             bool   `json:"public" gorm:"default:false;not null"`
+					Privacy            bool   `json:"privacy" gorm:"default:false;not null"`
+
+					MemoryLimit       uint64 `json:"memory_limit" gorm:"default:0;not null;type:bigint"` // Byte
+					TimeLimit         uint   `json:"time_limit" gorm:"default:0;not null"`               // ms
+					BuildArg          string `json:"build_arg" gorm:"size:2047;default:'';not null"`     // E.g.  O2=false
+					CompareScriptName string `json:"compare_script_name" gorm:"default:0;not null"`
+
+					Tags []Tag `json:"tags" gorm:"OnDelete:CASCADE"`
+
+					CreatedAt time.Time      `json:"created_at"`
+					UpdatedAt time.Time      `json:"-"`
+					DeletedAt gorm.DeletedAt `json:"deleted_at"`
+				}
+				return tx.AutoMigrate(&Problem{}, &Tag{})
+
+			},
+			Rollback: func(tx *gorm.DB) error {
+				type Tag struct {
+					ID        uint `gorm:"primaryKey" json:"id"`
+					ProblemID uint
+					Name      string
+					CreatedAt time.Time `json:"created_at"`
+				}
+				return tx.Migrator().DropTable(&Tag{})
 			},
 		},
 		{
@@ -1262,7 +1353,7 @@ func GetMigration() *gormigrate.Gormigrate {
 					User   User `gorm:"foreignKey:UserID"`
 
 					ReactionID uint
-					Reaction   Reaction `gorm:"foreignKey:ReactionID" gorm:"polymorphic:Target"`
+					Reaction   Reaction `gorm:"foreignKey:ReactionID;polymorphic:Target"`
 
 					Content string
 

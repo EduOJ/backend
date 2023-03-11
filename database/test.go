@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/spf13/viper"
 	"gorm.io/driver/sqlite"

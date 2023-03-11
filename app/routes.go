@@ -1,6 +1,10 @@
 package app
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/pprof"
+
 	"github.com/EduOJ/backend/app/controller"
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/base/log"
@@ -8,12 +12,14 @@ import (
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/viper"
-	"net/http"
-	"net/http/pprof"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func Register(e *echo.Echo) {
 	utils.InitOrigin()
+
+	e.GET("/doc/*", echoSwagger.WrapHandler)
+
 	e.Use(middleware.Recover)
 	e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
 		AllowOrigins:     utils.Origins,
@@ -39,19 +45,26 @@ func Register(e *echo.Echo) {
 	auth.POST("/auth/login/webauthn", controller.FinishLogin).Name = "auth.webauthn.finishLogin"
 	auth.POST("/auth/register", controller.Register).Name = "auth.register"
 	auth.GET("/auth/email_registered", controller.EmailRegistered).Name = "auth.emailRegistered"
+	auth.POST("/auth/password_reset", controller.RequestResetPassword).Name = "auth.resetPassword"
+	auth.PUT("/auth/password_reset", controller.DoResetPassword).Name = "auth.doResetPassword"
+	auth.POST("/auth/email_verification", controller.VerifyEmail).Name = "auth.email.verify"
+	auth.POST("/auth/resend_email_verification", controller.ResendEmailVerification).Name = "auth.email.resend_verification"
 
 	// user APIs
 	user := api.Group("", middleware.Logged)
 	readUser := api.Group("",
 		middleware.Logged,
+		middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "read_user"}),
 	)
 	manageUsers := api.Group("",
 		middleware.Logged,
+		middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "manage_user"}),
 	)
 	user.GET("/user/me", controller.GetMe).Name = "user.getMe"
 	user.PUT("/user/me", controller.UpdateMe).Name = "user.updateMe"
+	user.PUT("/user/update_email", controller.UpdateEmail).Name = "user.updateEmail"
 	api.GET("/user/:id", controller.GetUser).Name = "user.getUser"
 	user.GET("/user/me/managing_classes", controller.GetClassesIManage).Name = "user.getClassesIManage"
 	user.GET("/user/me/taking_classes", controller.GetClassesITake).Name = "user.getClassesITake"
@@ -74,20 +87,20 @@ func Register(e *echo.Echo) {
 	// image APIs
 	image := api.Group("")
 	image.GET("/image/:id", controller.GetImage).Name = "image.getImage"
-	image.POST("/image", controller.CreateImage, middleware.Logged).Name = "image.createImage"
+	image.POST("/image", controller.CreateImage, middleware.Logged, middleware.EmailVerified).Name = "image.createImage"
 
 	// problem APIs
 	problem := api.Group("",
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
-		middleware.AllowGuest)
+		middleware.EmailVerified, middleware.AllowGuest)
 	readProblemSecret := api.Group("",
 		middleware.ValidateParams(map[string]string{
 			"id":           "NOT_FOUND",
 			"test_case_id": "TEST_CASE_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.CustomPermission{
 				F: middleware.IsTestCaseSample,
@@ -103,21 +116,21 @@ func Register(e *echo.Echo) {
 			"id":           "NOT_FOUND",
 			"test_case_id": "TEST_CASE_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "update_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "update_problem"},
 		}),
 	)
 	api.POST("/admin/problem", controller.CreateProblem,
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "create_problem"}),
 	).Name = "problem.createProblem"
 	api.DELETE("/admin/problem/:id", controller.DeleteProblem,
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "delete_problem", T: "problem"},
 			B: middleware.UnscopedPermission{P: "delete_problem"},
@@ -130,6 +143,7 @@ func Register(e *echo.Echo) {
 	readProblemSecret.GET("/problem/:id/test_case/:test_case_id/input_file", controller.GetTestCaseInputFile).Name = "problem.getTestCaseInputFile"
 	readProblemSecret.GET("/problem/:id/test_case/:test_case_id/output_file", controller.GetTestCaseOutputFile).Name = "problem.getTestCaseOutputFile"
 	updateProblem.PUT("/admin/problem/:id", controller.UpdateProblem).Name = "problem.updateProblem"
+
 	updateProblem.POST("/admin/problem/:id/test_case", controller.CreateTestCase).Name = "problem.createTestCase"
 	updateProblem.PUT("/admin/problem/:id/test_case/:test_case_id", controller.UpdateTestCase).Name = "problem.updateTestCase"
 	updateProblem.DELETE("/admin/problem/:id/test_case/all", controller.DeleteTestCases).Name = "problem.deleteTestCases"
@@ -150,7 +164,7 @@ func Register(e *echo.Echo) {
 			"submission_id": "SUBMISSION_NOT_FOUND",
 			"problem_id":    "PROBLEM_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 	)
 	submission.POST("/problem/:problem_id/submission", controller.CreateSubmission).Name = "submission.createSubmission"
 	submission.GET("/submission/:id", controller.GetSubmission).Name = "submission.getSubmission"
@@ -163,7 +177,7 @@ func Register(e *echo.Echo) {
 
 	// log API
 	api.GET("/admin/logs", controller.AdminGetLogs,
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "read_logs"}),
 	).Name = "admin.getLogs"
 
@@ -172,24 +186,24 @@ func Register(e *echo.Echo) {
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 	)
 	manageClass := api.Group("",
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_class", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		}),
 	)
 	api.POST("/class", controller.CreateClass,
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"}),
 	).Name = "class.createClass"
-	class.GET("/class/:id", controller.GetClass, middleware.Logged).Name = "class.getClass"
-	class.POST("/class/:id/join", controller.JoinClass, middleware.Logged).Name = "class.joinClass"
+	class.GET("/class/:id", controller.GetClass).Name = "class.getClass"
+	class.POST("/class/:id/join", controller.JoinClass).Name = "class.joinClass"
 	manageClass.PUT("/class/:id", controller.UpdateClass).Name = "class.updateClass"
 	manageClass.PUT("/class/:id/invite_code", controller.RefreshInviteCode).Name = "class.refreshInviteCode"
 	manageClass.POST("/class/:id/students", controller.AddStudents).Name = "class.addStudents"
@@ -201,7 +215,7 @@ func Register(e *echo.Echo) {
 		middleware.ValidateParams(map[string]string{
 			"id": "NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
@@ -212,7 +226,7 @@ func Register(e *echo.Echo) {
 			"id":       "NOT_FOUND",
 			"class_id": "CLASS_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "manage_problem_sets"},
@@ -224,7 +238,7 @@ func Register(e *echo.Echo) {
 			"class_id":       "CLASS_NOT_FOUND",
 			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
@@ -238,7 +252,7 @@ func Register(e *echo.Echo) {
 			"id":       "NOT_FOUND",
 			"class_id": "CLASS_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
 			B: middleware.UnscopedPermission{P: "read_answers"},
@@ -249,7 +263,7 @@ func Register(e *echo.Echo) {
 			"id":       "NOT_FOUND",
 			"class_id": "CLASS_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "manage_problem_sets", T: "class", IdFieldName: "class_id"},
@@ -296,7 +310,7 @@ func Register(e *echo.Echo) {
 			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
 			"submission_id":  "SUBMISSION_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
 			A: middleware.OrPermission{
 				A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
@@ -311,7 +325,7 @@ func Register(e *echo.Echo) {
 			"problem_set_id": "PROBLEM_SET_NOT_FOUND",
 			"problem_id":     "PROBLEM_NOT_FOUND",
 		}),
-		middleware.Logged,
+		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.CustomPermission{F: middleware.ProblemSetStarted}),
 	).Name = "problemSet.createSubmission"
 	problemSetSubmission.GET("/class/:class_id/problem_set/:problem_set_id/submission/:id", controller.ProblemSetGetSubmission).Name = "problemSet.getSubmission"
@@ -350,4 +364,9 @@ func Register(e *echo.Echo) {
 			return nil
 		})
 	}
+	data, err := json.MarshalIndent(e.Routes(), "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	log.Debug(string(data))
 }

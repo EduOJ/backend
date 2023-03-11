@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Class struct {

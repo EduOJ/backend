@@ -3,11 +3,12 @@ package models
 import (
 	"encoding/binary"
 	"encoding/json"
+	"time"
+
 	"github.com/EduOJ/backend/base"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"time"
 )
 
 type User struct {
@@ -16,6 +17,8 @@ type User struct {
 	Nickname string `gorm:"index:nickname" json:"nickname"`
 	Email    string `gorm:"unique_index" json:"email"`
 	Password string `json:"-"`
+
+	EmailVerified bool `json:"email_verified"`
 
 	Roles      []UserHasRole `json:"roles"`
 	RoleLoaded bool          `gorm:"-" json:"-"`

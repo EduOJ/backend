@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
+	"io"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"net/http"
-	"testing"
 )
 
 func TestGetScript(t *testing.T) {

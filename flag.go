@@ -1,10 +1,14 @@
 package main
 
 import (
+	"os"
+
+
+
+
 	"github.com/EduOJ/backend/base/log"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"os"
 )
 
 type _opt struct {
@@ -13,13 +17,18 @@ type _opt struct {
 
 var parser *flags.Parser
 var opt _opt
-var open = os.Open
 var args []string
+
+
+
 
 func init() {
 	parser = flags.NewNamedParser("eduOJ server", flags.HelpFlag|flags.PassDoubleDash)
 	_, _ = parser.AddGroup("Application", "Application Options", &opt)
 }
+
+
+
 
 func parse() {
 	var err error

@@ -3,6 +3,9 @@ package controller
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -13,9 +16,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"net/http"
-	"path/filepath"
-	"time"
 )
 
 func ProblemSetCreateSubmission(c echo.Context) error {
@@ -71,13 +71,6 @@ func ProblemSetCreateSubmission(c echo.Context) error {
 	if file == nil {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_FILE", nil))
 	}
-
-	ext := filepath.Ext(file.Filename)
-
-	if ext != "" {
-		ext = ext[1:]
-	}
-
 	priority := models.PriorityDefault + 8
 
 	submission := models.Submission{

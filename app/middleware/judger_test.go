@@ -1,14 +1,15 @@
 package middleware_test
 
 import (
+	"io/ioutil"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
-	"net/http"
-	"testing"
 )
 
 func TestJudger(t *testing.T) {

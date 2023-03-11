@@ -2,10 +2,11 @@ package models
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/EduOJ/backend/base"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ProblemSet struct {

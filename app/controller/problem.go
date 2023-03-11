@@ -1,7 +1,13 @@
 package controller
 
 import (
+	"database/sql"
 	"fmt"
+	"math/rand"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -12,10 +18,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"math/rand"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func GetProblem(c echo.Context) error {
@@ -93,13 +95,31 @@ func GetProblems(c echo.Context) error {
 				Group("problem_id"),
 		)
 	}
+	if req.Tags != "" {
+		tags := strings.Split(req.Tags, ",")
+		query = query.Where("id in (?)",
+			base.DB.Table("tags").
+				Where("name in (?)", tags).
+				Group("problem_id").
+				Having("count(*) = ?", len(tags)).
+				Select("problem_id"),
+		)
+	}
 
 	if where != nil {
 		query = query.Where(where)
 	}
 
 	var problems []*models.Problem
-	total, prevUrl, nextUrl, err := utils.Paginator(query, req.Limit, req.Offset, c.Request().URL, &problems)
+	total, prevUrl, nextUrl, err := utils.Paginator(query.WithContext(c.Request().Context()).Preload("Tags"), req.Limit, req.Offset, c.Request().URL, &problems)
+	if err != nil {
+		if herr, ok := err.(utils.HttpError); ok {
+			return herr.Response(c)
+		}
+		panic(err)
+	}
+	var passed []sql.NullBool
+	_, _, _, err = utils.Paginator(query.Select("(select true from submissions s where problems.id = s.problem_id and s.status = 'ACCEPTED' and s.user_id = ? limit 1) as passed", req.UserID), req.Limit, req.Offset, c.Request().URL, &passed)
 	if err != nil {
 		if herr, ok := err.(utils.HttpError); ok {
 			return herr.Response(c)
@@ -111,14 +131,14 @@ func GetProblems(c echo.Context) error {
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
-				Problems []resource.ProblemForAdmin `json:"problems"`
-				Total    int                        `json:"total"`
-				Count    int                        `json:"count"`
-				Offset   int                        `json:"offset"`
-				Prev     *string                    `json:"prev"`
-				Next     *string                    `json:"next"`
+				Problems []resource.ProblemSummaryForAdmin `json:"problems"`
+				Total    int                               `json:"total"`
+				Count    int                               `json:"count"`
+				Offset   int                               `json:"offset"`
+				Prev     *string                           `json:"prev"`
+				Next     *string                           `json:"next"`
 			}{
-				Problems: resource.GetProblemForAdminSlice(problems),
+				Problems: resource.GetProblemSummaryForAdminSlice(problems, passed),
 				Total:    total,
 				Count:    len(problems),
 				Offset:   req.Offset,
@@ -138,7 +158,7 @@ func GetProblems(c echo.Context) error {
 			Prev     *string                   `json:"prev"`
 			Next     *string                   `json:"next"`
 		}{
-			Problems: resource.GetProblemSummarySlice(problems),
+			Problems: resource.GetProblemSummarySlice(problems, passed),
 			Total:    total,
 			Count:    len(problems),
 			Offset:   req.Offset,
@@ -213,6 +233,18 @@ func CreateProblem(c echo.Context) error {
 		utils.MustPutObject(file, c.Request().Context(), "problems", fmt.Sprintf("%d/attachment", problem.ID))
 	}
 
+	//base.DB.Delete(&problem.Tags)
+	var tags []models.Tag
+	if req.Tags != "" {
+		for _, tag := range strings.Split(req.Tags, ",") {
+			tags = append(tags, models.Tag{
+				Name: tag,
+			})
+		}
+	}
+	problem.Tags = tags
+	utils.PanicIfDBError(base.DB.Save(&problem), "could not update probelm")
+
 	return c.JSON(http.StatusCreated, response.CreateProblemResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -271,6 +303,21 @@ func UpdateProblem(c echo.Context) error {
 	problem.LanguageAllowed = strings.Split(req.LanguageAllowed, ",")
 	problem.BuildArg = req.BuildArg
 	problem.CompareScriptName = req.CompareScriptName
+
+	//base.DB.Delete(&problem.Tags)
+	var tags []models.Tag
+	if req.Tags != "" {
+		for _, tag := range strings.Split(req.Tags, ",") {
+			tags = append(tags, models.Tag{
+				Name: tag,
+			})
+		}
+	}
+	err = base.DB.Model(&problem).Association("Tags").Replace(&tags)
+	if err != nil {
+		panic(err)
+	}
+
 	utils.PanicIfDBError(base.DB.Save(&problem), "could not update problem")
 	return c.JSON(http.StatusOK, response.UpdateProblemResponse{
 		Message: "SUCCESS",

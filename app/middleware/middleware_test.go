@@ -3,6 +3,12 @@ package middleware_test
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/EduOJ/backend/app"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/exit"
@@ -12,11 +18,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func jsonEQ(t *testing.T, expected, actual interface{}) {
@@ -80,10 +81,14 @@ func (h headerOption) make(r *http.Request) {
 func (q queryOption) make(r *http.Request) {
 	for k, v := range q {
 		for _, s := range v {
-			r.URL.Query().Add(k, s)
+			q := r.URL.Query()
+			q.Add(k, s)
+			r.URL.RawQuery = q.Encode()
 		}
 	}
 }
+
+var _ = queryOption{} // explictly mark as used
 
 func makeReq(t *testing.T, method string, path string, data interface{}, options ...reqOption) *http.Request {
 	j, err := json.Marshal(data)
@@ -111,6 +116,8 @@ server:
   port: 8080
   origin:
     - http://127.0.0.1:8000
+email:
+  need_verification: true
 auth:
   session_timeout: 1200
   remember_me_timeout: 604800

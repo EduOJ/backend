@@ -2,15 +2,16 @@ package utils
 
 import (
 	"fmt"
-	"github.com/EduOJ/backend/base"
-	"github.com/EduOJ/backend/database/models"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/database/models"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 func Paginator(query *gorm.DB, limit, offset int, requestURL *url.URL, output interface{}) (total int, prevUrl, nextUrl *string, err error) {
@@ -90,7 +91,7 @@ func Sorter(query *gorm.DB, orderBy string, columns ...string) (*gorm.DB, error)
 
 func FindUser(id string) (*models.User, error) {
 	user := models.User{}
-	err := base.DB.Where("id = ?", id).First(&user).Error
+	_, err := strconv.Atoi(id)
 	if err != nil {
 		err = base.DB.Where("username = ?", id).First(&user).Error
 		if err != nil {
@@ -98,6 +99,18 @@ func FindUser(id string) (*models.User, error) {
 				return nil, err
 			} else {
 				return nil, errors.Wrap(err, "could not query user")
+			}
+		}
+	} else {
+		err = base.DB.Where("id = ?", id).First(&user).Error
+		if err != nil {
+			err = base.DB.Where("username = ?", id).First(&user).Error
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, err
+				} else {
+					return nil, errors.Wrap(err, "could not query user")
+				}
 			}
 		}
 	}
@@ -109,7 +122,7 @@ func FindUser(id string) (*models.User, error) {
 func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	problem := models.Problem{}
 	query := base.DB
-	err := query.Where("id = ?", id).First(&problem).Error
+	err := query.Preload("Tags").Where("id = ?", id).First(&problem).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
@@ -121,6 +134,7 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 		return nil, gorm.ErrRecordNotFound
 	}
 	problem.LoadTestCases()
+	problem.LoadTags()
 	return &problem, nil
 }
 

@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/EduOJ/backend/base/exit"
-	"github.com/EduOJ/backend/base/log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/EduOJ/backend/base/exit"
+	"github.com/EduOJ/backend/base/log"
 )
 
 func serve() {
@@ -15,6 +16,7 @@ func serve() {
 	initRedis()
 	initStorage()
 	initWebAuthn()
+	initMail()
 	initEvent()
 	startEcho()
 	s := make(chan os.Signal, 1)

@@ -3,23 +3,22 @@ package utils
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/base"
 	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"strconv"
-	"testing"
 )
 
 func getPresignedURLContent(t *testing.T, presignedUrl string) (content string) {
 	resp, err := http.Get(presignedUrl)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	length, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	body := make([]byte, length)
-	_, err = resp.Body.Read(body)
 	return string(body)
 }
 

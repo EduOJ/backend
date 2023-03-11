@@ -1,0 +1,4 @@
+issues:
+  exclude-rules:
+    - path: base/exit/test.go
+      text: "copylocks: assignment copies lock value to"

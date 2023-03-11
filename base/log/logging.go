@@ -1,9 +1,10 @@
 package log
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 var logger0 _logger = &logger{}

@@ -3,6 +3,11 @@ package controller
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	path2 "path"
+	"strings"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/log"
@@ -13,10 +18,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"io"
-	"net/http"
-	path2 "path"
-	"strings"
 )
 
 func GetImage(c echo.Context) error {

@@ -1,22 +1,33 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
+	"github.com/EduOJ/backend/event/register"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"net/http"
-	"strconv"
 )
 
+// @summary      Get specific user's information.
+// @description  Get a specific user's basic information by user id or username.
+// @description  If a user's username happens to be another's id, this API will find the user by ID.
+// @router       /user/{id} [GET]
+// @produce      json
+// @tags         Auth
+// @success      200  {object}  response.GetUserResponse
+// @success      404  {object}  response.Response  "user not found, with message `NOT_FOUND`"
+// @failure      500  {object}  response.Response
+// @security     ApiKeyAuth
 func GetUser(c echo.Context) error {
-
 	user, err := utils.FindUser(c.Param("id"))
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -34,6 +45,14 @@ func GetUser(c echo.Context) error {
 	})
 }
 
+// @summary      Get current user's information.
+// @description  Get current user's information.
+// @router       /user/me [GET]
+// @produce      json
+// @tags         Auth
+// @success      200  {object}  response.GetMeResponse
+// @failure      500  {object}  response.Response
+// @security     ApiKeyAuth
 func GetMe(c echo.Context) error {
 	user := c.Get("user").(models.User)
 	if !user.RoleLoaded {
@@ -125,8 +144,16 @@ func UpdateMe(c echo.Context) error {
 	}
 	user.Username = req.Username
 	user.Nickname = req.Nickname
+	emailChanged := user.Email != req.Email
+	if emailChanged {
+		user.EmailVerified = false
+	}
 	user.Email = req.Email
 	utils.PanicIfDBError(base.DB.Omit(clause.Associations).Save(&user), "could not update user")
+	if emailChanged {
+		base.DB.Delete(&models.EmailVerificationToken{}, "user_id = ?", user.ID)
+		register.SendVerificationEmail(&user)
+	}
 	return c.JSON(http.StatusOK, response.UpdateMeResponse{
 		Message: "SUCCESS",
 		Error:   nil,

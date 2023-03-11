@@ -1,13 +1,14 @@
 package validator
 
 import (
+	"regexp"
+
 	"github.com/EduOJ/backend/base/log"
 	zhTranslations "github.com/EduOJ/backend/base/validator/translations/zh"
 	zhLocal "github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
-	"regexp"
 )
 
 type echoValidator struct {

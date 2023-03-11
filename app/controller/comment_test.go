@@ -2,13 +2,14 @@ package controller_test
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
 func TestCreateComment(t *testing.T) {
@@ -41,7 +42,7 @@ func TestCreateComment(t *testing.T) {
 		t.Run("TestCreateComment"+test.name, func(t *testing.T) {
 			t.Parallel()
 			user := createUserForTest(t, "create_comment", 0)
-			user.GrantRole("admin")
+			// user.GrantRole("admin")
 			httpReq := makeReq(t, "POST", base.Echo.Reverse("comment.createComment"), successTests[0].req, headerOption{
 				"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 			})
@@ -55,8 +56,7 @@ func TestCreateComment(t *testing.T) {
 
 			test = successTests[1]
 			test.req.FatherID = databaseComment.ID
-			var data interface{}
-			data = test.req
+			var data = test.req
 			httpReq = makeReq(t, "POST", base.Echo.Reverse("comment.createComment"), data, headerOption{
 				"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 			})

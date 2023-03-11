@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/EduOJ/backend/base/exit"
 	"github.com/EduOJ/backend/database"
 	"github.com/kami-zh/go-capturer"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"reflect"
-	"testing"
 )
 
 type fakeLogger struct {
@@ -189,12 +190,13 @@ func TestInitFromConfigSuccess(t *testing.T) {
 	logger0 = l
 	assert.Equal(t, false, l.ready)
 	viper.SetConfigType("yaml")
-	viper.ReadConfig(bytes.NewBufferString(`
-- name: console
-  level: debug
-- name: database
-  level: debug
-`))
+	assert.NoError(t, viper.ReadConfig(bytes.NewBufferString(`
+log:
+  - name: console
+    level: debug
+  - name: database
+    level: debug
+`)))
 	err := InitFromConfig()
 	assert.NoError(t, err)
 	assert.Equal(t, true, l.ready)

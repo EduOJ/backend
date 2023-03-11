@@ -1,8 +1,9 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Comment struct {
@@ -12,7 +13,7 @@ type Comment struct {
 	User   User `gorm:"foreignKey:UserID"`
 
 	ReactionID uint
-	Reaction   Reaction `gorm:"foreignKey:ReactionID" gorm:"polymorphic:Target"`
+	Reaction   Reaction `gorm:"foreignKey:ReactionID;polymorphic:Target"`
 
 	Content string
 

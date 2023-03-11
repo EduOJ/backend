@@ -9,14 +9,20 @@ type User struct {
 	Email    string `json:"email"`
 }
 
+// @description UserForAdmin is a user with additional, credential data, only accessible by people has permission,
+// @description e.g. admin can access to all user's credential data, and a user can access to his/her credential data.
 type UserForAdmin struct {
-	ID       uint   `json:"id"`
+	// ID is the user's id.
+	ID uint `json:"id"`
+	// Username is the user's username, usually the student ID if used in schools.
 	Username string `json:"username"`
+	// Nickname is the user's nickname, usually the student name if used in schools.
 	Nickname string `json:"nickname"`
-	Email    string `json:"email"`
+	// Email is the user's email.
+	Email string `json:"email"`
 
-	Roles  []Role  `json:"roles"`
-	Grades []Grade `json:"grades"`
+	// Role is the user's role, and is used to obtain the permissions of a user.
+	Roles []Role `json:"roles"`
 }
 
 func (p *User) convert(user *models.User) {
@@ -38,7 +44,6 @@ func (p *UserForAdmin) convert(user *models.User) {
 	p.Nickname = user.Nickname
 	p.Email = user.Email
 	p.Roles = GetRoleSlice(user.Roles)
-	p.Grades = GetGradeSlice(user.Grades)
 }
 
 func GetUser(user *models.User) *User {

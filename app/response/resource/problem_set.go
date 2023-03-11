@@ -1,9 +1,11 @@
 package resource
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type ProblemSetWithGrades struct {
@@ -72,7 +74,7 @@ func (p *ProblemSetWithGrades) convert(problemSet *models.ProblemSet) {
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
-	p.Problems = GetProblemSummarySlice(problemSet.Problems)
+	p.Problems = GetProblemSummarySlice(problemSet.Problems, make([]sql.NullBool, len(problemSet.Problems)))
 	p.Grades = GetGradeSlice(problemSet.Grades)
 	p.StartTime = problemSet.StartTime
 	p.EndTime = problemSet.EndTime
@@ -83,7 +85,7 @@ func (p *ProblemSetDetail) convert(problemSet *models.ProblemSet) {
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
-	p.Problems = GetProblemSummarySlice(problemSet.Problems)
+	p.Problems = GetProblemSummarySlice(problemSet.Problems, make([]sql.NullBool, len(problemSet.Problems)))
 	p.StartTime = problemSet.StartTime
 	p.EndTime = problemSet.EndTime
 }
@@ -93,7 +95,7 @@ func (p *ProblemSet) convert(problemSet *models.ProblemSet) {
 	p.ClassID = problemSet.ClassID
 	p.Name = problemSet.Name
 	p.Description = problemSet.Description
-	p.Problems = GetProblemSummarySlice(problemSet.Problems)
+	p.Problems = GetProblemSummarySlice(problemSet.Problems, make([]sql.NullBool, len(problemSet.Problems)))
 	p.StartTime = problemSet.StartTime
 	p.EndTime = problemSet.EndTime
 }

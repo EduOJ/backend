@@ -2,6 +2,10 @@ package controller_test
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -11,9 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"net/http"
-	"net/url"
-	"testing"
 )
 
 func getUrlStringPointer(name string, paras map[string]string, urlParas ...interface{}) *string {
@@ -544,7 +545,9 @@ func TestAdminGetUser(t *testing.T) {
 		Target: &dummy,
 	}
 	base.DB.Create(&testRole)
-	testRole.AddPermission("testAdminGetUserPerm")
+	if err := testRole.AddPermission("testAdminGetUserPerm"); err != nil {
+		panic(err)
+	}
 
 	successTests := []struct {
 		name       string

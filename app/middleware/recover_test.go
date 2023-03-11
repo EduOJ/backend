@@ -2,12 +2,13 @@ package middleware_test
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/EduOJ/backend/app/middleware"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestRecover(t *testing.T) {

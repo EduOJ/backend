@@ -21,7 +21,6 @@ type UpdateMeRequest struct {
 	Nickname string `json:"nickname" form:"nickname" query:"nickname" validate:"required,max=30,min=1"`
 	Email    string `json:"email" form:"email" query:"email" validate:"required,email,max=320,min=5"`
 }
-
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" form:"old_password" query:"old_password" validate:"required,max=30,min=5"`
 	NewPassword string `json:"new_password" form:"new_password" query:"new_password" validate:"required,max=30,min=5"`
@@ -34,4 +33,8 @@ type GetClassesITakeRequest struct {
 }
 
 type GetUserProblemInfoRequest struct {
+}
+
+type VerifyEmailRequest struct {
+	Token string `json:"token" form:"token" query:"token" validate:"required,max=5,min=5"`
 }

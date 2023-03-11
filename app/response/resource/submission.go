@@ -1,8 +1,9 @@
 package resource
 
 import (
-	"github.com/EduOJ/backend/database/models"
 	"time"
+
+	"github.com/EduOJ/backend/database/models"
 )
 
 type Submission struct {

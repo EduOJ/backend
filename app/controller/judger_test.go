@@ -3,14 +3,15 @@ package controller_test
 import (
 	"bytes"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
 	"github.com/EduOJ/backend/database"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestGetTask(t *testing.T) {

@@ -2,6 +2,9 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -11,8 +14,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"net/http"
-	"time"
 )
 
 func CreateProblemSet(c echo.Context) error {
@@ -103,7 +104,7 @@ func GetProblemSet(c echo.Context) error {
 
 	user := c.Get("user").(models.User)
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").
+	if err := base.DB.Preload("Problems").Preload("Problems.Tags").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -151,7 +152,7 @@ func UpdateProblemSet(c echo.Context) error {
 		return err
 	}
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").
+	if err := base.DB.Preload("Problems").Preload("Problems.Tags").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("problem_set_id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -182,7 +183,7 @@ func AddProblemsToSet(c echo.Context) error {
 	}
 
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").
+	if err := base.DB.Preload("Problems").Preload("Problems.Tags").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
@@ -211,7 +212,7 @@ func DeleteProblemsFromSet(c echo.Context) error {
 	}
 
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").
+	if err := base.DB.Preload("Problems").Preload("Problems.Tags").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))

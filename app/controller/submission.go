@@ -3,6 +3,10 @@ package controller
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -10,13 +14,11 @@ import (
 	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/base/utils"
 	"github.com/EduOJ/backend/database/models"
+	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var inTest bool
@@ -43,7 +45,7 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	if !utils.Contain(req.Language, problem.LanguageAllowed) {
+	if !utils.Contain(req.Language, problem.LanguageAllowed) && !utils.Contain("any", problem.LanguageAllowed) {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LANGUAGE", nil))
 	}
 
@@ -122,7 +124,16 @@ func GetSubmission(c echo.Context) error {
 		// Ignore error.
 		log.Error(err)
 	}
-
+	var timer *time.Timer
+	var timeout bool
+	var sub *redis.PubSub
+	if poll {
+		timer = time.NewTimer(viper.GetDuration("polling_timeout"))
+		timeout = false
+		sub = base.Redis.Subscribe(c.Request().Context(), fmt.Sprintf("submission_update:%s", c.Param("id")))
+		defer sub.Close()
+		defer timer.Stop()
+	}
 	user := c.Get("user").(models.User)
 	submission := models.Submission{}
 	if err := base.DB.Preload("Problem").Preload("User").First(&submission, c.Param("id")).Error; err != nil {
@@ -152,10 +163,6 @@ func GetSubmission(c echo.Context) error {
 			},
 		})
 	}
-	timeoutChan := time.After(viper.GetDuration("polling_timeout"))
-	timeout := false
-	sub := base.Redis.Subscribe(c.Request().Context(), fmt.Sprintf("submission_update:%d", submission.ID))
-	defer sub.Close()
 	for {
 		select {
 		case <-sub.Channel():
@@ -166,7 +173,7 @@ func GetSubmission(c echo.Context) error {
 		case <-c.Request().Context().Done():
 			// context cancelled
 			return nil
-		case <-timeoutChan:
+		case <-timer.C:
 			timeout = true
 		}
 		if timeout {
