@@ -3,9 +3,9 @@ package base
 import (
 	"html/template"
 
-	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/go-mail/mail"
 	"github.com/go-redis/redis/v8"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"

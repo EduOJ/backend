@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/EduOJ/backend/base"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )

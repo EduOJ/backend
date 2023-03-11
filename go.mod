@@ -3,7 +3,6 @@ module github.com/EduOJ/backend
 go 1.15
 
 require (
-	github.com/duo-labs/webauthn v0.0.0-20200714211715-1daaee874e43
 	github.com/fatih/color v1.10.0
 	github.com/gabriel-vasile/mimetype v1.1.2
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
@@ -12,7 +11,7 @@ require (
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.4.11
-	github.com/google/uuid v1.2.0 // indirect
+	github.com/go-webauthn/webauthn v0.8.2
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20210124080349-901cf567bf01
@@ -27,13 +26,12 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/echo-swagger v1.3.0
 	github.com/swaggo/swag v1.8.0
 	github.com/xlab/treeprint v1.0.0
-	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
+	golang.org/x/crypto v0.6.0
 	golang.org/x/tools v0.7.0 // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
@@ -44,6 +42,6 @@ require (
 	gorm.io/gorm v1.20.12
 )
 
-replace github.com/stretchr/testify v1.7.0 => github.com/leoleoasd/testify v1.6.2-0.20220217095700-4ed8551c7e3c
+replace github.com/stretchr/testify v1.8.1 => github.com/leoleoasd/testify v1.6.2-0.20220217095700-4ed8551c7e3c
 
 replace github.com/johannesboyne/gofakes3 => github.com/leoleoasd/gofakes3 v0.0.0-20210203155129-abef9ae90e02
