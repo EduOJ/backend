@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "*"
+name: pre-commit.ci lite
 jobs:
   main:
     runs-on: ubuntu-latest
