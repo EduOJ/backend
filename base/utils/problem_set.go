@@ -116,24 +116,30 @@ func RefreshGrades(problemSet *models.ProblemSet) error {
 	return nil
 }
 
+// CreateEmptyGrades Creates empty grades(score 0 for all the problems)
+//                   for users who don't have a grade for this problem set.
 func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	gradeLock.Lock()
 	defer gradeLock.Unlock()
-	gradeSet := make(map[uint]bool)
-	for _, g := range problemSet.Grades {
-		//fmt.Println(g)
-		gradeSet[g.UserID] = true
-	}
-	grades := make([]*models.Grade, 0, len(problemSet.Class.Students)-len(problemSet.Grades))
-	copy(grades, problemSet.Grades)
+
+	// Create empty grade JSON object
 	detail := make(map[uint]uint)
 	for _, p := range problemSet.Problems {
 		detail[p.ID] = 0
 	}
 	emptyDetail, err := json.Marshal(detail)
 	if err != nil {
-		return errors.Wrap(err, "could not marshal grade detail when getting grades")
+		return errors.Wrap(err, "could not marshal grade detail for empty grade")
 	}
+
+	// Record students who have a grade
+	gradeSet := make(map[uint]bool)
+	for _, g := range problemSet.Grades {
+		gradeSet[g.UserID] = true
+	}
+
+	// Generate empty grade slice
+	grades := make([]*models.Grade, 0, len(problemSet.Class.Students)-len(problemSet.Grades))
 	for _, u := range problemSet.Class.Students {
 		if gradeSet[u.ID] {
 			continue
@@ -147,11 +153,15 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 		}
 		grades = append(grades, &newGrade)
 	}
+
+	// Store empty grades into DB
 	if len(grades) > 0 {
 		if err = base.DB.Create(&grades).Error; err != nil {
-			return errors.Wrap(err, "could not create grades when getting grades")
+			return errors.Wrap(err, "could not create empty grades")
 		}
 	}
+
+	// Update problem set
 	problemSet.Grades = append(problemSet.Grades, grades...)
 	return nil
 }
