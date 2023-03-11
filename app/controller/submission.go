@@ -3,6 +3,10 @@ package controller
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/EduOJ/backend/app/request"
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/app/response/resource"
@@ -15,9 +19,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var inTest bool
@@ -44,7 +45,7 @@ func CreateSubmission(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, response.ErrorResp("PERMISSION_DENIED", nil))
 	}
 
-	if !utils.Contain(req.Language, problem.LanguageAllowed) {
+	if !utils.Contain(req.Language, problem.LanguageAllowed) && !utils.Contain("any", problem.LanguageAllowed) {
 		return c.JSON(http.StatusBadRequest, response.ErrorResp("INVALID_LANGUAGE", nil))
 	}
 
