@@ -16,7 +16,7 @@ require (
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20210124080349-901cf567bf01
 	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
-	github.com/labstack/echo/v4 v4.6.3
+	github.com/labstack/echo/v4 v4.9.0
 	github.com/labstack/gommon v0.3.1
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.7.1 // indirect
