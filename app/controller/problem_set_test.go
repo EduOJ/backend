@@ -1420,7 +1420,7 @@ func TestRefreshGrades(t *testing.T) {
 	})
 }
 
-func TestGetGrades(t *testing.T) {
+func TestGetProblemSetGrades(t *testing.T) {
 	t.Parallel()
 	user1 := createUserForTest(t, "get_grades", 1)
 	user2 := createUserForTest(t, "get_grades", 2)
@@ -1430,8 +1430,8 @@ func TestGetGrades(t *testing.T) {
 		{
 			name:   "NonExistingClass",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.GetGrades", -1, problemSet.ID),
-			req:    request.GetGradesRequest{},
+			path:   base.Echo.Reverse("problemSet.GetProblemSetGrades", -1, problemSet.ID),
+			req:    request.GetProblemSetGradesRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
 			},
@@ -1441,8 +1441,8 @@ func TestGetGrades(t *testing.T) {
 		{
 			name:   "NonExistingProblemSet",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.GetGrades", class.ID, -1),
-			req:    request.GetGradesRequest{},
+			path:   base.Echo.Reverse("problemSet.GetProblemSetGrades", class.ID, -1),
+			req:    request.GetProblemSetGradesRequest{},
 			reqOptions: []reqOption{
 				applyAdminUser,
 			},
@@ -1452,8 +1452,8 @@ func TestGetGrades(t *testing.T) {
 		{
 			name:   "PermissionDenied",
 			method: "GET",
-			path:   base.Echo.Reverse("problemSet.GetGrades", class.ID, -1),
-			req:    request.GetGradesRequest{},
+			path:   base.Echo.Reverse("problemSet.GetProblemSetGrades", class.ID, -1),
+			req:    request.GetProblemSetGradesRequest{},
 			reqOptions: []reqOption{
 				applyNormalUser,
 			},
@@ -1462,7 +1462,7 @@ func TestGetGrades(t *testing.T) {
 		},
 	}
 
-	runFailTests(t, failTests, "GetGrades")
+	runFailTests(t, failTests, "GetProblemSetGrades")
 
 	t.Run("Empty", func(t *testing.T) {
 		t.Parallel()
@@ -1473,7 +1473,7 @@ func TestGetGrades(t *testing.T) {
 		problem2 := createProblemForTest(t, "get_grades", 2, nil, user1)
 		ps := createProblemSetForTest(t, "get_grades_empty", 0, &class, []models.Problem{problem1, problem2}, inProgress)
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.GetProblemSetGrades", class.ID, ps.ID), nil, applyAdminUser))
 		databaseProblemSet := models.ProblemSet{}
 		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet, ps.ID).Error)
 		j, err := json.Marshal(map[uint]uint{
@@ -1526,10 +1526,10 @@ func TestGetGrades(t *testing.T) {
 			DeletedAt: gorm.DeletedAt{},
 		}
 		assert.Equal(t, expectedProblemSet, databaseProblemSet)
-		resp := response.GetGradesResponse{}
+		resp := response.GetProblemSetGradesResponse{}
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.GetGradesResponse{
+		assert.Equal(t, response.GetProblemSetGradesResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -1567,7 +1567,7 @@ func TestGetGrades(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NoError(t, base.DB.Create(&grade1).Error)
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.GetProblemSetGrades", class.ID, ps.ID), nil, applyAdminUser))
 		databaseProblemSet := models.ProblemSet{}
 		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet, ps.ID).Error)
 
@@ -1614,10 +1614,10 @@ func TestGetGrades(t *testing.T) {
 			DeletedAt: gorm.DeletedAt{},
 		}
 		assert.Equal(t, expectedProblemSet, databaseProblemSet)
-		resp := response.GetGradesResponse{}
+		resp := response.GetProblemSetGradesResponse{}
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.GetGradesResponse{
+		assert.Equal(t, response.GetProblemSetGradesResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {
@@ -1664,7 +1664,7 @@ func TestGetGrades(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NoError(t, base.DB.Create(&grade2).Error)
 		httpResp := makeResp(makeReq(t, "GET",
-			base.Echo.Reverse("problemSet.GetGrades", class.ID, ps.ID), nil, applyAdminUser))
+			base.Echo.Reverse("problemSet.GetProblemSetGrades", class.ID, ps.ID), nil, applyAdminUser))
 		databaseProblemSet := models.ProblemSet{}
 		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet, ps.ID).Error)
 
@@ -1711,10 +1711,10 @@ func TestGetGrades(t *testing.T) {
 			DeletedAt: gorm.DeletedAt{},
 		}
 		assert.Equal(t, expectedProblemSet, databaseProblemSet)
-		resp := response.GetGradesResponse{}
+		resp := response.GetProblemSetGradesResponse{}
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
 		mustJsonDecode(httpResp, &resp)
-		assert.Equal(t, response.GetGradesResponse{
+		assert.Equal(t, response.GetProblemSetGradesResponse{
 			Message: "SUCCESS",
 			Error:   nil,
 			Data: struct {

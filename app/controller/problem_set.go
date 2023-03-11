@@ -485,7 +485,7 @@ func RefreshGrades(c echo.Context) error {
 	})
 }
 
-func GetGrades(c echo.Context) error {
+func GetProblemSetGrades(c echo.Context) error {
 	problemSet := models.ProblemSet{}
 	if err := base.DB.Preload("Problems").Preload("Class.Students").Preload("Grades").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
@@ -497,7 +497,7 @@ func GetGrades(c echo.Context) error {
 	if err := utils.CreateEmptyGrades(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not get grades"))
 	}
-	return c.JSON(http.StatusOK, response.GetGradesResponse{
+	return c.JSON(http.StatusOK, response.GetProblemSetGradesResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {

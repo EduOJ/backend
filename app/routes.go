@@ -291,7 +291,7 @@ func Register(e *echo.Echo) {
 				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
 		})).Name = "problemSet.getProblemSetProblemOutputFile"
-	problemSetGrades.GET("/class/:class_id/problem_set/:id/grades", controller.GetGrades).Name = "problemSet.GetGrades"
+	problemSetGrades.GET("/class/:class_id/problem_set/:id/grades", controller.GetProblemSetGrades).Name = "problemSet.GetProblemSetGrades"
 	problemSetGrades.POST("/class/:class_id/problem_set/:id/grades/refresh", controller.RefreshGrades).Name = "problemSet.RefreshGrades"
 
 	// problem set submission APIs

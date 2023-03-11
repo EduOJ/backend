@@ -82,7 +82,7 @@ type GetProblemSetProblemResponse struct {
 	} `json:"data"`
 }
 
-type GetGradesResponse struct {
+type GetProblemSetGradesResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
 	Data    struct {
