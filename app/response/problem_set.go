@@ -82,6 +82,14 @@ type GetProblemSetProblemResponse struct {
 	} `json:"data"`
 }
 
+type GetClassGradesResponse struct {
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+	Data    struct {
+		ProblemSets []*resource.ProblemSetWithGrades `json:"problem_sets"`
+	} `json:"data"`
+}
+
 type GetProblemSetGradesResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
