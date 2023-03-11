@@ -2,7 +2,7 @@ package request
 
 type LoginRequest struct {
 	// The username or email of the user logging in.
-	UsernameOrEmail string `json:"username" form:"username" query:"username" validate:"required,min=5,max=30,username|email" example:"username"`
+	UsernameOrEmail string `json:"username" form:"username" query:"username" validate:"required,min=5,max=320,username|email" example:"username"`
 	// The password of the user logging in.
 	Password string `json:"password" form:"password" query:"password" validate:"required,min=5,max=30" example:"password"`
 	// If true, the created token will last longer.
