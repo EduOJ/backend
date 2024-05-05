@@ -487,7 +487,7 @@ func RefreshGrades(c echo.Context) error {
 
 func GetProblemSetGrades(c echo.Context) error {
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").Preload("Class.Students").Preload("Grades").
+	if err := base.DB.Preload("Problems").Preload("Class.Students").Preload("Grades").Preload("Grades.User").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))

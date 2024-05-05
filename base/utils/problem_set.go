@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
 	"time"
 
@@ -117,7 +118,8 @@ func RefreshGrades(problemSet *models.ProblemSet) error {
 }
 
 // CreateEmptyGrades Creates empty grades(score 0 for all the problems)
-//                   for users who don't have a grade for this problem set.
+//
+//	for users who don't have a grade for this problem set.
 func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	gradeLock.Lock()
 	defer gradeLock.Unlock()
@@ -127,10 +129,15 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	for _, p := range problemSet.Problems {
 		detail[p.ID] = 0
 	}
-	emptyDetail, err := json.Marshal(detail)
+	emptyDetail, err := json.Marshal(detail) // 将map转换为JSON格式
 	if err != nil {
+		// 如果转换失败，记录错误并返回
+		log.Errorf("Error marshalling grade detail for empty grade: %v", err)
 		return errors.Wrap(err, "could not marshal grade detail for empty grade")
 	}
+
+	// 打印转换后的JSON日志
+	log.Errorf("Empty detail JSON: %s", emptyDetail)
 
 	// Record students who have a grade
 	gradeSet := make(map[uint]bool)

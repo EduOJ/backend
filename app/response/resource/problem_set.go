@@ -62,7 +62,8 @@ type ProblemSetSummary struct {
 type Grade struct {
 	ID uint `json:"id"`
 
-	UserID       uint `json:"user_id"`
+	UserID uint  `json:"user_id"`
+	User   *User `json:"user"`
 	ProblemSetID uint `json:"problem_set_id"`
 
 	Detail string `json:"detail"`
@@ -152,6 +153,7 @@ func GetProblemSetSlice(problemSetSlice []*models.ProblemSet) (ps []ProblemSet) 
 func (g *Grade) convert(grade *models.Grade) {
 	g.ID = grade.ID
 	g.UserID = grade.UserID
+	g.User = GetUser(grade.User)
 	g.ProblemSetID = grade.ProblemSetID
 	b, err := grade.Detail.MarshalJSON()
 	if err != nil {
