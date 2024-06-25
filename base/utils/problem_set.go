@@ -136,7 +136,7 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	}
 
 	// json log
-	log.Errorf("Empty detail JSON: %s", emptyDetail)
+	log.Debugf("Empty detail JSON: %s", emptyDetail)
 
 	// Record students who have a grade
 	gradeSet := make(map[uint]bool)

@@ -1507,7 +1507,7 @@ func TestGetProblemSetGrades(t *testing.T) {
 				{
 					ID:           databaseProblemSet.Grades[0].ID,
 					UserID:       user1.ID,
-					User:         nil,
+					User:         user1,
 					ProblemSetID: problemSet.ID,
 					ProblemSet:   nil,
 					ClassID:      class.ID,
@@ -1520,7 +1520,7 @@ func TestGetProblemSetGrades(t *testing.T) {
 				{
 					ID:           databaseProblemSet.Grades[1].ID,
 					UserID:       user2.ID,
-					User:         nil,
+					User:         user2,
 					ProblemSetID: problemSet.ID,
 					ProblemSet:   nil,
 					ClassID:      class.ID,
