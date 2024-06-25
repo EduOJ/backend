@@ -2,11 +2,11 @@ package utils
 
 import (
 	"encoding/json"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
