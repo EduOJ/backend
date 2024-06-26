@@ -129,14 +129,13 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	for _, p := range problemSet.Problems {
 		detail[p.ID] = 0
 	}
-	emptyDetail, err := json.Marshal(detail) // 将map转换为JSON格式
+	emptyDetail, err := json.Marshal(detail) // turn map to json
 	if err != nil {
-		// 如果转换失败，记录错误并返回
 		log.Errorf("Error marshalling grade detail for empty grade: %v", err)
 		return errors.Wrap(err, "could not marshal grade detail for empty grade")
 	}
 
-	// 打印转换后的JSON日志
+	// json log
 	log.Errorf("Empty detail JSON: %s", emptyDetail)
 
 	// Record students who have a grade
