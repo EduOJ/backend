@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
@@ -117,7 +118,8 @@ func RefreshGrades(problemSet *models.ProblemSet) error {
 }
 
 // CreateEmptyGrades Creates empty grades(score 0 for all the problems)
-//                   for users who don't have a grade for this problem set.
+//
+//	for users who don't have a grade for this problem set.
 func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	gradeLock.Lock()
 	defer gradeLock.Unlock()
@@ -127,10 +129,14 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	for _, p := range problemSet.Problems {
 		detail[p.ID] = 0
 	}
-	emptyDetail, err := json.Marshal(detail)
+	emptyDetail, err := json.Marshal(detail) // turn map to json
 	if err != nil {
+		log.Errorf("Error marshalling grade detail for empty grade: %v", err)
 		return errors.Wrap(err, "could not marshal grade detail for empty grade")
 	}
+
+	// json log
+	log.Debugf("Empty detail JSON: %s", emptyDetail)
 
 	// Record students who have a grade
 	gradeSet := make(map[uint]bool)
