@@ -485,25 +485,53 @@ func RefreshGrades(c echo.Context) error {
 	})
 }
 
-func GetGrades(c echo.Context) error {
+func GetProblemSetGrades(c echo.Context) error {
 	problemSet := models.ProblemSet{}
-	if err := base.DB.Preload("Problems").Preload("Class.Students").Preload("Grades").
+	if err := base.DB.Preload("Problems").Preload("Class.Students").Preload("Grades").Preload("Grades.User").
 		First(&problemSet, "id = ? and class_id = ?", c.Param("id"), c.Param("class_id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
 		}
-		panic(errors.Wrap(err, "could not get problem set for getting grades"))
+		panic(errors.Wrap(err, "could not get problem set for getting problem set grades"))
 	}
 	if err := utils.CreateEmptyGrades(&problemSet); err != nil {
-		panic(errors.Wrap(err, "could not get grades"))
+		panic(errors.Wrap(err, "could not create empty grades to get problem set grades"))
 	}
-	return c.JSON(http.StatusOK, response.GetGradesResponse{
+	return c.JSON(http.StatusOK, response.GetProblemSetGradesResponse{
 		Message: "SUCCESS",
 		Error:   nil,
 		Data: struct {
 			*resource.ProblemSetWithGrades `json:"problem_set"`
 		}{
 			resource.GetProblemSetWithGrades(&problemSet),
+		},
+	})
+}
+
+func GetClassGrades(c echo.Context) error {
+	class := models.Class{}
+	if err := base.DB.Preload("Students").Preload("ProblemSets.Grades").Preload("ProblemSets.Problems").
+		First(&class, "id = ?", c.Param("id")).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, response.ErrorResp("NOT_FOUND", nil))
+		}
+		panic(errors.Wrap(err, "could not get class for getting class grades"))
+	}
+	ret := make([]*resource.ProblemSetWithGrades, 0, len(class.ProblemSets))
+	for _, problemSet := range class.ProblemSets {
+		problemSet.Class = &class
+		if err := utils.CreateEmptyGrades(problemSet); err != nil {
+			panic(errors.Wrap(err, "could not create empty grades to get class grades"))
+		}
+		ret = append(ret, resource.GetProblemSetWithGrades(problemSet))
+	}
+	return c.JSON(http.StatusOK, response.GetClassGradesResponse{
+		Message: "SUCCESS",
+		Error:   nil,
+		Data: struct {
+			ProblemSets []*resource.ProblemSetWithGrades `json:"problem_sets"`
+		}{
+			ret,
 		},
 	})
 }

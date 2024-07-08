@@ -397,13 +397,12 @@ func CreateTestCase(c echo.Context) error {
 		InputFileName:  inputFile.Filename,
 		OutputFileName: outputFile.Filename,
 	}
-
 	if err := base.DB.Model(&problem).Association("TestCases").Append(&testCase); err != nil {
 		panic(errors.Wrap(err, "could not create test case"))
 	}
-
-	utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
-	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
+	// 上传到minio
+	utils.MustPutTestCase(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+	utils.MustPutTestCase(*req.Sanitize, outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 
 	return c.JSON(http.StatusCreated, response.CreateTestCaseResponse{
 		Message: "SUCCESS",
@@ -478,7 +477,6 @@ func UpdateTestCase(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-
 	inputFile, err := c.FormFile("input_file")
 	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
 		panic(errors.Wrap(err, "could not read input file"))
@@ -489,11 +487,11 @@ func UpdateTestCase(c echo.Context) error {
 	}
 
 	if inputFile != nil {
-		utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+		utils.MustPutTestCase(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
 		testCase.InputFileName = inputFile.Filename
 	}
 	if outputFile != nil {
-		utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
+		utils.MustPutTestCase(*req.Sanitize, outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 		testCase.OutputFileName = outputFile.Filename
 	}
 

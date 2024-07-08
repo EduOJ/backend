@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/pprof"
 
@@ -190,6 +189,16 @@ func Register(e *echo.Echo) {
 			B: middleware.UnscopedPermission{P: "manage_class"},
 		}),
 	)
+	manageClassGrades := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id": "NOT_FOUND",
+		}),
+		middleware.Logged, middleware.EmailVerified,
+		middleware.HasPermission(middleware.OrPermission{
+			A: middleware.ScopedPermission{P: "manage_grades", T: "class"},
+			B: middleware.UnscopedPermission{P: "manage_grades"},
+		}),
+	)
 	api.POST("/class", controller.CreateClass,
 		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.UnscopedPermission{P: "manage_class"}),
@@ -201,6 +210,7 @@ func Register(e *echo.Echo) {
 	manageClass.POST("/class/:id/students", controller.AddStudents).Name = "class.addStudents"
 	manageClass.DELETE("/class/:id/students", controller.DeleteStudents).Name = "class.deleteStudents"
 	manageClass.DELETE("/class/:id", controller.DeleteClass).Name = "class.deleteClass"
+	manageClassGrades.GET("/class/:id/grades", controller.GetClassGrades).Name = "class.getClassGrades"
 
 	// problem set APIs
 	createProblemSet := api.Group("",
@@ -239,15 +249,15 @@ func Register(e *echo.Echo) {
 			B: middleware.CustomPermission{F: middleware.ProblemSetStarted},
 		}),
 	)
-	problemSetGrades := api.Group("",
+	manageProblemSetGrades := api.Group("",
 		middleware.ValidateParams(map[string]string{
 			"id":       "NOT_FOUND",
 			"class_id": "CLASS_NOT_FOUND",
 		}),
 		middleware.Logged, middleware.EmailVerified,
 		middleware.HasPermission(middleware.OrPermission{
-			A: middleware.ScopedPermission{P: "read_answers", T: "class", IdFieldName: "class_id"},
-			B: middleware.UnscopedPermission{P: "read_answers"},
+			A: middleware.ScopedPermission{P: "manage_grades", T: "class", IdFieldName: "class_id"},
+			B: middleware.UnscopedPermission{P: "manage_grades"},
 		}),
 	)
 	api.GET("/class/:class_id/problem_set/:problem_set_id", controller.GetProblemSet,
@@ -291,8 +301,8 @@ func Register(e *echo.Echo) {
 				B: middleware.UnscopedPermission{P: "read_problem_secrets"},
 			},
 		})).Name = "problemSet.getProblemSetProblemOutputFile"
-	problemSetGrades.GET("/class/:class_id/problem_set/:id/grades", controller.GetGrades).Name = "problemSet.GetGrades"
-	problemSetGrades.POST("/class/:class_id/problem_set/:id/grades/refresh", controller.RefreshGrades).Name = "problemSet.RefreshGrades"
+	manageProblemSetGrades.GET("/class/:class_id/problem_set/:id/grades", controller.GetProblemSetGrades).Name = "problemSet.GetProblemSetGrades"
+	manageProblemSetGrades.POST("/class/:class_id/problem_set/:id/grades/refresh", controller.RefreshGrades).Name = "problemSet.RefreshGrades"
 
 	// problem set submission APIs
 	problemSetSubmission := api.Group("",
@@ -356,9 +366,9 @@ func Register(e *echo.Echo) {
 			return nil
 		})
 	}
-	data, err := json.MarshalIndent(e.Routes(), "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	log.Debug(string(data))
+	//data, err := json.MarshalIndent(e.Routes(), "", "  ")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//log.Debug(string(data))
 }
