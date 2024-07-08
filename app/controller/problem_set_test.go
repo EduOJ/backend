@@ -1738,3 +1738,188 @@ func TestGetClassGrades(t *testing.T) {
 		}, resp)
 	})
 }
+
+func TestGetClassGrades(t *testing.T) {
+	t.Parallel()
+	user1 := createUserForTest(t, "get_class_grades", 1)
+	user2 := createUserForTest(t, "get_class_grades", 2)
+	class := createClassForTest(t, "get_class_grades", 0, nil, []*models.User{&user1, &user2})
+	problem1 := createProblemForTest(t, "get_class_grades", 1, nil, user1)
+	problem2 := createProblemForTest(t, "get_class_grades", 2, nil, user1)
+	problemSet1 := createProblemSetForTest(t, "get_class_grades", 1, &class, []models.Problem{problem1, problem2}, inProgress)
+	problemSet2 := createProblemSetForTest(t, "get_class_grades", 2, &class, []models.Problem{problem1}, inProgress)
+	jsonExisting1, err := json.Marshal(map[uint]uint{
+		problem1.ID: 0,
+		problem2.ID: 60,
+	})
+	assert.NoError(t, err)
+	jsonExisting2, err := json.Marshal(map[uint]uint{
+		problem1.ID: 70,
+	})
+	assert.NoError(t, err)
+	gradeExisting1 := models.Grade{
+		UserID:       user1.ID,
+		ProblemSetID: problemSet1.ID,
+		ClassID:      class.ID,
+		Detail:       jsonExisting1,
+		Total:        60,
+	}
+	assert.NoError(t, err)
+	gradeExisting2 := models.Grade{
+		UserID:       user2.ID,
+		ProblemSetID: problemSet2.ID,
+		ClassID:      class.ID,
+		Detail:       jsonExisting2,
+		Total:        70,
+	}
+	assert.NoError(t, err)
+	assert.NoError(t, base.DB.Create(&gradeExisting1).Error)
+	assert.NoError(t, base.DB.Create(&gradeExisting2).Error)
+
+	failTests := []failTest{
+		{
+			name:   "NonExistingClass",
+			method: "GET",
+			path:   base.Echo.Reverse("class.getClassGrades", -1),
+			req:    request.GetClassGradesRequest{},
+			reqOptions: []reqOption{
+				applyAdminUser,
+			},
+			statusCode: http.StatusNotFound,
+			resp:       response.ErrorResp("NOT_FOUND", nil),
+		},
+		{
+			name:   "PermissionDenied",
+			method: "GET",
+			path:   base.Echo.Reverse("class.getClassGrades", class.ID),
+			req:    request.GetClassGradesRequest{},
+			reqOptions: []reqOption{
+				applyNormalUser,
+			},
+			statusCode: http.StatusForbidden,
+			resp:       response.ErrorResp("PERMISSION_DENIED", nil),
+		},
+	}
+
+	runFailTests(t, failTests, "GetClassGrades")
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+
+		httpResp := makeResp(makeReq(t, "GET",
+			base.Echo.Reverse("class.getClassGrades", class.ID), nil, applyAdminUser))
+		databaseProblemSet1 := models.ProblemSet{}
+		databaseProblemSet2 := models.ProblemSet{}
+		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet1, problemSet1.ID).Error)
+		assert.NoError(t, base.DB.Preload("Grades").Preload("Problems").First(&databaseProblemSet2, problemSet2.ID).Error)
+
+		jsonEmpty1, err := json.Marshal(map[uint]uint{
+			problem1.ID: 0,
+			problem2.ID: 0,
+		})
+		jsonEmpty2, err := json.Marshal(map[uint]uint{
+			problem1.ID: 0,
+		})
+		assert.NoError(t, err)
+		expectedProblemSet1 := models.ProblemSet{
+			ID:          problemSet1.ID,
+			ClassID:     class.ID,
+			Class:       nil,
+			Name:        problemSet1.Name,
+			Description: problemSet1.Description,
+			Problems:    problemSet1.Problems,
+			Grades: []*models.Grade{
+				{
+					ID:           databaseProblemSet1.Grades[0].ID,
+					UserID:       user1.ID,
+					User:         nil,
+					ProblemSetID: problemSet1.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       jsonExisting1,
+					Total:        60,
+					CreatedAt:    databaseProblemSet1.Grades[0].CreatedAt,
+					UpdatedAt:    databaseProblemSet1.Grades[0].UpdatedAt,
+				},
+				{
+					ID:           databaseProblemSet1.Grades[1].ID,
+					UserID:       user2.ID,
+					User:         nil,
+					ProblemSetID: problemSet1.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       jsonEmpty1,
+					Total:        0,
+					CreatedAt:    databaseProblemSet1.Grades[1].CreatedAt,
+					UpdatedAt:    databaseProblemSet1.Grades[1].UpdatedAt,
+				},
+			},
+			StartTime: problemSet1.StartTime,
+			EndTime:   problemSet1.EndTime,
+			CreatedAt: problemSet1.CreatedAt,
+			UpdatedAt: databaseProblemSet1.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}
+		expectedProblemSet2 := models.ProblemSet{
+			ID:          problemSet2.ID,
+			ClassID:     class.ID,
+			Class:       nil,
+			Name:        problemSet2.Name,
+			Description: problemSet2.Description,
+			Problems:    problemSet2.Problems,
+			Grades: []*models.Grade{
+				{
+					ID:           databaseProblemSet2.Grades[0].ID,
+					UserID:       user2.ID,
+					User:         nil,
+					ProblemSetID: problemSet2.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       jsonExisting2,
+					Total:        70,
+					CreatedAt:    databaseProblemSet2.Grades[0].CreatedAt,
+					UpdatedAt:    databaseProblemSet2.Grades[0].UpdatedAt,
+				},
+				{
+					ID:           databaseProblemSet2.Grades[1].ID,
+					UserID:       user1.ID,
+					User:         nil,
+					ProblemSetID: problemSet2.ID,
+					ProblemSet:   nil,
+					ClassID:      class.ID,
+					Class:        nil,
+					Detail:       jsonEmpty2,
+					Total:        0,
+					CreatedAt:    databaseProblemSet2.Grades[1].CreatedAt,
+					UpdatedAt:    databaseProblemSet2.Grades[1].UpdatedAt,
+				},
+			},
+			StartTime: problemSet2.StartTime,
+			EndTime:   problemSet2.EndTime,
+			CreatedAt: problemSet2.CreatedAt,
+			UpdatedAt: databaseProblemSet2.UpdatedAt,
+			DeletedAt: gorm.DeletedAt{},
+		}
+		assert.Equal(t, expectedProblemSet1, databaseProblemSet1)
+		assert.Equal(t, expectedProblemSet2.Grades, databaseProblemSet2.Grades)
+		assert.Equal(t, expectedProblemSet2, databaseProblemSet2)
+		resp := response.GetClassGradesResponse{}
+		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
+		mustJsonDecode(httpResp, &resp)
+		assert.Equal(t, response.GetClassGradesResponse{
+			Message: "SUCCESS",
+			Error:   nil,
+			Data: struct {
+				ProblemSets []*resource.ProblemSetWithGrades `json:"problem_sets"`
+			}{
+				ProblemSets: []*resource.ProblemSetWithGrades{
+					resource.GetProblemSetWithGrades(&expectedProblemSet1),
+					resource.GetProblemSetWithGrades(&expectedProblemSet2),
+				},
+			},
+		}, resp)
+	})
+}

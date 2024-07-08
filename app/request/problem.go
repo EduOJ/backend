@@ -7,6 +7,8 @@ type CreateProblemRequest struct {
 	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
+	Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
+
 	MemoryLimit       uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
 	TimeLimit         uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms
 	LanguageAllowed   string `json:"language_allowed" form:"language_allowed" query:"language_allowed" validate:"required,max=255"` // E.g.    cpp,c,java,python
@@ -36,8 +38,9 @@ type DeleteProblemRequest struct {
 }
 
 type CreateTestCaseRequest struct {
-	Score  uint  `json:"score" form:"score" query:"score"` // 0 for 平均分配
-	Sample *bool `json:"sample" form:"sample" query:"sample" validate:"required"`
+	Score    uint  `json:"score" form:"score" query:"score"` // 0 for 平均分配
+	Sample   *bool `json:"sample" form:"sample" query:"sample" validate:"required"`
+	Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
 	// input_file(required)
 	// output_file(required)
 }
@@ -49,8 +52,9 @@ type GetTestCaseOutputFileRequest struct {
 }
 
 type UpdateTestCaseRequest struct {
-	Score  uint  `json:"score" form:"score" query:"score"` // 0 for 平均分配
-	Sample *bool `json:"sample" form:"sample" query:"sample" validate:"required"`
+	Score    uint  `json:"score" form:"score" query:"score"` // 0 for 平均分配
+	Sample   *bool `json:"sample" form:"sample" query:"sample" validate:"required"`
+	Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
 	// input_file(optional)
 	// output_file(optional)
 }
