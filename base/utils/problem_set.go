@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/EduOJ/backend/base"
+	"github.com/EduOJ/backend/base/log"
 	"github.com/EduOJ/backend/database/models"
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
@@ -129,6 +130,7 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 	for _, p := range problemSet.Problems {
 		detail[p.ID] = 0
 	}
+<<<<<<< HEAD
 	emptyDetail, err := json.Marshal(detail) // 将map转换为JSON格式
 	if err != nil {
 		// 如果转换失败，记录错误并返回
@@ -138,6 +140,16 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 
 	// 打印转换后的JSON日志
 	log.Printf("Empty detail JSON: %s", emptyDetail)
+=======
+	emptyDetail, err := json.Marshal(detail) // turn map to json
+	if err != nil {
+		log.Errorf("Error marshalling grade detail for empty grade: %v", err)
+		return errors.Wrap(err, "could not marshal grade detail for empty grade")
+	}
+
+	// json log
+	log.Debugf("Empty detail JSON: %s", emptyDetail)
+>>>>>>> aec6cf1eaeaa253e98508877a69390cd6a5e31c1
 
 	// Record students who have a grade
 	gradeSet := make(map[uint]bool)
