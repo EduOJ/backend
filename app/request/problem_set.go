@@ -46,10 +46,6 @@ type GetProblemSetProblemInputFileRequest struct {
 type GetProblemSetProblemOutputFileRequest struct {
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> aec6cf1eaeaa253e98508877a69390cd6a5e31c1
 type GetClassGradesRequest struct {
 }
 

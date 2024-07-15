@@ -62,15 +62,9 @@ type ProblemSetSummary struct {
 type Grade struct {
 	ID uint `json:"id"`
 
-<<<<<<< HEAD
-	UserID uint  `json:"user_id"`
-	User   *User `json:"user"`
-	ProblemSetID uint `json:"problem_set_id"`
-=======
 	UserID       uint  `json:"user_id"`
 	User         *User `json:"user"`
 	ProblemSetID uint  `json:"problem_set_id"`
->>>>>>> aec6cf1eaeaa253e98508877a69390cd6a5e31c1
 
 	Detail string `json:"detail"`
 	Total  uint   `json:"total"`
