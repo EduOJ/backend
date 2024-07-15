@@ -38,7 +38,7 @@ type DeleteProblemRequest struct {
 }
 
 type CreateTestCaseRequest struct {
-	Score    uint  `json:"score" form:"score" query:"score"` // 0 for 平均分配
+	Score    uint  `json:"score" form:"score" query:"score"`
 	Sample   *bool `json:"sample" form:"sample" query:"sample" validate:"required"`
 	Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
 	// input_file(required)
@@ -52,7 +52,7 @@ type GetTestCaseOutputFileRequest struct {
 }
 
 type UpdateTestCaseRequest struct {
-	Score    uint  `json:"score" form:"score" query:"score"` // 0 for 平均分配
+	Score    uint  `json:"score" form:"score" query:"score"`
 	Sample   *bool `json:"sample" form:"sample" query:"sample" validate:"required"`
 	Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
 	// input_file(optional)
