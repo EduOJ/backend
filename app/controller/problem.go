@@ -400,7 +400,7 @@ func CreateTestCase(c echo.Context) error {
 	if err := base.DB.Model(&problem).Association("TestCases").Append(&testCase); err != nil {
 		panic(errors.Wrap(err, "could not create test case"))
 	}
-	// 上传到minio
+	// upload to minio
 	utils.MustPutTestCase(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
 	utils.MustPutTestCase(*req.Sanitize, outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 
