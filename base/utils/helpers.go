@@ -63,7 +63,6 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 }
 
 func MustPutTestCase(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
-	// 打开文件
 	src, err := object.Open()
 	if err != nil {
 		panic(err)
@@ -73,61 +72,49 @@ func MustPutTestCase(sanitize bool, object *multipart.FileHeader, ctx context.Co
 	var fileSize int64
 
 	if sanitize {
-		// 创建一个用于读取文件内容的 Scanner
 		scanner := bufio.NewScanner(src)
-
-		// 创建一个临时文件，用于保存修改后的内容
 		tempFile, err := os.CreateTemp("", "tempFile*.txt")
 		if err != nil {
 			panic(err)
 		}
-		// 创建一个用于写入文件内容的 Writer
 		writer := bufio.NewWriter(tempFile)
-
-		// 逐行读取文件
 		for scanner.Scan() {
-			line := strings.ReplaceAll(scanner.Text(), "\r\n", "\n") // 替换 '\r\n' 为 '\n'
-			_, err := fmt.Fprintln(writer, line)                     // 写入处理后的行到临时文件
+			line := strings.ReplaceAll(scanner.Text(), "\r\n", "\n") // replace '\r\n' to '\n'
+			_, err := fmt.Fprint(writer, line)
+			if !strings.HasSuffix(line, "\n") {
+				line += "\n"
+			}
 			if err != nil {
 				panic(err)
 			}
 		}
-
-		// 检查扫描过程中是否出现错误
 		if err := scanner.Err(); err != nil {
 			panic(err)
 		}
-
-		// 刷新缓冲区，确保所有修改已写入文件
 		if err := writer.Flush(); err != nil {
 			panic(err)
 		}
 
-		// 获取临时文件的大小
 		fileInfo, err := tempFile.Stat()
 		if err != nil {
 			panic(err)
 		}
 		fileSize = fileInfo.Size()
 
-		// 重新打开临时文件，以只读模式
 		src, err = os.Open(tempFile.Name())
 		if err != nil {
 			panic(err)
 		}
 		defer src.Close()
 	} else {
-		// 如果不需要 sanitize，使用原文件大小
 		fileSize = object.Size
 	}
 
-	// 上传文件到存储
 	_, err = base.Storage.PutObject(ctx, bucket, path, src, fileSize, minio.PutObjectOptions{})
 	if err != nil {
 		panic(errors.Wrap(err, "could write file to s3 storage."))
 	}
 }
-
 
 func MustGetObject(c echo.Context, bucket string, path string) *minio.Object {
 	object, err := base.Storage.GetObject(c.Request().Context(), bucket, path, minio.GetObjectOptions{})
