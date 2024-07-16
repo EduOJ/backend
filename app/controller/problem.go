@@ -397,12 +397,11 @@ func CreateTestCase(c echo.Context) error {
 		InputFileName:  inputFile.Filename,
 		OutputFileName: outputFile.Filename,
 	}
-
 	if err := base.DB.Model(&problem).Association("TestCases").Append(&testCase); err != nil {
 		panic(errors.Wrap(err, "could not create test case"))
 	}
-
-	utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+	// upload to minio
+	utils.MustPutInputFile(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
 	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 
 	return c.JSON(http.StatusCreated, response.CreateTestCaseResponse{
@@ -478,7 +477,6 @@ func UpdateTestCase(c echo.Context) error {
 	if err, ok := utils.BindAndValidate(&req, c); !ok {
 		return err
 	}
-
 	inputFile, err := c.FormFile("input_file")
 	if err != nil && err != http.ErrMissingFile && err.Error() != "request Content-Type isn't multipart/form-data" {
 		panic(errors.Wrap(err, "could not read input file"))
@@ -489,7 +487,7 @@ func UpdateTestCase(c echo.Context) error {
 	}
 
 	if inputFile != nil {
-		utils.MustPutObject(inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+		utils.MustPutInputFile(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
 		testCase.InputFileName = inputFile.Filename
 	}
 	if outputFile != nil {

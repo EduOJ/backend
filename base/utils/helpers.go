@@ -1,9 +1,13 @@
 package utils
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/EduOJ/backend/app/response"
 	"github.com/EduOJ/backend/base"
@@ -53,6 +57,61 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 	}
 	defer src.Close()
 	_, err = base.Storage.PutObject(ctx, bucket, path, src, object.Size, minio.PutObjectOptions{})
+	if err != nil {
+		panic(errors.Wrap(err, "could write file to s3 storage."))
+	}
+}
+
+func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
+	src, err := object.Open()
+	if err != nil {
+		panic(err)
+	}
+	defer src.Close()
+
+	var fileSize int64
+
+	if sanitize {
+		scanner := bufio.NewScanner(src)
+		tempFile, err := os.CreateTemp("", "tempFile*.txt")
+		if err != nil {
+			panic(err)
+		}
+		writer := bufio.NewWriter(tempFile)
+		for scanner.Scan() {
+			line := strings.ReplaceAll(scanner.Text(), "\r\n", "\n") // replace '\r\n' to '\n'
+
+			if !strings.HasSuffix(line, "\n") {
+				line += "\n"
+			}
+			_, err := fmt.Fprint(writer, line)
+			if err != nil {
+				panic(err)
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			panic(err)
+		}
+		if err := writer.Flush(); err != nil {
+			panic(err)
+		}
+
+		fileInfo, err := tempFile.Stat()
+		if err != nil {
+			panic(err)
+		}
+		fileSize = fileInfo.Size()
+
+		src, err = os.Open(tempFile.Name())
+		if err != nil {
+			panic(err)
+		}
+		defer src.Close()
+	} else {
+		fileSize = object.Size
+	}
+
+	_, err = base.Storage.PutObject(ctx, bucket, path, src, fileSize, minio.PutObjectOptions{})
 	if err != nil {
 		panic(errors.Wrap(err, "could write file to s3 storage."))
 	}
