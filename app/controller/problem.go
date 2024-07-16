@@ -401,8 +401,8 @@ func CreateTestCase(c echo.Context) error {
 		panic(errors.Wrap(err, "could not create test case"))
 	}
 	// upload to minio
-	utils.MustPutTestCase(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
-	utils.MustPutTestCase(*req.Sanitize, outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
+	utils.MustPutInputFile(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+	utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 
 	return c.JSON(http.StatusCreated, response.CreateTestCaseResponse{
 		Message: "SUCCESS",
@@ -487,11 +487,11 @@ func UpdateTestCase(c echo.Context) error {
 	}
 
 	if inputFile != nil {
-		utils.MustPutTestCase(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
+		utils.MustPutInputFile(*req.Sanitize, inputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/input/%d.in", problem.ID, testCase.ID))
 		testCase.InputFileName = inputFile.Filename
 	}
 	if outputFile != nil {
-		utils.MustPutTestCase(*req.Sanitize, outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
+		utils.MustPutObject(outputFile, c.Request().Context(), "problems", fmt.Sprintf("%d/output/%d.out", problem.ID, testCase.ID))
 		testCase.OutputFileName = outputFile.Filename
 	}
 

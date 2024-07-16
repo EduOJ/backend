@@ -62,7 +62,7 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 	}
 }
 
-func MustPutTestCase(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
+func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
 	src, err := object.Open()
 	if err != nil {
 		panic(err)
@@ -80,10 +80,11 @@ func MustPutTestCase(sanitize bool, object *multipart.FileHeader, ctx context.Co
 		writer := bufio.NewWriter(tempFile)
 		for scanner.Scan() {
 			line := strings.ReplaceAll(scanner.Text(), "\r\n", "\n") // replace '\r\n' to '\n'
-			_, err := fmt.Fprint(writer, line)
+
 			if !strings.HasSuffix(line, "\n") {
 				line += "\n"
 			}
+			_, err := fmt.Fprint(writer, line)
 			if err != nil {
 				panic(err)
 			}
