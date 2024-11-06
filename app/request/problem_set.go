@@ -46,7 +46,10 @@ type GetProblemSetProblemInputFileRequest struct {
 type GetProblemSetProblemOutputFileRequest struct {
 }
 
-type GetGradesRequest struct {
+type GetClassGradesRequest struct {
+}
+
+type GetProblemSetGradesRequest struct {
 }
 
 type RefreshGradesRequest struct {
