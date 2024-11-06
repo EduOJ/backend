@@ -20,7 +20,7 @@ main
 /coverage*
 /test.*
 /config.yml
-
+*.eduoj-backend
 
 /testing_requests
 /EduOJBackend

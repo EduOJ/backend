@@ -18,7 +18,7 @@ func main() {
 	parse()
 	if len(args) < 1 {
 		log.Fatal("Please specific a command to run.")
-		// TODO: output usage
+		// TODO: output usage aa
 		os.Exit(-1)
 	}
 	switch args[0] {
