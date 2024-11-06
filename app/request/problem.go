@@ -7,7 +7,7 @@ type CreateProblemRequest struct {
 	Public  *bool `json:"public" form:"public" query:"public" validate:"required"`
 	Privacy *bool `json:"privacy" form:"privacy" query:"privacy" validate:"required"`
 
-	Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
+	//Sanitize *bool `json:"sanitize" form:"sanitize" query:"sanitize" validate:"required"`
 
 	MemoryLimit       uint64 `json:"memory_limit" form:"memory_limit" query:"memory_limit" validate:"required"`                     // Byte
 	TimeLimit         uint   `json:"time_limit" form:"time_limit" query:"time_limit" validate:"required"`                           // ms

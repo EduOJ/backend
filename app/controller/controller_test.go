@@ -144,6 +144,8 @@ func runFailTests(t *testing.T, tests []failTest, groupName string) {
 				httpResp := makeResp(req)
 				resp := response.Response{}
 				mustJsonDecode(httpResp, &resp)
+				t.Logf("Expected Status Code: %d", test.statusCode)
+				t.Logf("Actual Status Code: %d", httpResp.StatusCode)
 				assert.Equal(t, test.statusCode, httpResp.StatusCode)
 				assert.Equal(t, test.resp, resp)
 			})
