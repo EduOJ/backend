@@ -20,7 +20,7 @@ func CreateProblemSet(c echo.Context) error {
 	req := request.CreateProblemSetRequest{}
 	err, ok := utils.BindAndValidate(&req, c)
 	if !ok {
-		return err //aaa
+		return err
 	}
 	class := models.Class{}
 	if err := base.DB.First(&class, c.Param("id")).Error; err != nil {
