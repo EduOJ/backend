@@ -878,6 +878,7 @@ func TestCreateProblem(t *testing.T) {
 				LanguageAllowed:   "",
 				BuildArg:          "",
 				CompareScriptName: "",
+				Sanitize:          nil,
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -924,6 +925,11 @@ func TestCreateProblem(t *testing.T) {
 					"reason":      "required",
 					"translation": "评测脚本为必填字段",
 				},
+				map[string]interface{}{
+					"field":       "Sanitize",
+					"reason":      "required",
+					"translation": "是否清洗数据为必填字段",
+				},
 			}),
 		},
 		{
@@ -961,6 +967,7 @@ func TestCreateProblem(t *testing.T) {
 				TimeLimit:         1000,
 				LanguageAllowed:   "test_create_problem_1_language_allowed",
 				CompareScriptName: "cmp1",
+				Sanitize:          &boolFalse,
 				Public:            &boolFalse,
 				Privacy:           &boolTrue,
 			},
@@ -975,6 +982,7 @@ func TestCreateProblem(t *testing.T) {
 				TimeLimit:         1000,
 				LanguageAllowed:   "test_create_problem_3_language_allowed",
 				CompareScriptName: "cmp1",
+				Sanitize:          &boolFalse,
 				Public:            &boolFalse,
 				Privacy:           &boolTrue,
 				Tags:              "tag_1,tag_2",
@@ -990,6 +998,7 @@ func TestCreateProblem(t *testing.T) {
 				TimeLimit:         1000,
 				LanguageAllowed:   "test_create_problem_2_language_allowed",
 				CompareScriptName: "cmp2",
+				Sanitize:          &boolFalse,
 				Public:            &boolTrue,
 				Privacy:           &boolFalse,
 			},
@@ -1016,6 +1025,7 @@ func TestCreateProblem(t *testing.T) {
 						"time_limit":          fmt.Sprint(test.req.TimeLimit),
 						"language_allowed":    test.req.LanguageAllowed,
 						"compare_script_name": fmt.Sprint(test.req.CompareScriptName),
+						"sanitize":            fmt.Sprint(test.req.Sanitize),
 						"public":              fmt.Sprint(*test.req.Public),
 						"privacy":             fmt.Sprint(*test.req.Privacy),
 					})
@@ -1036,6 +1046,7 @@ func TestCreateProblem(t *testing.T) {
 				assert.Equal(t, test.req.TimeLimit, databaseProblem.TimeLimit)
 				assert.Equal(t, strings.Split(test.req.LanguageAllowed, ","), []string(databaseProblem.LanguageAllowed))
 				assert.Equal(t, test.req.CompareScriptName, databaseProblem.CompareScriptName)
+				//assert.Equal(t, *test.req.Sanitize, databaseProblem.Sanitize)
 				assert.Equal(t, *test.req.Public, databaseProblem.Public)
 				assert.Equal(t, *test.req.Privacy, databaseProblem.Privacy)
 				// response == database
