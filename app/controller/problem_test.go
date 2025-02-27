@@ -1036,6 +1036,7 @@ func TestCreateProblem(t *testing.T) {
 				assert.Equal(t, test.req.TimeLimit, databaseProblem.TimeLimit)
 				assert.Equal(t, strings.Split(test.req.LanguageAllowed, ","), []string(databaseProblem.LanguageAllowed))
 				assert.Equal(t, test.req.CompareScriptName, databaseProblem.CompareScriptName)
+				//assert.Equal(t, *test.req.Sanitize, databaseProblem.Sanitize)
 				assert.Equal(t, *test.req.Public, databaseProblem.Public)
 				assert.Equal(t, *test.req.Privacy, databaseProblem.Privacy)
 				// response == database
@@ -1055,6 +1056,8 @@ func TestCreateProblem(t *testing.T) {
 					storageContent := getObjectContent(t, "problems", fmt.Sprintf("%d/attachment", databaseProblem.ID))
 					expectedContent, err := ioutil.ReadAll(test.attachment.reader)
 					assert.NoError(t, err)
+					t.Logf("Expected Content: %+v", expectedContent)
+					t.Logf("Storage Content: %+v", storageContent)
 					assert.Equal(t, expectedContent, storageContent)
 					assert.Equal(t, test.attachment.fileName, databaseProblem.AttachmentFileName)
 				} else {
@@ -1734,8 +1737,9 @@ func TestCreateTestCase(t *testing.T) {
 				newFileContent("input_file", "test_create_test_case_non_existing_problem.in", inputTextBase64),
 				newFileContent("output_file", "test_create_test_case_non_existing_problem.out", outputTextBase64),
 			}, map[string]string{
-				"score":  "100",
-				"sample": "true",
+				"score":    "100",
+				"sample":   "true",
+				"sanitize": "false",
 			}),
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -1750,8 +1754,9 @@ func TestCreateTestCase(t *testing.T) {
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("output_file", "test_create_test_case_lack_input_file.out", outputTextBase64),
 			}, map[string]string{
-				"score":  "100",
-				"sample": "true",
+				"score":    "100",
+				"sample":   "true",
+				"sanitize": "false",
 			}),
 			reqOptions: []reqOption{
 				headerOption{
@@ -1768,8 +1773,9 @@ func TestCreateTestCase(t *testing.T) {
 			req: addFieldContentSlice([]reqContent{
 				newFileContent("input_file", "test_create_test_case_lack_output_file.in", inputTextBase64),
 			}, map[string]string{
-				"score":  "100",
-				"sample": "true",
+				"score":    "100",
+				"sample":   "true",
+				"sanitize": "false",
 			}),
 			reqOptions: []reqOption{
 				headerOption{
@@ -1784,8 +1790,9 @@ func TestCreateTestCase(t *testing.T) {
 			method: "POST",
 			path:   base.Echo.Reverse("problem.createTestCase", problem.ID),
 			req: addFieldContentSlice([]reqContent{}, map[string]string{
-				"score":  "100",
-				"sample": "true",
+				"score":    "100",
+				"sample":   "true",
+				"sanitize": "false",
 			}),
 			reqOptions: []reqOption{
 				headerOption{
@@ -1803,8 +1810,9 @@ func TestCreateTestCase(t *testing.T) {
 				newFileContent("input_file", "test_create_test_case_permission_denied.in", inputTextBase64),
 				newFileContent("output_file", "test_create_test_case_permission_denied.out", outputTextBase64),
 			}, map[string]string{
-				"score":  "100",
-				"sample": "true",
+				"score":    "100",
+				"sample":   "true",
+				"sanitize": "false",
 			}),
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -1822,8 +1830,9 @@ func TestCreateTestCase(t *testing.T) {
 			newFileContent("input_file", "test_create_test_case_success.in", inputTextBase64),
 			newFileContent("output_file", "test_create_test_case_success.out", outputTextBase64),
 		}, map[string]string{
-			"score":  "100",
-			"sample": "true",
+			"score":    "100",
+			"sample":   "true",
+			"sanitize": "false",
 		}), headerOption{
 			"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 		})
@@ -2066,14 +2075,16 @@ func TestUpdateTestCase(t *testing.T) {
 	problem := createProblemForTest(t, "update_test_case", 0, nil, user)
 	boolTrue := true
 
+	boolFalse := false
 	failTests := []failTest{
 		{
 			name:   "NonExistingProblem",
 			method: "PUT",
 			path:   base.Echo.Reverse("problem.updateTestCase", -1, 1),
 			req: request.UpdateTestCaseRequest{
-				Score:  100,
-				Sample: &boolTrue,
+				Score:    100,
+				Sample:   &boolTrue,
+				Sanitize: &boolFalse,
 			},
 			reqOptions: []reqOption{
 				applyAdminUser,
@@ -2086,8 +2097,9 @@ func TestUpdateTestCase(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("problem.updateTestCase", problem.ID, -1),
 			req: request.UpdateTestCaseRequest{
-				Score:  100,
-				Sample: &boolTrue,
+				Score:    100,
+				Sample:   &boolTrue,
+				Sanitize: &boolFalse,
 			},
 			reqOptions: []reqOption{
 				headerOption{
@@ -2106,8 +2118,9 @@ func TestUpdateTestCase(t *testing.T) {
 			method: "PUT",
 			path:   base.Echo.Reverse("problem.updateTestCase", problem.ID, 1),
 			req: request.UpdateTestCaseRequest{
-				Score:  100,
-				Sample: &boolTrue,
+				Score:    100,
+				Sample:   &boolTrue,
+				Sanitize: &boolFalse,
 			},
 			reqOptions: []reqOption{
 				applyNormalUser,
@@ -2128,7 +2141,7 @@ func TestUpdateTestCase(t *testing.T) {
 		{
 			name: "SuccessWithoutUpdatingFile",
 			originalData: testCaseData{
-				Score:      0,
+				Score:      100,
 				Sample:     false,
 				InputFile:  newFileContent("input_file", "test_update_test_case_1.in", inputTextBase64),
 				OutputFile: newFileContent("output_file", "test_update_test_case_1.out", outputTextBase64),
@@ -2229,10 +2242,12 @@ func TestUpdateTestCase(t *testing.T) {
 				if test.updatedData.OutputFile != nil {
 					reqContentSlice = append(reqContentSlice, test.updatedData.OutputFile)
 				}
+				sanitizeValue := false
 				req := makeReq(t, "PUT", base.Echo.Reverse("problem.updateTestCase", problem.ID, testCase.ID), addFieldContentSlice(
 					reqContentSlice, map[string]string{
-						"score":  fmt.Sprintf("%d", test.updatedData.Score),
-						"sample": fmt.Sprintf("%t", test.updatedData.Sample),
+						"score":    fmt.Sprintf("%d", test.updatedData.Score),
+						"sample":   fmt.Sprintf("%t", test.updatedData.Sample),
+						"sanitize": fmt.Sprintf("%t", sanitizeValue),
 					}), headerOption{
 					"Set-User-For-Test": {fmt.Sprintf("%d", user.ID)},
 				})

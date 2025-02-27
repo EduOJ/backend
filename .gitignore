@@ -21,7 +21,6 @@ main
 /test.*
 /config.yml
 
-
 /testing_requests
 /EduOJBackend
 /backend
