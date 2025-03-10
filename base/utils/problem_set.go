@@ -134,10 +134,7 @@ func CreateEmptyGrades(problemSet *models.ProblemSet) error {
 		log.Errorf("Error marshalling grade detail for empty grade: %v", err)
 		return errors.Wrap(err, "could not marshal grade detail for empty grade")
 	}
-
-	// json log
-	log.Debugf("Empty detail JSON: %s", emptyDetail)
-
+	
 	// Record students who have a grade
 	gradeSet := make(map[uint]bool)
 	for _, g := range problemSet.Grades {
