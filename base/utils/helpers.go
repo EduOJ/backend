@@ -86,7 +86,7 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 			if err != nil && err != io.EOF {
 				panic(err)
 			}
-		
+
 			if len(line) > 0 {
 				line = strings.ReplaceAll(line, "\r\n", "\n")
 				if !strings.HasSuffix(line, "\n") {
@@ -97,7 +97,7 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 					panic(writeErr)
 				}
 			}
-		
+
 			if err == io.EOF {
 				break
 			}
