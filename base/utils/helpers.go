@@ -63,58 +63,65 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 }
 
 func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
-	src, err := object.Open()
-	if err != nil {
-		panic(err)
-	}
-	defer src.Close()
+    src, err := object.Open()
+    if err != nil {
+        panic(err)
+    }
+    defer src.Close()
 
-	var fileSize int64
+    var fileSize int64
 
-	if sanitize {
-		scanner := bufio.NewScanner(src)
-		tempFile, err := os.CreateTemp("", "tempFile*.txt")
-		if err != nil {
-			panic(err)
-		}
-		writer := bufio.NewWriter(tempFile)
-		for scanner.Scan() {
-			line := strings.ReplaceAll(scanner.Text(), "\r\n", "\n") // replace '\r\n' to '\n'
+    if sanitize {
+        reader := bufio.NewReader(src)
+        tempFile, err := os.CreateTemp("", "tempFile*.txt")
+        if err != nil {
+            panic(err)
+        }
+        defer tempFile.Close()
+        writer := bufio.NewWriter(tempFile)
+        defer writer.Flush()
 
-			if !strings.HasSuffix(line, "\n") {
-				line += "\n"
-			}
-			_, err := fmt.Fprint(writer, line)
-			if err != nil {
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil && err != io.EOF {
 				panic(err)
 			}
-		}
-		if err := scanner.Err(); err != nil {
-			panic(err)
-		}
-		if err := writer.Flush(); err != nil {
-			panic(err)
+		
+			if len(line) > 0 {
+				line = strings.ReplaceAll(line, "\r\n", "\n")
+				if !strings.HasSuffix(line, "\n") {
+					line += "\n"
+				}
+				_, writeErr := writer.WriteString(line)
+				if writeErr != nil {
+					panic(writeErr)
+				}
+			}
+		
+			if err == io.EOF {
+				break
+			}
 		}
 
-		fileInfo, err := tempFile.Stat()
-		if err != nil {
-			panic(err)
-		}
-		fileSize = fileInfo.Size()
+        fileInfo, err := tempFile.Stat()
+        if err != nil {
+            panic(err)
+        }
+        fileSize = fileInfo.Size()
 
-		src, err = os.Open(tempFile.Name())
-		if err != nil {
-			panic(err)
-		}
-		defer src.Close()
-	} else {
-		fileSize = object.Size
-	}
+        src, err = os.Open(tempFile.Name())
+        if err != nil {
+            panic(err)
+        }
+        defer src.Close()
+    } else {
+        fileSize = object.Size
+    }
 
-	_, err = base.Storage.PutObject(ctx, bucket, path, src, fileSize, minio.PutObjectOptions{})
-	if err != nil {
-		panic(errors.Wrap(err, "could write file to s3 storage."))
-	}
+    _, err = base.Storage.PutObject(ctx, bucket, path, src, fileSize, minio.PutObjectOptions{})
+    if err != nil {
+        panic(errors.Wrap(err, "couldn't write file to s3 storage."))
+    }
 }
 
 func MustGetObject(c echo.Context, bucket string, path string) *minio.Object {
