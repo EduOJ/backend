@@ -497,6 +497,9 @@ func GetProblemSetGrades(c echo.Context) error {
 	if err := utils.CreateEmptyGrades(&problemSet); err != nil {
 		panic(errors.Wrap(err, "could not create empty grades to get problem set grades"))
 	}
+	if err := base.DB.Preload("Grades.User").First(&problemSet).Error; err != nil {
+		panic(errors.Wrap(err, "could not load Grades.User"))
+	}
 	return c.JSON(http.StatusOK, response.GetProblemSetGradesResponse{
 		Message: "SUCCESS",
 		Error:   nil,
@@ -522,6 +525,9 @@ func GetClassGrades(c echo.Context) error {
 		problemSet.Class = &class
 		if err := utils.CreateEmptyGrades(problemSet); err != nil {
 			panic(errors.Wrap(err, "could not create empty grades to get class grades"))
+		}
+		if err := base.DB.Preload("Grades.User").First(problemSet).Error; err != nil {
+			panic(errors.Wrap(err, "could not load Grades.User"))
 		}
 		ret = append(ret, resource.GetProblemSetWithGrades(problemSet))
 	}

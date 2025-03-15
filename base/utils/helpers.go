@@ -72,28 +72,35 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 	var fileSize int64
 
 	if sanitize {
-		scanner := bufio.NewScanner(src)
+		reader := bufio.NewReader(src)
 		tempFile, err := os.CreateTemp("", "tempFile*.txt")
 		if err != nil {
 			panic(err)
 		}
+		defer tempFile.Close()
 		writer := bufio.NewWriter(tempFile)
-		for scanner.Scan() {
-			line := strings.ReplaceAll(scanner.Text(), "\r\n", "\n") // replace '\r\n' to '\n'
+		defer writer.Flush()
 
-			if !strings.HasSuffix(line, "\n") {
-				line += "\n"
-			}
-			_, err := fmt.Fprint(writer, line)
-			if err != nil {
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil && err != io.EOF {
 				panic(err)
 			}
-		}
-		if err := scanner.Err(); err != nil {
-			panic(err)
-		}
-		if err := writer.Flush(); err != nil {
-			panic(err)
+
+			if len(line) > 0 {
+				line = strings.ReplaceAll(line, "\r\n", "\n")
+				if !strings.HasSuffix(line, "\n") {
+					line += "\n"
+				}
+				_, writeErr := writer.WriteString(line)
+				if writeErr != nil {
+					panic(writeErr)
+				}
+			}
+
+			if err == io.EOF {
+				break
+			}
 		}
 
 		fileInfo, err := tempFile.Stat()
@@ -113,7 +120,7 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 
 	_, err = base.Storage.PutObject(ctx, bucket, path, src, fileSize, minio.PutObjectOptions{})
 	if err != nil {
-		panic(errors.Wrap(err, "could write file to s3 storage."))
+		panic(errors.Wrap(err, "couldn't write file to s3 storage."))
 	}
 }
 
