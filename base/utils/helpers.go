@@ -63,16 +63,18 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 }
 
 func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
-	src, err := object.Open()
+	originalSrc, err := object.Open()
 	if err != nil {
 		panic(err)
 	}
-	defer src.Close()
-
-	var fileSize int64
+	defer originalSrc.Close()
+	var (
+		fileSize int64
+		src      io.Reader = originalSrc
+	)
 
 	if sanitize {
-		reader := bufio.NewReader(src)
+		reader := bufio.NewReader(originalSrc)
 		tempFile, err := os.CreateTemp("", "tempFile*.txt")
 		if err != nil {
 			panic(err)
@@ -97,7 +99,6 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 					panic(writeErr)
 				}
 			}
-
 			if err == io.EOF {
 				break
 			}
@@ -108,16 +109,17 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 		if err := tempFile.Close(); err != nil {
 			panic(err)
 		}
-		src, err = os.Open(tempFileName)
+		tempSrc, err := os.Open(tempFileName)
 		if err != nil {
 			panic(err)
 		}
-		defer src.Close()
+		defer tempSrc.Close()
 		fileInfo, err := os.Stat(tempFileName)
 		if err != nil {
 			panic(err)
 		}
 		fileSize = fileInfo.Size()
+		src = tempSrc
 	} else {
 		fileSize = object.Size
 	}
