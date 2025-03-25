@@ -3,7 +3,7 @@ package utils
 import (
 	"bufio"
 	"context"
-	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -77,9 +77,7 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 		if err != nil {
 			panic(err)
 		}
-		defer tempFile.Close()
 		writer := bufio.NewWriter(tempFile)
-		defer writer.Flush()
 
 		for {
 			line, err := reader.ReadString('\n')
@@ -102,6 +100,10 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 				break
 			}
 		}
+		err = writer.Flush()
+        if err != nil {
+            panic(err)
+        }
 
 		fileInfo, err := tempFile.Stat()
 		if err != nil {
