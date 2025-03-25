@@ -77,6 +77,8 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 		if err != nil {
 			panic(err)
 		}
+		tempFileName := tempFile.Name()
+		defer os.Remove(tempFileName)
 		writer := bufio.NewWriter(tempFile)
 
 		for {
@@ -100,22 +102,22 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 				break
 			}
 		}
-		err = writer.Flush()
-        if err != nil {
-            panic(err)
-        }
-
-		fileInfo, err := tempFile.Stat()
-		if err != nil {
+		if err := writer.Flush(); err != nil {
 			panic(err)
 		}
-		fileSize = fileInfo.Size()
-
-		src, err = os.Open(tempFile.Name())
+		if err := tempFile.Close(); err != nil {
+			panic(err)
+		}
+		src, err = os.Open(tempFileName)
 		if err != nil {
 			panic(err)
 		}
 		defer src.Close()
+		fileInfo, err := os.Stat(tempFileName)
+		if err != nil {
+			panic(err)
+		}
+		fileSize = fileInfo.Size()
 	} else {
 		fileSize = object.Size
 	}
