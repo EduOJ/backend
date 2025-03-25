@@ -3,7 +3,7 @@ package utils
 import (
 	"bufio"
 	"context"
-	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -63,23 +63,25 @@ func MustPutObject(object *multipart.FileHeader, ctx context.Context, bucket str
 }
 
 func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.Context, bucket string, path string) {
-	src, err := object.Open()
+	originalSrc, err := object.Open()
 	if err != nil {
 		panic(err)
 	}
-	defer src.Close()
-
-	var fileSize int64
+	defer originalSrc.Close()
+	var (
+		fileSize int64
+		src      io.Reader = originalSrc
+	)
 
 	if sanitize {
-		reader := bufio.NewReader(src)
+		reader := bufio.NewReader(originalSrc)
 		tempFile, err := os.CreateTemp("", "tempFile*.txt")
 		if err != nil {
 			panic(err)
 		}
-		defer tempFile.Close()
+		tempFileName := tempFile.Name()
+		defer os.Remove(tempFileName)
 		writer := bufio.NewWriter(tempFile)
-		defer writer.Flush()
 
 		for {
 			line, err := reader.ReadString('\n')
@@ -97,23 +99,27 @@ func MustPutInputFile(sanitize bool, object *multipart.FileHeader, ctx context.C
 					panic(writeErr)
 				}
 			}
-
 			if err == io.EOF {
 				break
 			}
 		}
-
-		fileInfo, err := tempFile.Stat()
+		if err := writer.Flush(); err != nil {
+			panic(err)
+		}
+		if err := tempFile.Close(); err != nil {
+			panic(err)
+		}
+		tempSrc, err := os.Open(tempFileName)
+		if err != nil {
+			panic(err)
+		}
+		defer tempSrc.Close()
+		fileInfo, err := os.Stat(tempFileName)
 		if err != nil {
 			panic(err)
 		}
 		fileSize = fileInfo.Size()
-
-		src, err = os.Open(tempFile.Name())
-		if err != nil {
-			panic(err)
-		}
-		defer src.Close()
+		src = tempSrc
 	} else {
 		fileSize = object.Size
 	}
