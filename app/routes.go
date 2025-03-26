@@ -166,6 +166,31 @@ func Register(e *echo.Echo) {
 	submission.GET("/submission/:submission_id/run/:id/compiler_output", controller.GetRunCompilerOutput, middleware.Logged).Name = "submission.getRunCompilerOutput"
 	submission.GET("/submission/:submission_id/run/:id/comparer_output", controller.GetRunComparerOutput, middleware.Logged).Name = "submission.getRunComparerOutput"
 
+	// solution APIs
+	solution := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id": "NOT_FOUND",
+		}),
+		middleware.Logged, middleware.EmailVerified)
+	api.POST("/solution", controller.CreateSolution,
+		middleware.Logged, middleware.EmailVerified,
+		middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution"}),
+	).Name = "solution.createSolution"
+	solution.GET("/solutions", controller.GetSolutions).Name = "solution.getSolutions"
+	solution.GET("/likes", controller.GetLikes).Name = "solution.likes"
+
+	// solution comments APIs
+	solution_comments := api.Group("",
+		middleware.ValidateParams(map[string]string{
+			"id": "NOT_FOUND",
+		}),
+		middleware.Logged, middleware.EmailVerified)
+	api.POST("/solution/comment", controller.CreateSolutionComment,
+		middleware.Logged, middleware.EmailVerified,
+		middleware.HasPermission(middleware.UnscopedPermission{P: "create_solution_comment"}),
+	).Name = "solution.createSolutionComment"
+	solution_comments.GET("/solution/comments", controller.GetCommentTree).Name = "solution.getSolutionComments"
+
 	// log API
 	api.GET("/admin/logs", controller.AdminGetLogs,
 		middleware.Logged, middleware.EmailVerified,

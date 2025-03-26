@@ -138,6 +138,20 @@ func FindProblem(id string, user *models.User) (*models.Problem, error) {
 	return &problem, nil
 }
 
+func FindSolution(id string) (*models.Solution, error) {
+	solution := models.Solution{}
+	query := base.DB
+	err := query.Where("id = ?", id).First(&solution).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		} else {
+			return nil, errors.Wrap(err, "could not query solution")
+		}
+	}
+	return &solution, nil
+}
+
 // This function checks if the user has permission to get problems which are not public.
 // nil user pointer is regarded as admin(skip the permission judgement).
 func FindTestCase(problemId string, testCaseIdStr string, user *models.User) (*models.TestCase, *models.Problem, error) {
