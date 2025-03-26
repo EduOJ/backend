@@ -12,7 +12,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.4.11
 	github.com/go-webauthn/webauthn v0.8.2
-	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
+	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20210124080349-901cf567bf01
 	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
